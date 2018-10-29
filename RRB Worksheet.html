@@ -1,0 +1,321 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Railroad Retirement Worksheet</title>
+
+<style type="text/css">
+	html {background-color: #cccccc;}
+	body {background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%;}
+	button {cursor: pointer; background-color: lightgreen;}
+	table {background-color: #eeeeee; border-collapse:collapse;}
+	div {background-color: #eeeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 99%;}
+	h1 {text-align: center; font-size: 110%; text-decoration: underline}
+	tr {vertical-align: top;}
+	th {background-color: #c7c7c7;}
+	input {text-align: left;}
+	input, select {background-color: white;}
+	input[type="number"] {width: 4em;}
+	input:disabled, select:disabled {background-color: lightgrey; font-weight: bold;}
+	.bold {font-weight: bold;}
+	.center {text-align: center;}
+	.tblHeader {font-size:110%; font-weight:bold; text-decoration:underline;}
+	.title {font-size:125%; font-weight:bold;}
+	.instruction {font-style: italic; float: right;}
+	.comment {font-style:italic;}
+	.output {width: 6em; border: 1px solid black; text-align: right;}
+	.link {text-decoration:underline; color:purple; cursor:pointer;}
+	.noPrint {float:left;}
+	#ClearAndPrint {text-align: center; float:right; z-level:2; position: absolute; top: 0.5em; right: 1em;}
+	#CalcButton {font-size: 120%;}
+	#IncomeTable {border: 1px solid black; width: 100%}
+	#IncomeTable td, th {padding-right: 1em;}
+	#IncomeTable tr:first-child {border-bottom: 1px solid black}
+	#IncomeTable tr:nth-child(5) {border-top: 1px solid black;}
+	#IncomeTable tr:nth-child(8) {border-top: 1px solid black;}
+	#IncomeTable input {text-align: right; width: 6em;}
+	#ShowColor {background-color: HotPink;}
+	
+	@media print {
+		.doPrint {display:inline;}
+		.noPrint {display:none;}
+		html {background-color: white; font-size: 0.8em;}
+		body {font-size: 0.8em; background-color: white; padding:0; margin:0;}
+		input, select, option {font-size: 0.8em;}
+		table {width: 100%; background-color: white;}
+	}
+</style>
+
+<script type="text/javascript">
+	var VERSION;
+	// --------------------------------------------------------------------------------
+	// Contributors:
+	//	John Kure
+	//	Nancy or Don Metzger
+	// --------------------------------------------------------------------------------
+
+	VERSION = "(Version 1.04, 4/4/2018)";
+	//	Clarified entries in TaxSlayer
+	//VERSION = "(Version 1.03, 2/3/2018)";
+	//	Added test for missing pension allowed limit
+	//	Allowd 0 entries to remove warning pink indicators where appropriate
+	//VERSION = "(Version 1.02, 2/11/2017)";
+	//	Corrected when remaining pension after RRB > allowed said set to 0
+	//VERSION = "(Version 1.01, 2/9/2017)";
+	//	Moved Pension Exclusion Worksheet first to do test for exclusion limits
+	//	Added exclusion limit check
+	//	Corrected a case where 0 should be entered in eligible exempt pension income
+	//VERSION = "(Version 1.00, 2/8/2017)";
+
+	var Error = false;
+	var ErrorColor = "hotpink";
+
+	//----------------------------------------------------------------------------------------
+	function Initialize(){
+	//----------------------------------------------------------------------------------------
+
+	ShowError.style.display = "none";
+
+	}
+
+	//----------------------------------------------------------------------------------------
+	function IncomeCheck(){
+	// This function adds the Income columns
+	//----------------------------------------------------------------------------------------
+		Error = false;
+		SSTP.style.backgroundColor = "";
+		SSSP.style.backgroundColor = "";
+		SSTaxable.style.backgroundColor = "";
+		Tier1TP.style.backgroundColor = "";
+		Tier2TP.style.backgroundColor = "";
+		Tier1SP.style.backgroundColor = "";
+		Tier2SP.style.backgroundColor = "";
+		COAllowedTP.style.backgroundColor = "";
+		COAllowedSP.style.backgroundColor = "";
+		COPensionTP.style.backgroundColor = "";
+		COPensionSP.style.backgroundColor = "";
+
+		test = +SSTP.value + +SSSP.value + +Tier1TP.value + +Tier1SP.value;
+		if ((+SSTaxable.value > test) || ((test > 0) && (SSTaxable.value == ""))) {
+			SSTaxable.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((+Tier1TP.value && ! +Tier2TP.value) && (Tier2TP.value != "0")) {
+			Tier2TP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((+Tier2TP.value && ! +Tier1TP.value) && (Tier1TP.value != "0")) {
+		       	Tier1TP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((+Tier1SP.value && ! +Tier2SP.value) && (Tier2SP.value != "0")) {
+		       	Tier2SP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((+Tier2SP.value && ! +Tier1SP.value) && (Tier1SP.value != "0")) {
+		       	Tier1SP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((+COAllowedTP.value > COPensionTP.value) || ((+COPensionTP.value && (! +COAllowedTP.value) && (COAllowedTP.value != "0")))) {
+			COAllowedTP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((+COAllowedSP.value > COPensionSP.value) || ((+COPensionSP.value && (! +COAllowedSP.value) && (COAllowedSP.value != "0")))) {
+			COAllowedSP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((((+SSTP.value || +Tier1TP.value) && +SSTaxable.value) || +Tier2TP.value) && (+COPensionTP.value == 0)) {
+			COPensionTP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+		if ((((+SSSP.value || +Tier1SP.value) && +SSTaxable.value) || +Tier2SP.value) && (+COPensionSP.value == 0)) {
+			COPensionSP.style.backgroundColor = ErrorColor;
+			Error = true;
+		}
+
+
+		ShowError.style.display = (Error) ? "inline":"none";
+	}
+
+	//----------------------------------------------------------------------------------------
+	function IncomeCalc(){
+	// This function adds the Income columns
+	//----------------------------------------------------------------------------------------
+		IncomeCheck();
+
+		// Determine taxable amounts of SS and Tier1
+		Tier1Total = +Tier1TP.value + +Tier1SP.value;
+		SSTotal = +SSTP.value + +SSSP.value;
+		SSPercent = +SSTaxable.value / (Tier1Total + SSTotal);
+
+		SSTaxableTP = +SSTP.value * SSPercent;	      	
+		SSTaxableSP = +SSSP.value * SSPercent;	      	
+		T1TaxableTP = +Tier1TP.value * SSPercent;
+		T1TaxableSP = +Tier1SP.value * SSPercent;
+
+		RRTP = T1TaxableTP + +Tier2TP.value;
+		RRSP = T1TaxableSP + +Tier2SP.value;
+
+		// Do we need to make adjustments?
+		if (((RRTP == 0) || (+COPensionTP.value == +COAllowedTP.value))
+		&& ((RRSP == 0) || (+COPensionSP.value == +COAllowedSP.value))) {
+			alert("Because the eligible pension income is fully excluded, there is no need to complete this worksheet or make adjustments. The entries will be on the incorrect lines however the final result is correct.");
+			COSubtractMessageTP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+			COSubtractMessageSP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+			COSubtractMessageRR.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+			return;
+		}
+
+		// Remove RRB Tier 1 and Tier 2 from CO retirement amount
+		PensionTP = Math.max(0,+COPensionTP.value - RRTP);
+		//PensionTP = Math.min(PensionTP, COAllowedTP.value);
+		if (RRTP) {
+			if (PensionTP) {
+				COSubtractTP.value = Math.round(PensionTP);
+				COSubtractMessageTP.innerHTML = "";
+			}
+			else {
+				COSubtractTP.value = 0;
+				COSubtractMessageTP.innerHTML = "&nbsp;Enter 0 (do not leave blank)";
+			}
+		}
+		else {
+			COSubtractTP.value = "";
+			COSubtractMessageTP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+		}
+
+		PensionSP = Math.max(0,+COPensionSP.value - RRSP);
+		//PensionSP = Math.min(PensionSP, COAllowedSP.value);
+		if (RRSP) {
+			if (PensionSP) {
+				COSubtractSP.value = Math.round(PensionSP);
+				COSubtractMessageSP.innerHTML = "";
+			}
+			else {
+				COSubtractSP.value = 0;
+				COSubtractMessageSP.innerHTML = "&nbsp;Enter 0 (do not leave blank)";
+			}
+		}
+		else {
+			COSubtractSP.value = "";
+			COSubtractMessageSP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+		}
+
+		if (RRTP || RRSP) {
+			COSubtractRR.value = Math.round(T1TaxableTP + T1TaxableSP + +Tier2TP.value + +Tier2SP.value);
+			COSubtractMessageRR.innerHTML = "";
+		}
+		else {
+			COSubtractRR.value = "";
+			COSubtractMessageRR.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+		}
+
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize();">
+
+<center>
+	<span class="title">Railroad Retirement Worksheet</span>
+	<br /><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+</center>
+
+<span id="ClearAndPrint" class="noPrint">
+	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</span>
+
+	<div id="RRBWorksheet">
+		<span class="tblHeader">Income Worksheet:</span>
+		<br />
+		<br />
+		TaxSlayer incorrectly includes RR retirement benefits in the retirement exclusion.
+		But RR retirement benefits are not taxable in any state, thus has its own exclusion line.
+		Consequently, other retirement exclusions are capped at the 20K/24K limit prematurely.
+		This calculator removes the taxable portions of Tier 1 and Tier 2 RR benefits from the CO retirement
+		amount and totals those RR retirement amounts, all to be entered on the CO &quot;Subtractions from income&quot; page.
+		<br /><br />
+		<b>NOTE: If the person(s) with RR retirement benefits have not reached the maximum pension exclusion (see the CO Pension Exclusion Worksheet), the outcome will be correct, no change is necessary and you do not need to use this worksheet.</b>
+		<ul>
+			<li>The Pension Exclusion Worksheet referenced below is printed with the CO return immediately following the CO 104.</li>
+			<li>Other sources come from the taxpayer's documents or their entry in TaxSlayer.</li>
+			<li>The taxable amount of Social Security benefits from Form 1040 is used to determine how much of the 1099-SSA and RRB 1099 Tier I amounts are taxable. If that box turns red, check all 1099-SSA and Tier 1 amounts also.</li>
+			<li>If any income amounts are subsequently adjusted (e.g.: by QR), remove the state corrections from TaxSlayer and re-calculate.</li>
+		</ul>
+		<table id="IncomeTable" >
+			<tr><th colspan="2">Income Description</th><th>Source</th><th>TP Amount</th><th>SP Amount</th></tr>
+			<tr><td colspan="5"><b>PENSION EXCLUSION WORKSHEET (See return&apos;s PDF):</b></td></tr>
+			<tr><td></td><td>Eligible Pension Income</td><td>Line 1</td>
+				<td><input id="COPensionTP" type="nunber" /></td>
+				<td><input id="COPensionSP" type="nunber" /></td></tr>
+			<tr><td></td><td>Actual Allowable Exclusion</td><td>Line 3</td>
+				<td><input id="COAllowedTP" type="nunber" /></td>
+				<td><input id="COAllowedSP" type="nunber" /></td></tr>
+			<tr><td colspan="5"><b>SOCIAL SECURITY AMOUNTS:</b></td></tr>
+			<tr><td></td><td>Social Security Benefits</td><td>Form 1099-SSA, Box 5</td>
+				<td><input id="SSTP" type="nunber" /></td>
+				<td><input id="SSSP" type="nunber" /></td></tr>
+			<tr><td></td><td><b>Taxable</b> Social Security Benefits</td><td>Form 1040, Line 20b</td>
+				<td colspan="2" class="center"><input id="SSTaxable" type="nunber" /></td></tr>
+			<tr><td colspan="5"><b>RRB AMOUNTS:</b></td></tr>
+			<tr><td></td><td>Tier I Benefits</td><td>RRB 1099, Box 5</td>
+				<td><input id="Tier1TP" type="nunber" /></td>
+				<td><input id="Tier1SP" type="nunber" /></td></tr>
+			<tr><td></td><td>Tier 2 Benefits</td><td>RRB 1099-R, <b>Taxable amount</b></td>
+				<td><input id="Tier2TP" type="nunber" /></td>
+				<td><input id="Tier2SP" type="nunber" /></td></tr>
+<!--
+			<tr><td></td><td>Railroad Benefit Subtraction, tier I or II only</td><td>Colorado 104AD, Line 10</td>
+				<td colspan="2" class="center"><input id="IncomePension" type="nunber" /></td></tr>
+-->
+		</table>
+		<span id="ShowError" class="instruction">The entry above shown as <span id="ShowColor">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> may be an error. Enter 0 if appropriate.<br /></span>
+		<br />
+		<button id="CalcButton" onclick="IncomeCalc();">Click to calculate</button>
+		<br />
+	</div>
+
+	<div>
+		<span class="tblHeader">State Corrections:</span>
+		<br />
+		<br /><i>Enter the following amounts in the State Section, &quot;Subtractions from Income&quot; page:</i>
+		<br />
+		<br />
+		<table id="CorrectionTable">
+			<tr><td>Enter in <u>Pension/Annuity Income</u> page:</td></tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;Taxpayer:</td>
+				<td><input id="COSubtractTP" class="output" readonly /></td>
+				<td><span id="COSubtractMessageTP"></span></td></tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;Spouse:</td>
+				<td><input id="COSubtractSP" class="output" readonly /></td>
+				<td><span id="COSubtractMessageSP"></span></td></tr>
+			<tr><td>&nbsp;</td></tr>
+			<tr><td>Enter in <u>Railroad Benefit Subtraction, Tier I or II Only</u> page:</td></tr>
+			<tr><td></td>
+				<td><input id="COSubtractRR" class="output" readonly /></td>
+				<td><span id="COSubtractMessageRR"></span></td></tr>
+		</table>
+	</div>
+
+	<div class="noPrint">
+	  Please send corrections and suggestions to	<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	  <span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+</div>
+
+</body>

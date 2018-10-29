@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=utf-8">
+<meta name="author" content="Jeff Bogart, Longmont, CO TC">
+<title>Colorado Sales Tax Calculator</title>
+
+<style type="text/css">
+    body {margin:15px; padding:0;}
+    table {border:1px solid black; border-collapse:collapse;}
+    img {text-align:center;}
+    h1 {font-weight: bold; font-size: 14pt; line-height: 1em;}
+    .countymap {text-align:center}
+    .citylisttable td {border:1px solid black;}
+    .countylisttable td {border:1px solid black; width: 100%;}
+    .citylisthead {font-weight:bold; text-align:center;}
+    .countylisthead {font-weight:bold; text-align:center;}
+    .citylistbody {}
+    .countylistbody {cursor:pointer;}
+    .cityname {text-align:left}
+</style>
+        
+<script>
+//***************************************************************************************************
+//                                Global declarations
+//***************************************************************************************************
+var Tax_Year = [];
+var CO_Code = "A";
+var See_County = [];
+var countyIdx;
+var See_City = [];
+var cityIdx;
+var Other_Tax = [];
+var d = new Date(); // set cookie expiration date
+    d.setTime(d.getTime() + (10*366*24*60*60*1000)); // 10 years
+    var expires = "expires="+d.toUTCString()+";";
+</script>
+<script src="Tax_Data/2000_City_County.js"></script>
+<script src="Tax_Data/2015_Local_Tax.js"></script>
+<script src="Tax_Data/2016_Local_Tax.js"></script>
+<script src="Tax_Data/2017_Local_Tax.js"></script>
+<script src="Tax_Data/2018_Local_Tax.js"></script>
+<script>
+//***************************************************************************************************
+//                                Revision history
+//    Nx.nn -> N=code restructure, x=minor code changes, nn=cosmetic changes only
+//***************************************************************************************************
+//                                Known problems
+//***************************************************************************************************
+//                                Enhancement list
+//***************************************************************************************************
+
+
+//***************************************************************************************************
+//                                     Resize
+// Adjust fonts for screen width whenever the window size is changed
+// Input check boxes & radio buttons won't adjust so small font sizes look awkward (sigh)
+//***************************************************************************************************
+function Resize() {
+	return;
+    var BaseFont = 19;
+    var BasePix = 1920;
+    var WinWidth = document.body.clientWidth;
+
+    // Change font size to fit window width
+    zzz.style.fontSize = (WinWidth * BaseFont/BasePix) + "pt";
+}
+
+//***************************************************************************************************
+//                                     Initialize
+// Gets external js files that have city and county data in them
+//***************************************************************************************************
+function Initialize() {
+	cityListHeadElem = document.getElementById("citylisthead");
+	cityListBodyElem = document.getElementById("citylistbody");
+	countyListBodyElem = document.getElementById("countylistbody");
+	for (countyIdx in County_Tax) {
+		cPart = countyIdx.split(":");
+		Tax_Year[cPart[1]] = 1;
+		See_County[cPart[0]] = -1;
+	}
+	trElem1 = document.createElement("tr");
+	cityListHeadElem.appendChild(trElem1);
+
+	tdElem = document.createElement("td");
+	tdElem.innerHTML = "Tax Year &rarr;";
+	trElem1.appendChild(tdElem);
+
+	trElem2 = document.createElement("tr");
+	cityListHeadElem.appendChild(trElem2);
+
+	tdElem = document.createElement("td");
+	tdElem.innerHTML = "City or City/County";
+	trElem2.appendChild(tdElem);
+
+	for (yr in Tax_Year) {
+		tdElem = document.createElement("td");
+		tdElem.innerHTML = yr;
+		tdElem.colSpan = 2;
+		trElem1.appendChild(tdElem);
+
+		tdElem = document.createElement("td");
+		tdElem.innerHTML = "Code";
+		trElem2.appendChild(tdElem);
+
+		tdElem = document.createElement("td");
+		tdElem.innerHTML = "Tax %";
+		trElem2.appendChild(tdElem);
+	}
+
+	var cookie = document.cookie;
+	var cookieList = cookie.split(";");
+	for (cookieIdx = 0; cookieIdx < cookieList.length; cookieIdx++) {
+		cn = cookieList[cookieIdx];
+		while (cn.charAt(0)==' ') cn = cn.substring(1);
+		cnty = cn.split("=");
+		if ((cnty[1] == "ShowMe") && (See_County[cnty[0]] == -1)) See_County[cnty[0]] = 1;
+	}
+	ShowList();
+}
+
+function CountySelect(CountyName) {
+	See_County[CountyName] *= -1; // change display state
+	if (See_County[CountyName] > 0) {
+		document.cookie = CountyName + "=ShowMe;" + expires + " path=/;";
+	}
+	else {
+		document.cookie = CountyName + "=;expires=Thu, 01 Jan 2000 00:00:00 UTC;" + " path=/;";
+	}
+	HideList()
+	ShowList();
+}
+
+function HideList() {
+	while (cityListBodyElem.childNodes.length > 0) {
+		cityListBodyElem.removeChild(cityListBodyElem.firstChild);
+	for (cityIdx in See_City) See_City[cityIdx] = -1;
+	}
+}
+
+function ShowList() {
+	var nonSelected = "(None Selected)";
+	countyList = nonSelected;
+	for (countyIdx in See_County) {
+		if (See_County[countyIdx] == 1) {
+			countyClick = "<span onclick='CountySelect(" + '"' + countyIdx + '"' + ")'>" + countyIdx + "</span>";
+			if (countyList == nonSelected) countyList = countyClick;
+			else countyList += "<br />" + countyClick;
+			for (cityIdx in City_County) {
+				if (City_County[cityIdx] == countyIdx) {
+					See_City[cityIdx] = 1;
+					if (cityIdx.indexOf("/") != -1) { //city is in another county too
+						cityPart = cityIdx.split("/");
+						cityName = cityPart[0];
+						for (cityIdx2 in City_County) {
+							if (cityIdx2.indexOf(cityName) == 0) See_City[cityIdx2] = 1;
+						}
+					}
+				}
+			}
+		}
+	}
+	countyListBodyElem.innerHTML = countyList;
+	for (cityIdx in City_County) {
+		if (See_City[cityIdx] == 1) AddCity(cityIdx);
+	}
+	for (countyIdx in See_County) {
+		if (See_County[countyIdx] == 1) AddCounty(countyIdx);
+	}
+}
+
+function AddCity(cityIdx2) {
+	cityPart = cityIdx2.split("/");
+	cityName = cityPart[0];
+	countyName = cityPart[1];
+	if (countyName == undefined) countyName = City_County[cityName];
+	trElem = document.createElement("tr");
+	cityListBodyElem.appendChild(trElem);
+	cityElem = AddData(trElem,cityIdx2);
+	cityElem.style.textAlign = "left";
+	cityElem.style.cursor = "pointer";
+	cityElem.title = countyName + " County";
+	for (yr in Tax_Year) {
+		for (otherIdx in Other_Tax) Other_Tax[otherIdx] = 0;
+		defined = true;
+		code = CO_Code;
+		tax = 0;
+		cnty = County_Tax[countyName + ":" + yr];
+		if (cnty == undefined) {
+			defined = false;
+			title = "\t" + countyName + " County tax rate unknown";
+		}
+		else {
+			cntys = cnty.split(":");
+			title = cntys[0] + "\t" + countyName + " County tax";
+			tax += +cntys[0];
+			for (cntysIdx = 2; cntysIdx < cntys.length; cntysIdx++) {
+				if (cntys[cntysIdx].indexOf("=") > 0) {
+					cntysx = cntys[cntysIdx].split("=");
+					Other_Tax[cntysx[0]] = cntysx[1];
+				}
+			}
+			if (cntys[1] != "") code = cntys[1];
+		}
+
+		cty = City_Tax[cityIdx2 + ":" + yr];
+		if (cty == undefined) {
+			defined = false;
+			title += "\n???\t" + cityName + " City tax rate unknown";
+		}
+		else {
+			ctys = cty.split(":");
+			title += "\n" + ctys[0] + "\t" + cityName + " City tax";
+			tax += +ctys[0];
+			for (ctysIdx = 2; ctysIdx < ctys.length; ctysIdx++) {
+				if (ctys[ctysIdx].indexOf("=") > 0) {
+					ctysx = ctys[ctysIdx].split("=");
+					Other_Tax[ctysx[0]] = ctysx[1];
+				}
+			}
+			for (otherIdx in Other_Tax) {
+				if (Other_Tax[otherIdx] > 0) {
+					tax += +Other_Tax[otherIdx];
+					title += "\n" + Other_Tax[otherIdx] + "\t" + otherIdx + " tax";
+				}
+			}
+			if (ctys[1] != "") code = ctys[1];
+		}
+
+		tax = "&nbsp;" + tax.toFixed(4) + "&nbsp;";
+		if (! defined) {
+			code = " ";
+			tax = " ";
+		}
+
+		AddData(trElem,code);
+		AddData(trElem,tax,title);
+	}
+}
+
+function AddCounty(countyIdx2) {
+	trElem = document.createElement("tr");
+	cityListBodyElem.appendChild(trElem);
+	countyElem = AddData(trElem,countyIdx2 + " County");
+	countyElem.style.textAlign = "left";
+	countyElem.style.fontWeight = "bold";
+	for (yr in Tax_Year) {
+		for (otherIdx in Other_Tax) Other_Tax[otherIdx] = 0;
+		defined = true;
+		tax = 0
+		code = CO_Code;
+
+		cnty = County_Tax[countyIdx2 + ":" + yr];
+		if (cnty == undefined) {
+			defined = false;
+			title = "\t" + countyIdx2 + " County tax rate unknown";
+		}
+		else {
+			cntys = cnty.split(":");
+			title = cntys[0] + "\t" + countyIdx2 + " County tax";
+			tax += +cntys[0];
+			if (cntys[1] != "") code = cntys[1];
+			for (cntysIdx = 2; cntysIdx < cntys.length; cntysIdx++) {
+				if (cntys[cntysIdx].indexOf("=") > 0) {
+					cntysx = cntys[cntysIdx].split("=");
+					Other_Tax[cntysx[0]] = cntysx[1];
+				}
+			}
+			for (otherIdx in Other_Tax) {
+				if (Other_Tax[otherIdx] > 0) {
+					tax += +Other_Tax[otherIdx];
+					title += "\n" + Other_Tax[otherIdx] + "\t" + otherIdx + " tax";
+					}
+			}
+		}
+
+		tax = "&nbsp;" + tax.toFixed(4) + "&nbsp;";
+		if (! defined) {
+			code = " ";
+			tax = " ";
+		}
+
+		AddData(trElem,code);
+		AddData(trElem,tax,title);
+	}
+}
+
+function AddData(trElem,text,title) {
+	tdElem = document.createElement("td");
+	tdElem.innerHTML = text;
+	if (title != undefined) {
+		tdElem.title = title;
+		tdElem.style.cursor = "pointer";
+	}
+	tdElem.style.textAlign = "center";
+	trElem.appendChild(tdElem);
+	return(tdElem);
+}
+
+</script>
+</head>
+
+<!-- =============================================================================================== -->
+<!-- ==================================== HTML Code Begins Here ==================================== -->
+<!-- =============================================================================================== -->
+
+<body onresize="Resize()" onload="Initialize()">
+<div id="zzz" style="font-family:sans-serif">
+
+<div class="countymap" id="countymap">
+<img src="Images/colorado-county-map.gif" alt="Colorado County Map" width="737" height="540" border="0" usemap="#Map" />
+<map name="Map" id="Map">
+<area shape="poly" coords="1,1,180,1,166,104,1,105" href="#" title="Moffat" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="1,108,209,108,209,123,180,123,167,158,96,177,1,181" href="#" title="Rio Blanco" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="1,185,83,180,182,149,186,126,182,127,209,126,201,147,200,222,1,222" href="#" title="Garfield" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="1,225,166,225,170,236,68,296,67,338,1,338" href="#" title="Mesa" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="71,298,161,246,160,316,70,316" href="#" title="Delta" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="1,341,70,341,70,319,161,319,161,362,93,362,113,385,1,385" href="#" title="Montrose" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="97,363,146,363,159,398,142,418" href="#" title="Ouray" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="1,388,112,388,136,417,126,434,108,424,88,428,83,420,1,421" href="#" title="San Miguel" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="1,424,81,422,87,432,108,428,122,436,110,452,13,454,1,471" href="#" title="Dolores" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="1,476,13,458,111,456,69,538,1,538" href="#" title="Montezuma" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="114,456,162,456,163,538,70,538" href="#" title="La Plata" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="112,453,137,420,148,420,148,413,155,412,163,436,163,453" href="#" title="San Juan" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="156,389,213,389,213,411,200,414,200,482,165,482,164,429,156,408,161,396" href="#" title="Hinsdale" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="165,486,247,487,248,508,267,538,165,538" href="#" title="Archuleta" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="250,487,314,487,315,493,347,492,345,538,269,538,250,507" href="#" title="Conejos" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="201,415,226,413,245,425,244,485,202,485" href="#" title="Mineral" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="248,430,256,430,257,442,314,442,314,485,245,485" href="#" title="Rio Grande" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="348,492,381,457,395,453,405,462,408,538,346,537" href="#" title="Costilla" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="317,442,376,441,372,463,347,489,317,490" href="#" title="Alamosa" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="216,351,320,350,376,420,376,438,259,439,258,430,216,408" href="#" title="Saguache" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="163,244,173,240,185,257,207,259,234,277,246,266,271,286,285,286,271,311,292,348,214,349,213,386,157,386,150,368,163,368" href="#" title="Gunnison" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="257,266,298,267,326,290,323,316,332,328,319,347,295,348,273,313,286,284,269,282,259,272" href="#" title="Chaffee" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="260,264,274,224,302,222,299,264" href="#" title="Lake" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="171,225,273,225,256,271,245,264,234,275,207,256,185,256,167,230" href="#" title="Pitkin" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="204,150,270,150,299,189,290,203,297,221,204,222" href="#" title="Eagle" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="275,149,293,149,317,179,344,188,317,224,299,219,293,202,302,191,280,169,275,157" href="#" title="Summit" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="181,1,226,1,252,23,252,146,213,147,212,105,169,105,170,64,182,53" href="#" title="Routt" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="252,83,300,93,331,83,331,72,355,101,352,158,332,164,326,178,319,178,294,147,254,146" href="#" title="Grand" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="228,1,297,1,333,69,324,86,296,91,256,82,246,58,253,21" href="#" title="Jackson" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="299,1,430,1,429,87,419,87,418,99,354,99" href="#" title="Larimer" onclick="CountySelect(this.title)"/>
+<area style="background-color:red;" shape="poly" coords="357,103,418,102,418,141,405,147,353,145" href="#" title="Boulder" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="355,147,381,147,382,169,373,169,353,157" href="#" title="Gilpin" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="329,179,333,166,354,159,372,171,381,172,381,194,340,195,344,188" href="#" title="Clear Creek" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="304,229,341,198,381,198,381,256,389,256,389,311,326,312,330,292,302,271" href="#" title="Park" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="392,257,420,257,421,287,416,301,430,301,430,318,401,318,392,311" href="#" title="Teller" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="329,315,398,315,399,321,430,321,430,371,341,370,321,348,334,327" href="#" title="Fremont" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="344,373,418,374,420,415,408,404,379,422" href="#" title="Custer" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="380,424,408,406,422,423,462,422,491,432,455,480,409,499,405,457,394,452,374,462" href="#" title="Huerfano" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="410,501,455,483,493,433,523,444,523,455,626,456,625,538,410,538" href="#" title="Las Animas" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="629,456,734,455,735,538,629,538" href="#" title="Baca" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="665,373,734,372,735,452,665,453" href="#" title="Prowers" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="595,373,662,373,661,453,595,452" href="#" title="Bent" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="526,390,567,392,584,374,592,373,591,452,526,452" href="#" title="Otero" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="433,339,523,339,522,440,466,420,423,419,422,374,433,374" href="#" title="Pueblo" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="344,373,418,374,419,415,408,403,379,422" href="#" title="Custer" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="527,339,580,339,581,379,565,390,526,386" href="#" title="Crowley" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="584,338,619,338,619,326,734,326,734,368,585,370" href="#" title="Kiowa" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="620,269,734,268,734,322,619,323" href="#" title="Cheyenne" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="562,198,618,198,616,334,526,335,526,292,562,291" href="#" title="Lincoln" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="424,257,523,257,523,334,433,335,433,298,419,298,423,288" href="#" title="El Paso" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="393,253,420,197,459,198,459,253" href="#" title="Douglas" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="463,198,559,198,558,288,526,288,527,254,462,253" href="#" title="Elbert" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="622,198,733,196,734,264,620,266" href="#" title="Kit Carson" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="661,79,734,78,734,192,658,194" href="#" title="Yuma" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="674,35,734,35,734,74,672,74" href="#" title="Phillips" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="674,1,734,1,734,32,674,32" href="#" title="Sedgwick" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="577,1,671,1,669,74,588,76,588,64,576,63" href="#" title="Logan" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="588,79,657,78,655,193,563,194,563,138,588,137" href="#" title="Washington" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="517,67,585,67,584,135,516,135" href="#" title="Morgan" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="358,103,417,102,418,138,405,147,354,145" href="#" style="visibility:none" title="Boulder" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="405,150,411,144,417,144,420,136,430,129,433,130,433,136,425,147,415,151" href="#" title="Broomfield" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="425,108,488,108,488,117,425,117" href="#" title="Broomfield" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="433,1,574,1,573,63,514,64,513,135,435,135,435,127,430,128,425,134,421,133,421,90,433,89" href="#" title="Weld" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="433,142,467,142,467,148,433,148" href="#" title="Denver" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="420,166,446,164,454,151,467,151,464,160,455,161,433,184,419,186" href="#" title="Denver" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="384,150,418,152,419,197,391,254,384,253" href="#" title="Jefferson" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="439,174,560,174,560,194,421,194,420,186,440,186" href="#" title="Arapahoe" onclick="CountySelect(this.title)"/>
+<area shape="poly" coords="432,138,559,138,560,171,444,171,467,160,466,149,453,149,444,162,421,163,421,154" href="#" title="Adams" onclick="CountySelect(this.title)"/>
+</map>
+</div> <!-- end of countymap -->
+
+<div class="citylist" id="citylist">
+	<center>
+	<h1>Local Sales Tax Table</h1>
+	(Colorado Sales Tax Rate = 2.9%)
+	<br /><br />Click the county on the map above to add or remove cities in that county.
+	<table style="border:0;">
+		<tr><td style="width:20%; vertical-align:top;">
+			<table class='countylisttable' id='countylisttable'>
+			<thead class='countylisthead' id='countylisthead'></thead>
+			<tr><td style="text-align:center;"><span style="font-weight:bold;">Counties&nbsp;Selected</span>
+					<br />(Click to unselect)</td></tr>
+				<tbody><tr><td class='countylistbody' id='countylistbody'>(None selected)</td></tr></tbody>
+			</table>
+			<p>For cities not listed, use the county numbers at the bottom of the table</p>
+			<p>Hover over the "Tax&nbsp;%" figure for sales tax amounts included</p>
+			<p>If you're trying to figure out what a client's earlier year's sales tax amount was to determine taxable amount for a state refund, use the <a href="http://apps.irs.gov/app/stdc/" target="_blank">IRS Sales Tax Deduction calculation page</a>.</p>
+			<p><b>TaxSlayer Note:</b><br />
+			TaxSlayer uses the zip code to determine the letter code for the local sales tax table and is not always correct.
+			If the taxpayer&apos;s zip code corresponds to a city with a letter code that is different than the county
+			and the taxpayer resides outside the city limits,
+			<ol>
+				<li>Enter a zipcode in the TS Sales Tax Worksheet that corresponds to another city
+					with the same letter code as the county.</li>
+				<li>Then, use the county sales tax amounts.</li>
+			</ol>
+		</td><td style="width:5%;">	
+		</td><td style="vertical-align:top;">	
+			<table class='citylisttable' id='citylisttable'>
+			<thead class='citylisthead' id='citylisthead'></thead>
+			<tbody class='citylistbody' id='citylistbody'></tbody>
+			</table>
+		</td></tr>
+	</table>
+</center>
+</div> <!-- end of citylist -->
+
+</div> <!-- end of zzz -->
+
+</body>
+</html>

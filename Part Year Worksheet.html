@@ -1,0 +1,1227 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>CO Part Year Worksheet</title>
+
+<style type="text/css">
+	html { background-color: #ccccaa; }
+	body { background-color: #ccccaa; font-family: sans-serif; font-size: 0.9em; padding: 0 2.5% 0 2.5%; }
+	button { cursor: pointer; background-color: lightgreen; }
+	table { background-color: #eeeeaa; border-collapse:collapse; }
+	table { border-top: 1px solid #d1d1a1; }
+	div { background-color: #eeeeaa; padding: 5px; border:1px solid black; }
+	h1 { text-align: left; font-size: 110%; text-decoration: underline}
+	tr { vertical-align: middle; }
+	input, select { background-color: white; }
+	input[type="radio"] { margin-left: 1em; }
+	select option { min-height: 1em; padding: 1px; }
+	input[type="number"] { text-align: right; width:6em; }
+	select { width: 8em; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+
+	.groupheader { font-weight: bold; }
+	.title { font-size:125%; font-weight: bold; }
+	.instruction { text-align: right; text-decoration: italic; }
+	.comment { font-style:italic; }
+	.calculated { text-align: right; }
+
+	#TSInput { font-size: 140%; font-weight: bold; text-align: center; }
+	#FilingStatus, #TaxYear { width: 6em; }
+	#FilingInfoTable tr td:first-child,
+	#ResidencyTable tr td:first-child { width: 3em; }
+	#FilingInfoTable tr td:nth-child(2),
+	#ResidencyTable tr td:nth-child(2) { width: 6em; }
+
+	//#DistTable tr td { border: 1px solid black; }
+	#DistTable { max-width: 100%; overflow: scroll; }
+	#DistTable tr td:first-child  { width: 3em; }
+	#DistTable tr td:nth-child(2) select { width: 15em; }
+	#DistTable tr td:nth-child(2) { width: 1em; }
+	#DistTable tr td:nth-child(3) { width: 1em; }
+	#DistTable tr td:nth-child(4) { width: 3em; }
+	#DistTable tr td:nth-child(4) select { width: 3em; }
+	#DistTable tr td:nth-child(5),
+	#DistTable tr td:nth-child(6) { width: 4em; }
+	#DistTable tr td:nth-child(5) select,
+	#DistTable tr td:nth-child(6) select { width: 4em; }
+	#DistTable tr td:nth-child(7) { width: 1em; }
+	#DistTable tr td:nth-child(8) { width: 4em; font-size: 60%; }
+	#DistTable tr td:nth-child(9),
+	#DistTable tr td:nth-child(10) { width: 6em; text-align: center; }
+
+	#TSMessageDiv {
+		display: none;
+	}
+	#TSMessage {
+		color: red;
+	}
+
+	.SumTable td:first-child  { width: 3em; }
+	.SumTable td:nth-child(2) { width: 24em; border-bottom: 1px solid tan; }
+	.SumTable td:nth-child(3),
+	.SumTable td:nth-child(4) {
+		width: 5em;
+		text-align: right;
+		right-margin: 2em;
+		border-bottom: 1px solid tan;
+	}
+
+	#TotalsDiv { display: none; }
+
+	#ClearAndPrint { width: 16em; 
+		text-align:center; 
+		border:0;
+	       	background-color:transparent;
+		z-index:2;
+		position:absolute; top:0; right:1em;
+	}
+	#ClearAndPrint button { margin: 2px; }
+	
+	@media print {
+		.doPrint { display:inline; }
+		.noPrint { display:none; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
+		div { background-color: white; }
+		input, select, option { font-size: 0.8em; }
+		table { width: 100%; background-color: white; }
+		#CODiv { page-break-inside: avoid; page-break-after: always; }
+		button { display: none; }
+	}
+</style>
+
+<script src="CommonRoutines.js"></script>
+<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2015.js"></script>
+<script src="Tax_Data/IRS_2016.js"></script>
+<script src="Tax_Data/IRS_2017.js"></script>
+<script src="Tax_Data/IRS_2018.js"></script>
+<script type="text/javascript">
+	// --------------------------------------------------------------------------------
+	// Contributors:
+	// --------------------------------------------------------------------------------
+
+	// --------------------------------------------------------------------------------
+	// CHANGE HISTORY:
+	var VERSION = "(Version 1.03, 6/6/2018)";
+	//	Added buttons to show or hide the Summary Totals section
+	//	Hide the TS Subtractions form if not needed
+	//var VERSION = "(Version 1.02, 1/25/2018)";
+	//	Added From and To fields
+	//	Added Subtraction from income form entries and work-around
+	//var VERSION = "(Version 1.01, 1/22/2018)";
+	//	Minor comment changes
+	//	Defaulted jury duty pay to employer & similar to 100% Colorado
+	//	Removed pension/SS/RRB subtractions from option list
+	//var VERSION = "(Version 1.00, 1/13/2018)";
+	// --------------------------------------------------------------------------------
+
+	// Globals:
+	var newgrp;
+	var ItemCount = 0;
+	var StateSum = []; // index is description
+	var OtherSum = []; // index is description
+	var TypeName = []; // index is description
+	var Line = []; // index is line number
+	var DaysPerYear = 0;
+	var TPAnnuityLimit = 0;
+	var SPAnnuityLimit = 0;
+	var TPAnnuityState = 0;
+	var SPAnnuityState = 0;
+	var TPAnnuityTotal = 0;
+	var SPAnnuityTotal = 0;
+	var TPSSState = 0;
+	var SPSSState = 0;
+	var TPSSTotal = 0;
+	var SPSSTotal = 0;
+	var TPSSAlloc = 0;
+	var SPSSAlloc = 0;
+	var SSPercent = 0;
+	var SPtracksTPFrom = true;
+	var SPtracksTPTo = true;
+	var TPFromMonth = 1;
+	var SPFromMonth = 1;
+	var TPToMonth = 12;
+	var SPToMonth = 12;
+	var TPPercent;
+	var SPPercent;
+	var FedEarnedIncome = 0;
+	var FedGrossIncome = 0;
+	var FedSSAmount = 0;
+	var FedSSAGI = 0;
+	var FedSSTFI = 0;
+	var TPExcl = 0;
+	var SPExcl = 0;
+	var TPPensionAlloc = 0;
+	var SPPensionAlloc = 0;
+	var TPRRB1Total = 0;
+	var SPRRB1Total = 0;
+	var RRBTotal = 0;
+	var HasRRB = false;
+	var StateEarnedIncome = 0;
+	var StateGrossIncome = 0;
+	var SumTableMade = false;
+	var DaysPerMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+	//----------------------------------------------------------------------------------------
+	function Initialize() {
+	// This function adds tax year options to the Filing Information section
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		TaxYear.length = 0;
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+		TaxYear.value = _DefaultYear
+
+		// Initialize dates to full current tax year
+		TPFrom.value = "1";
+		TPTo.value = 12;
+
+		// Calculate % in state and create the first data item
+		FilingStatus.value = "MFJ";
+		Create_Item();
+		Res_Change("FilingStatus");
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Res_Change(WhatChanged) {
+	// Calculates the values for TaxSlayer inputs
+	//----------------------------------------------------------------------------------------
+		// Get the months in state
+		TPFromMonth = TPFrom.value;
+		TPToMonth = TPTo.value;
+		SPFromMonth = SPFrom.value;
+		SPToMonth = SPTo.value;
+
+		// Show spouse dates if filing MFJ
+		if (WhatChanged == "FilingStatus") {
+			MFSquestion.style.display = "none";
+			MFStogether.checked = false;
+			switch (FilingStatus.value) {
+				case "MFJ":
+					SpouseDates.style.display = "table-row";
+					SPtracksTPFrom = true;
+					SPtracksTPTo = true;
+					break;
+				case "MFS":
+					MFSquestion.style.display = "inline";
+					// no break
+				default:
+					SpouseDates.style.display = "none";
+					SPtracksTPFrom = true;
+					SPtracksTPTo = true;
+			}
+		}
+
+		// Is the SP tracking the TP dates?
+		if (WhatChanged == "SP") {
+			SPtracksTPFrom = (TPFromMonth == SPFromMonth);
+			SPtracksTPTo = (TPToMonth == SPToMonth);
+		}
+
+		// Default the SP dates to TP dates if the same as TP
+		if (SPtracksTPFrom) {
+			SPFromMonth = TPFromMonth;
+			SPFrom.value = SPFromMonth;
+		}
+		if (SPtracksTPTo) {
+			SPToMonth = TPToMonth;
+			SPTo.value = SPToMonth;
+		}
+
+		TPAgeList = document.getElementsByName("TPLimits");
+		SPAgeList = document.getElementsByName("SPLimits");
+		for (j = 0; j < 3; j++) {
+			if (TPAgeList[j].checked) TPAnnuityLimit = +TPAgeList[j].value;
+			if (SPAgeList[j].checked) SPAnnuityLimit = +SPAgeList[j].value;
+		}
+
+		// Calculate and show the percentages
+		TPPercent = (TPToMonth - TPFromMonth + 1) / 12;
+		TPPercentShow.innerHTML = Math.round(1000000 * TPPercent) / 10000;
+		SPPercent = (SPToMonth - SPFromMonth + 1) / 12;
+		SPPercentShow.innerHTML = Math.round(1000000 * SPPercent) / 10000;
+		if (ItemCount) for (j = 1; j <= ItemCount; j++) {
+			Data_Change("Recalc", j); // emulate a click on the entry line
+		}
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Data_Change(type, row) {
+	// Calculates the values for TaxSlayer inputs
+	//----------------------------------------------------------------------------------------
+		Adjustptr = document.getElementById("Adj" + row);
+
+		if (type == "Recalc") {
+			if (Adjustptr.innerHTML != "") return;
+			type = "Calc";
+		}
+
+		Typeptr =   document.getElementById("Typ" + row);
+		Amountptr = document.getElementById("Amt" + row);
+		Stateptr =  document.getElementById("Sta" + row);
+		Otherptr =  document.getElementById("Oth" + row);
+		Ownerptr =  document.getElementById("Own" + row);
+		Fromptr =   document.getElementById("From" + row);
+		Toptr =     document.getElementById("To" + row);
+
+		
+		// Set default owner
+		switch (Typeptr.value) {
+			case "W-2_wages":
+			case "Self_Employment":
+			case "Gross_Social_Security":
+			case "Gross_RRB_Tier1":
+			case "Taxable_RRB_Tier2":
+			case "Taxable_Annuity/Pension":
+			case "Unemployment":
+				if (Ownerptr.value == "J") Ownerptr.options.selectedIndex = 2; // TP
+				break;
+		}
+
+		Typeptr.style.backgroundColor = ((Typeptr.value == "?") && (Amountptr.value > 0)) ? "lightpink" : "white";
+
+		switch (type) {
+			case "Amount":
+				// Check for zero or errors
+				Amountptr.value = Math.round(+Amountptr.value);
+				if (isNaN(Amountptr.value) || (Amountptr.value === "0")) {
+					Amountptr.value = "";
+					Stateptr.value = "";
+					Otherptr.value = "";
+				}
+
+				// See if we need a new entry line
+				if (row == ItemCount) {
+					lastentryId = document.getElementById("Amt" + ItemCount);
+					if (lastentryId.value != "") Create_Item();
+				}
+				if (Typeptr.value != "?") Data_Change("Calcx", row);
+				break;
+
+			case "From":
+			case "To":
+				if (+Fromptr.value > +Toptr.value) {
+					alert("\"From\" date cannot be later than the \"To\" date.");
+					Toptr.value = Fromptr.value;
+					return;
+				}
+			case "Owner":
+			case "Type": // Display From/To options?
+				switch (Typeptr.value) {
+					case "Alimony_paid":
+					case "CO_Capital_gain_subtraction":
+					case "College_tuition_contribution":
+					case "Ded_part_of_self_empl_tax":
+					case "Early_withdrawal_penalty":
+					case "Educator_expense":
+					case "HSA deduction":
+					case "IRA_deduction":
+					case "Jury_duty_pay_to_employer":
+					case "Moving_expenses":
+					case "Other_Addition":
+					case "Other_Adjustment":
+					case "Other_Subtraction":
+					case "PERA/DPSRS_subtraction":
+					case "Qualfied_reservation_income":
+					case "RRB_Tier1_subtraction":
+					case "RRB_Tier2_subtraction":
+					case "State_income_tax_subtraction":
+					case "Student_loan_interest":
+					case "Tuition_and_Fees":
+						Fromptr.style.display = Toptr.style.display = "none";
+						break;
+					default:
+						Fromptr.style.display = Toptr.style.display = "table-cell";
+				}
+				if (Amountptr.value) Data_Change("Calcx", row);
+				break;
+
+			case "Calc":
+				Adjustptr.innerHTML = "";
+				// no break
+			case "Calcx": // Determine Colorado vs Other State shares
+				if (Amountptr.value.trim() === "") break;
+				if (Adjustptr.innerHTML !== "") break;
+				switch (Typeptr.value) {
+					case "Alimony_paid":
+					case "Ded_part_of_self_empl_tax":
+					case "Educator_expense":
+					case "HSA deduction":
+					case "IRA_deduction":
+						StateShare = (FedEarnedIncome) ? StateEarnedIncome / FedEarnedIncome : 0;
+						break;
+					case "Student_loan_interest":
+					case "Tuition_and_Fees":
+						StateShare = (FedEarnedIncome) ? StateGrossIncome / FedGrossIncome : 0;
+						break;
+					case "Interest-tax-free_non-CO":
+					case "Early_withdrawal_penalty":
+					case "CO_Capital_gain_subtraction":
+					case "College_tuition_contribution":
+					case "Interest-CO_1st_Time_Home":
+					case "Jury_duty_pay_to_employer":
+					case "Moving_expenses":
+					case "Other_Addition":
+					case "Other_Adjustment":
+					case "Other_Subtraction":
+					case "PERA/DPSRS_subtraction":
+					case "Qualfied_reservation_income":
+					case "RRB_Tier1_subtraction":
+					case "RRB_Tier2_subtraction":
+					case "State_income_tax_subtraction":
+						StateShare = 1;
+						break;
+					default: // All income amounts
+						switch (Ownerptr.value) {
+							case "T": TPShare = 1; SPShare = 0; break;
+							case "S": TPShare = 0; SPShare = 1; break;
+							case "J": TPShare = 0.5; SPShare = 0.5; break;
+						}
+						fidx = Fromptr.options.selectedIndex + 1; 
+						tidx = Toptr.options.selectedIndex + 1; 
+						accountmonths = tidx - fidx + 1;
+						TPmonths = Math.max(0, Math.min(TPToMonth, tidx) - Math.max(TPFromMonth, fidx) + 1);
+						SPmonths = Math.max(0, Math.min(SPToMonth, tidx) - Math.max(SPFromMonth, fidx) + 1);
+						StateShare = ((TPShare * TPmonths) + (SPShare * SPmonths)) / accountmonths;
+					}
+				Stateptr.value = Math.round(+Amountptr.value * StateShare);
+				Otherptr.value = +Amountptr.value - Stateptr.value;
+				Adjustptr.innerHTML = "";
+				break;
+
+			case "State": // Adjust Other for manual change in Colorado amount
+				if (+Stateptr.value > +Amountptr.value) {
+					alert("You cannot enter more than what's in the amount column.");
+					return;
+				}
+				Stateptr.value = Math.round(+Stateptr.value);
+				Otherptr.value = +Amountptr.value - Stateptr.value;
+				Adjustptr.innerHTML = "Manually<br />Adjusted";
+				break;
+
+			case "Other": // Adjust Colorado for manual change in Other amount
+				if (+Otherptr.value > +Amountptr.value) {
+					alert("You cannot enter more than what's in the amount column.");
+					return;
+				}
+				Otherptr.value = Math.round(+Otherptr.value);
+				Stateptr.value = +Amountptr.value - Otherptr.value;
+				Adjustptr.innerHTML = "Manually<br />Adjusted";
+				break;
+		}
+
+		Get_Totals();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Get_Totals() {
+	// Sums like items
+	//----------------------------------------------------------------------------------------
+		// Initialize the sum objects
+		for (var sumtype in StateSum) {
+			if (sumtype == "?") continue;
+			StateSumptr = document.getElementById(sumtype + "TotalState");
+			StateSumptr.innerHTML = StateSum[sumtype] = 0;
+			OtherSumptr = document.getElementById(sumtype + "TotalOther");
+			OtherSumptr.innerHTML = OtherSum[sumtype] = 0;
+		}
+		FedEarnedIncome = 0;
+		FedGrossIncome = 0;
+		StateEarnedIncome = 0;
+		StateSSIncome = 0;
+		StateGrossIncome = 0;
+		TPAnnuityState = 0;
+		SPAnnuityState = 0;
+		TPAnnuityTotal = 0;
+		SPAnnuityTotal = 0;
+		TPSSState = 0;
+		SPSSState = 0;
+		TPSSTotal = 0;
+		SPSSTotal = 0;
+		TPSSAlloc = 0;
+		SPSSAlloc = 0;
+		HasRRB = false;
+		TPRRB1Total = 0;
+		SPRRB1Total = 0;
+		TPRRB2Total = 0;
+		SPRRB2Total = 0;
+		RRBTotal = 0;
+		FedSSAmount = 0;
+		FedSSAGI = 0;
+		FedSSTFI = 0;
+		
+		// Add each row's value to its respective sum property
+		for (row = 1 ; row <= ItemCount ; row++) {
+			Typeptr  = document.getElementById("Typ" + row);
+			Amountptr = document.getElementById("Amt" + row);
+			Stateptr = document.getElementById("Sta" + row);
+			Otherptr = document.getElementById("Oth" + row);
+			Ownerptr = document.getElementById("Own" + row);
+
+			// Figure earned and gross incomes and AGI without SS
+			switch (Typeptr.value) {
+				case "W-2_wages":
+				case "Self_Employment":
+					FedEarnedIncome += +Amountptr.value;
+					StateEarnedIncome += +Stateptr.value;
+					// no break
+				case "Taxable_Annuity/Pension":
+				case "Capital_Gain/Loss":
+				case "Dividend":
+				case "Interest":
+				case "Other":
+				case "Rent":
+				case "Royalty":
+				case "Taxable_RRB_Tier2":
+				case "Unemployment":
+					FedGrossIncome += +Amountptr.value;
+					StateGrossIncome += +Stateptr.value;
+					FedSSAGI += +Amountptr.value;
+					break;
+
+				case "Gross_Social_Security":
+				case "Gross_RRB_Tier1":
+					FedSSAmount += +Amountptr.value;
+					break;
+
+				case "Educator_expense":
+				case "HSA deduction":
+				case "Moving_expenses":
+				case "Ded_part_of_self_empl_tax":
+				case "Early_withdrawal_penalty":
+				case "Alimony_paid":
+				case "IRA_deduction":
+				case "Student_loan_interest":
+				case "Tuition_and_Fees":
+				case "Jury_duty_pay_to_employer":
+				case "Other_Adjustment":
+					FedSSAGI -= +Amountptr.value;
+					break;
+
+				case "Interest-gov":
+				case "Interest-tax-free_non-CO":
+				case "Interest-CO_1st_Time_Home":
+					FedSSTFI += +Amountptr.value;
+					break;
+			}
+			
+			// Total TP/SP retirement totals for exclusion limit
+			switch (Typeptr.value) {
+				case "Taxable_Annuity/Pension":
+					if (Ownerptr.value == "T") {
+						TPAnnuityState += +Stateptr.value;
+						TPAnnuityTotal += +Amountptr.value;
+					}
+					if (Ownerptr.value == "S") {
+						SPAnnuityState += +Stateptr.value;
+						SPAnnuityTotal += +Amountptr.value;
+					}
+					break;
+				case "Gross_Social_Security":
+					if (Ownerptr.value == "T") {
+						TPSSState += +Stateptr.value;
+						TPSSTotal += +Amountptr.value;
+					}
+					if (Ownerptr.value == "S") {
+						SPSSState += +Stateptr.value;
+						SPSSTotal += +Amountptr.value;
+					}
+					break;
+				case "Gross_RRB_Tier1":
+					if (Ownerptr.value == "T") TPRRB1Total += +Stateptr.value;
+					if (Ownerptr.value == "S") SPRRB1Total += +Stateptr.value;
+					HasRRB = true;
+					RRBTotal += +Amountptr.value;
+					break;
+				case "Taxable_RRB_Tier2":
+					if (Ownerptr.value == "T") TPRRB2Total += +Stateptr.value;
+					if (Ownerptr.value == "S") SPRRB2Total += +Stateptr.value;
+					HasRRB = true;
+					RRBTotal += +Amountptr.value;
+					break;
+			}
+
+			// Total for each category
+			if ((sumtype = Typeptr.value) == "?") continue;
+			StateSumptr = document.getElementById(sumtype + "TotalState");
+			StateSumptr.innerHTML = StateSum[sumtype] += +Stateptr.value;
+			OtherSumptr = document.getElementById(sumtype + "TotalOther");
+			OtherSumptr.innerHTML = OtherSum[sumtype] += +Otherptr.value;
+		}
+
+		// Get new taxable amount of SS/Tier1 based on changes made
+		result = _TaxableSS(TaxYear.value, FilingStatus.value, FedSSAmount, FedSSAGI + FedSSTFI, 0, false);
+		if (FedSSAmount) SSPercent = +result[0] / FedSSAmount;
+
+		// Reduce SS/Tier1 totals
+		Gross_Social_SecurityTotalState.innerHTML =
+			StateSum["Gross_Social_Security"] = Math.round(StateSum["Gross_Social_Security"] * SSPercent);
+		Gross_Social_SecurityTotalOther.innerHTML =
+			OtherSum["Gross_Social_Security"] = Math.round(OtherSum["Gross_Social_Security"] * SSPercent);
+		Gross_RRB_Tier1TotalState.innerHTML = 
+			StateSum["Gross_RRB_Tier1"] = Math.round(StateSum["Gross_RRB_Tier1"] * SSPercent);
+		Gross_RRB_Tier1TotalOther.innerHTML = 
+			OtherSum["Gross_RRB_Tier1"] = Math.round(OtherSum["Gross_RRB_Tier1"] * SSPercent);
+		TPSSAlloc = Math.round(TPSSState * SSPercent);
+		SPSSAlloc = Math.round(SPSSState * SSPercent);
+		TPSSTotal = Math.round(TPSSTotal * SSPercent);
+		SPSSTotal = Math.round(SPSSTotal * SSPercent);
+
+		// Add subtractions for RRB retirement accounts
+		RRB_Tier1_subtractionTotalState.innerHTML =
+			StateSum["RRB_Tier1_subtraction"] = StateSum["Gross_RRB_Tier1"];
+		RRB_Tier1_subtractionTotalOther.innerHTML =
+			OtherSum["RRB_Tier1_subtraction"] = OtherSum["Gross_RRB_Tier1"];
+		RRB_Tier2_subtractionTotalState.innerHTML =
+			StateSum["RRB_Tier2_subtraction"] = StateSum["Taxable_RRB_Tier2"];
+		RRB_Tier2_subtractionTotalOther.innerHTML =
+			OtherSum["RRB_Tier2_subtraction"] = OtherSum["Taxable_RRB_Tier2"];
+
+		// Apply limits to retirement accounts (used getElementById due to "/")
+		TPState = TPAnnuityState + TPSSAlloc;
+		StateSum["Taxpayer_Annuity/Pension_exclusion"] =
+			TPExcl = Math.min(TPState, TPAnnuityLimit); 
+		document.getElementById("Taxpayer_Annuity/Pension_exclusionTotalState").innerHTML = TPExcl;
+		TPPensionAlloc = Math.max(0, TPState - TPExcl);
+		TPTotal = TPAnnuityTotal + TPSSTotal;
+		TPTotalExcl = Math.min(TPTotal, TPAnnuityLimit); 
+		SPState = SPAnnuityState + SPSSAlloc;
+		StateSum["Spouse_Annuity/Pension_exclusion"] =
+			SPExcl = Math.min(SPState, SPAnnuityLimit); 
+		document.getElementById("Spouse_Annuity/Pension_exclusionTotalState").innerHTML = SPExcl;
+		SPPensionAlloc = Math.max(0, SPState - SPExcl);
+		SPTotal = SPAnnuityTotal + SPSSTotal;
+		SPTotalExcl = Math.min(SPTotal, SPAnnuityLimit); 
+
+		CO_Totals();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function CO_Totals() {
+	// Sums like items for Colorado TS input
+	//----------------------------------------------------------------------------------------
+
+		COInterest.innerHTML = 0
+			+ StateSum["Interest"]
+			+ StateSum["Interest-CO_1st_Time_Home"]
+			+ StateSum["Interest-CO_1st_Time_Home"]
+			+ StateSum["Interest-gov"]
+			+ StateSum["Dividend"];
+		COBusiness.innerHTML = 0
+			+ StateSum["Self_Employment"];
+		COCapitalGains.innerHTML = 0
+			+ StateSum["Capital_Gain/Loss"]; 
+		COAnnuities.innerHTML = 0
+			+ StateSum["Taxable_Annuity/Pension"]
+			+ StateSum["Gross_Social_Security"]
+			+ StateSum["Gross_RRB_Tier1"]
+			+ StateSum["Taxable_RRB_Tier2"];
+		CORoyalties.innerHTML = 0
+			+ StateSum["Rent"]
+			+ StateSum["Royalty"];
+		COUnemployment.innerHTML = 0
+			+ StateSum["Unemployment"];
+		COOtherIncome.innerHTML = 0
+			+ StateSum["Other"];
+		COAdjustments.innerHTML = 0
+			+ StateSum["Other_Adjustment"]
+			+ StateSum["Educator_expense"]
+			+ StateSum["HSA deduction"]
+			+ StateSum["Moving_expenses"]
+			+ StateSum["Ded_part_of_self_empl_tax"]
+			+ StateSum["Early_withdrawal_penalty"]
+			+ StateSum["Alimony_paid"]
+			+ StateSum["Tuition_and_Fees"]
+			+ StateSum["IRA_deduction"]
+			+ StateSum["Student_loan_interest"]
+			+ StateSum["Jury_duty_pay_to_employer"];
+		COAdditions.innerHTML = 0
+			+ StateSum["Other_Addition"]
+			+ StateSum["Interest-tax-free_non-CO"];
+		COSubtractions.innerHTML = 0
+			+ StateSum["Interest-gov"]
+			+ StateSum["Dividend-CO_or_gov_adjust"]
+			+ StateSum["Interest-CO_1st_Time_Home"]
+			+ StateSum["Taxpayer_Annuity/Pension_exclusion"]
+			+ StateSum["Spouse_Annuity/Pension_exclusion"]
+			+ StateSum["CO_Capital_gain_subtraction"]
+			+ StateSum["College_tuition_contribution"]
+			+ StateSum["Qualfied_reservation_income"]
+			+ StateSum["PERA/DPSRS_subtraction"]
+			+ StateSum["RRB_Tier1_subtraction"]
+			+ StateSum["RRB_Tier2_subtraction"]
+			+ StateSum["State_income_tax_subtraction"]
+			+ StateSum["Other_Subtraction"];
+
+		// Set up for TaxSlayer problem correction
+		AnnuityPart = TPState + SPState;
+		testsum = TPTotalExcl + SPTotalExcl;
+		COPensionAdjust.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal = testsum
+
+		testsum = StateSum["CO_Capital_gain_subtraction"];
+		COCapGain.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal += testsum;
+
+		testsum = StateSum["College_tuition_contribution"];
+		COTuition.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal += testsum;
+
+		testsum = StateSum["Qualfied_reservation_income"];
+		COReservation.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal += testsum;
+
+		testsum = StateSum["PERA/DPSRS_subtraction"];
+		COPERA.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal += testsum;
+
+		RRBAdjust = StateSum["RRB_Tier1_subtraction"] + StateSum["RRB_Tier2_subtraction"];
+		if ((AnnuityPart + RRBAdjust) > (TPAnnuityLimit + SPAnnuityLimit)) {
+			CORRBAdjust.innerHTML = (RRBAdjust) ? RRBAdjust : "leave&nbsp;blank";
+			COPensionAdjust.innerHTML = AnnuityPart; // may be 0
+		}
+		SFItotal += RRBAdjust;
+
+		testsum	= StateSum["Interest-CO_1st_Time_Home"];
+		COHomeBuyer.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal += testsum;
+
+		testsum	= StateSum["Other_Subtraction"];
+		COOtherSubtractions.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal += testsum;
+
+		if ((TaxYear.value == 2017) && (SFItotal > (TPAnnuityLimit + SPAnnuityLimit))) {
+			var message = "<h1>TaxSlayer cannot produce an accurate partial year return for Colorado for this taxpayer.</h1>";
+			message += "<ol>";
+			message += "<li>Print the Colorado return from TaxSlayer and modify forms as follows:</li>";
+			message += "<li>CO form 104:";
+			message += "<ul>";
+			message += "<li>change line 5 to $" + SFItotal + "</li>";
+			message += "</ul></li>";
+			message += "<li>CO form 104AD:";
+			message += "<ul>";
+			message += "<li>change line 1 (State income tax subtraction) to $" + StateSum["State_income_tax_subtraction"] + "</li>";
+			message += "<li>change line 2 (Government interest) to $" + StateSum["Interest-gov"] + "</li>";
+			message += "<li>change line 3 (TP pension exclusion) to $" + TPTotalExcl + "</li>";
+			message += "<li>change line 4 (SP pension exclusion) to $" + SPTotalExcl + "</li>";
+			message += "<li>change line 5 (CO capital gains subraction) to $" + StateSum["CO_Capital_gain_subtraction"] + "</li>";
+			message += "<li>change line 6 (College tuition contribution) to $" + StateSum["College_tuition_contribution"] + "</li>";
+			message += "<li>change line 8 (Qualified reservation income)to $" + StateSum["Qualfied_reservation_income"] + "</li>";
+			message += "<li>change line 9 (PERA/DPRS subtraction) to $" + StateSum["PERA/DPSRS_subtraction"] + "</li>";
+			message += "<li>change line 10 (RR retirement TIerI/TierII) to $" + RRBAdjust + "</li>";
+			message += "<li>change line 16 (FIrst time homebuyer interest) to $" + StateSum["Interest-CO_1st_Time_Home"] + "</li>";
+			message += "<li>change line 17 (Other subtractions) to $" + StateSum["Other_Subtraction"] + "</li>";
+			message += "<li>change line 18 (Total) to $" + SFItotal + "</li>";
+			message += "</ul></li>";
+			message += "<li>CO form 104PN:";
+			message += "<ul>";
+			message += "<li>change line 30 to $" + SFItotal + "</li>";
+			message += "<li>change line 31 to $" + COSubtractions.innerHTML + "</li>";
+			message += "<li>adjust the math in the ensuing lines as needed.</li>";
+			message += "</ul></li>";
+			message += "<li>Paper file the Colorado tax return.</li></ol>";
+			TSMessage.innerHTML = message;
+			COSubtractDiv.style.display = "none";
+			TSMessageDiv.style.display = "block";
+		}
+		else {
+			COSubtractDiv.style.display = (TaxYear.value == 2017) ? "none" : "block";
+			TSMessageDiv.style.display = "none";
+		}
+		TSError1.style.display = (TaxYear.value == 2017) ? "none" : "inline";
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Create_Item() {
+	// Creates a new entry for the worksheet
+	//----------------------------------------------------------------------------------------
+		ItemCount++;
+		var nogrp = "nogrp";
+
+		// Make a new row
+		var newrow = document.createElement("tr");
+
+		// Make an empty column for indenting
+		var newcol = document.createElement("td");
+		newrow.appendChild(newcol);
+
+		// Make an entry type select box
+		var newcol = document.createElement("td");
+		var newsel = document.createElement("select");
+		newsel.id = "Typ" + ItemCount;
+		Add_Option(newsel, "?", "Please enter the type of income or adjustment");
+		Add_Group(newsel, "Earned Income");
+		Add_Option(newgrp, "W-2_wages", "Wages from employment");
+		Add_Option(newgrp, "Self_Employment", "Self-employment income or loss");
+		Add_Group(newsel, "Other Income");
+		Add_Option(newgrp, "Capital_Gain/Loss", "Capital gain income or loss");
+		Add_Option(newgrp, "Dividend", "Dividend income");
+		Add_Option(newgrp, "Dividend-CO_or_gov_adjust", "Colorado or government dividend income subtraction");
+		Add_Option(newgrp, "Gross_RRB_Tier1", "Gross amount of Railroad Retirement Tier 1 (Social security equivalent)");
+		Add_Option(newgrp, "Gross_Social_Security", "Gross amount of Social Security income");
+		Add_Option(newgrp, "Interest", "Interest from savings or investment accounts");
+		Add_Option(newgrp, "Interest-CO_1st_Time_Home", "Interest from a Colorado first time homebuyer savings account (2017 and later)");
+		Add_Option(newgrp, "Interest-gov", "Government bond savings or investment interest");
+		Add_Option(newgrp, "Interest-tax-free_non-CO", "Tax free interest from non-Colorado bonds.");
+		Add_Option(newgrp, "Other", "Other income");
+		Add_Option(newgrp, "Rent", "Rent income");
+		Add_Option(newgrp, "Royalty", "Royalty income");
+		Add_Option(newgrp, "Taxable_RRB_Tier2", "Taxable amount of Railroad Retirement Tier 2 (Pension)");
+		Add_Option(newgrp, "Taxable_Annuity/Pension", "Taxable amount of annuity or pension income");
+		Add_Option(newgrp, "Unemployment", "Unemployment income");
+		Add_Group(newsel, "Federal adjustments to income");
+		Add_Option(newgrp, "Educator_expense", "Educator expenses");
+		Add_Option(newgrp, "HSA deduction", "Health Savings Account deduction");
+		Add_Option(newgrp, "Moving_expenses", "Moving expenses into the state only");
+		Add_Option(newgrp, "Ded_part_of_self_empl_tax", "Deductible part of self-employment tax");
+		Add_Option(newgrp, "Early_withdrawal_penalty", "Penalty on early withdrawal of savings");
+		Add_Option(newgrp, "Alimony_paid", "Alimony paid");
+		Add_Option(newgrp, "IRA_deduction", "IRA deduction");
+		Add_Option(newgrp, "Student_loan_interest", "Student loan interest deduction");
+		Add_Option(newgrp, "Tuition_and_Fees", "Tuition and Fees deduction");
+		Add_Option(newgrp, "Jury_duty_pay_to_employer", "Jury duty pay given to employer");
+		Add_Option(newgrp, "Other_Adjustment", "Other adjustment to income");
+		Add_Group(newsel, "State AGI Additions");
+		Add_Option(newgrp, "Other_Addition", "Other additions to state Adjusted Gross Income");
+		Add_Group(newsel, "State AGI Subtractions");
+		Add_Option(newgrp, "CO_Capital_gain_subtraction", "Capital gain on Colorado investments");
+		Add_Option(newgrp, "College_tuition_contribution", "Contribution to one of the state's college 529 plans");
+		Add_Option(newgrp, "PERA/DPSRS_subtraction", "Non-taxable PERA/DPSRS retirement benefits");
+		Add_Option(nogrp, "RRB_Tier1_subtraction", "RR Tier 1 benefits exclusion from state tax");
+		Add_Option(nogrp, "RRB_Tier2_subtraction", "RR Tier 2 benefits exclusion from state tax");
+		Add_Option(nogrp, "Taxpayer_Annuity/Pension_exclusion", "Taxpayer Annuity/Pension exclusion from state tax");
+		Add_Option(nogrp, "Spouse_Annuity/Pension_exclusion", "Spouse Annuity/Pension exclusion from state tax");
+		Add_Option(newgrp, "Qualfied_reservation_income", "Exclusion of reservation income from state tax");
+		Add_Option(newgrp, "State_income_tax_subtraction", "This state's portion of state tax refunds");
+		Add_Option(newgrp, "Other_Subtraction", "Other subtractions from state Adjusted Gross Income");
+		newsel.setAttribute("onchange", "Data_Change(\"Type\", " + ItemCount + ");");
+		newcol.appendChild(newsel);
+		newrow.appendChild(newcol);
+		SumTableMade = true;
+
+		// Make an amount column for the item
+		var newcol = document.createElement("td");
+		var newinp = document.createElement("input");
+		newinp.type = "number";
+		newinp.id = "Amt" + ItemCount;
+		newinp.setAttribute("onchange", "Data_Change(\"Amount\", " + ItemCount + ");");
+		newcol.appendChild(newinp);
+		newrow.appendChild(newcol);
+
+		// Make an entry owner select box
+		var newcol = document.createElement("td");
+		var newsel = document.createElement("select");
+		newsel.id = "Own" + ItemCount;
+		Add_Option(newsel, "J", "Joint ownership");
+		Add_Option(newsel, "S", "Spouse is the owner");
+		Add_Option(newsel, "T", "Taxpayer is the owner");
+		newsel.setAttribute("onchange", "Data_Change(\"Owner\", " + ItemCount + ");");
+		newcol.appendChild(newsel);
+		newrow.appendChild(newcol);
+
+		// Make a "From" select box
+		var newcol = document.createElement("td");
+		var newsel = document.createElement("select");
+		newsel.id = "From" + ItemCount;
+		Add_Option(newsel, "Jan", "January");
+		Add_Option(newsel, "Feb", "February");
+		Add_Option(newsel, "Mar", "March");
+		Add_Option(newsel, "Apr", "April");
+		Add_Option(newsel, "May", "May");
+		Add_Option(newsel, "Jun", "June");
+		Add_Option(newsel, "Jul", "July");
+		Add_Option(newsel, "Aug", "August");
+		Add_Option(newsel, "Sep", "September");
+		Add_Option(newsel, "Oct", "October");
+		Add_Option(newsel, "Nov", "November");
+		Add_Option(newsel, "Dec", "December");
+		newsel.setAttribute("onchange", "Data_Change(\"From\", " + ItemCount + ");");
+		newsel.options.selectedIndex = 0; // January
+		newcol.appendChild(newsel);
+		newrow.appendChild(newcol);
+
+		// Make a "To" select box
+		var newcol = document.createElement("td");
+		var newsel = document.createElement("select");
+		newsel.id = "To" + ItemCount;
+		Add_Option(newsel, "Jan", "January");
+		Add_Option(newsel, "Feb", "February");
+		Add_Option(newsel, "Mar", "March");
+		Add_Option(newsel, "Apr", "April");
+		Add_Option(newsel, "May", "May");
+		Add_Option(newsel, "Jun", "June");
+		Add_Option(newsel, "Jul", "July");
+		Add_Option(newsel, "Aug", "August");
+		Add_Option(newsel, "Sep", "September");
+		Add_Option(newsel, "Oct", "October");
+		Add_Option(newsel, "Nov", "November");
+		Add_Option(newsel, "Dec", "December");
+		newsel.setAttribute("onchange", "Data_Change(\"From\", " + ItemCount + ");");
+		newsel.options.selectedIndex = 11; // December
+		newcol.appendChild(newsel);
+		newrow.appendChild(newcol);
+
+		// Make a calc button column
+		var newcol = document.createElement("td");
+		var newbtn = document.createElement("button");
+		newtxt = document.createTextNode("CALC");
+		newbtn.appendChild(newtxt);
+		newbtn.setAttribute("onclick", "Data_Change(\"Calc\", " + ItemCount + ");");
+		newcol.appendChild(newbtn);
+		newrow.appendChild(newcol);
+
+		// Make a manual adjustment column
+		var newcol = document.createElement("td");
+		newcol.id = "Adj" + ItemCount;
+		newrow.appendChild(newcol);
+
+		// Make an amount column for Colorado
+		var newcol = document.createElement("td");
+		var newinp = document.createElement("input");
+		newinp.type = "number";
+		newinp.id = "Sta" + ItemCount;
+		newinp.setAttribute("onkeyup", "Data_Change(\"State\", " + ItemCount + ");");
+		newcol.appendChild(newinp);
+		newrow.appendChild(newcol);
+
+		// Make an amount column for the other state
+		newcol = document.createElement("td");
+		newinp = document.createElement("input");
+		newinp.type = "number";
+		newinp.id = "Oth" + ItemCount;
+		newinp.setAttribute("onkeyup", "Data_Change(\"Other\", " + ItemCount + ");");
+		newcol.appendChild(newinp);
+		newrow.appendChild(newcol);
+
+		// Add the row to the worksheet
+		DistTable.appendChild(newrow);
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Add_Group(newsel, newlbl) {
+	// Adds an option to a select element
+	//----------------------------------------------------------------------------------------
+		newgrp = document.createElement("optgroup");
+		newgrp.label = newlbl;
+		newsel.appendChild(newgrp);
+
+		// Add a line to the totals table
+		if (SumTableMade) return;
+		newrowST = document.createElement("tr");
+		newcolST = document.createElement("td"); // indent column
+		newcolST.colSpan = 2;
+		newcolST.innerHTML = newlbl;
+		newcolST.style.fontWeight = "bold";
+		newrowST.appendChild(newcolST);
+		TotalsTable.appendChild(newrowST);
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Add_Option(newsel, newtxt, newttl) {
+	// Adds an option to a select element
+	//----------------------------------------------------------------------------------------
+		if (newsel != "nogrp") {
+			newopt = document.createElement("option");
+			newopt.text = newtxt.replace(/_/g," ");
+			newopt.value = newtxt;
+			newopt.title = newttl;
+			if (newtxt == "?") newopt.id = "NoSelection";
+			if (FilingStatus.value == "MFJ") {
+				if (newtxt == "J") newopt.selected = "selected";
+			}
+			else {
+				if (newtxt == "T") newopt.selected = "selected";
+			}
+			newsel.appendChild(newopt);
+			TypeName.push(newtxt);
+		}
+
+		// Add a line to the totals table
+		if (SumTableMade) return;
+		StateSum[newtxt] = OtherSum[newtxt] = 0;
+		if (newtxt === "?") return; // skip the default ? option
+		newttl = newttl.replace("Gross", "Taxable");
+		newrowST = document.createElement("tr");
+		newcolST = document.createElement("td"); // indent column
+		newrowST.appendChild(newcolST);
+		newcolST = document.createElement("td"); // description column
+		newcolST.innerHTML = newttl;
+		newrowST.appendChild(newcolST);
+		newcolST = document.createElement("td"); // totals column
+		newcolST.id = newtxt + "TotalState";
+		newcolST.innerHTML = "0";
+		newrowST.appendChild(newcolST);
+		newcolST = document.createElement("td"); // totals column
+		newcolST.id = newtxt + "TotalOther";
+		newcolST.innerHTML = "0";
+		newrowST.appendChild(newcolST);
+		TotalsTable.appendChild(newrowST);
+	}
+
+	//----------------------------------------------------------------------------------------
+	// Shows the details of each entry's distribution
+	function Show_Details (
+		show	// true/false
+		) {
+	//----------------------------------------------------------------------------------------
+		TotalsShowDiv.style.display = (show) ? "none" : "block";
+		TotalsDiv.style.display = (show) ? "block" : "none";
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize()">
+
+<center>
+	<span class="title">Colorado Part Year Worksheet</span>
+	<br><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+	<br />&nbsp;
+</center>
+
+<div id="ClearAndPrint" class="noPrint">
+	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</div>
+
+<!-- ************************************* RESIDENCY INFORMATION TABLE ************************************* -->
+
+<div id="ResidencyDiv">
+	<h1>Filing Information</h1>
+	<table id="FilingInfoTable">
+				<tr><td></td>
+			<td>Tax year:</td>
+			<td><select id="TaxYear" onchange="Res_Change(this.id);" >
+				</select></td></tr>
+				<tr><td></td><td>Filing status:</td>
+			<td><select id="FilingStatus" onchange="Res_Change(this.id);" >
+				<option value="Single">Single</option>
+				<option value="MFJ">MFJ</option>
+				<option value="MFS">MFS</option>
+				<option value="HOH">HOH</option>
+				<option value="Widow(er)">Widow(er)</option>
+				</select>
+				<span id="MFSquestion">
+					<input id="MFStogether" type="checkbox">
+					Check if taxpayer and spouse lived together at any time during the year.
+				</span>
+				</td></tr></table>
+	<h1>Taxpayer Residency</h1>
+	<table id="ResidencyTable">
+		<tr><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td>
+			<td>Taxpayer</td>
+			<td onchange="Res_Change('TP');">
+				From: <select id="TPFrom">
+					<option value="1">January</option>
+					<option value="2">February</option>
+					<option value="3">March</option>
+					<option value="4">April</option>
+					<option value="5">May</option>
+					<option value="6">June</option>
+					<option value="7">July</option>
+					<option value="8">August</option>
+					<option value="9">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+				Thru: <select id="TPTo">
+					<option value="1">January</option>
+					<option value="2">February</option>
+					<option value="3">March</option>
+					<option value="4">April</option>
+					<option value="5">May</option>
+					<option value="6">June</option>
+					<option value="7">July</option>
+					<option value="8">August</option>
+					<option value="9">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+				(<span id="TPPercentShow">0</span>%)<br />
+				<input type="radio" name="TPLimits" value="0" checked="checked" /> 54 or younger
+				<input type="radio" name="TPLimits" value="20000" /> 55 to 64
+				<input type="radio" name="TPLimits" value="24000" /> 65 or older</td></tr>
+		<tr id="SpouseDates"><td></td>
+			<td>Spouse</td>
+			<td onchange="Res_Change('SP');" onfocus="Res_Change('SP');"><hr />
+				From: <select id="SPFrom">
+					<option value="1">January</option>
+					<option value="2">February</option>
+					<option value="3">March</option>
+					<option value="4">April</option>
+					<option value="5">May</option>
+					<option value="6">June</option>
+					<option value="7">July</option>
+					<option value="8">August</option>
+					<option value="9">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+				Thru: <select id="SPTo">
+					<option value="1">January</option>
+					<option value="2">February</option>
+					<option value="3">March</option>
+					<option value="4">April</option>
+					<option value="5">May</option>
+					<option value="6">June</option>
+					<option value="7">July</option>
+					<option value="8">August</option>
+					<option value="9">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+				(<span id="SPPercentShow">0</span>%)<br />
+				<input type="radio" name="SPLimits" value="0" checked="checked" /> 54 or younger
+				<input type="radio" name="SPLimits" value="20000" /> 55 to 64
+				<input type="radio" name="SPLimits" value="24000" /> 65 or older</td></tr>
+	</table>
+</div> <!-- ResidencyDiv -->
+<br />
+
+<!-- ****************************************** WORKSHEET ****************************************** -->
+
+
+<div id="DataDiv">
+	<h1>Colorado Part Year Worksheet</h1>
+
+	<span class="Instructions noPrint">
+		<ol>
+			<li>Enter all full-year amounts of federal income and adjustment items in the table below.
+				<ul><li>Enter all income amounts before adjustment amounts because
+				Colorado adjustments are calculated based on the ratio of Colorado to total
+				earned or gross income, depending on the particular adjustment.</li>
+				<li>&quot;From&quot; and &quot;Thru&quot; entries indicate when
+				the account was active during the year.</li></ul></li>
+			<li>Entry of annuities/pensions/Social Security/RR Retirement benefits
+				automatically calculate the correct exclusion amounts for Colorado Subtractions
+				from AGI using age limits and owner as needed.
+				<ul><li>For Social Security and RRB Tier I benefits enter gross amounts;
+					the taxable amount will be calculated.</li></ul></li>
+			<li>The Colorado allocation will be calculated automatically based on residency dates,
+				account dates and income ratios as appropriate for the entry type.
+				<ul><li>If ownership is joint (J), each half will be distributed
+				based on each of the taxpayer and spouse residency dates and/or income
+				ratios.</li></ul></li>
+			<li>If manual adjustment is needed, change the amount in either of the two state
+				result boxes, the other will adjust automatically.
+				<ul><li>Click &quot;CALC&quot; to <u>restore</u> the calculated distribution
+					for that line.</li></ul></li>
+			<li>Finally, enter the amounts in the &quot;Colorado Part Year Input&quot;
+				list into TaxSlayer in the Colorado "Income Subject To Tax"
+				<span id="TSError1">and &quot;Subtractions From Income&quot; form</span>.</li>
+		</ol>
+	</span>
+
+	<table id="DistTable">
+		<tr><th></th>
+			<th>Description</th>
+		<th>Amount</th>
+		<th>Owner</th>
+		<th>From</th>
+		<th>Thru</th>
+		<th></th>
+		<th></th>
+		<th id="State1">Colorado</th>
+		<th>Other</th></tr>
+	</table>
+</div> <!-- DataDiv -->
+<br />
+
+<div id="CODiv">
+	<span id="TSInput">TaxSlayer Colorado Part Year Input</span>
+	<div id="COIncomeDiv">
+		<h1>Income Subject To Tax</h1>
+		<table id="COIncomeTable" class="SumTable">
+			<tr><td></td><td>Interest and Dividend Income</td><td><span id="COInterest">0</span></td></tr>
+			<tr><td></td><td>Business Income/Loss</td><td><span id="COBusiness">0</span></td></tr>
+			<tr><td></td><td>Gains and/or Losses</td><td><span id="COCapitalGains">0</span></td></tr>
+			<tr><td></td><td>Pension and Annuities</td><td><span id="COAnnuities">0</span></td></tr>
+			<tr><td></td><td>Rents and Royalties</td><td><span id="CORoyalties">0</span></td></tr>
+			<tr><td></td><td>Unemployment Benefits</td><td><span id="COUnemployment">0</span></td></tr>
+			<tr><td></td><td>Other Income/Loss</td><td><span id="COOtherIncome">0</span></td></tr>
+			<tr><td></td><td>Federal Adjustments</td><td><span id="COAdjustments">0</span></td></tr>
+			<tr><td></td><td>Additions to Adjusted Gross Income</td><td><span id="COAdditions">0</span></td></tr>
+			<tr><td></td><td>Subtractions from Adjusted Gross Income</td><td><span id="COSubtractions">0</span></td></tr>
+		</table>
+	</div> <!-- COIncomeDiv -->
+
+	<br />
+
+	<div id="COSubtractDiv">
+		<h1>Subtractions From Income</h1>
+		<table id="COSubtractTable" class="SumTable">
+			<tr><td></td>
+				<td>U.S. Government Interest</td>
+				<td><span id="COGovernment">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>Pension/Annuity Income</td>
+				<td><span id="COPensionAdjust">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>Colorado Source Capital Gain</td>
+				<td><span id="COCapGain">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>Tuition Program Contribution</td>
+				<td><span id="COTuition">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>Qualified Reservation Income</td>
+				<td><span id="COReservation">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>PERA/DPSRS Subtraction</td>
+				<td><span id="COPERA">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>Railroad Benefit Subtraction, Tier I or II Only</td>
+				<td><span id="CORRBAdjust">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>First Time Home Buyer Savings Account Deduction</td>
+				<td><span id="COHomeBuyer">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>Other Subtractions</td>
+				<td><span id="COOtherSubtractions">leave&nbsp;blank</span></td></tr>
+		</table>
+	</div> <!-- COSubtractDiv -->
+
+	<div id="TSMessageDiv">
+		<span id="TSMessage">Message here.</span>
+	</div> <!-- TSMessageDiv -->
+
+</div> <!-- CODiv -->
+<br />
+
+<div id="TotalsShowDiv" class="noPrint">
+	<h1><button onclick="Show_Details(true);">Show details of calculations</button></h1>
+</div>
+
+<div id="TotalsDiv">
+	<h1 style="display: inline;">Summary Totals</h1>
+		<span class="noPrint"><button onclick="Show_Details(false);">Hide details</button></span>
+	<table id="TotalsTable" class="SumTable">
+		<tr><th></th><th>Description</th><th><span id="State2">Colorado</span></th><th>Other</th></tr>
+	</table>
+</div>
+<br />
+
+<div class="noPrint">
+	Please send corrections and suggestions to
+	<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	<span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+</div>
+
+</body>
+</html>

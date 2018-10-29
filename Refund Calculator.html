@@ -1,0 +1,734 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Refund Calculator</title>
+
+<style type="text/css">
+	html {
+		background-color: #cccccc;
+	}
+	body {
+		background-color: #cccccc;
+		font-family: sans-serif;
+		padding: 0 2.5% 0 2.5%;
+	}
+	button {
+		cursor: pointer;
+		background-color: lightgreen;
+	}
+	table {
+		background-color: #eeeeee;
+		border-collapse: collapse;
+		width: 100%
+	}
+	div {
+		background-color: #eeeeee;
+		padding: 5px;
+		border: 1px solid black;
+		margin-top: 10px;
+		width: 99%;
+	}
+	h1 {
+		text-align: center;
+		font-size: 110%;
+		text-decoration: underline
+	}
+	tr {
+		vertical-align: top;
+	}
+	input {
+		text-align: left;
+		cursor: pointer;
+	}
+	input, select {
+		background-color: white;
+	}
+	input[type="number"] {
+		width: 7em;
+		cursor: text;
+	}
+	input:disabled,
+	select:disabled {
+		background-color: lightgrey;
+		font-weight: bold;
+	}
+	.center {
+		text-align: center;
+	}
+	.title {
+		font-size: 125%;
+		font-weight: bold;
+	}
+	.instruction {
+		background-color: lightgreen;
+		text-decoration: underline;
+	}
+	.instructions {
+		display: none;
+	}
+	.comment {
+		font-style: italic;
+	}
+	.inputTitle {
+		font-weight: bold;
+	}
+	.noPrint {
+		float: left;
+	}
+	.question {
+		border: 1px solid green;
+		background-color: lightgreen;
+		border-radius: 0.5em;
+		cursor: help;
+	}
+	#instruction_label {
+		cursor: help;
+	}
+	#CurrentYearDiv {
+		margin-left: 1%;
+	}
+	#CreditYesLines {
+		display: none;
+		width: 100%;
+	}
+	#CreditYesLines tr td:nth-child(2) {
+		text-align: right;
+	}
+	#PriorYearDiv,
+	#CurrentYearDiv {
+		float: left;
+		width: 48%;
+	}
+	#ClearAndPrint {
+		width: 16em; 
+		text-align: center; 
+		border: 0;
+	       	background-color: transparent;
+		z-index: 2;
+		position: absolute;
+		top: 0em;
+		right: 0em;
+	}
+	#ClearAndPrint button {
+		margin: 2px;
+	}
+	#TPName {
+		text-align: left;
+		width: auto;
+		margin-top: 0;
+		font-size: 120%;
+		width: 25em;
+	}
+	#TPNameDiv {
+		width: 99%;
+	}
+	#FileOptsDiv {
+		margin-left: 5px;
+		border: 0;
+		width: 95%;
+	}
+	#curinfodiv,
+	#preinfodiv {
+		display: none;
+	}
+	@media print {
+		.doPrint {
+			display: inline;
+		}
+		.noPrint {
+			display: none;
+		}
+		html {
+			background-color: white;
+			font-size: 0.8em;
+		}
+		body {
+			font-size: 0.8em;
+			background-color: white;
+			padding: 0;
+			margin: 0;
+		}
+		input,
+		select,
+		option {
+			font-size: 0.8em;
+		}
+		table {
+			width: 100%;
+			background-color: white;
+		}
+	}
+</style>
+
+<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2014.js"></script>
+<script src="Tax_Data/IRS_2015.js"></script>
+<script src="Tax_Data/IRS_2016.js"></script>
+<script src="Tax_Data/IRS_2017.js"></script>
+<script src="Tax_Data/IRS_2018.js"></script>
+<script type="text/javascript">
+	var VERSION;
+	// --------------------------------------------------------------------------------
+	// CHANGE HISTORY:
+	VERSION = "(Version 1.15, 6/14/2018)";
+	//	Changed reset button to work with Firefox
+	//VERSION = "(Version 1.14, 12/10/2017)";
+	//	Corrected distribution percentage of taxable refunds
+	//VERSION = "(Version 1.13, 9/28/2017)";
+	//	Added unused credit test
+	//	Corrected calculation of 4Q current tax year deductible amount
+	//	Added dependent question if single
+	//VERSION = "(Version 1.12, 8/18/2017)";
+	//	Current year estimated payment info re-added, now supported by TaxSlayer
+	//VERSION = "(Version 1.11, 4/12/2017)";
+	//	Correction of where to enter last year's estimated payment paid this year
+	//	Removed current year estimated payment info - no valid place to put it
+	//VERSION = "(Version 1.10, 3/31/2017)";
+	//	Correction of taxable amounts when allocations are limited due to limited taxabilty
+	//VERSION = "(Version 1.09, 3/25/2017)";
+	//	Minor formatting and heading changes
+	//VERSION = "(Version 1.08a, 3/22/2017)";
+	//	Added allocation of refund when estimated tax payment was made in next calendar year
+	//VERSION = "(Version 1.07, 2/8/2017)";
+	//	Added must itemize option when MFS
+	//VERSION = "(Version 1.06, 12/17/2016)";
+	//	Added yellow highlighting on needed input cells
+	//	Corrected tax credit subtraction
+	//	Added Schedule A variation suggestion to test for credits
+	//VERSION = "(Version 1.05, 12/14/2016)";
+	//	Added line numbers and checboxes to Sched A inputs
+	//VERSION = "(Version 1.04, 12/12/2016)";
+	//	Corrected a calculation involving negative taxable amount
+	//VERSION = "(Version 1.03, 12/4/2016)";
+	//	Taxable refund showing as negative
+	//VERSION = "(Version 1.02, 12/3/2016)";
+	//	Spelling correction
+	//	Corrected errror: negated NegativeDiff to make it positive
+	//VERSION = "(Version 1.01, 12/2/2016)";
+	//	Added a link to the IRS sales tax calculator
+	//	Hid the OOS option
+	//	Added calculation of taxable amount if negative
+	//	Added a place to add unused tax credits
+	//VERSION = "(Version 1.00, 11/28/2016)";
+	// --------------------------------------------------------------------------------
+
+	//----------------------------------------------------------------------------------------
+	//Contributors:
+	//		Keith Gillen
+	//		Wells Johnson
+	//		Ronald Schmaeman
+	//----------------------------------------------------------------------------------------
+
+	//----------------------------------------------------------------------------------------
+	//	GLOBAL VARIABLES
+	//----------------------------------------------------------------------------------------
+	taxBracket = 0; // current tax bracket
+
+	//----------------------------------------------------------------------------------------
+	function Initialize() {
+	// This function adds tax year options to the Filing Information section
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		TaxYear.length = 0;
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+		FilingStatus.value = "MFJ";
+		MFSItemize.style.display = "none";
+		SNGDependent.style.display = "none";
+		instructions.style.display = "none";
+		MustItemize.checked = false;
+		Dependent.checked = false;
+		CYval.innerHTML = TaxYear.value = _DefaultYear;
+		PYval.innerHTML = TaxYear.value - 1;
+		StateWHBox.checked = true;
+		SalesTaxBox.checked = false;
+		FileChange();
+		StdCalc();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Do_Instructions() {	
+	// This function shows or hides the instructions
+	//----------------------------------------------------------------------------------------
+		instructions.style.display = (instructions.style.display == "block") ? "none":"block";
+		instruction_label.innerHTML = (instructions.style.display == "block") ? "Hide Instructions":"Show Instructions";
+	}
+
+	//----------------------------------------------------------------------------------------
+	function FileChange() {	
+	// This function readjusts settings when filing status information is changed
+	//----------------------------------------------------------------------------------------
+
+	// Initialize filing status to single, under 65, no dependents
+	TPBlind.disabled = TP65.disabled = false;
+	SPBlind.disabled = SP65.disabled = false;
+	MFSItemize.style.display = "none";
+	SNGDependent.style.display = "none";
+	switch (FilingStatus.value) {
+		case "MFJ":
+			SPBlind.disabled = SP65.disabled = false;
+			MustItemize.checked = false;
+			Dependent.checked = false;
+			break;
+		case "MFS":
+			SPBlind.disabled = SP65.disabled = true;
+			SPBlind.checked = SP65.checked = false;
+			MFSItemize.style.display = "inline";
+			Dependent.checked = false;
+			break;
+		case "SNG":
+			SPBlind.disabled = SP65.disabled = true;
+			SPBlind.checked = SP65.checked = false;
+			SNGDependent.style.display = "inline";
+			MustItemize.checked = false;
+			break;
+		case "HOH":
+		case "WID":
+			SPBlind.disabled = SP65.disabled = true;
+			SPBlind.checked = SP65.checked = false;
+			MustItemize.checked = false;
+			Dependent.checked = false;
+		}
+
+	EstYr0a.innerHTML =  "in " + (TaxYear.value - 1) + " for " + (TaxYear.value - 2);
+	EstYr0b.innerHTML = TaxYear.value - 1;
+	EstYr1a.innerHTML =  "in " + (TaxYear.value) + " for " + (TaxYear.value - 1);
+	EstYr1b.innerHTML = TaxYear.value;
+	AllocYr1.innerHTML = PYval.innerHTML = TaxYear.value - 1;
+	AllocYr2.innerHTML = EstYr1b.innerHTML = CYval.innerHTML = TaxYear.value;
+
+	StdCalc();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function StdCalc() {
+	// Calculates the value for standard deduction for the previous year
+	//----------------------------------------------------------------------------------------
+
+		// get the tax table
+		taxdata = _Standard[TaxYear.value-1].split(",");
+		filestat = FilingStatus.value;
+
+		// select the tax rate and standard deduction from the tax table
+		stdeduct = +taxdata[_Standard[FilingStatus.value]];
+		var stdinc = +taxdata[_Standard[FilingStatus.value]+1];
+		if (TP65.checked) stdeduct += stdinc;
+		if (SP65.checked) stdeduct += stdinc;
+		if (TPBlind.checked) stdeduct += stdinc;
+		if (SPBlind.checked) stdeduct += stdinc;
+		PYStandard.innerHTML = (MustItemize.checked || Dependent.checked) ? 0:stdeduct;
+
+		// update the calculations due to the change in status
+		TaxCalc();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function ChangeTaxBox(id) {
+	// Called when the refund source is updated
+	//----------------------------------------------------------------------------------------
+		switch (id) {
+			case "StateWHBox":
+				StateWHBox.checked = true;
+				SalesTaxBox.checked = false;
+				break;
+			case "SalesTaxBox":
+				SalesTaxBox.checked = true;
+				StateWHBox.checked = false;
+				break;
+		}
+
+		// update the calculations due to the change in refund amounts
+		TaxCalc();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function TaxCalc() {
+	// Calculates the taxable amounts
+	// See Pub 525, worksheet 2 for detailed explanation
+	//----------------------------------------------------------------------------------------
+		
+		// Clear the Taxable amounts figures
+		StateTaxable.innerHTML = OtherTaxable.innerHTML = "";
+
+		// Are lines 41 and 42 entered to determine Taxable income?
+		if ((Taxable41.value !== "") && (Taxable42.value !== "")) {
+			Taxable.value = Taxable41.value - Taxable42.value;
+		}
+
+		// Verify that data is legitimate
+		if (isNaN(Taxable.value)) StateRefund.value = "";
+		if (isNaN(StateWH.value) || (+StateWH.value < 0)) StateWH.value = "";
+		if (isNaN(SalesTax.value) || (+SalesTax.value < 0)) SalesTax.value = "";
+		if (isNaN(OtherUsed.value) || (+OtherUsed.value < 0)) OtherUsed.value = "";
+		if (isNaN(Itemized.value) || (+Itemized.value < 0)) Itemized.value = "";
+		if (isNaN(StateRefund.value) || (+StateRefund.value < 0)) StateRefund.value = "";
+		if (isNaN(SalesTaxRefund.value) || (+SalesTaxRefund.value < 0)) SalesTaxRefund.value = "";
+		if (isNaN(OtherRefund.value) || (+OtherRefund.value < 0)) OtherRefund.value = "";
+		if (isNaN(Estimated0.value) || (+Estimated0.value < 0)) Estimated0.value = "";
+		if (isNaN(Estimated1.value) || (+Estimated1.value < 0)) Estimated1.value = "";
+		if (isNaN(Credits0.value) || (+Credits0.value < 0)) Credits0.value = "";
+		if (isNaN(Credits1.value) || (+Credits1.value < 0)) Credits1.value = "";
+		if (isNaN(ACTC0.value) || (+ACTC0.value < 0)) ACTC0.value = "";
+		//if (isNaN(ACTC1.value) || (+ACTC1.value < 0)) ACTC1.value = "";
+
+		// Set background colors on needed data
+		Taxable.style.backgroundColor = "white";
+		Itemized.style.backgroundColor = "white";
+		StateWH.style.backgroundColor = "white";
+		SalesTax.style.backgroundColor = "white";
+		Estimated0.style.backgroundColor = "white";
+		Estimated1.style.backgroundColor = "white";
+		OtherUsed.style.backgroundColor = "white";
+		Credits0.style.backgroundColor = "white";
+		Credits1.style.backgroundColor = "white";
+		ACTC0.style.backgroundColor = "white";
+		//ACTC1.style.backgroundColor = "white";
+		RF = 0;
+		DF = 0;
+
+		// See if we have all we need to do a calculation
+		if ((StateRefund.value && StateWHBox.checked) || (SalesTaxRefund.value && SalesTaxBox.checked)) {
+			if (! StateWH.value) {RF++; StateWH.style.backgroundColor = "yellow";}
+			if (! SalesTax.value) {RF++; SalesTax.style.backgroundColor = "yellow";}
+			if (Taxable.value == "") {RF++; Taxable.style.backgroundColor = "yellow";} // can be 0
+			if (! Itemized.value) {RF++; Itemized.style.backgroundColor = "yellow";}
+		}
+		if (StateRefund.value && StateWHBox.checked) {
+			if (Estimated0.value == "") {DF++; Estimated0.style.backgroundColor = "yellow";} // can be 0
+			if (Estimated1.value == "") {DF++; Estimated1.style.backgroundColor = "yellow";} // can be 0
+		}
+		if (OtherRefund.value) {
+			if (! OtherUsed.value) {RF++; OtherUsed.style.backgroundColor = "yellow";}
+			if (Taxable.value == "") {RF++; Taxable.style.backgroundColor = "yellow";} // can be 0
+			if (! Itemized.value) {RF++; Itemized.style.backgroundColor = "yellow";}
+		}
+		if (CreditYes.checked) {
+			if (Credits0.value == "") {RF++; Credits0.style.backgroundColor = "yellow"; } // can be 0
+			if (ACTC0.value == "") {RF++; ACTC0.style.backgroundColor = "yellow";} // can be 0
+			if (Credits1.value == "") { // Set a default that moves ACTC to non-refundable credits
+				if (ACTC0.value != "") { Credits1.value = +Credits0.value + +ACTC0.value; }
+				else { RF++; Credits1.style.backgroundColor = "yellow"; } // can be 0
+			}
+			//if (ACTC1.value == "") {RF++; ACTC1.style.backgroundColor = "yellow";} // can be 0
+		}
+
+		// Don't show results unless all the needed data is entered
+		if (RF + DF) {
+			StateTaxable.innerHTML = "Need Data";
+			OtherTaxable.innerHTML = "Need Data";
+			Quarter4th.innerHTML = "Need Data";
+			return;
+		}
+
+		// Allocate state tax refund if it bridges multiple years
+		LastYearDeduction = +StateWH.value - +Estimated0.value;
+		if (LastYearDeduction < 0) {
+			alert("The previous year's estimate cannot be more than that used as a deduction.");
+			LastYearDeduction = "";
+			return;
+		}
+		TotalStateWH = LastYearDeduction + +Estimated1.value;
+		var CurrentPercent = (+TotalStateWH > 0) ? (LastYearDeduction / TotalStateWH) : 1;
+		Allocation0.innerHTML = Math.round(+StateRefund.value * CurrentPercent);
+		Allocation1.innerHTML = Math.round(Math.max(0,+StateRefund.value - +Allocation0.innerHTML));
+		Quarter4th.innerHTML = Math.round(Math.max(0, Estimated1.value - +Allocation1.innerHTML));
+		AllocationText.style.display = AllocationAmount.style.display = (Estimated1.value > 0) ? "inline":"none";
+
+		// Determine amount of state tax refund is taxable
+		var TaxDiff = +StateWH.value - +SalesTax.value;
+		var TaxOffset = (SalesTaxBox.checked) ? 0 : Math.max(0, TaxDiff);
+		var StateTaxAmount = Math.min(TaxOffset, +Allocation0.innerHTML); // WORKSHEET LINE 1
+
+		// Determine amount of state sales tax refund is taxable
+		var SalesOffset = (StateWHBox.checked) ? 0 : Math.max(0, -TaxDiff);
+		var SalesTaxAmount = Math.min(SalesOffset, +SalesTaxRefund.value); // WORKSHEET LINE 2, 4
+
+		// Determine amount of other refunds are taxable
+		var OtherAmount = Math.min(+OtherUsed.value, +OtherRefund.value);
+
+		IncomeInclude = StateTaxAmount + SalesTaxAmount + OtherAmount; // WORKSHEET LINE 3, 4
+		var StatePercent = IncomeInclude ? (StateTaxAmount / IncomeInclude) : 0; // WORKSHEET LINE 11A
+
+		// If itemized is lower than the standard, none is taxable
+		DeductDiff = +Itemized.value - +PYStandard.innerHTML; // WORKSHEET LINE 7, 8
+		if (DeductDiff < 0 ) {
+			StateTaxable.innerHTML = 0;
+			OtherTaxable.innerHTML = 0;
+			return;
+		}
+		IncomeInclude = Math.min(IncomeInclude, DeductDiff); // WORKSHEET LINE 9
+
+		// Negative taxable limit further decreases the amount taxable // WORKSHEET LINE 10, 11
+		if (+Taxable.value < 0) {
+			IncomeInclude = Math.max(0, (IncomeInclude + +Taxable.value))
+		}
+
+		// Perhaps there are unused tax credits to further decrease amount taxable
+		CreditYes.style.disabled = CreditNo.style.disabled = ! (IncomeInclude > 0);
+		var incomeForCredits = 0;
+		if (CreditYes.checked) {
+			// Current credits bring the tax to 0, so that is the tax on the taxable amount
+			incomeForCredits = Bracket(Credits0.value, Credits1.value);
+			IncomeInclude = Math.max(0,IncomeInclude - incomeForCredits);
+		}
+
+		// Distribute taxable amounts based on percentage
+		var ST = Math.round(IncomeInclude * StatePercent);
+		StateTaxable.innerHTML = Math.round(ST); // WORKSHEET LINE 11B
+		OtherTaxable.innerHTML = Math.round(IncomeInclude - ST); // WORKSHEET LINE 11C
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Bracket(tax0, tax1) {
+	// Calculates the bracket(s) for the credits 
+	//----------------------------------------------------------------------------------------
+		var rateList = _TaxRates[TaxYear.value + ":PCT"].split(",");
+		var sizeList = _TaxRates[TaxYear.value + ":" + FilingStatus.value].split(","); // maximum for the rate
+		var taxBracket = 0;
+		while ((+tax0 > (bracketMaxTax = +sizeList[taxBracket] * +rateList[taxBracket]))
+			&& (taxBracket < rateList.length)) { taxBracket++; }
+
+		// credits may span tax brackets...
+
+		// How much in the tax0 bracket?
+		var tax1a = Math.max(0, (Math.min(+tax1, bracketMaxTax) - +tax0));
+		var cE1a = Math.round(tax1a / rateList[taxBracket]);
+
+		// How much in the next bracket (unlikely to jump 2 brackets)
+		var tax1b = Math.max(0, +tax1 - +tax0 - tax1a);
+		var cE1b = Math.round(tax1b / rateList[taxBracket+1]);
+
+		creditExclusion = cE1a + cE1b;
+		var tbmsg = "At " + (100 * rateList[taxBracket]) + "% tax rate, exclusion = " + cE1a;
+		if (cE1b > 0) tbmsg += "<br />At " + (100 * rateList[taxBracket+1]) + "% tax rate, exclusion = " + cE1b;
+		TaxBracket.innerHTML = tbmsg;
+		return creditExclusion;
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize()">
+
+<center>
+	<span class="title">Taxable Refund and Recovery Calculator</span>
+	<br><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+	<br />&nbsp;
+	<div id="TPNameDiv">
+		<span class="inputTitle">Current Tax Year: </span><select style="width:6em;" id="TaxYear" title="Select the tax year being prepared." onchange="FileChange()"></select>
+		<span class="inputTitle">Taxpayer&apos;s Name: </span>
+		<input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" />
+	</div>
+</center>
+
+<div id="ClearAndPrint" class="noPrint">
+	<button onclick="window.open(window.location, '_self');">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</div>
+	
+<div class="noPrint">
+	<span onclick="Do_Instructions();"><h1 id="instruction_label">Show Instructions</h1></span>
+	<div id="instructions">
+	This calculator is an implementation of Pub 525 Worksheet 2 with footnote limits applied.
+	<br />Previous year information is entered on the left, current year information is entered on the right.
+	<br />Values in the fields are not recognized until you tab or click out of the field.
+	<br />Boxes highlighted in yellow require an entry before the calculation is done.
+
+	<ol>
+		<li>Enter refund amounts for the current year.
+		<ul>
+			<li>Refunds which include estimated payments made in the current tax year
+			will be allocated between the prior and current years per Pub 525.</li>
+			<li>If the filing status was MFJ and is different for the current year, refunds must be shared with
+			the person filed with in the previous year based on who paid the amount deducted.
+			Enter only this taxpayer&apos;s amount.</li>
+		</ul></li>
+
+		<li>Enter filing information to determine the standard deduction for the previous year.</li>
+
+		<li>Enter previous year Schedule A information.
+		<ul>
+			<li>If the sales tax amount is not shown on the previous year return printout,
+			use the <a href="https://apps.irs.gov/app/stdc/" target="_blank">IRS sales tax calculator</a> to determine the amount.</li>
+		</ul></li>
+
+		<li>Resulting taxable amounts are shown for the current year.</li>
+
+		<li>If an amount is taxable, you may then test for a possible unused tax credit test.
+		<ul>
+			<li>If the tax after non-refundable credits were applied is non-zero, there are none.</li>
+			<li>If there is a refundable Additional Child Tax Credit, taxable income can be increased without affecting the final tax income since it moves up to the non-refundable credits. The amount that can be excluded depends on the tax rate.
+			<li>If there are other credits that you know about, they must be calculated...
+			<li>But, if you don&apos;t have access to an electronic version of last year&apos;s return, skip this step.</li>
+		</ul></li>
+
+		<li>If there was an estimated state tax payment made in the current calendar year for the previous year,
+		a pro-rated portion of the refund is considered a "prepaid" refund and thus
+		must be subtracted from the "4th quarter payment" made in the current calendar year.
+	</ol>
+
+	Taxability on refund amounts are determined by entries on the previous year return which include:
+
+	<ul>
+		<li>The amount of the refund or the pro-rated amount of the refund if estimated taxes were paid after December 31st.</li>
+		<li>The difference between Sales Tax and State Withholding used in Schedule A.</li>
+		<li>The total itemized deductions which exceed the standard deduction.</li>
+		<li>The extent to which itemized deductions are limited (Not considered due to high income required)</li>
+		<li>The amount of a taxable amount that is negative (TaxSlayer does not consider this).</li>
+		<li>Tax Credits that were available but not fully used to reduce tax (TaxSlayer does not consider this).</li>
+		<li>Refunds for any but the one preceding year are out of scope are not considered because they are out of scope.</li>
+	</ul>
+
+	<hr />
+
+	<ul>
+		<li>"Sales tax refund amount" might be the result of returning a purchased vehicle, for example.</li>
+		<li>"Other recoverable amounts" might be the result of other Schedule A refunds received in the current tax year,
+		such as a property tax refund or a medical expense claimed. Enter the amount used as a deduction in the previous
+		tax year in the "Other amount used, if refunded" line. If the expense is in a category with limits
+		(i.e. Medical Deductions), don&apos;t enter more than the category total.</li>
+	</ul>
+</div> <!-- instructions -->
+</div>
+
+<div id="PriorYearDiv" onchange="FileChange();">
+	<h1>Filing information for prior tax year (<span id="PYval"></span>)</h1>
+	<span class="inputTitle">Filing Status:</span>
+	<select id="FilingStatus" onchange="FileChange()" tabindex="1" title="Select the taxpayer's filing status.">
+		<option value="SNG">Single</option>
+		<option value="MFJ">MFJ</option>
+		<option value="MFS">MFS</option>
+		<option value="HOH">HOH</option>
+		<option value="WID">Widow(er)</option></select>
+	<div id="FileOptsDiv">
+		<span id="SNGDependent"><input id="Dependent" type="checkbox"> Dependent on another taxpayer&apos;s return<br /></span>
+		<span id="MFSItemize"><input id="MustItemize" type="checkbox"> Must itemize<br /></span>
+		<input id="TP65" type="checkbox" title="Taxpayer was 65 or older" tabindex="2" /> TP 65 or older
+		<br /><input id="TPBlind" type="checkbox" title="Taxpayer was blind" tabindex="3" /> TP was blind
+		<br /><input id="SP65" type="checkbox" title="Spouse was 65 or older" tabindex="4" /> SP 65 or older
+		<br /><input id="SPBlind" type="checkbox" title="Spouse was blind" tabindex="5" /> SP was blind
+		</div>
+	<table onchange="TaxCalc();">
+		<tr><td>Standard deduction:</td><td><span id="PYStandard"></span></td></tr>
+		<tr><td colspan="2"><hr /><h1>Taxable income (1040 line 43)</h1>
+				<span class="comment">If Taxable income (1040 line 43) shows 0, enter lines 41 and 42 to calculate a possible negative Taxable income</span></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;1040 line 41:</td>
+			<td><input id="Taxable41" type="number" tabindex="6" /></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;1040 line 42:</td>
+			<td><input id="Taxable42" type="number" tabindex="7" /></td></tr>
+		<tr><td>43. Taxable income (may be negative):</td>
+			<td><input id="Taxable" type="number" tabindex="8" /></td></tr>
+		<tr><td colspan="2"><hr /><h1>Schedule A information</h1></td></tr>
+		<tr><td>5a <input id="StateWHBox" type="checkbox" onchange="ChangeTaxBox(this.id)" />State &amp; Local Income taxes:</td>
+			<td><input id="StateWH" type="number" tabindex="9" /></td></tr>
+		<tr><td>5b <input id="SalesTaxBox" type="checkbox" onchange="ChangeTaxBox(this.id)" />General Sales taxes: 
+				<a id="IRSbutton" href="https://apps.irs.gov/app/stdc/" target="_blank"><button> IRS Calc </button></a>
+			<td><input id="SalesTax" type="number" tabindex="10" /></td></tr>
+		<tr><td>Other amount used, if refunded:</td>
+			<td><input id="OtherUsed" type="number" tabindex="11" /></td></tr>
+		<tr><td>Total itemized deductions:</td>
+			<td><input id="Itemized" type="number" tabindex="12" /></td></tr>
+		<tr><td colspan="2"><hr /><h1>State tax paid <span id="EstYr0a"></span></h1>
+				<span class="comment">(Federal Section &gt; Deductions &gt; Itemized Deductions &gt; Taxes You Paid &gt; Prior Year 4th Quarter...)</span>
+			</td></tr>
+		<tr><td>4Q estimated state income tax paid in <span id="EstYr0b"></span>:
+				<span id="preinfo" class="question"
+					onmouseover="preinfodiv.style.display='table-row';"
+					onmouseout="preinfodiv.style.display='none';">&nbsp;?&nbsp;</span>
+			<td><input id="Estimated0" type="number" tabindex="13" /></td></tr>
+		<tr id="preinfodiv"><td colspan="2">
+			Estimated taxes paid in the 4th quarter could also include other payments made for the previous year, such as:
+			<ul>
+				<li> any tax amount due paid when the return was filed, or thereafter in the same year</li>
+				<li> any estimated tax paid with an extension</li>
+			</ul>
+			However, only use the amount that was claimed on the return.</td></tr>
+		<tr><td colspan="2"><hr />
+				<h1>Unused tax credits</h1></td></tr>
+		<tr><td>Was tax after nonrefundable credits (1040 line 56) zero?
+			<td onchange="CreditYesLines.style.display = (CreditYes.checked) ? 'table':'none';">
+				<input id="CreditYes" name="CreditGroup" type="radio" tabindex="14" /> Y&nbsp;&nbsp;
+				<input id="CreditNo" name="CreditGroup" type="radio" checked="checked" /> N</td></tr>
+	</table>
+	<table id="CreditYesLines">
+		<tr><td><b>Original amounts:</b></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;Total credits (1040 line 55):</td>
+			<td style="vertical-align:middle;"><input id="Credits0" type="number" tabindex="15" /></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;Additional child tax credit (1040 line 67):</td>
+			<td style="vertical-align:middle;"><input id="ACTC0" type="number" tabindex="16" /></td></tr>
+		<tr><td><b>Modified amounts:</b></td></tr>
+		<tr><td colspan="2"><span class="comment">If you have access to the previous tax return software, temporarily reduce the state tax withheld or estimate paid by at least the refund amount and re-record the new amounts:</span></td></tr>
+		<tr><td>&nbsp;&nbsp;&nbsp;Total credits (1040 line 55):</td>
+			<td style="vertical-align:middle;"><input id="Credits1" type="number" tabindex="17" /></td></tr>
+<!--
+		<tr><td>&nbsp;&nbsp;&nbsp;Additional child tax credit (1040 line 67):</td>
+			<td style="vertical-align:middle;"><input id="ACTC1" type="number" tabindex="18" /></td></tr>
+-->
+		<tr><td><span id="TaxBracket"></span></td></tr>
+	</table>
+
+</div> <!-- PriorYear -->
+
+<div id="CurrentYearDiv">
+	<h1>Return information for current tax year (<span id="CYval"></span>)</h1>
+	<table onchange="TaxCalc();">
+		<tr><td colspan="2"><hr /><h1>Refund amounts</h1></td></tr>
+		<tr><td>State income tax refund amount:
+				<span id="AllocationText"><br />&nbsp;&nbsp;&nbsp;Amount allocated to <span id="AllocYr1"></span>:
+					<br />&nbsp;&nbsp;&nbsp;Amount allocated to <span id="AllocYr2"></span>:</span></td>
+			<td><input id="StateRefund" type="number" tabindex="1" />
+				<span id="AllocationAmount"><br /><span id="Allocation0"></span>
+					<br /><span id="Allocation1"></span></span></td></tr>
+		<tr><td>Sales tax refund amount:</td>
+			<td><input id="SalesTaxRefund" type="number" tabindex="32" /></td></tr>
+		<tr><td>Other recoverable amounts:
+			<td><input id="OtherRefund" type="number" tabindex="33" /></td></tr>
+		<tr><td colspan="2"><hr /><h1>State tax paid <span id="EstYr1a"></span></h1>
+				<span class="comment">(Federal Section &gt; Payments &amp; Estimates &gt; State Estimated Payments &gt; ... Paid AFTER 12/31)</span>
+			</td></tr>
+		<tr><td>4Q estimated state income tax paid in <span id="EstYr1b"></span>:
+				<span id="preinfo" class="question"
+					onmouseover="curinfodiv.style.display='table-row';"
+					onmouseout="curinfodiv.style.display='none';">&nbsp;?&nbsp;</span>
+			<td><input id="Estimated1" type="number" tabindex="14" /></td></tr>
+		<tr id="curinfodiv"><td colspan="2">
+			Estimated taxes paid in the 4th quarter could also include other payments made for the previous year, such as:
+			<ul>
+				<li> any tax amount due paid when the return was filed, or thereafter in the same year (presumably 0 since there is a refund)</li>
+				<li> any estimated tax paid with an extension</li>
+			</ul>
+			</td></tr>
+		<tr><td colspan="2"><hr /><h1>Taxable amounts</h1></td></tr>
+		<tr><td><u>Taxable amount of state tax refund:</u>
+				<br /><span class="comment"><b>1040 line 10</b>
+				<br />(TS Income &gt; State and Local Refunds &gt; Bypass worksheet line).</span></td>
+			<td><span id="StateTaxable">0</span></td></tr>
+		<tr><td colspan="2">&nbsp;</td></tr>
+		<tr id="OtherTaxableShow"><td><u>Taxable amount of sales tax &amp; other refunds:</u>
+				<br /><span class="comment"><b>1040 line 21</b>
+					<br />(TS Income &gt; Other Income).</span></td>
+			<td><span id="OtherTaxable">0</span></td></tr>
+		<tr><td colspan="2"><hr /><h1>Deductible amounts</h1></td></tr>
+		<tr id="ReduceSchedA"><td><u>Prior year 4th quarter estimated payment:</u>
+				<br /><span class="comment"><b>Part of Sched A line 5a</b>
+				<br />(Federal Section &gt; Deductions &amp; Itemized Deductions &gt; Taxes You Paid &gt; Prior Year 4th Quarter...).</span></td>
+			<td><span id="Quarter4th">0</span></td></tr>
+	</table>
+
+</div> <!-- CurrentYear -->
+
+<div class="noPrint">
+	  Please send corrections and suggestions to	<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	  <span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+</div>
