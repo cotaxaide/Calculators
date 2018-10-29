@@ -1,0 +1,2411 @@
+	<!DOCTYPE HTML>
+	<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+		<meta name="author" content="Phil Saba, CT/D7 Trumbull TC">
+		
+		<title>Pension Exclusion Calculator</title>
+	<style type="text/css">
+		html { background-color: #cccccc; }
+		body { background-color: #eeeeee;
+			font-family: sans-serif;
+			font-size: 0.9em;
+		}
+		h1 {	text-align: center;
+			font-size: 1.1em;
+			font-weight: bold;
+			text-decoration: underline;
+		}
+		table, td { border: 1px solid black; border-collapse: collapse; }
+		button { background-color: lightblue; }
+	
+		.bold { font-weight: bold; }
+		.border { border:
+			1px solid black;
+		}
+		.center { text-align: center; }
+		.hidden { display: none; }
+		.invisible { display: none; }
+		#mainheader {
+			//position: relative;
+			width: 47em; border:
+			margin: auto;
+		}
+		#ClearButton { width: 13em;
+			text-align:center; 
+			margin: 0;
+			padding: 0;
+			z-index: 2;
+			position: absolute;
+			top: 1.8em;
+			right: calc(50% - 24em);
+		}
+		#VideoButton { width: 13em;
+			text-align:center; 
+			margin: 0;
+			padding: 0;
+			z-index: 2;
+			position: absolute;
+			top: 1.8em;
+			left: calc(50% - 24em);
+		}
+		.commentfield1 { width: 22em; background-color: tan; text-align: center; }
+		.commentfield2 { width: 15em; background-color: tan; text-align: center; }
+		.commentfield3 { width: 13em; background-color: tan; text-align: center; }
+		.tooltitle { font-size:125%; font-weight:bold; }
+		.tableMaker { text-align: center; font-size: 150%; }
+		.tableMaker>tr.nth-child(odd) { background-color: #eeeeee; }
+		.tr0 { background-color: #cccccc; }
+		.tr1 { background-color: #fcfcfc; }
+		.tr2 { background-color: #88ff88; font-weight: bold; }
+		.white { background-color: white; }
+		.ColYear, .ColPrior, .ColExclusion, .ColRemaining {
+			font-size: 0.8em;
+			text-align: center;
+		}
+			.ColYear { width: 15%; }
+			.ColPrior { width: 25%; }
+			.ColExclusion { width: 25%; }
+			.ColRemaining { width: 25%; }
+		.printalternative { display:none; }
+		.inputfield { background-color: yellow; }
+		.inputfield #TPName {
+			width: 25em;
+			margin: 3px;
+		}
+		#DisQ,
+		#PSOQ {
+			border: 1px solid black;
+			padding-left: .3em;
+			padding-right: .3em;
+			border-radius: .6em;
+			background-color: lightgreen;
+			cursor: pointer;
+			font-size: 80%;
+		}
+		#DistitleBox,
+		#PSOtitleBox {
+			display: none;
+			position: absolute;
+			top: 8.4em;
+			text-align: left;
+			right: 4em;
+			width: 26em;
+			border: 1px solid green;
+			background-color: lightgreen;
+			z-index: 2;
+			padding: 3px;
+		}
+		#PSOtitleBox {
+			top: 7.3em;
+		}
+		#TSform table, #TSform tr, #TSform td { border: 0; }
+		#NTIncomeTable table, #NTIncomeTable tr, #NTIncomeTable td { border: 0; }
+		#MedTable table, #MedTable tr, #MedTable td { border: 0; }
+		#DeathTable table, #DeathTable tr, #DeathTable td { border: 0; }
+		#TPdecQ, #SPdecQ, #SPdiedQ { display: none; }
+		#deathMessage { background-color: white; }
+		#DiedRow { display: none; }
+		#Disability { background-color: yellow; }
+		#DisabilityQBox {
+			display: none;
+			position: absolute;
+			top: 12em;
+			left: calc((100% - 12em) / 2);
+			height: 4em;
+			width: 12em;
+			background-color: lightpink;
+			padding: 4px;
+			padding-top: 1em;
+			border: 2px solid black;
+		}
+		#DisY, #DisN {
+			margin-left: 1em;
+		}
+		#disability_note_box {
+			border: 5px solid red;
+			background-color: lightpink;
+			width: 40em;
+			text-align: left;
+			display: none;
+			padding: 2px;
+		}
+		#disability_note {
+			font-weight: bold;
+			font-size: 120%;
+		}
+		#disability_part1,
+		#disability_part2 {
+			margin-left: 1em;
+		}
+		#disability_PSO {
+			margin-left: 6em;
+		}
+		#DPSO_amount {
+			background-color: white;
+		}
+		#userInput { margin-top: 0.5em; margin-bottom: 0.5em; }
+		#ButtonBox { margin-bottom: 0.5em; }
+		#RetAgeHelpBox {
+			display: none;
+			border: 2px solid black;
+			background-color: #eee;
+			font-size: 80%;
+			text-align: left;
+			z-index: 2;
+			position: absolute;
+			top: 12em;
+			right: calc(50% - 28.4em);
+			padding: 5px;
+			width: 30em;
+		}
+		#RetAgeHelpBox ul { list-style-type: none; }
+		#RetAgeHelpBox table { border: none; }
+		#RetAgeHelpBox table tr td:first-child { border: none; }
+		#DeathTable .entrytable,
+		#TSform .entrytable,
+		#NTIncomeTable .entrytable,
+		#MedTable .entrytable {
+			border: 5px solid black;
+			background-color: #cccccc;
+		}
+		#TSform {
+			page-break-inside: avoid;
+			position: relative;
+		}
+		#TSform .entrytable {
+			border: 5px solid black;
+			background-color: #cccccc;
+		}
+		#theTbody { background-color: tan; }
+		#type {
+			width: 22em;
+			text-align:
+			left; margin: auto;
+		}
+		#NTIncomeTable,
+		#MedTable,
+		#DeathTable,
+		#exclusionTable {
+			page-break-inside: avoid;
+			page-break-before: auto;
+			page-break-after: auto;
+			position: relative;
+			display: block;
+			!important;
+		}
+		#MEDIC, #SALMEDIC {
+			display: none;
+		}
+		#TwoDocsOption {
+			border: 1px solid black;
+			width: 23em;
+			background-color: lightgreen;
+			margin-top: 5px;
+			margin-bottom: 10px;
+			padding-left: 1em;
+			display: block;
+		}
+		.TwoDocsTable,
+		.TwoDocsTable tr td {
+			border: none;
+			text-align: left;
+			margin: auto;
+		}
+		.TPDOBTable { width: 100%; }
+		.TPDOBTable,
+		.TPDOBTable tr td {
+			border: none;
+			text-align: left;
+		}
+		#TPadied,
+		#SPadied {
+			max-width: 10em;
+			width: 10em;
+		}
+		
+		@media print {
+			html {
+				background-color: transparent;
+			}
+			body {
+				background-color: transparent;
+			       	font-size:80%;
+				height: 8in;
+			}
+			button {
+				display:none;
+			}
+			.printalternative {
+				display:inline;
+			}
+			.noPrint {
+				display:none;
+			}
+			#disability_note_box {
+				width: 80%
+			}
+		}
+	</style>
+	
+	<script src="Tax_Data/IRS_2000.js"></script>
+		
+	<script type="text/javascript">
+	// --------------------------------------------------------------------
+	// Contributors:
+	// --------------------------------------------------------------------
+	//	Phil Saba - added the annuity table code
+	//	Steve Conary
+	//	Kenny Hayes
+	//	John Haim
+	//	Herb Klug
+	//	John Glasserman
+	//	Bruce McCommons
+	//	Paul Hirth
+	//	Douglas Feuerhelm
+	//	Deb Fisher
+	//	Frank Krider
+	// --------------------------------------------------------------------
+	// Version history:
+	// --------------------------------------------------------------------
+		var VERSION = "(version 10.16, 6/14/2018)";
+		//	Corrected PSO medical exemption figures (they were reversed)
+		//var VERSION = "(version 10.15, 6/14/2018)";
+		//	Changed clear and reset button to work with Firefox
+		//	Corrected a divide by zero error in medical exclusion with disability
+		//var VERSION = "(version 10.14, 4/2/2018)";
+		//	Added link to the video tour
+		//var VERSION = "(version 10.13, 3/17/2018)";
+		//	Fixed empty Sched A box popping up for 1986 permanent exclusion pension
+		//var VERSION = "(version 10.12, 2/12/2018)";
+		//	Clarified use of 2 1099-Rs when disability year ends
+		//var VERSION = "(version 10.11, 11/27/2017)";
+		//	Fixed problem where check for deceased caused TPGROSS to not be tested for 0
+		//	Fixed annuity start date prior to 1986 and disability interaction
+		//var VERSION = "(version 10.10, 11/20/2017)";
+		//	FIxed problem where a number was being compared with a string
+		//	Minor commenting clarifications
+		//var VERSION = "(version 10.09, 11/6/2017)";
+		//	Fixed problem where 3 boxes appeared in PSO insurance
+		//var VERSION = "(version 10.08, 8/31/2017)";
+		//	Fixed incorrect months in SGR worksheet when spouse died
+		//	Fixed not stopping TP pension when SP had earlier died
+		//var VERSION = "(version 10.07, 8/29/2017)";
+		//	Fixed not distributing PSO exclusion with a disability pension
+		//	Fixed a problem where TP died earlier, SP died in current year
+		//var VERSION = "(version 10.06, 8/27/2017)";
+		//	Added death in current year options
+		//var VERSION = "(version 10.05, 8/10/2017)";
+		//	2017 TS eliminated the 1099-R Nontaxable Income question for PSO
+		//var VERSION = "(version 10.04, 6/20/2017)";
+		//	Fixed a problem where the 1986 lifetime exclusion did not show TS input
+		//var VERSION = "(version 10.03, 6/12/2017)";
+		//	Fixed a problem where the disability question was asked multiple times
+		//	Reworded question re disability
+		//var VERSION = "(version 10.02, 6/9/2017)";
+		//	Added allocation warning box and adjusted distribution amounts
+		//var VERSION = "(version 10.01, 6/3/2017)";
+		//	Added RRB disability minimum retirement age options
+		//var VERSION = "(version 10.00, 5/31/2017)";
+		//	Added disability pension annuity option
+		//	Moved year selection to a seperate TS box
+		//	Changed PSO insurance line so it disappears when not needed
+		//	Added the clear and reset button
+		//var VERSION = "(version 9, 1/27/2017)";
+		//	Corrected case where distribution less exclusion was less than 3000
+		//var VERSION = "(version 8a, 1/14/2017)";
+		//	Corrected list of public safety officers in tooltip
+		//var VERSION = "(version 8, 12/18/2016)";
+		//	Restored dates on printed output for QR purposes
+		//var VERSION = "(version 7h, 11/10/2016)";
+		//	Changed default calculation year to not be earlier than annuity
+		//var VERSION = "(version 7g, 10/3/2016)";
+		//	Brought up alert box for pub safety officer amount changes
+		//	Added a check to assure that all contrib exclusion is used
+		//	Added a TaxSlayer box for Schedule A
+		//var VERSION = "(version 7f, 9/22/2016)";
+		//	Changed new Array to []
+		//	Changed script source from Tax Data to Tax_Data
+		//var VERSION = "(version 7e, 8/17/2016)";
+		//	Changed Taxpayer to Annuitant
+		//var VERSION = "(version 7d, 8/4/2016)";
+		//	Minor change to annuity start date tool tip
+		//var VERSION = "(version 7c, 6/17/2016)";
+		//	Made the exclusion table font larger
+		//var VERSION = "(version 7b, 6/15/2016)";
+		//	Corrected a reference to TaxWise
+		//	Corrected a few display issues
+		//var VERSION = "(version 7a, 6/10/2016)";
+		//	Fixed problem where table started printing on pg 1
+		//	Changed TS input default to show after calculation done
+		//var VERSION = "(version 7a, 6/6/2016)";
+		//	Modified to accomodate Tax Slayer
+		var AGE, MO, DY, YR, ANN_MO, ANN_YR, EXAMT;
+		var ANN_START = ""; // YYYYMMDD format for annuity start date
+		var MIN_ANN_START = "";
+		var MIN_ANN_YR = "";
+		var MIN_ANN_MO = "";
+		var SAVE_FYR_MO = 0;
+		var TS_VISIBLE = true;
+		var COMMENT_COLOR = "tan";
+		var BG_COLOR = "#eeeeee";
+		var INPUT_COLOR = "yellow"
+		
+		var ANN_ERROR = 1;
+		var TPAGE_ERROR = 2;
+		var SPAGE_ERROR = 4;
+		var CONTRIB_ERROR = 8;
+		var EXCLUSION_ERROR = 16;
+		var NO_EXCLUSION_ERROR = 128;
+		var MEDICAL_ERROR = 256;
+		var GROSS_ERROR = 512;
+		var RETAGE_ERROR = 1024;
+		var DEATH_ERROR = 2048;
+		// Spouse birthdate, retirement age and medical are optional and will be added if checked
+		var CANNOT_CALC = ANN_ERROR | TPAGE_ERROR | CONTRIB_ERROR | GROSS_ERROR;
+		
+		var FIRST_YR = 1900;	// minimum date, for some limited date checking
+		var TAX_YR = +_DefaultYear;
+		var DPM = "0,31,29,31,30,31,30,31,31,30,31,30,31";	// days per month for date checking
+		DPM = DPM.split(",");		// Creates array for days of each month
+		
+		var NEWDATE = "";	// builds the date to be displayed, remembers the last one
+		var EDIT_MODE = [];	// date is being edited, don't evaluate yet
+			EDIT_MODE["ANNUITY"] = 0;
+			EDIT_MODE["TP"] = 0;
+			EDIT_MODE["SP"] = 0;
+		var LASTALERTED = false;
+		var FULLMEDEX = 0; // total exclusion entered
+		var IGNOREMED = false;
+		var OVERAGE = 0;
+		var GROSS_TOTAL = 0;
+		var MINRETDATE = 0;
+		var PSOtitle = "Public safety officers are:";
+			PSOtitle += "<ul><li>Federal and local law enforcement officer</li>";
+			PSOtitle += "<li>Members of the United States Capitol Police</li>";
+			PSOtitle += "<li>Members of the Supreme Court Police</li>";
+			PSOtitle += "<li>Federal customs and border protection officers</li>";
+			PSOtitle += "<li>Diplomatic security special agents of the United States Department of State</li>";
+			PSOtitle += "<li>Federal and local firefighter</li>";
+			PSOtitle += "<li>Air traffic controllers</li>";
+			PSOtitle += "<li>Nuclear materials couriers</li>";
+			PSOtitle += "<li>Rescue squad or ambulance crew</li>";
+			PSOtitle += "<li>Chaplain (if part of crew)</li></ul>";
+			PSOtitle += "Exclusion can be for:";
+			PSOtitle += "<ul><li>medical insurance premiums</li>";
+			PSOtitle += "<li>accident insurance premiums</li>";
+			PSOtitle += "<li>long term care insurance premiums</li></ul>";
+			PSOtitle += "<b>Note:</b> a surviving spouse does not receive the exclusion.";
+		var Distitle = "For disabiltity pensions, the contributions are not recovered until";
+			Distitle += " the minimum retirement age has been reached.";
+			Distitle += " <br />If that happened this year, you may have to split the 1099-R";
+			Distitle += " into two entries:";
+			Distitle += "<ul><li>the months prior to retirement age"
+			Distitle += " to include in income (Form 1040 line 7)</li>";
+			Distitle += "<li>the months after retirement age";
+			Distitle += " to recover contributions for those months.</li></ul>";
+		var ret_age_yr = [];
+		var ret_age_mo = [];
+		var ret_age_warning_seen = false;
+		var disability_warning_seen = false;
+		var insurance_flag = false;
+		var ignore_date_change = true;
+		var DIS_MO = 0; // number of months of disability pension
+		var NON_DIS_MO = 0; // number of months of non-disability pension
+		var TPEXCL = 0;
+		var SPEXCL = 0;
+		var TPtaxable = 0;
+		var SPtaxable = 0;
+		var TPprior = 0;
+		var SPprior = 0;
+	
+		//----------------------------------------------------------------------------------------
+		function Initialize() {
+		//----------------------------------------------------------------------------------------
+	
+			// Make an option list of tax years for the TS window
+			var ii = 0;
+			for (var i = +_StartYear; i <= +_StopYear; i++) { // Create a date option list for the TS window
+				var j = document.createElement("option");
+				j.text = j.value = i;
+				EXCL_TY.add(j,ii++);
+			}
+			EXCL_TY.value = _DefaultYear;
+			DiedMoYR.innerHTML = SPdiedQYR.innerHTML = TPdiedQYR.innerHTML = SGRW_YEAR.innerHTML = TAX_YR = +_DefaultYear;
+		
+			Version.innerHTML = VERSION;
+			document.getElementById("TPName").value = "";
+			document.getElementById("PSO").checked = false;
+			PSO_Change();
+			Disability_Change();
+			document.getElementById("ANNUITY").value = "";
+			document.getElementById("TP").value = "";
+			document.getElementById("SP").value = "";
+			document.getElementById("TPGROSS").value = "";
+			document.getElementById("SPGROSS").value = "";
+			document.getElementById("CONTR").value = "";
+			document.getElementById("TPName").focus();
+			document.getElementById("LYR_MSG").value = "";
+			LYR_MSG.style.backgroundColor = "tan";
+			document.getElementById("GROSSc").value = "";
+			GROSSc.style.backgroundColor = "tan";
+			document.getElementById("CONTRc").value = "";
+			CONTRc.style.backgroundColor = "tan";
+			PSOtitleBox.innerHTML = PSOtitle;
+			DistitleBox.innerHTML = Distitle;
+			TPGROSStext.style.display = 
+			SPGROSStext.style.display =
+			DeathTable.style.display =
+			SPGROSSinput.style.display = "none";
+			TPGROSSinput.style.display = "inline";
+			TPDiedMo.value = "";
+			SPDiedMo.value = "";
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function PSO_Change() {
+		// Hides or shows the cost of insurance input line
+		//----------------------------------------------------------------------------------------
+			// Show the row
+			CSRS20PRow.style.display =
+			FERS20PRow.style.display =
+			FERS25PRow.style.display =
+			SGRW_PSO_line.style.display =
+			MEDICRow.style.display = (PSO.checked) ? "table-row" : "none"; 
+			disability_PSO.style.display = (PSO.checked) ? "inline" : "none";
+			CSRSPSO.style.display = (PSO.checked) ? "block" : "none"; 
+	
+			if (PSO.checked) {
+				CANNOT_CALC |= MEDICAL_ERROR;
+			}
+			else {
+				MedTable.style.display = "none";
+				PSOMEDIC.value = "";
+				MEDICc.innerHTML = "";
+				MEDICc.style.backgroundColor = "tan";
+				MEDIC.value = "";
+				FULLMEDEX = "";
+				CANNOT_CALC &= ~MEDICAL_ERROR;
+			}
+			Clear_Tbody();
+		}
+	
+		//----------------------------------------------------------------------------------------
+		function Disability_Change() {
+		// Hides or shows the minimum retirement age line
+		//----------------------------------------------------------------------------------------
+			// Show the row
+			RetAgeRow.style.display = (Disability.checked) ? "table-row" : "none"; 
+
+			// Re-display the TP birthdate box if hidden by pre 1986 annuity date
+			if (Disability.checked) TP.style.display = "inline";
+
+			if (Disability.checked) {
+				CANNOT_CALC |= RETAGE_ERROR;
+			}
+			else {
+				Show_RetAgeHelpBox(false);
+				CANNOT_CALC &= ~RETAGE_ERROR;
+				ANNc.innerHTML = "";
+				RetAgeYr.value = "";
+				RetAgeMo.value = "";
+				MIN_ANN_START = "";
+			}
+			Clear_Tbody();
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Build_date(index) {
+		// index = "ANNUITY", "TP", or "SP" for corresponding date fields
+		// This function constructs a date for display as characters are entered
+		//----------------------------------------------------------------------------------------
+			var bdvar = document.getElementById(index);
+		
+			// Make sure the annuity is entered before birthdates so there's something to calculate on.
+			if ((index != "ANNUITY") && (ANN_START == "")) {
+				bdvar.value = "";
+				alert("Please enter the annuity start date first.");
+				return(1);
+			}
+			
+			// Get the characters in the text box
+			var x_val = bdvar.value;
+			var x_len = x_val.length;
+			if (x_len < 2) {
+				NEWDATE = "";
+				EDIT_MODE[index] = 0;
+				return;
+			} // nothing there so clear EDIT_MODE flag and return
+		
+			if (EDIT_MODE[index] == 1) return; // date is being edited, wait until done to validate
+			
+			// See if the last character was a "/".
+			var x_char = x_val.slice(-1); // get the last character
+			var x_brk = (x_char == "/") ? 1 : 0;
+			
+			// Check conditions for an invalid character typed at the wrong time.
+			if (((! x_brk) && isNaN(x_char)) || ((x_brk) && (x_len > 6))) {
+				bdvar.value = x_val.substring(0,x_len-1);
+				return;
+			}
+			
+			// See if a "/" or some other character was just deleted by using the backspace.
+			if (((x_val+"/") == NEWDATE) || ((NEWDATE != "") && (x_len < NEWDATE.length))){
+				NEWDATE = x_val; // remember the value of the edited field
+				return; // return with no formating or validation of the field
+			}
+			
+			// Ignore arrows used to move cursor for editing
+			if (x_val == NEWDATE) return;
+			
+			// Get the Mo, Dy, Yr from the date string.
+			x_val += "//"; // Forces DY and YR to be defined to null below
+			var x_date = x_val.split("/"); // Creates array from date entered by user
+			MO = DY = YR = ""; // Clear any earlier values
+			MO = x_date[0];
+			DY = x_date[1];
+			YR = x_date[2];
+			if (isNaN(MO) || isNaN(DY) || isNaN(YR)) {
+				bdvar.value = NEWDATE; // restore the previous valid entry
+				return;
+			}
+			
+			// Adjust the Month characters
+			if (DY.length == 0) {
+				if ((MO.length == 1) && (x_brk || (MO > 2))) MO = "0" + MO; // single digit month
+				if (MO > 12) { // must be a 1-digit month followed by 1st digit of the day
+					DY = MO.substring(1);
+					MO = "0" + MO.substring(0,1);
+				}
+			}
+			if ((DY.length > 0) && (MO.length != 2)) {
+				MO = "0" + MO;
+				MO = MO.slice(-2);
+			}
+			
+			// Adjust the Day characters
+			if (YR.length == 0) {
+				if ((DY.length == 1) && (x_brk || (DY > 3))) DY = "0" + DY; // single digit day
+				if (DY > 31) { // must be a 1-digit day followed by 1st digit of the year
+					YR = DY.substring(1);
+					DY = "0" + DY.substring(0,1);
+				}
+			}
+			if ((YR.length > 0) && (DY.length != 2)) {
+				DY = "0" + DY;
+				DY = DY.slice(-2);
+			}
+			
+			// Adjust the Year characters
+			if (YR.length > 4) YR = YR.substring(0,4);
+			
+			// Build the string to be displayed
+			NEWDATE = MO;
+			if (MO.length == 2) NEWDATE += "/";
+			NEWDATE += DY;
+			if (DY.length == 2) NEWDATE += "/";
+			NEWDATE += YR;
+			// Write the date string into the variable field
+			// NEWDATE saves the string for possible future use (e.g. was a "/" deleted)
+			bdvar.value = NEWDATE;
+			
+			// If the full date has been entered, check for validity.
+			if (NEWDATE.length == 10) {
+				Annuity_Change();
+				EDIT_MODE[index] = 1;
+			}
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Check_dates(check_disability) {
+		// This function calls Check_date() for each date field
+		//----------------------------------------------------------------------------------------
+			var error = Check_date("ANNUITY");
+			if (! error) error = Check_date("TP");
+			if (! error) error = Check_date("SP");
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Check_date(index) {
+		// index = "ANNUITY", "TP", or "SP"
+		// This function checks the date in a date field for validity
+		// if an error is found, returns 1
+		//----------------------------------------------------------------------------------------
+			// Make sure the annuity date has been entered and is valid
+			if ((index != "ANNUITY") && (ANN_START == "")) {
+				if (! Disability.checked) ANNc.innerHTML = "Invalid annuity date"; ANNc.style.backgroundColor = "hotpink";
+				return(1);
+			}
+		
+			// get the Mo, Dy, and Yr represented by the date characters
+			var bdvar = document.getElementById(index);
+			var y_date = bdvar.value;
+			x_date = y_date.split("/"); // Creates array from date entered by user
+			AGE = YR;
+			MO = x_date[0];
+			DY = x_date[1];
+			YR = x_date[2];
+			if ((index == "ANNUITY") && (MIN_ANN_START != "")) {
+				var anntest = YR*10000 + MO*100 + 1;
+				if (anntest < MIN_ANN_START) {
+					AGE = YR;
+					MO = MIN_ANN_MO;
+					DY = 1;
+					YR = MIN_ANN_YR;
+				}
+				else MIN_ANN_START = "";
+			}
+		
+			// Check the validity of the date
+			if (isNaN(MO) || isNaN(DY) || isNaN(YR) ||(MO < 1) || (MO > 12) || (DY < 1) || (DY > +DPM[+MO]) || (YR < FIRST_YR) || (YR > +_ThisYear)) AGE = -2;
+			else { // Calculate the age
+				if (ANN_YR > 0) {
+					AGE = ANN_YR - YR
+					// Month/day correction if birthday not reached on annuity anniversary
+					if ((32*(MO - ANN_MO) + DY - 1) > 0 ) AGE -= 1; // Annuity start date always first day of month
+					if (isNaN(AGE) || AGE < 0) AGE = -1;
+				}
+			}
+			switch (index) {
+				case "ANNUITY":
+					errMessage = "Invalid annuity date";
+					if (YR > EXCL_TY.value) {
+						if ((! Disability.checked) && (ANNc.innerHTML != errMessage)) { // prevents multiple alerts
+							alert("Annuity date begins in a future year. It is fully taxable."); //show why calculation not completed
+							ANNc.innerHTML = errMessage; ANNc.style.backgroundColor = "hotpink";
+						}
+						CANNOT_CALC |= ANN_ERROR;
+						return(1); 
+					}
+
+					TAX_YR = _DefaultYear = Math.max(+EXCL_TY.value, YR);
+					CANNOT_CALC &= ~ANN_ERROR;
+					RYR_EX_COMMENT.innerHTML = "";
+					RYR_EX_COMMENT.style.backgroundColor = "tan";
+
+					if (ANNUITY.value != "") {
+						FYR_MO.innerHTML = "";
+						if (AGE == -2) { // -2 tests date format only
+							if (ANNc.innerHTML != errMessage) { // prevents multiple alerts
+								if (! Disability.checked) {
+									alert("Annuity date entry is not valid or begins in a future year."); //show why calculation not completed
+									ANNc.innerHTML = errMessage; ANNc.style.backgroundColor = "hotpink";
+								}
+							}
+							CANNOT_CALC |= ANN_ERROR;
+							return(1); 
+						}
+						else if (MIN_ANN_START == "") {
+							ANNc.style.backgroundColor = "tan";
+							ANNc.innerHTML = "";
+						}
+						ANN_YR = YR;
+						ANN_MO = MO;
+						SAVE_FYR_MO = 13 - ANN_MO;
+						Set_FYR_MO();
+						ANN_START = YR*10000 + MO*100 + 1; 
+						if (DY != 1) {
+							ANNUITY.value = MO + "/01/" + YR;
+							alert("The Annuity starting date is the first day of the month for which retirement benefits are received. \n \nThe Annuity entry was adjusted to start on the first day of the month.");
+						}
+					}
+	
+					else {
+						FYR_MO.innerHTML = ANN_MO = ANN_YR = ANN_START = ""; // Clear the remembered annuity date
+						CANNOT_CALC |= ANN_ERROR;
+					}
+					
+					break;
+	
+				case "TP":
+					CANNOT_CALC |= TPAGE_ERROR;
+					TPAGE.style.backgroundColor = BG_COLOR;
+					TPAGE.innerHTML = "";
+					if (TP.value != "") {
+						CANNOT_CALC &= ~TPAGE_ERROR;
+						if (AGE < 0) {
+							TPAGE.innerHTML = "Invalid birthdate"; TPAGE.style.backgroundColor = "hotpink";
+							alert("Annuitant birthdate entry is not valid");
+							CANNOT_CALC |= TPAGE_ERROR;
+							return(1); 
+						}
+						else {
+							TPAGE.innerHTML = AGE;
+							if ((AGE < 55) && (! Disability.checked)) {
+								if (! disability_warning_seen) {
+									DisabilityQBox.style.display = "block";
+								}
+							}
+						}
+					}
+					switch (true) { // Calculate Federal Employee Retirement Plan retirement age
+						case (YR > 1969): ret_age_yr['FERS'] = 57; //
+							ret_age_mo['FERS'] = 0;
+							break;
+						case (YR > 1952): ret_age_yr['FERS'] = 56;
+							ret_age_mo['FERS'] = 2 * Math.max(0, YR - 1964);
+							break;
+						case (YR > 1947): ret_age_yr['FERS'] = 55;
+							ret_age_mo['FERS'] = 2 * Math.max(0, YR - 1947);
+							break;
+						default:
+							ret_age_yr['FERS'] = 55;
+							ret_age_mo['FERS'] = 0;
+					}
+					FERS10A.innerHTML = ret_age_yr['FERS'] + ((ret_age_mo['FERS'] == 0) ? "" : " yr, " + ret_age_mo['FERS'] + " mo.");
+	
+					switch (true) { // Calculate Railroad Retirement Board retirement age
+						case (YR > 1959): ret_age_yr['RRB'] = 67;
+							ret_age_mo['RRB'] = 0;
+							break;
+						case (YR > 1942): ret_age_yr['RRB'] = 66;
+							ret_age_mo['RRB'] = 2 * Math.max(0, YR - 1954);
+							break;
+						case (YR > 1937): ret_age_yr['RRB'] = 65;
+							ret_age_mo['RRB'] = 2 * Math.max(0, YR - 1937);
+							break;
+						default:
+							ret_age_yr['RRB'] = 65;
+							ret_age_mo['RRB'] = 0;
+					}
+					RRB10A.innerHTML = ret_age_yr['RRB'] + ((ret_age_mo['RRB'] == 0) ? "" : " yr, " + ret_age_mo['RRB'] + " mo.");
+	
+					SPdecQ.style.display = (TP.value && TPdec.checked) ? "inline" : "none";
+					break;
+	
+				case "SP":
+					CANNOT_CALC &= ~SPAGE_ERROR;
+					SPAGE.style.backgroundColor = "tan";
+					SPAGE.innerHTML = "Not used";
+					if (SP.value != "") {
+						if (AGE < 0) {
+							SPAGE.innerHTML = "Invalid birthdate"; SPAGE.style.backgroundColor = "hotpink";
+							alert("Spouse birthdate entry is not valid");
+							CANNOT_CALC |= SPAGE_ERROR;
+							return(1); 
+						}
+						else {
+							SPAGE.innerHTML = AGE;
+							SPAGE.style.backgroundColor = BG_COLOR;
+						}
+						// if (! TPdied.checked) SPDiedMo.value = SPGROSS.value = "";
+					}
+					else {
+						SPDiedMo.value = "";
+					}
+				}
+	
+			AnnTest = Math.max(ANN_START, MIN_ANN_START);
+			if ((AnnTest > 19971231) && (TP.value != "") && (SP.value != "")) {
+				COMB.innerHTML = (+TPAGE.innerHTML) + (+SPAGE.innerHTML);
+				JOINT.innerHTML = "Joint or survivor annuity";
+				COMB.style.backgroundColor = BG_COLOR;
+			}
+			else {
+				COMB.innerHTML = "Not used";
+				JOINT.innerHTML = "(For joint or survivor annuity)";
+				COMB.style.backgroundColor = "tan";
+			}
+		return(0);
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Edit_date(index) {
+		// index = "ANNUITY", "TP", or "SP" for corresponding date fields
+		// This function captures the current value of the field in NEWDATE
+		//----------------------------------------------------------------------------------------
+			var bdvar = document.getElementById(index);
+			NEWDATE = bdvar.value;
+			if (bdvar.value != "") {
+				NEWDATE = bdvar.value;
+				EDIT_MODE[index] = 1;
+			}
+			if ((MO_EX.innerHTML != "") || (FYR_EX.innerHTML != "")) Clear_Tbody();
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function DisabilityQ(response) {
+		// This function process the response to the disability pension question box
+		// response is true or false
+		//----------------------------------------------------------------------------------------
+			disability_warning_seen = true;
+			DisabilityQBox.style.display = "none";
+			if (response) Disability.checked = true;
+			else MIN_ANN_START = "";
+
+			// Update the displays
+			Disability_Change();
+			Annuity_Change();
+		}
+
+		//----------------------------------------------------------------------------------------
+		function Show_RetAgeHelpBox(show) {
+		// This function shows or hides the Retirement Age Help Box
+		//----------------------------------------------------------------------------------------
+			CSRSnone.checked = true; // unchecks all options (this one is hidden)
+			RetAgeHelpBox.style.display = (show) ? "block" : "none";
+		}
+	
+		//----------------------------------------------------------------------------------------
+		function Select_RetAge(RAYR,RAMO) {
+		// This function sets the minimum retirement age on the main window when
+		// selected from the help window
+		//----------------------------------------------------------------------------------------
+			// check the RRB option if appropriate
+			RRB.checked = (RRB05.checked || RRB10X.checked || RRB30.checked);
+
+			// age dependent?
+			if ((RAYR == "FERS") || (RAYR == "RRB")) {
+				RAMO = ret_age_mo[RAYR]; // caution, RAYR will change next
+				RAYR = ret_age_yr[RAYR];
+			}
+	
+			// write the values in the input fields
+			RetAgeYr.value = RAYR;
+			RetAgeMo.value = RAMO;
+	
+			// close the help window
+			Show_RetAgeHelpBox(false);
+	
+			// now do the calc as if entered directly
+			Calc_Retirement_Date(true);
+		}
+	
+		//----------------------------------------------------------------------------------------
+		function Calc_Retirement_Date(checkfornull) {
+		// This function checks the retirement age fields for validity when a disability
+		//----------------------------------------------------------------------------------------
+			if (! Disability.checked) return;
+	
+			// Make sure birthdate and annuity start date have been entered
+			if (ANNUITY.value == "") {
+				alert("Please enter the annuity start date and birthdates first.");
+				RetAgeYr.value = RetAgeMo.value = "";
+				return;
+			}
+			if (TP.value == "") {
+				alert("Please enter the annuitant's birthdate first.");
+				return;
+			}
+			if (RetAgeYr.value == "") {
+				if (checkfornull) {
+					RetAgec.innerHTML = "Invalid retirement age"; RetAgec.style.backgroundColor = "hotpink";
+					CANNOT_CALC |= RETAGE_ERROR;
+					alert("Please enter the annuitant's minimum retirement age.");
+				}
+				return;
+			}
+			RAYr = (RetAgeYr.value == "ANY") ? 10 : +RetAgeYr.value;
+			RAMo = +RetAgeMo.value;
+			if (isNaN(RAYr) || (RAYr < 10) || (RAYr > 120) || isNaN(RAMo) || (RAMo < 0) || (RAMo > 11)) {
+				RetAgec.innerHTML = "Invalid retirement age"; RetAgec.style.backgroundColor = "hotpink";
+				CANNOT_CALC |= RETAGE_ERROR;
+				alert("Please check your retirement age year for an error.");
+				return;
+			}
+	
+			// Good to go...
+			RetAgec.innerHTML = "";
+			RetAgec.style.backgroundColor = "tan";
+			CANNOT_CALC &= ~RETAGE_ERROR;
+	
+			// Reset the annuity start date (handles change in min ret age)
+			MIN_ANN_START = "";
+			Check_date("ANNUITY");
+	
+			// Calculate a new annuity start date based on earliest retirement age
+			var y_date = TP.value; // Annuitant's birthdate
+			x_date = y_date.split("/"); // Creates array from date entered by user
+	
+			MIN_ANN_DY = +x_date[1];
+			MIN_ANN_MO = +x_date[0] + RAMo
+			MIN_ANN_YR = +x_date[2] + RAYr;
+		      	if (MIN_ANN_DY > 1) MIN_ANN_MO++; // Start on the first of the next month
+			if (MIN_ANN_MO > 12) {
+				MIN_ANN_MO -= 12;
+				MIN_ANN_YR++;
+			}
+			MIN_ANN_START = MIN_ANN_YR*10000 + MIN_ANN_MO*100 + 1;
+
+			// If disabled TP died this year, the annuity starts for the survivor
+			if (Disability.checked && TPdied.checked) {
+				DIED_ANN_YR = +TAX_YR; // died this year
+				// died TPDiedMo after annuity start if this year
+				DIED_ANN_MO = +TPDiedMo.value + 1;
+				DIED_ANN_START = DIED_ANN_YR*10000 + DIED_ANN_MO*100 + 1;
+				if (MIN_ANN_START > DIED_ANN_START) {
+					MIN_ANN_START = DIED_ANN_START;
+					MIN_ANN_YR = DIED_ANN_YR;
+					MIN_ANN_MO = DIED_ANN_MO;
+				}
+			}
+
+			if (MIN_ANN_START >= ANN_START) {
+				ANNc.innerHTML = "Using " + +MIN_ANN_MO + "/1/" + +MIN_ANN_YR;
+				ANNc.backgroundColor = "BG_COLOR";
+				if (Disability.checked) {
+					DIS_MO = 0;
+					if (TAX_YR == MIN_ANN_YR) {
+						if (ANN_YR == MIN_ANN_YR) {
+							DIS_MO = Math.max(0, MIN_ANN_MO - ANN_MO);
+						}
+						else {
+							DIS_MO = MIN_ANN_MO - 1;
+						}
+					}
+					if (TAX_YR < MIN_ANN_YR) {
+						DIS_MO = 12;
+					}
+				}
+				ANN_YR = MIN_ANN_YR;
+				ANN_MO = MIN_ANN_MO;
+				Set_FYR_MO();
+			}
+			else {
+				ANNc.innerHTML = "";
+				ANNc.backgroundColor = "tan";
+			}
+
+			Annuity_Change();
+	
+			if (TPdec.checked && (! TPdied.checked) && Disability.checked) {
+				alert("Because the annuitant has deceased, this is no longer a disability annuity. Recalculate using the spouse as the annuitant, with the start of annuity the first month after the annuitant's death.");
+				// Transfer spouse birthdate to annuitant
+				ANNUITY.value = "";
+				MIN_ANN_START = "";
+				ANN_START = "";
+				ANNc.innerHTML = "";
+				ANNc.backgroundColor = "tan";
+				TP.value = SP.value;
+				SP.value = "";
+				TPdec.checked = false;
+				Disability.checked = false;
+				RetAgeRow.style.display = "none"; 
+			}
+
+			else if (ANN_YR > TAX_YR) {
+				CANNOT_CALC |= RETAGE_ERROR;
+				if (! ret_age_warning_seen) {
+					alert("For a disability retirement, the recovery of contributions does not take effect until the annuitant reaches minimum retirement age, which can vary based on the employer and length of service. For this annuitant, this will occur in " + MIN_ANN_YR + ". \n\nThis year, the disability pension is fully taxable.");
+					ret_age_warning_seen = true;
+				}
+				NO_MO.innerHTML = "0";
+				MO_EX.innerHTML = "0";
+			}
+	
+			Clear_Tbody();
+		}
+	
+		//----------------------------------------------------------------------------------------
+		function Check_gross(which) {
+		// This function checks the gross field for validity
+		//----------------------------------------------------------------------------------------
+			GROSSc.style.backgroundColor = "tan";
+			GROSSc.innerHTML = "";
+			CANNOT_CALC &= ~GROSS_ERROR;
+
+			if (((which == "TP") || (which == "BOTH")) && (TPdied.checked || (! TPdec.checked))) {
+				if (TPdec.checked && (!TPdied.checked))
+				if ( TPGROSS.value === "0") { 
+					NO_MO.innerHTML = "";
+					return;
+				}
+				if (TPGROSS.value === "") {
+					GROSSc.innerHTML = "No gross distrib info"; GROSSc.style.backgroundColor = "hotpink";
+					CANNOT_CALC |= GROSS_ERROR;
+					return; 
+				}
+				if ((SPGROSS.value == "") && (TPDiedMo.value > 0)) {
+					temp = (TPGROSS.value / TPDiedMo.value) * SPDiedMo.value;
+					SPGROSS.value = Math.round(temp * 100) / 100;
+				}
+			}
+
+
+			if (TPdec.checked && SP.value && ((which == "SP") || (which == "BOTH"))) {
+				if ( SPGROSS.value === "0") { 
+					NO_MO.innerHTML = "";
+					return;
+				}
+				if (SPGROSS.value === "") {
+					GROSSc.innerHTML = "No gross distrib info"; GROSSc.style.backgroundColor = "hotpink";
+					CANNOT_CALC |= GROSS_ERROR;
+					return; 
+				}
+			}
+
+			GROSS_TOTAL = Math.round(+TPGROSS.value + +SPGROSS.value);
+			if (isNaN(GROSS_TOTAL) ) {
+				GROSSc.innerHTML = "Invalid contribution info"; GROSSc.style.backgroundColor = "hotpink";
+				alert("Gross Distribution entry is not a valid number. \n \n$, Spaces or commas are not permitted in the number. \n \nEntry may be a whole or decimal number. \nDecimal numbers will be rounded to the nearest whole number. \n \nCalculation not completed"); // //show why calculation not complete
+				CANNOT_CALC |= GROSS_ERROR;
+				return;
+			}
+		}
+	
+		//----------------------------------------------------------------------------------------
+		function Check_died(complete) {
+		// This function checks the death fields for validity
+		//----------------------------------------------------------------------------------------
+			CANNOT_CALC &= ~DEATH_ERROR;
+
+			// exit if nobody died
+			if ((! TPdied.checked) && (! SPdied.checked)) {
+				var tmo = (ANN_YR == TAX_YR) ? SAVE_FYR_MO : 12;
+				if (TPdec.checked) SPDiedMo.value = tmo;
+				else TPDiedMo.value = tmo;
+				return;
+			}
+
+			Diedc.innerHTML = "";
+			Diedc.style.backgroundColor = "tan";
+	
+			if (isNaN(TPDiedMo.value) || (+TPDiedMo.value < 0) || (+TPDiedMo.value > 12)) {
+				Diedc.innerHTML = "Invalid ANN distribution info<br />&nbsp;<br />&nbsp;";
+				Diedc.style.backgroundColor = "hotpink";
+				alert("Annuitant months received entry is not a valid number.");
+				CANNOT_CALC |= DEATH_ERROR;
+				return;
+			}
+
+			// Assure it's a full month
+			TPDiedMo.value = Math.round(TPDiedMo.value);
+
+			if (TAX_YR == ANN_YR) {
+				Totalmo = (Disability.checked) ? 12 : SAVE_FYR_MO;
+			}
+			else {
+				Totalmo = 12;
+			}
+			if (! SPdec.checked) SPDiedMo.value = Totalmo - +TPDiedMo.value;
+
+			Calc_Retirement_Date(true);
+
+			if (! complete) return;
+	
+			SPDiedMo.value = Math.round(SPDiedMo.value);
+
+			if (isNaN(SPDiedMo.value) || (+SPDiedMo.value < 0) || (+SPDiedMo.value > 12)) {
+				Diedc.innerHTML = "&nbsp;<br />&nbsp;<br />Invalid SP distribution info";
+				Diedc.style.backgroundColor = "hotpink";
+				alert("Annuitant months received entry is not a valid number.");
+				CANNOT_CALC |= DEATH_ERROR;
+				return;
+			}
+
+			if (((+SPDiedMo.value + +TPDiedMo.value) > Totalmo)) {
+				Diedc.innerHTML = "Invalid distribution info";
+				Diedc.style.backgroundColor = "hotpink";
+				CANNOT_CALC |= DEATH_ERROR;
+				alert("Months received by annuitant and spouse cannot exceed " + Totalmo);
+				return; 
+			}
+
+			// May have changed if SP died
+			Set_FYR_MO();
+
+		}
+		//----------------------------------------------------------------------------------------
+		function Set_FYR_MO() {
+		//----------------------------------------------------------------------------------------
+			var fyrmo = SAVE_FYR_MO; // the starting number of months
+
+			if (TAX_YR == ANN_YR) {
+				if (Disability.checked) fyrmo = 13 - ANN_MO;
+				if (TPdied.checked) fyrmo = Math.max(0, (+TPDiedMo.value - ANN_MO + 1));
+				else if (TPdec.checked) fyrmo = 0;
+				NON_DIS_MO = fyrmo;
+				fyrmo += +SPDiedMo.value;
+
+			}
+
+			FYR_MO.innerHTML = fyrmo;
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Check_contrib() {
+		// This function checks the cost and insurance field for validity
+		//----------------------------------------------------------------------------------------
+			CONTRc.style.backgroundColor = "tan";
+			CONTRc.innerHTML = "";
+			CANNOT_CALC &= ~CONTRIB_ERROR;
+			var a = CONTR.value + ""; // This forces CONTR.value to be a string
+			if ( a === "0") { 
+				// CONTRc.innerHTML = "Ages were calculated"; 
+				NO_MO.innerHTML = "";
+				return;
+			}
+			if (CONTR.value === "" && a.length == 0) {
+				CONTRc.innerHTML = "No contribution info";
+				CONTRc.style.backgroundColor = "hotpink";
+				CANNOT_CALC |= CONTRIB_ERROR;
+				return; 
+			}
+			if (isNaN(CONTR.value) ) {
+				CONTRc.innerHTML = "Invalid contribution info";
+				CONTRc.style.backgroundColor = "hotpink";
+				alert("Pension Contribution entry is not a valid number. \n \n$, Spaces or commas are not permitted in the number. \n \nEntry may be a whole or decimal number. \nDecimal numbers will be rounded to the nearest whole number. \n \nCalculation not completed"); // //show why calculation not complete
+				CANNOT_CALC |= CONTRIB_ERROR;
+				return;
+			}
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Check_medical(tax_exclusion) {
+		// This function checks the cost and insurance field for validity
+		// tax_exclusion:  contribution exclusion amount (0 if not yet calculated, -1 if all used)
+		//----------------------------------------------------------------------------------------
+			if (! PSO.checked) {
+				return;
+			}
+			if (IGNOREMED) return;
+
+			MEDIC.value = PSOMEDIC.value;
+
+			if (TPdec.checked && (! TPdied.checked) && (! SPdied.checked)) {
+				alert("The spouse of a public safety officer cannot exclude medical expenses.");
+				PSO.checked = false;
+				CANNOT_CALC |= MEDICAL_ERROR;
+				return; 
+			}
+	
+			MEDICc.style.backgroundColor = "tan";
+			CANNOT_CALC &= ~MEDICAL_ERROR;
+			MEDICc.innerHTML = "";
+			var a = MEDIC.value + ""; // This forces var a to be MEDIC.value as a string
+	
+			if (MEDIC.value === "" && a.length == 0 && insurance_flag) {
+				MEDICc.innerHTML = "No insurance info"; MEDICc.style.backgroundColor = "hotpink";
+				alert("If there are no medical expenses to exclude, please enter 0 if there are none.");
+				CANNOT_CALC |= MEDICAL_ERROR;
+				return; 
+			}
+	
+			if (isNaN(MEDIC.value) ) {
+				MEDICc.innerHTML = "Invalid contribution info"; MEDICc.style.backgroundColor = "hotpink";
+				alert("Cost of insurance entry is not a valid number. \n \n$, Spaces or commas are not permitted in the number. \n\nEntry may be a whole or decimal number. \nDecimal numbers will be rounded to the nearest whole number. \n \nCalculation not completed");
+				CANNOT_CALC |= MEDICAL_ERROR;
+				return;
+			}
+	
+			// Save the original number for later calcs as it's being entered
+			if (tax_exclusion == -2) {
+				FULLMEDEX = +MEDIC.value;
+				return;
+			}
+
+			if (tax_exclusion == 0) {
+				SGRW_PSO.innerHTML = MEDIC.value = 0;
+				DPSO_amount.innerHTML = SALMEDIC.value = FULLMEDEX;
+				return;
+			}
+
+
+			if (Disability.checked) {
+				SALMEDIC.value = (DIS_MO) ? Math.round(DIS_MO * FULLMEDEX / (DIS_MO + NON_DIS_MO)) : 0;
+				MEDIC.value = FULLMEDEX - +SALMEDIC.value;
+			}
+
+			// Still just inputting the value
+	
+			if (tax_exclusion == -1) { // all contributions have been used
+				tax_exclusion = 0;
+			}
+
+			message = "";
+			mediclimit = 3000;
+			overage_gross = FULLMEDEX - Math.round(+TPGROSS.value);
+			overage_limit = FULLMEDEX - mediclimit;
+			overage_exclude = overage_gross + +tax_exclusion;
+			OVERAGE = Math.round(Math.max(0, overage_gross, overage_limit, overage_exclude));
+			switch (OVERAGE) {
+				case overage_gross:
+					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
+					message += "The public safety officer insurance exclusion has been limited to the gross distribution of $";
+					message += Math.round(+TPGROSS.value);
+					message += ". \n\nBe sure to include the additional $";
+					message += OVERAGE;
+					message += " in the Schedule A medical deductions.";
+					MEDICc.innerHTML = "Limited to gross distrib";
+					IGNOREMED = true;
+					MEDIC.value = Math.round(+TPGROSS.value);
+					break;
+				case overage_limit:
+					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
+					message += "The public safety officer insurance exclusion has been reduced to the tax law limit of $";
+					message += mediclimit;
+					message += ". \n\nBe sure to include the additional $";
+					message += OVERAGE;
+					message += " in the Schedule A medical deductions.";
+					MEDICc.innerHTML = "Limited to 3000";
+					IGNOREMED = true;
+					MEDIC.value = Math.round(mediclimit);
+					break;
+				case overage_exclude:
+					MEDIC.value = Math.round(+TPGROSS.value - tax_exclusion);
+					PSOMEDIC.value = +MEDIC.value + +SALMEDIC.value;
+					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
+					message += "The public safety officer insurance exclusion has been limited to $";
+					message += PSOMEDIC.value;
+					message += " to allow the full exclusion to be taken. \n\nBe sure to include the additional $";
+					message += OVERAGE;
+					message += " in the Schedule A medical deductions.";
+					MEDICc.innerHTML = "Limited due to contribution recovery";
+					IGNOREMED = true;
+					break;
+			}
+			IGNOREMED = false;
+	
+			if (OVERAGE) {
+				MEDICc.style.backgroundColor = "hotpink";
+				alert (message);
+				message = "of the $ " + FULLMEDEX + " you had entered above, include $ " + OVERAGE + " on Sch A.&nbsp;";
+				medicalMessage.innerHTML = message;
+				FULLMEDEX = +MEDIC.value;
+			}
+			else {
+				message = "be sure to include any insurance amount not used for the exemption.&nbsp;";
+				medicalMessage.innerHTML = message;
+			}
+	
+			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0) && (EXCL_TY.value < 2017)) ? "inline" : "none";
+			MedTable.style.display = ((PSO.checked && TS_VISIBLE && OVERAGE) || (FULLMEDEX > +MEDIC.value)) ? "inline" : "none";
+			SGRW_PSO.innerHTML = MEDIC.value;
+			DPSO_amount.innerHTML = SALMEDIC.value;
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function calcTP() {
+		// This function calculates the annuity parameters and builds the exclusion table
+		//----------------------------------------------------------------------------------------
+			if (TPdec.checked && (! TPdied.checked ) && SPdec.checked && (! SPdied.checked)) {
+				alert("Both annuitant and spouse died prior to " + TAX_YR + ". Nothing to calculate!");
+				return;
+			}
+
+			ignore_date_change = false;
+			if (PSO.checked) insurance_flag = true; // checks for null entry
+			Check_dates(true); // true checks disability fields
+			Calc_Retirement_Date(true);
+			Check_gross("BOTH");
+			Check_contrib();
+			Check_died(true);
+			EXAMT = 0;
+			if (CANNOT_CALC > 0) {
+				if (CANNOT_CALC & RETAGE_ERROR) {
+					if (ret_age_warning_seen) {
+						alert("The annuitant has not reached minimum retirement age. An annuity table will not be created.");
+					}
+					ret_age_warning_seen = false;
+					return;
+				}
+				if (CANNOT_CALC & NO_EXCLUSION_ERROR) {
+					Annuity_Change();
+					return;
+				} // to repeat the no exclusion message
+	
+				var MESSAGE = "The following data must be entered before the annuity table can be created:\n\n";
+				if (CANNOT_CALC & ANN_ERROR) MESSAGE += " - The annuity date\n";
+				if (CANNOT_CALC & TPAGE_ERROR) MESSAGE += " - The Annuitant's birthdate\n";
+				if (CANNOT_CALC & SPAGE_ERROR) MESSAGE += " - The Spouse's birthdate\n";
+				if (CANNOT_CALC & GROSS_ERROR) MESSAGE += " - The gross amount paid from the annuity\n";
+				if (CANNOT_CALC & CONTRIB_ERROR) MESSAGE += " - The after-tax contribution made to the annuity\n";
+				if (CANNOT_CALC & MEDICAL_ERROR) MESSAGE += " - The amount of insurance to exclude\n";
+				if (CANNOT_CALC & DEATH_ERROR) MESSAGE += " - The number of distributions received in " + EXCL_TY.value + "\n";
+				alert(MESSAGE);
+				return;
+			}
+		
+			// Display message for over 74
+			if ((TPAGE.innerHTML > 74) && (TSform.style.display == "none")) {
+				var MESSAGE = "The taxpayer retired at age 75 or older.\n\nIf their annual annuity payment amount is less than $";
+				MESSAGE += (Math.round(100 * CONTR.value / 5) / 100).toFixed(2);
+				MESSAGE += " (i.e. will take more than 5 years to recover the cost in the annuity),";
+				MESSAGE += " they will have to use the General Method to calculate their exclusion amount and is thus out of scope.";
+				MESSAGE += "\n\nIf the annual annuity payment is at least that amount, the exclusion generated by this calculator can be used.";
+				alert(MESSAGE);
+			}
+		
+			// Calculate the annuity parameters
+			var COMBageChecked = (SP.value != "");
+	
+			AnnTest = Math.max(ANN_START, MIN_ANN_START);
+			if ( COMBageChecked && (AnnTest > 19971231) ) {
+				switch(true) {
+					case (COMB.innerHTML < 111): NO_MO.innerHTML = 410; break;
+					case (COMB.innerHTML < 121): NO_MO.innerHTML = 360; break;
+					case (COMB.innerHTML < 131): NO_MO.innerHTML = 310; break;
+					case (COMB.innerHTML < 141): NO_MO.innerHTML = 260; break;
+					case (COMB.innerHTML > 140): NO_MO.innerHTML = 210; break;
+				}
+			}
+	
+			else if (AnnTest > 19961118) {
+				switch(true) {
+					case (TPAGE.innerHTML < 56): NO_MO.innerHTML = 360; break;
+					case (TPAGE.innerHTML < 61): NO_MO.innerHTML = 310; break;
+					case (TPAGE.innerHTML < 66): NO_MO.innerHTML = 260; break;
+					case (TPAGE.innerHTML < 71): NO_MO.innerHTML = 210; break;
+					case (TPAGE.innerHTML > 70): NO_MO.innerHTML = 160; break;
+				}
+			}
+	
+			else {
+				switch(true) {
+					case (TPAGE.innerHTML < 56): NO_MO.innerHTML = 300; break;
+					case (TPAGE.innerHTML < 61): NO_MO.innerHTML = 260; break;
+					case (TPAGE.innerHTML < 66): NO_MO.innerHTML = 240; break;
+					case (TPAGE.innerHTML < 71): NO_MO.innerHTML = 170; break;
+					case (TPAGE.innerHTML > 70): NO_MO.innerHTML = 120; break;
+				}
+			}
+	
+			// Populate calculated fields in the tables
+			SGRW_AGE.innerHTML = (COMBageChecked) ? COMB.innerHTML : TPAGE.innerHTML;
+			SGRW_JOINT.checked = COMBageChecked;
+		
+			CONTR.value = Math.round(CONTR.value);
+		
+			MO_EX.innerHTML = (Math.round((CONTR.value / NO_MO.innerHTML) * 100)/100).toFixed(2);
+			//FYR_EX.innerHTML = Math.min(Math.max(1,Math.round(FYR_MO.innerHTML * MO_EX.innerHTML)), GROSS_TOTAL);
+			//RYR_EX.innerHTML = Math.min(Math.max(1,Math.round(12 * MO_EX.innerHTML)), GROSS_TOTAL);
+			FYR_EX.innerHTML = Math.min(Math.round(FYR_MO.innerHTML * MO_EX.innerHTML), GROSS_TOTAL);
+			RYR_EX.innerHTML = Math.min(Math.round(12 * MO_EX.innerHTML), Math.round(GROSS_TOTAL * 12 / FYR_MO.innerHTML));
+			
+			if (AnnTest > 19860701 && AnnTest < 19870101) {
+				RYR_EX_COMMENT.innerHTML = "LIFETIME EXCLUSION";
+				RYR_EX_COMMENT.style.backgroundColor = "hotpink";
+				// Populate the TS worksheet
+				RRB1099R_CONTR.innerHTML = F1099R_CONTR.innerHTML = SGRW_CONTR.innerHTML = CONTR.value; // Annuity amount
+				SGRW_MONTHS.innerHTML = 12; // No of mo
+				SGRW_PRIOR.innerHTML = 0; // Prior years received
+				SGRW_START.innerHTML = (MIN_ANN_START >= ANN_START) ? (MIN_ANN_MO + "/1/" + MIN_ANN_YR) : ANNUITY.value;
+				var showgross = +GROSS_TOTAL;
+				if ((Disability.checked) && (MIN_ANN_YR == TAX_YR) && (+FYR_MO.innerHTML != 12)) {
+					disabilitymonths = +FYR_MO.innerHTML;
+					totalmonths = (TPdied.checked) ? TPDiedMo.value : 12;
+					if (TPdied.checked) disabilitymonths = Math.min(disabilitymonths, +TPDiedMo.value);
+					disability_part2.innerHTML = showgross = Math.round(showgross *= disabilitymonths/totalmonths);
+					disability_part1.innerHTML = +GROSS_TOTAL - showgross;
+					if (disability_part1.innerHTML) disability_note_box.style.display = "block";
+					FORM1099DIV.style.display =
+						disability_part2_line.style.display = (showgross) ? "inline" : "none";
+				}
+				else disability_note_box.style.display = "none";
+				RRB1099R_GROSS.innerHTML = F1099R_GROSS.innerHTML = SGRW_GROSS.innerHTML = showgross;
+				EXAMT = Math.min(+RYR_EX.innerHTML, +GROSS_TOTAL); // Exclusion amt
+	
+				// Do we need to limit medical exclusion?
+				Check_medical(EXAMT);
+	
+				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - EXAMT - +MEDIC.value);
+				TSbutton.style.display = "inline";
+				Printbutton.style.display = "inline";
+				tableBelow.innerHTML = "Use the above for all years";
+				ShowTSform(true);
+				alert("Because of Annuity Start Date this Annuitant has a Lifetime Exclusion. The contributions are never used up. If this is a joint pension the Lifetime Exclusion applies to both the Annuitant and surviving spouse. \n \nAN EXCLUSION TABLE IS NOT CALCULATED. \n \nIn Tax Slayer use the EXCLUSION FOR REMAINING YEARS for all years (the first year is long past). \n \nIn the Simplified Worksheet enter zero for Amount Used in Prior Years.");
+				return;
+			}  
+		
+			// Create Array for data                
+			var TROW = Math.floor((CONTR.value - FYR_EX.innerHTML)/RYR_EX.innerHTML) + 1;
+			if (((CONTR.value - FYR_EX.innerHTML) % RYR_EX.innerHTML) > 0) TROW = TROW + 1;
+			var i, j;
+			var TARR = {};
+			for(i=0; i < TROW; i++) {
+				TARR[i] = {
+				year: 0,
+				prior: 0,
+				exclusion: 0,
+				remaining: 0
+				}
+			}
+		
+			// Populate the array
+			stop = false; // table prematurely terrminated due to deaths
+			TARR[0].year = ANN_YR;
+			TARR[0].prior = 0;
+			if (TPdied.checked  && (ANN_YR == TAX_YR)) {
+				TPmo = (Disability.checked) ? NON_DIS_MO : +TPDiedMo.value;
+				TPEXCL = Math.round(Math.min(CONTR.value, TPmo * +MO_EX.innerHTML));
+				if (SP.value) SPEXCL = Math.round(Math.min(CONTR.value - TPEXCL, SPDiedMo.value * +MO_EX.innerHTML));
+				TARR[0].exclusion = TPEXCL + SPEXCL;
+				TARR[0].remaining = CONTR.value - TARR[0].exclusion;
+
+				// Stop filling the table if no longer relevant
+				if ((SP.value == "") || SPdied.checked ) {
+					TROW = 1;
+					stop = true;
+				}
+			}
+			else {
+				TARR[0].exclusion = FYR_EX.innerHTML;
+				TARR[0].remaining = CONTR.value - FYR_EX.innerHTML;
+			}
+		
+			for( i=1; i < (TROW - 1); i++) {
+				TARR[i].year = +ANN_YR + i;
+				TARR[i].prior = (+RYR_EX.innerHTML * (i-1)) + +FYR_EX.innerHTML;
+				if (TPdied.checked && (TARR[i].year == TAX_YR)) {
+					// Apportion exclusion between TP and SP
+					TPEXCL = Math.round(Math.min(TARR[i-1].remaining, +TPDiedMo.value * +MO_EX.innerHTML));
+					if (SP.value) SPEXCL = Math.round(Math.min(TARR[i-1].remaining - TPEXCL, SPDiedMo.value * +MO_EX.innerHTML));
+					TARR[i].exclusion = TPEXCL + SPEXCL;
+					TARR[i].remaining = Math.max(0, TARR[i-1].remaining - TARR[i].exclusion);
+
+					// Stop filling the table if no longer relevant
+					if ((SP.value == "") || SPdec.checked ) {
+						TROW = i+1;
+						stop = true;
+					}
+				}
+				else if (TPdec.checked && SPdied.checked && (TARR[i].year == TAX_YR)) {
+					SPEXCL = Math.round(Math.min(TARR[i-1].remaining, +SPDiedMo.value * +MO_EX.innerHTML));
+					TARR[i].exclusion = SPEXCL;
+					TARR[i].remaining = Math.max(0, TARR[i-1].remaining - TARR[i].exclusion);
+					TROW = i+1;
+					stop = true;
+				}
+				else {
+					TARR[i].exclusion = RYR_EX.innerHTML;
+					TARR[i].remaining = CONTR.value - (RYR_EX.innerHTML * i) - FYR_EX.innerHTML;
+				}
+			}
+		
+			// Final year
+			if ((! stop) && (TROW > 1)) {
+				TARR[TROW - 1].year = +ANN_YR + +TROW - 1;
+				TARR[TROW - 1].prior = RYR_EX.innerHTML * (TROW - 2) + +FYR_EX.innerHTML;
+				TARR[TROW - 1].exclusion = TARR[TROW - 2].remaining;
+				TARR[TROW - 1].remaining = 0;
+			}
+			LYR_YR.innerHTML = "(" + TARR[TROW-1].year + ")";
+			LYR_EX.innerHTML = TARR[TROW - 1].exclusion
+		
+			// Populate the Tax Slayer worksheet window
+			RRB1099R_CONTR.innerHTML = F1099R_CONTR.innerHTML = SGRW_CONTR.innerHTML = CONTR.value; // Annuity amount
+			SGRW_MONTHS.innerHTML = 0; // No of mo
+			SGRW_PRIOR.innerHTML = 0;
+			SGRW_START.innerHTML = (MIN_ANN_START >= ANN_START) ? (MIN_ANN_MO + "/1/" + MIN_ANN_YR) : ANNUITY.value;
+			var TPshowgross = Math.round(+TPGROSS.value);
+			var SPshowgross = Math.round(+SPGROSS.value);
+			if ((Disability.checked) && (MIN_ANN_YR == TAX_YR) && (+FYR_MO.innerHTML != 12)) {
+				totalmonths = (TPdied.checked) ? TPDiedMo.value : 12;
+				disabilitymonths = totalmonths - NON_DIS_MO;
+				TPsalary = Math.round(+TPGROSS.value * disabilitymonths / totalmonths);
+				disability_part1.innerHTML = TPsalary;
+				disability_part2.innerHTML = TPshowgross = (TPshowgross - TPsalary);
+				if (disability_part1.innerHTML) disability_note_box.style.display = "block";
+				FORM1099DIV.style.display = (SP.value || ((! SP.value) && TPshowgross)) ? "inline" : "none";
+				disability_part2_line.style.display = (TPshowgross) ? "inline" : "none";
+			}
+			else disability_note_box.style.display = "none";
+
+			RRB1099R_GROSS.innerHTML =
+				F1099R_GROSS.innerHTML =
+				SGRW_GROSS.innerHTML = (ShowTP.checked) ? TPshowgross : SPshowgross;
+
+			RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = 0;
+			if (TARR[0].year > TAX_YR) {
+				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - +MEDIC.value);
+				}
+			else {	
+				for (i=0; i<TROW; i++) {
+					if (TARR[i].year == TAX_YR) {
+						if (TPdied.checked) {
+							TPmo = (Disability.checked) ? NON_DIS_MO : TPDiedMo.value;
+							SGRW_MONTHS.innerHTML = (ShowTP.checked) ? TPmo : SPDiedMo.value;
+							if ( i == 0) {
+								SGRW_PRIOR.innerHTML = 0;
+							}
+							else {
+								SGRW_PRIOR.innerHTML = TARR[i].prior + ((ShowTP) ? 0 : TPEXCL);
+							}
+							TPprior = TARR[i].prior;
+							SPprior = TPprior + TPEXCL;
+						}
+						else {
+							if (i == 0) {
+								SGRW_MONTHS.innerHTML = FYR_MO.innerHTML;
+								SGRW_PRIOR.innerHTML = 0;
+							}
+							else {
+								SGRW_MONTHS.innerHTML = (TPdec.checked) ? SPDiedMo.value : 12;
+								SGRW_PRIOR.innerHTML = TARR[i].prior;
+							}
+
+						}
+		
+						// Do we need to limit medical exclusion?
+						if (TPdied.checked) {
+							Check_medical(TPEXCL);
+							TPtaxable = Math.round(Math.max(0, +TPshowgross - TPEXCL - +MEDIC.value));
+							SPtaxable = Math.round(Math.max(0, +SPshowgross - SPEXCL));
+						}
+						else {
+							Check_medical(TARR[i].exclusion);
+							TPtaxable = Math.round(Math.max(0, +TPshowgross - +TARR[i].exclusion - +MEDIC.value));
+							SPtaxable = Math.round(Math.max(0, +SPshowgross - +TARR[i].exclusion));
+						}
+		
+						RRB1099R_TAXABLE.innerHTML =
+							F1099R_TAXABLE.innerHTML =
+							(ShowTP.checked) ? TPtaxable : SPtaxable;
+					}
+				}
+			}
+	
+			LYR_MSG.innerHTML = "";
+			LYR_MSG.style.backgroundColor = "tan";
+			if (TARR[TROW-1].year < TAX_YR) {
+				SGRW_MONTHS.innerHTML = 0;
+				SGRW_PRIOR.innerHTML = CONTR.value; // All used
+	
+				// Do we need to limit medical exclusion?
+				Check_medical(-1);
+	
+				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - +MEDIC.value);
+	
+				if (TPDiedMo.value === "") { // Exclusion all used up but not due to death
+					LYR_MSG.innerHTML = "NONE REMAINING";
+					LYR_MSG.style.backgroundColor = "hotpink";
+				}
+	
+				if (! LASTALERTED) {
+					alert("The last available post-tax exclusion was taken in " + TARR[TROW-1].year + ".\n\nNo exclusion is available for this year, even if the taxpayer did not claim it in prior years (use it or lose it).\n\nThe annuity table is created for reference only.");
+					LASTALERTED = true;
+				}
+			}
+	
+			// Anything remaining?
+			if (TARR[TROW-1].remaining > 0) {
+				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as a Miscellaneous Deduction on Schedule A.");
+				deathMessage.innerHTML = TARR[TROW-1].remaining;
+				DeathTable.style.display = "inline";
+			}
+			else DeathTable.style.display = "none";
+		
+			// Create HTML table
+			// Assemble row and cell elements in DocumentFragment then Populate cells with innerHTML
+			if (document.createElement) {
+				// prepare references to document tree objects for later
+				var mytable = document.getElementById("theTable");
+				var mytbody = document.getElementById("theTbody");
+	
+				// generate new node to be assembled in memory
+				var myNewtbody = document.createElement("tbody");
+				myNewtbody.id = "theTbody";
+				// generate fragment container for tbody assembly
+				var docFragment = document.createDocumentFragment();
+				var trElem, tdElem;
+		
+				// create header row
+				trElem = document.createElement("tr");
+				
+				tdElem = document.createElement("td");
+				tdElem.className = "ColYear";
+				tdElem.innerHTML = "Tax Year";
+				trElem.appendChild(tdElem);
+		
+				tdElem = document.createElement("td");
+				tdElem.className = "ColPrior";
+				tdElem.innerHTML = "Recovered Prior years";
+				trElem.appendChild(tdElem);
+		
+				tdElem = document.createElement("td");
+				tdElem.className = "ColExclusion";
+				tdElem.innerHTML = "Exclusion this year";
+				trElem.appendChild(tdElem);
+		
+				tdElem = document.createElement("td");
+				tdElem.className = "ColRemaining";
+				tdElem.innerHTML = "Remaining cost";
+				trElem.appendChild(tdElem);
+		
+				// Push first (header) line to tbody fragment            
+				docFragment.appendChild(trElem);
+		
+				// Create table body
+				for (var j = 0; j < TROW; j++) {
+					trElem = document.createElement("tr");
+					trElem.className = "tr" + (j%2);
+					if (TARR[j].year == TAX_YR) trElem.className = "tr2";
+					
+					tdElem = document.createElement("td");
+					tdElem.className = "ColYear";
+					tdElem.innerHTML = TARR[j].year;
+					trElem.appendChild(tdElem);
+		
+					tdElem = document.createElement("td");
+					tdElem.className = "ColPrior";
+					tdElem.innerHTML = TARR[j].prior;
+					trElem.appendChild(tdElem);
+		
+					tdElem = document.createElement("td");
+					tdElem.className = "ColExclusion";
+					tdElem.innerHTML = TARR[j].exclusion;
+					trElem.appendChild(tdElem);
+		
+					tdElem = document.createElement("td");
+					tdElem.className = "ColRemaining";
+					tdElem.innerHTML = TARR[j].remaining;
+					trElem.appendChild(tdElem);
+		
+					docFragment.appendChild(trElem);
+				}
+	
+			myNewtbody.appendChild(docFragment);
+		
+			// blast new tbody into the document tree table
+			mytable.replaceChild(myNewtbody, mytbody);
+			}
+	
+			// Push name to the second page
+			var container = document.getElementById("theName");
+			var newtitle = "<h1>Tax Exclusion Table"; 
+			if (TPName.value != "") newtitle += " for " + TPName.value;
+			container.innerHTML = newtitle + ":</h1><br />";
+		
+			// Show the TS button
+			TSbutton.style.display = "inline";
+			Printbutton.style.display = "inline";
+			if (TS_VISIBLE == false) ShowTSform(true);
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Clear_Tbody() {
+		// This function clears the generated annuity exclusion table
+		//----------------------------------------------------------------------------------------
+			// Clear calculated entries
+			NO_MO.innerHTML = "";
+			MO_EX.innerHTML = "";
+			FYR_EX.innerHTML = "";
+			RYR_EX.innerHTML = "";
+			LYR_EX.innerHTML = "";
+			LYR_YR.innerHTML = "";
+			LASTALERTED = false;
+			NO_FY.value = "";
+		
+			// Clear the annuity exclusion table rows
+			if (document.createElement) {
+				var tbody1 = document.getElementById("theTbody");
+				while (tbody1.childNodes.length > 0) {
+					tbody1.removeChild(tbody1.firstChild);
+				}
+			}
+	
+			// Clear the TS worksheet
+			RRB1099R_GROSS.innerHTML = F1099R_GROSS.innerHTML = SGRW_GROSS.innerHTML = "";
+			RRB1099R_CONTR.innerHTML = F1099R_CONTR.innerHTML = SGRW_CONTR.innerHTML = "";
+			SGRW_START.innerHTML = "";
+			SGRW_MONTHS.innerHTML = "";
+			SGRW_PRIOR.innerHTML = "";
+			SGRW_AGE.innerHTML = "";
+			RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = "";
+			TSbutton.style.display = "none";
+			Printbutton.style.display = "none";
+			ShowTSform(false);
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function Annuity_Change() {
+		// This function clears prior annuity calculations and determines what other data
+		// is needed based on the annuity date
+		//----------------------------------------------------------------------------------------
+			// Clear prior calculations
+			Clear_Tbody();
+		
+			// Recheck dates and calculate ages
+			Check_dates(false);
+		
+			// Set up additional fields based on annuity start date
+			CANNOT_CALC &= ~NO_EXCLUSION_ERROR;
+			TPa.style.backgroundColor = "yellow";
+			TPb.style.backgroundColor = "yellow";
+			CONTRa.style.backgroundColor = "yellow";
+			CONTRb.style.backgroundColor = "yellow";
+			TP.style.display = "inline";
+			CONTR.style.display = "inline";
+			LYR_MSG.innerHTML = "";
+			LYR_MSG.style.backgroundColor = "tan";
+			LYR_YR.innerHTML = "";
+			LYR_EX.innerHTML = "";
+			var TestForGeneral = ! (Disability.checked && (MIN_ANN_START == ""));
+			TwoDocsOption.style.display = "none";
+			ret_age_warning_seen = false;
+
+			// Set up death questions
+			if (SP.value) {
+				if (! TPdec.checked) TPdied.checked = false;
+			}
+			else {
+				TPdec.checked = TPdied.checked;
+			}
+
+			ShowTP.checked = true;
+			if (TPdec.checked && (!TPdied.checked) && SP.value) ShowSP.checked = true;
+			if (TPdec.checked && (TPdied.checked || SPdied.checked)) {
+				DiedRow.style.display = "table-row";
+				if (GROSSc.innerHTML == "") GROSSc.innerHTML = "Enter dollars and cents";
+				switch (true) {
+					case (TPdied.checked && ((! SP.value) || (SP.value && SPdec.checked && (! SPdied.checked)))):
+						TPDiedMoinput.style.display = 
+						TPGROSSinput.style.display = "inline";
+						TPDiedMotext.style.display = 
+						TPGROSStext.style.display =
+						SPDiedMotext.style.display = 
+						SPDiedMoinput.style.display = 
+						SPGROSStext.style.display =
+						SPGROSSinput.style.display = "none";
+						break;
+					case (SPdied.checked && TPdec.checked && (! TPdied.checked)):
+						TPDiedMotext.style.display = 
+						TPDiedMoinput.style.display = 
+						TPGROSStext.style.display =
+						TPGROSSinput.style.display =
+						SPDiedMotext.style.display = 
+						SPGROSStext.style.display = "none";
+						SPDiedMoinput.style.display = 
+						SPGROSSinput.style.display = "inline";
+						ShowSP.checked = true;
+						break;
+					default:
+						TPDiedMotext.style.display = 
+						TPDiedMoinput.style.display = 
+						SPDiedMotext.style.display = 
+						SPDiedMoinput.style.display = 
+						TPGROSStext.style.display = 
+						TPGROSSinput.style.display =
+						SPGROSStext.style.display =
+						SPGROSSinput.style.display = "inline";
+						TwoDocsOption.style.display = "inline";
+				}
+			}
+			else {
+				GROSSc.innerHTML = "";
+				DiedRow.style.display = "none";
+				SPDiedMo.value = TPDiedMo.value = "";
+				FYR_MO.innerHTML = SAVE_FYR_MO;
+				TPGROSStext.style.display = SPGROSStext.style.display = "none";
+				if (TPdec.checked) {
+					TPGROSSinput.style.display = "none";
+					SPGROSSinput.style.display = "inline";
+				}
+				else {
+					TPGROSSinput.style.display = "inline";
+					SPGROSSinput.style.display = "none";
+					SPdec.checked = false;
+					SPdied.checked = false;
+					SPdecQ.style.display = "none";
+					SPdiedQ.style.display = "none";
+				}
+			}
+			SPdiedQ.style.display = (SPdied.checked) ? "inline" : "none";
+	
+			AnnTest = Math.max(ANN_START, MIN_ANN_START);
+			if (TestForGeneral && (AnnTest > 0) && (AnnTest < 19860702)) { 
+				if (! Disability.checked) {
+					if (! disability_warning_seen) {
+					DisabilityQBox.style.display = "block";
+					return;
+					}
+				}
+
+				// Must use the General method, no survivor benefits
+				RYR_EX_COMMENT.innerHTML = "UNKNOWN";
+				RYR_EX_COMMENT.style.backgroundColor = "hotpink";
+				CANNOT_CALC |= NO_EXCLUSION_ERROR;
+				TPa.style.backgroundColor = "";
+				TPb.style.backgroundColor = "";
+				SPa.style.backgroundColor = "";
+				SPdiedQ.style.display = "none";
+				TPdecQ.style.display = "none";
+				SPdied.checked = false;
+				SPb.style.backgroundColor = "tan";
+				CONTRa.style.backgroundColor = CONTRb.style.backgroundColor = "";
+				SPAGE.innerHTML = TPAGE.innerHTML = "";
+				TPAGE.style.backgroundColor = "tan";
+				TP.value = "";
+				TP.style.display = "none";
+				SP.value = "";
+				SP.style.display = "none";
+				SPX.style.display = "inline";
+				CONTR.value = "";
+				CONTR.style.display = "none";
+				TPGROSS.value = "";
+				SPGROSS.value = "";
+				GROSS_TOTAL = "";
+				TPGROSS.style.display = "none";
+				SPGROSS.style.display = "none";
+				FYR_MO.innerHTML = "";
+				var MESSAGE = "Annuities starting prior to July 2, 1986 have used their exclusion if they used the 3-year method.";
+				MESSAGE += "\n\nIf they have been using the General Method, it is out of scope.";
+				alert(MESSAGE);
+				return; 
+			}
+	
+			if (AnnTest > 19971231) { // Survivor option added to tax law
+				SPa.style.backgroundColor = "yellow";
+				SPb.style.backgroundColor = "yellow";
+				TPdiedQ.style.display = "inline";
+				TPdecQ.style.display = "none";
+				if (SP.value == "") {
+					TPdecQ.style.display = "none";
+					SPdiedQ.style.display = "none";
+					SPdied.checked = false;
+					SPdec.checked = false;
+				}
+				else { // this could be a survivor annuity if annuitant died
+					TPdecQ.style.display = "inline";
+					TPdiedQ.style.display = "inline";
+					if (SPdec.checked) SPdiedQ.style.display = "inline";
+				}
+				if (isNaN(SPAGE.innerHTML)) SPAGE.innerHTML = "Enter only if surv annty";
+				SP.style.display = "inline";
+				SPX.style.display = "none";
+			}
+			else { // No survivor option available per tax law
+				SP.value = "";
+				SPa.style.backgroundColor = "";
+				SPb.style.backgroundColor = "tan";
+				SPdiedQ.style.display = "none";
+				SPdecQ.checked = false;
+				SPdied.checked = false;
+				SP.style.display = "none";
+				SPX.style.display = "inline";
+				SPAGE.innerHTML = "Not used";
+				SPAGE.style.backgroundColor = "tan";
+				COMB.innerHTML = "Not used"
+			}
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function ShowTSform(show) {
+		// This function shows or hides the TS Exclusion Worksheet windows
+		// show = true re-displays the forms if already displayed.
+		//	= null, toggles the display
+		//----------------------------------------------------------------------------------------
+			// toggles 1099-R/RRB-1099-R display if not from RRB checkbox
+			switch (show) {
+				case ("RRB"):
+					if (! TS_VISIBLE) return;
+					break;
+				case (true):
+					TS_VISIBLE = true;
+					break;
+				case (false):
+					if (! TS_VISIBLE) return;
+					TS_VISIBLE = false;
+					break;
+				default: // undefined
+					TS_VISIBLE = ! TS_VISIBLE;
+			}
+	
+			var noshowifzero = (+SGRW_GROSS.innerHTML > 0) ? "inline" : "none";
+			RRB1099R.style.display = (RRB.checked) ? noshowifzero : "none";
+			F1099R.style.display = ((! RRB.checked)) ? noshowifzero : "none";
+			TSForm2.style.display = (true) ? noshowifzero : "none";
+			TSform.style.display = (TS_VISIBLE) ? "inline" : "none";
+			TSbutton.innerHTML = (TS_VISIBLE) ? "Hide TS input" : "Show TS input";
+			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0) && (EXCL_TY.value < 2017)) ? "inline" : "none";
+			MedTable.style.display = ((PSO.checked && TS_VISIBLE && OVERAGE) || (FULLMEDEX > +MEDIC.value)) ? "inline" : "none";
+			RRB1099R_TXCOLOR.style.backgroundColor =
+				F1099R_TXCOLOR.style.backgroundColor = (PSO.checked && TS_VISIBLE) ? "white" : "";
+	
+		}
+		
+		//----------------------------------------------------------------------------------------
+		function TSCalc(New_TAX_YR) {
+		// New_TAX_YR = New tax year to populate the TS worksheets with
+		// This function calculates the values for fields 4-7 in the Exclusion Worksheet
+		//----------------------------------------------------------------------------------------
+			if (New_TAX_YR < ANN_YR) {
+				message = "Annuity exclusion doesn't start until " + ANN_YR + ".";
+				if (Disability.checked) {
+					message += "\n\nBe sure to check the \"Form 1040 line 7\" box.";
+				}
+				else {
+					message += " It is fully taxable.";
+				}
+				if (PSOMEDIC.value > 3000) {
+					message += "\n\nInclude $3,000 as the PSO exclusion";
+					message += " and the remainder as a medical deduction.";
+				}
+				else if (PSOMEDIC.value > 0) {
+					message += "\n\nInclude $" + PSOMEDIC.value;
+					message += " as the PSO exclusion.";
+				}
+				alert(message);
+				EXCL_TY.value = New_TAX_YR = _DefaultYear;
+				Clear_Tbody();
+				return;
+				}
+			DiedMoYR.innerHTML = TPdiedQYR.innerHTML = SGRW_YEAR.innerHTML = TAX_YR = New_TAX_YR;
+	
+			if (ignore_date_change) return;
+	
+			if (RYR_EX_COMMENT.innerHTML === "LIFETIME EXCLUSION") return; // do not change the options
+	
+			if (TPdec.checked || TPdied.checked || SPdied.checked) {
+				alert("Because a \"Died in " + TAX_YR + "\" or \"Deceased\" box was checked for the annuitant and/or spouse these have been cleared when you changed years.\n\nRe-check the box(es) if appropriate.");
+				TAX_YR = New_TAX_YR;
+				SPdied.checked = TPdied.checked = TPdec.checked = false;
+				Annuity_Change();
+			}
+			calcTP();
+		}
+
+		//----------------------------------------------------------------------------------------
+		function Change_Doc() {
+		// This function toggles between the Annuitant and Spouse 1099-R TS entry forms
+		// Only relevant with a disability pension during the selected tax year
+		//----------------------------------------------------------------------------------------
+			if (ShowTP.checked) {
+				RRB1099R_GROSS.innerHTML = F1099R_GROSS.innerHTML = SGRW_GROSS.innerHTML = 
+					(Disability.checked) ? disability_part2.innerHTML : Math.round(+TPGROSS.value);
+				TPmo = (Disability.checked) ? NON_DIS_MO : TPDiedMo.value;
+				SGRW_MONTHS.innerHTML = TPmo;
+				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = TPtaxable;
+				SGRW_PRIOR.innerHTML = TPprior;
+				SGRW_PSO.innerHTML = MEDIC.value;
+				DPSO_amount.innerHTML = SALMEDIC.value;
+			}
+			else { // ShowSP is checked
+				RRB1099R_GROSS.innerHTML = F1099R_GROSS.innerHTML = SGRW_GROSS.innerHTML = Math.round(+SPGROSS.value);
+				SGRW_MONTHS.innerHTML = SPDiedMo.value;
+				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = SPtaxable;
+				SGRW_PRIOR.innerHTML = SPprior;
+				SGRW_PSO.innerHTML = 0;
+			}
+
+			ShowTSform(true);
+		}
+		
+	</script>
+		
+	</head>
+		
+	<!-- ************************************************************************************************ -->
+	<!-- ********************************* START OF HTML ************************************************ -->
+	<!-- ************************************************************************************************ -->
+		
+	<body onload="Initialize()">
+		<center>
+		<div id="mainheader">
+			<span class="tooltitle">Annuity/Pension Exclusion Calculator</span>
+			<br><span id="Version"></span>
+	
+			<div id="ClearButton" class="noPrint">
+				<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
+			</div>
+
+			<div id="VideoButton" class="noPrint">
+				<a href="https://youtu.be/bH77-UG-FhQ" target="_blank" style="text-decoration: none;"><button>Video tour</button></a>
+			</div>
+		</div>
+		
+		<table id="userInput">
+			<tr class="center">
+				<td class="inputfield">Taxpayer&apos;s name and pension type
+					<br />for tax year <select id="EXCL_TY" tabindex="1" onchange="TSCalc(this.value)"></select>
+					</td>
+				<td class="inputfield" colspan="2">
+					<input id="TPName" tabindex="2"
+						title="Optionally, enter the Taxpayer's name. It will print at the top of the Annuity Table."
+						value="" />
+						<div id="type">
+							<input id="PSO" tabindex="2"
+								type="checkbox"
+								onchange="PSO_Change()" />
+								Check if a public safety officer pension
+								<span id="PSOQ"
+									onmouseover="PSOtitleBox.style.display='inline-block';"
+									onmouseout="PSOtitleBox.style.display='none';"
+									>?</span>
+							<br /><input id="Disability" tabindex = "2" 
+								type="checkbox"
+								onchange="Disability_Change()" />
+								Check if a disability pension
+								<span id="DisQ"
+									onmouseover="DistitleBox.style.display='inline-block';"
+									onmouseout="DistitleBox.style.display='none';"
+									>?</span>
+						</div>
+						<div id="DistitleBox"></div>
+						<div id="PSOtitleBox"></div>
+						</td></tr>
+			<tr>
+				<td class="commentfield1"></td>
+				<td class="commentfield2">Enter dates as MM/DD/YYYY</td>
+				<td class="commentfield3">Age at annuity start</td></tr>
+			<tr>
+				<td class="inputfield">Annuity start date</td>
+				<td class="inputfield center">
+					<input id="ANNUITY" tabindex="3"
+						title="Dates may also be entered as M/D/YYYY or MMDDYYYY"
+						size="11"
+						value=""
+						onfocus = "Edit_date(this.id)"
+						onkeyup="Build_date(this.id)"
+						onchange="Annuity_Change()" /></td>
+				<td id="ANNc" class="commentfield3"></td></tr>
+			<tr>
+				<td id="TPa" class="inputfield">
+					<table class="TPDOBTable"><tr><td>Annuitant&apos;s birthdate</td>
+						<td id="TPadied">
+							<span id="TPdecQ"><input id="TPdec" type="checkbox" tabindex="4" onchange="if (! this.checked) TPdied.checked = false; Annuity_Change();"> Check if deceased</span>
+							<span id="TPdiedQ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPdied" type="checkbox" tabindex="4" onchange="if (this.checked) TPdec.checked = true; Annuity_Change();"> Died in <span id="TPdiedQYR"></span></span>
+							</td></tr></table></td>
+				<td id="TPb" class="inputfield center">
+					<input id="TP" tabindex="5"
+						title="Dates may also be entered as M/D/YYYY or MMDDYYYY"
+						size="11"
+						value=""
+						onfocus="Edit_date(this.id)"
+						onkeyup="Build_date(this.id)"
+						onchange="Annuity_Change()" /></td>
+				<td id="TPAGE" class="commentfield3 center"></td></tr>
+			<tr id="RetAgeRow">
+				<td id="RetAgea" class="inputfield">Earliest retirement age</td>
+				<td id="RetAgeb" class="inputfield center">
+					<input id="RetAgeYr" tabindex="6"
+						title="Enter the minimum retirement age for the annuitant (may vary with years of service)"
+						size="2"
+						value=""
+						onchange="Calc_Retirement_Date(true)" /> Yr,
+					<input id="RetAgeMo" tabindex="7"
+						title="Enter the minimum retirement age for the annuitant (may vary with years of service)"
+						size="2"
+						value=""
+						onchange="Calc_Retirement_Date(true)" /> Mo.
+						<button id="RetAgeHelp" onclick="Show_RetAgeHelpBox(true);">?</button></td>
+			<td id="RetAgec" class="commentfield3 center"></td></tr>
+			<tr>
+				<td id="SPa">
+					<table class="TPDOBTable"><tr><td>Spouse&apos;s birthdate</td>
+						<td id="SPadied">
+							<span id="SPdecQ"><input id="SPdec" type="checkbox" tabindex="8" onchange="if (! this.checked) SPdied.checked = false; Annuity_Change();"> Check if deceased</span>
+							<span id="SPdiedQ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id="SPdied" type="checkbox" tabindex="9" onchange="if (this.checked) SPdec.checked = true; Annuity_Change();"> Died in <span id="SPdiedQYR"></span></span>
+							</td></tr></table></td>
+				<td id="SPb" class="commentfield2">
+					<span id="SPX">(N/A for annuity before 1998)</span>
+					<!-- Preserve title formatting below -->
+					<input id="SP" class="hidden" tabindex="10"
+						title="Enter ONLY if this is a joint survivor annuity.
+	
+	Dates may also be entered as M/D/YYYY or MMDDYYYY"
+						size="11"
+						value=""
+						onfocus="Edit_date(this.id)"
+						onkeyup="Build_date(this.id)"
+						onchange="Annuity_Change()" /></td>
+				<td id="SPAGE" class="commentfield3"></td></tr>
+	
+			<tr>
+				<td>Combined age for survivor annuity</td>
+				<td id="JOINT" class="commentfield2"></td>
+				<td id="COMB" class="commentfield3">Not used</td></tr>
+	
+			<tr id="DiedRow">
+				<td class="inputfield"><div id="Dieda">Months received this year (<span id="DiedMoYR"></span>)</div></td>
+				<td class="inputfield center">
+					<table class="TwoDocsTable">
+						<tr><td><span id="TPDiedMotext">Annuitant:</span></td>
+							<td><span id="TPDiedMoinput"><input id="TPDiedMo" tabindex="11"
+								title="Enter the number of months annuitant received annuity this year."
+								size="2"
+								value=""
+								onchange="Check_died(false)" /></span></td></tr>
+						<tr><td><span id="SPDiedMotext">Spouse:</span></td>
+							<td><span id="SPDiedMoinput"><input id="SPDiedMo" tabindex="12"
+								title="Enter the number of months spouse received annuity this year."
+								size="2"
+								value=""
+								onchange="Check_died(true)" /></span></td></tr>
+					</table></td>
+				<td class="commentfield3"><center><div id="Diedc"></div></center></td></tr>
+			<tr>
+				<td id="GROSSa" class="inputfield">Gross distribution
+					(<input id="RRB" tabindex="13" type="checkbox"
+						title="Check the box if from an RRB-1099-R"
+						onchange = "ShowTSform('RRB')" />
+					Check if RRB1099-R)</td>
+				<td id="GROSSb" class="inputfield center">
+					<table class="TwoDocsTable">
+						<tr><td><span id="TPGROSStext">Annuitant:</span></td>
+							<td><span id="TPGROSSinput"><input id="TPGROSS" tabindex="14"
+								title="Enter the annuitant's distribution amount."
+								size="11"
+								value=""
+								onblur="Check_gross('TP')"
+								onchange="Clear_Tbody()" /></span></td></tr>
+						<tr><td><span id="SPGROSStext">Spouse:</span></td>
+							<td><span id="SPGROSSinput"><input id="SPGROSS" tabindex="15"
+								title="Enter the spouse's distribution amount."
+								size="11"
+								value=""
+								onblur="Check_gross('SP')"
+								onchange="Clear_Tbody()" /></span></td></tr>
+					</table></td>
+				<td id="GROSSc" class="commentfield3"></td></tr>
+			<tr>
+				<td id="CONTRa" class="inputfield">Total annuity contributions</td>
+				<td id="CONTRb" class="inputfield center">
+					<!-- Preserve title formatting below -->
+					<input id="CONTR" tabindex="16"
+						title="Enter the amount of after-tax contributions made."
+						size="11"
+						value=""
+						onblur="Check_contrib()"
+						onchange = "Clear_Tbody()" /></td>
+				<td id="CONTRc" class="commentfield3"> </td></tr>
+	
+			<tr id="MEDICRow">
+				<td class="inputfield"><div id="MEDICa">Annual cost of insurance to exclude</div></td>
+				<td class="inputfield center"><center><div id="MEDICb">
+					<span id="MEDICb1"></span>
+					<input id="PSOMEDIC" tabindex="17"
+						title="Enter the amount of insurance to exclude."
+						size="11"
+						value=""
+						onkeyup="Check_medical(-2)"
+						onchange="Clear_Tbody()" />
+					<input id="MEDIC" />
+					<input id="SALMEDIC" /></div></center></td>
+				<td class="commentfield3"><center><div id="MEDICc"></div></center></td></tr>
+			<tr>
+				<td>Exclusion months in 1st year</td>
+				<td id="FYR_MO" class="center"></td>
+				<td id="NO_FY" class="commentfield3"> </td></tr>
+			<tr>
+				<td>Total months to be excluded</td>
+				<td id="NO_MO" class="center"></td>
+				<td class="commentfield3"></td></tr>
+			<tr>
+				<td>Monthly exclusion</td>
+				<td id="MO_EX" class="center"></td>
+				<td class="commentfield3"></td></tr>
+			<tr>
+				<td>First year exclusion</td>
+				<td id="FYR_EX" class="center"></td>
+				<td class="commentfield3"></td></tr>
+			<tr>
+				<td>Exclusion for remaining years</td>
+				<td id="RYR_EX" class="center"></td>
+				<td id="RYR_EX_COMMENT" class="commentfield3"></td></tr>
+			<tr>
+				<td>Final year exclusion <span id="LYR_YR"></span></td>
+				<td id="LYR_EX" class="center"></td>
+				<td id="LYR_MSG" class="commentfield3"></td></tr>
+		</table>
+		
+		<div id="ButtonBox" class="noPrint">
+			Enter taxpayer data in yellow rows, then ...
+			<button id="Calcbutton" tabindex="18" onclick="calcTP()">Click here to Calculate</button>
+			<button id="TSbutton" class="invisible" tabindex="19" onclick="ShowTSform()"></button>
+			<button id="Printbutton" class="invisible" tabindex="20" onclick="window.print();">Print the table</button>
+		</div>
+
+		<div id="TSform" class="hidden">
+
+
+			<div id="disability_note_box">
+				<span id="disability_note">NOTE: </span>The annuitant&apos;s disability pension amount should be entered as two 1099-Rs:
+				<br />&nbsp;&nbsp;&nbsp;#1: <span id="disability_part1"></span> as earned income (<input type="checkbox" checked="checked" disabled="disabled"> Form 1040 line 7) - no pension exclusion
+				<br /><span id="disability_PSO">but, exclude <span id="DPSO_amount">0</span> Public Safety Officer insurance</span>
+				<br />&nbsp;&nbsp;&nbsp;#2: <span id="disability_part2_line"><span id="disability_part2"></span> as pension income (Form 1040 line 16a) - see below</span>
+			</div>
+			<br />
+
+			<div id="FORM1099DIV">
+			<b>Federal Section > Income > IRA/Pension Distributions/1099-R or RRB-1099-R:</b>
+
+			<br /><div id="TwoDocsOption" onchange="Change_Doc()">
+				Show results for:
+				<input id="ShowTP" name="ShowTPSP" type="radio" checked> Annuitant&nbsp;&nbsp;&nbsp;
+				<input id="ShowSP" name="ShowTPSP" type="radio"> Spouse&nbsp;&nbsp;&nbsp;
+				</div>
+			<br />
+			<table>
+	
+				<tr> <td>
+	
+					<div id="RRB1099R">
+						<table class="entrytable">
+							<tr><td class="center bold">Form RRB-1099-R</td></tr>
+							<tr>
+								<td><table>
+									<tr><td>3 Total employee contributions&nbsp;&nbsp;</td></tr>
+									<tr><td class="white"><span id="RRB1099R_CONTR">0</span></td></tr>
+									<tr><td>7 Total Gross Paid
+									<tr><td class="white"><span id="RRB1099R_GROSS">0</span></td></tr>
+									<tr><td>7a Taxable Amount</td></tr>
+									<tr><td id="RRB1099R_TXCOLOR" class="white"><span id="RRB1099R_TAXABLE">0</span></td></tr>
+									</table></td></tr>
+							</table>
+						</div>
+	
+					<div id="F1099R">
+						<table class="entrytable">
+							<tr><td class="center bold">Form 1099-R</td></tr>
+							<tr>
+								<td><table>
+									<tr><td>1 Gross Distribution</td></tr>
+									<tr><td class="white"><span id="F1099R_GROSS">0</span></td></tr>
+									<tr><td>2a Taxable Amount</td></tr>
+									<tr><td id="F1099R_TXCOLOR" class="white"><span id="F1099R_TAXABLE">0</span></td></tr>
+									<tr><td>9b Total employee contributions</td></tr>
+									<tr><td class="white"><span id="F1099R_CONTR">0</span></td></tr>
+									</table></td></tr>
+							</table>
+						</div></td>
+	
+				<td>	<div id="TSForm2">
+						<table class="entrytable">
+							<tr>
+								<td class="center bold">Simplified General Rule Worksheet</td></tr>
+							<tr>
+								<td><table>
+									<tr>
+										<td>Gross distribution amount (from 1099-R)</td>
+										<td id="SGRW_GROSS">0</td></tr>
+									<tr>
+										<td>Plan cost at annuity start date</td>
+										<td id="SGRW_CONTR" class="white">0</td></tr>
+									<tr>
+										<td>Starting date of annuity</td>
+										<td id="SGRW_START" class="white">0</td></tr>
+									<tr>
+										<td><input id="SGRW_JOINT" type="checkbox" disabled />
+											Check here if this is a Joint or Survivor Annuity</td>
+										<td></td></tr>
+									<tr>	
+										<td>Death benefit exclusion</td>
+										<td id="SGRW_DEATH" class="white">0</td></tr>
+									<tr>
+										<td>Age of recipient at start date</td>
+										<td id="SGRW_AGE" class="white">0</td></tr>
+									<tr>
+										<td>Number of months paid in <span id="SGRW_YEAR">20XX</span></td>
+										<td><span id="SGRW_MONTHS" class="white">0</span></td></tr>
+									<tr>
+										<td>Amounts previously recovered</td>
+										<td><span id="SGRW_PRIOR" class="white">0</span></td></tr>
+									<tr id="SGRW_PSO_line">
+										<td>Public Safety Officer Exclusion</td>
+										<td><span id="SGRW_PSO" class="white"></span></td></tr>
+									</table></td></tr>
+						</table>
+					</div></td></tr>
+			</table>
+		</div> <!-- FORM1099DIV -->
+		
+		<div id="NTIncomeTable" class="hidden">
+			<br />
+			<b>Federal Section > Income > IRA/Pension Distributions > Nontaxable Distributions:</b>
+			<table class="NTIncomeTable2 entrytable">
+				<tr>
+					<td class="center bold">1099-R Nontaxable Income</td></tr>
+				<tr><td><table>
+					<tr>
+						<td colspan="2"><span class="bold">Exceptions</span></td></tr>
+					<tr>
+						<td><input type="checkbox" disabled /></td><td> Check here to mark this as a Qualified Charitable distribution (QCD) on your return.</td></tr>
+					<tr>	<td><input type="checkbox" disabled /></td><td> Check here to mark this as a qualified health savings account (HSA) funding distribution<br />(HFD) on your return.</td></tr>
+					<tr>
+						<td><input type="checkbox" checked disabled /></td><td> Check here if you are an eligible retired public safety officer, and part of your distribution was<br />used to pay the premiums for accident or health insurance, or to pay long-term care</td></tr>
+					</table>
+				</table>
+		</div>
+	
+		<div id="MedTable" class="hidden">
+			<br />
+			<b>Federal Section > Deductions > Itemized Deductions > Medical and Dental Expenses:</b>
+			<table class="entrytable">
+				<tr>
+					<td class="center bold">Schedule A - Medical Deductions</td></tr>
+				<tr>
+					<td>&nbsp;Medical and dental insurance - <span id="medicalMessage"></span> </td></tr> </table>
+		</div>
+	
+		<div id="DeathTable" class="hidden">
+			<br />
+			<b>Federal Section > Deductions > Itemized Deductions > <br />Miscellaneous Deductions > Unrecovered Investment in Pension:</b>
+			<table class="entrytable">
+				<tr>
+					<td class="center bold">Schedule A - Miscellaneous Deductions</td></tr>
+				<tr>
+					<td>&nbsp;Unrecovered Investment in Pension - $ <span id="deathMessage"></span>&nbsp;&nbsp;</td></tr> </table>
+		</div>
+	
+		<span id="tableBelow" class="printalternative"><br /><b>See table below for other years</b></span>
+	</div> <!-- TSForm -->
+	
+	<div id="RetAgeHelpBox" class="hiddenx">
+		<center><b>Retirement Age Help</b></center>
+		<hr />
+		Minimum retirement age is the age at which you first could receive an annuity were you not disabled.
+		This generally is based on your age and length of service.
+		If the employer is one of the following, check the appropriate option.
+		Otherwise, enter directly in the boxes on the main window.
+		<input id="CSRSnone" name="RAOptions" style="display: none;">
+		<center>
+		<table>
+			<tr><th></th><th>Years of service</th><th>Retirement age</th></tr>
+			<tr><td colspan="3">Civil Service Retirement System (CSRS)</td></tr>
+			<tr><td><input id="CSRS05" name="RAOptions" type="radio" 
+					onclick="Select_RetAge(62,0);"/></td><td>5</td><td>62</td></tr>
+			<tr><td><input id="CSRS20" name="RAOptions" type="radio" 
+					onclick="Select_RetAge(60,0);"/></td><td>20</td><td>60</td></tr>
+			<tr id="CSRS20PRow"><td><input id="CSRS20P" name="RAOptions" type="radio" 
+					onclick="Select_RetAge(50,0);"/></td><td>20<sup>1</sup></td><td>50</td></tr>
+			<tr><td><input id="CSRS30" name="RAOptions" type="radio" 
+					onclick="Select_RetAge(55,0);"/></td><td>30</td><td>55</td></tr>
+			<tr><td colspan="3">Federal Employees Retirement System (FERS)</td></tr>
+			<tr><td><input id="FERS05" name="RAOptions" type="radio" 
+					onclick="Select_RetAge(62,0);"/></td><td>5</td><td>62</td></tr>
+			<tr><td><input id="FERS10" name="RAOptions" type="radio" 
+					onclick="Select_RetAge('FERS',0);"/></td><td>10</td><td><span id="FERS10A">55</span></td></tr>
+			<tr id="FERS20PRow"><td><input id="FERS20P" name="RAOptions" type="radio" 
+					onclick="Select_RetAge(50,0);"/></td><td>20<sup>1</sup></td><td>50</td></tr>
+			<tr id="FERS25PRow"><td><input id="FERS25P" name="RAOptions" type="radio" 
+					onclick="Select_RetAge('ANY',0);"/></td><td>25<sup>1</sup></td><td>Any</td></tr>
+						<tr><td colspan="3">Railroad Retirement Board (RRB)</td></tr>
+			<tr><td><input id="RRB05" name="RAOptions" type="radio" 
+					onclick="Select_RetAge(62,0);"/></td><td>5 after 1995</td><td>62</td></tr>
+			<tr><td><input id="RRB10X" name="RAOptions" type="radio" 
+					onclick="Select_RetAge('RRB',0);"/></td><td>10</td><td><span id="RRB10A">62</span></td></tr>
+			<tr><td><input id="RRB30" name="RAOptions" type="radio" 
+					onclick="Select_RetAge('60',0);"/></td><td>30</td><td>60</td></tr>
+		</table>
+	</center>
+	<span id="CSRSPSO">
+		<sup>1</sup> Service as a law enforcement officer, member of the Capitol or Supreme Court Police, firefighter, nuclear materials courier, or air traffic controller. (Not rescue/ambulance squad or chaplain.)
+	</span>
+		<br /><center><button onclick="Show_RetAgeHelpBox(false);">Close this window</button></center>;
+	</div>
+		
+	<div class="noPrint"><hr /></div>
+
+	<div id="exclusionTable">
+		<div id="theName"></div>
+
+		<div class="tableMaker" id="tableMake">
+			<center>
+			<table id="theTable">
+				<tbody id="theTbody">
+				</tbody>
+			</table>
+			</center>
+		</div>
+	</div> <!-- exclusionTable -->
+
+	<div id="DisabilityQBox">
+		Is this a disability pension?
+		<br /><br /><input id="DisY" type="checkbox" onchange="DisabilityQ(true);"> YES
+		<input id="DisN" type="checkbox" onchange="DisabilityQ(false);"> NO
+	</div>
+</center>
+</body>
+</html>

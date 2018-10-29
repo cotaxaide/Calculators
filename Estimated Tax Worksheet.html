@@ -1,0 +1,760 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Estimated Tax Worksheet</title>
+
+<style type="text/css">
+	html {background-color: #ccccaa;}
+	body {background-color: #ccccaa; font-family: sans-serif; font-size: 0.9em; padding: 0 2.5% 0 2.5%;}
+	button {cursor: pointer; background-color: lightgreen;}
+	table {background-color: #eeeeaa; border-collapse:collapse; width: 100%;}
+	div {background-color: #eeeeaa; padding: 5px; border:1px solid black;}
+	h1 {text-align: left; font-size: 110%; text-decoration: underline}
+	tr {vertical-align: middle;}
+	input[type="number"] {text-align: right; width:6em;}
+	input, select {background-color: white;}
+	input:disabled, select:disabled {background-color: lightgrey; font-weight: bold;}
+	.title {font-size:125%; font-weight: bold;}
+	.instruction {text-align: right; text-decoration: italic;}
+	.comment {font-style:italic;}
+	.calculated {text-align: right;}
+	.tablebreak {background-color: black; height: 0;}
+	#Warning {color: red; font-weight: bold;}
+	#TPName {width:20em; text-align:left;}
+	#CGOption {display: none;}
+	//#CTCredit, #ACTCredit, #EICCredit, #Medical {cursor: not-allowed;}
+	#ClearAndPrint {width: 16em; 
+		text-align:center; 
+		border:0;
+	       	background-color:transparent;
+		z-index:2;
+		position:absolute; top:0; right:1em;}
+	#ClearAndPrint button {margin: 2px;}
+	#FilingStatus { width: 8em; }
+	//#FilingInfoTbl td {border: 1px solid black;}
+	#FilingInfoTbl tr td:nth-child(1) {width:9em;}
+	#FilingInfoTbl tr td:nth-child(2) {width:6em;}
+	#FilingInfoTbl tr td:nth-child(3) {width:8em;}
+	#FilingInfoTbl tr td:nth-child(4) {width:16em;}
+	#TaxYear {width: 6em;}
+	#IncomeTable tr td:first-child {width: 1%; min-width: 1em; font-weight: bold;}
+	#IncomeTable tr td:nth-child(3),
+	#IncomeTable tr td:nth-child(4),
+	#IncomeTable tr td:nth-child(5) {max-width: 1%; text-align: right;}
+	#IncomeTable tr:nth-child(even) {background-color: #fefeca;}
+	#PayNotRequired {font-style: italic; color: darkgreen; float: right;}
+	@media print {
+		.doPrint {display:inline;}
+		.noPrint {display:none;}
+		html {background-color: white; font-size: 0.8em;}
+		body {font-size: 0.8em; background-color: white; padding:0; margin:0;}
+		input, select, option {font-size: 0.8em;}
+		table {width: 100%; background-color: white;}
+		#AffordTable {page-break-before: always}
+	}
+</style>
+
+<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2015.js"></script>
+<script src="Tax_Data/IRS_2016.js"></script>
+<script src="Tax_Data/IRS_2017.js"></script>
+<script src="Tax_Data/IRS_2018.js"></script>
+<script src="CommonRoutines.js"></script>
+<script type="text/javascript">
+	// --------------------------------------------------------------------------------
+	// Contributors:
+	//	Henry Burgess
+	//	Steve Conary
+	//	Ed Farver
+	//	Bill Smout
+	//	Pete Burgner
+	//	Bob Wells
+	//	Jim Kaplan
+	//	Lyn Lu
+	//	Robert Williams
+	//	John Swaney
+	//	Gloria Coyle
+	//	Joe Ohrazda
+	// --------------------------------------------------------------------------------
+
+	// --------------------------------------------------------------------------------
+	// CHANGE HISTORY:
+	var VERSION = "(Version 2.16, 8/9/2018)";
+	//	Added option for Sched D not being used
+	//var VERSION = "(Version 2.15, 8/8/2018)";
+	//	SE tax deduction not included in EIC calculation
+	//var VERSION = "(Version 2.14, 8/1/2018)";
+	//	When filling in a calculated number, needed to click it to have it calculate
+	//var VERSION = "(Version 2.13, 6/30/2018)";
+	//	Changed years selection list due to change in 2018 line numbering
+	//var VERSION = "(Version 2.12, 5/25/2018)";
+	//	Changed all calculated entries to text instead of input
+	//	Moved expansion boxes to main headings
+	//	Corrected estimated payments to be based on estimated total tax
+	//	Added AGI test threshold for EIC
+	//var VERSION = "(Version 2.11, 5/23/2018)";
+	//	Corrected EIC test - was not testing against AGI
+	//var VERSION = "(Version 2.10, 5/23/2018)";
+	//	Added adjustments as a subtraction when figuring SS taxable
+	//	Changed table line hiding from ids to classes
+	//var VERSION = "(Version 2.09, 5/22/2018)";
+	//	Modification of CTC/FTC/ACTC calculations
+	//var VERSION = "(Version 2.08, 5/18/2018)";
+	//	Moved common routines to an include file.
+	//var VERSION = "(Version 2.07, 5/7/2018)";
+	//	Corrected sched D long term entry text to say smaller of lines 15/16
+	//var VERSION = "(Version 2.06, 5/1/2018)";
+	//	Changed link to RMD calculator
+	//var VERSION = "(Version 2.05, 4/11/2018)";
+	//	Updated self employment tax calc
+	//	Changed clear and reset so it works with Firefox
+	//var VERSION = "(Version 2.04, 3/20/2018)";
+	//	Tax deduction limit to 5,000 for MFS
+	//	Clarified some wording re 2% deductions
+	//var VERSION = "(Version 2.03, 3/17/2018)";
+	//	Corrected tooltips for EIC and CTC
+	//	Denied EIC, Child care and Ed credits when filing MFS
+	//var VERSION = "(Version 2.02, 3/6/2018)";
+	//	Added charitable gifts 50% limit
+	//	Rounded medical calculation
+	//var VERSION = "(Version 2.01, 3/5/2018)";
+	//	Added Nonrefundable and CTC/ACTC calculations
+	//	Expanded inputs and arranged to emulate Form 1040 and Schedule A
+	//var VERSION = "(Version 1.11, 2/12/2018)";
+	//	Added MyAGI starting point
+	//var VERSION = "(Version 1.10b, 1/20/2018)";
+	//	Minor comment change
+	//var VERSION = "(Version 1.10a, 1/19/2018)";
+	//	Minor comment change
+	//var VERSION = "(Version 1.10, 1/10/2018)";
+	//	Added notes for 2018
+	//	Suppressed dependent input line for 2018
+	//var VERSION = "(Version 1.09, 12/20/2017)";
+	//	Added option to select a year
+	//var VERSION = "(Version 1.08, 9/27/2017)";
+	//	Removed $50 increment for taxable income > $100,000
+	//var VERSION = "(Version 1.07, 7/11/2017)";
+	//	Added 1/2 of SE tax and other adjustment lines
+	//var VERSION = "(Version 1.06, 3/29/2017)";
+	//	Changed line description for tax free interest and qualified dividends
+	//var VERSION = "(Version 1.05, 3/6/2017)";
+	//	Added a link to the AARP RMD calculator
+	//	Added an option to use 100% of tax estimate
+	//var VERSION = "(Version 1.04, 3/2/2017)";
+	//	Fix bug introduced by latest enhancement
+	//var VERSION = "(Version 1.03, 3/1/2017)";
+	//	Added max amount to take from IRA before filing
+	//var VERSION = "(Version 1.02, 2/24/2017)";
+	//	Added capital gains worksheet
+	//var VERSION = "(Version 1.01, 1/11/2017)";
+	//	Skip previous year amount if not entered
+	//	Changes to lines 13 - 15 text and calcs
+	//	Added clear and reset button
+	//var VERSION = "(Version 1.00, 1/7/2017)";
+	// --------------------------------------------------------------------------------
+
+	var IncomeExpanded = false;
+	var IncomeWasExpanded = false;
+	var IncomeNoSS = 0;
+	var Deductions = 0;
+
+	//----------------------------------------------------------------------------------------
+	function Initialize() {
+	// This function adds tax year options to the Filing Information section
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		var tyOptIndex = 0;
+		for (var ty = _DefaultYear - 3; ty <= _StopYear; ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+
+		// Set the default to the tax year
+		TaxYear.value = _DefaultYear + 1;
+		FileChange();
+
+	}
+
+	//----------------------------------------------------------------------------------------
+	function FileChange() {
+	// Calculates the values for filing threshold and poverty levels
+	//----------------------------------------------------------------------------------------
+
+		// Change tax year?
+		TaxYear3.innerHTML = TaxYear2.innerHTML = TaxYear.value;
+
+		// Check dependent consistency
+		var dep = Math.max(CTCDependents.value, EICDependents.value);
+		if (Dependents.value < dep) Dependents.value = dep;
+		
+		// Deactivate unneeded entries
+		SP65.disabled = ! (FilingStatus.value == "MFJ");
+		SPBlind.disabled = ! (FilingStatus.value == "MFJ");
+		if (SP65.disabled) SP65.checked = false;
+		if (SPBlind.disabled) SPBlind.checked = false;
+		LYAGI.innerHTML = (FilingStatus.value == "MFS") ? 75:150;
+		MFSoption.style.display = (FilingStatus.value == "MFS") ? "inline" : "none";
+		if (MFSoption.style.display == "none") MFStogether.checked = false;
+		if (FilingStatus.value != "MFS") ItemizeRequired.checked = false;
+		
+		// Tax law changes in 2018
+		Note2018d.style.display =
+		Note2018a.style.display = (TaxYear.value > 2017) ? "table-row" : "none";
+		Note2018c.style.display =
+		Note2018t.style.display =
+		Note2018b.style.display = (TaxYear.value > 2017) ? "inline" : "none";
+		Warning.innerHTML = (TaxYear.value > 2017) ? "Results of this worksheet are preliminary pending further guidance from IRS" : "";
+		
+		// Expand the income section
+		if ((! IncomeExpanded) && (! IncomeWasExpanded)) Wages.value = Gross.value;
+		IncomeExpanded = IncomeExpand.checked || (EICDependents.value > 0);
+		if (IncomeExpanded) IncomeWasExpanded = true;
+		incomelist = document.getElementsByClassName("income");
+		for (ilno = 0; ilno < incomelist.length; ilno++) {
+			incomelist[ilno].style.display = (IncomeExpanded) ? "table-row" : "none";
+		}
+
+		// Get the taxable Social Security amount
+		IncomeNoSS = +Wages.value + +Interest.value + +Dividends.value
+			+ +SEIncome.value + +CapGains.value + +Pensions.value
+			+ +OtherIncome.value;
+		SSresult = _TaxableSS(TaxYear.value, FilingStatus.value, SS.value,
+			(IncomeNoSS + +TaxExempt.value),
+			(+SETaxCredit.innerHTML + +OtherCredits.value),
+			MFStogether.checked);
+		TaxableSS.innerHTML = SSresult[0];
+		var IRAgap00 = +SSresult[1];
+		var IRAgap50 = +SSresult[2];
+		var IRAgap85 = +SSresult[3];
+
+		// Total the income
+		if (IncomeExpanded) {
+			Gross.value = Math.round(IncomeNoSS + +TaxableSS.innerHTML);
+		}
+
+		// Figure the AGI
+		var taxcredits = +SETaxCredit.innerHTML + +StudentLoanCredit.value + +OtherCredits.value;
+		AGI.innerHTML = Math.round(Math.max(0,Gross.value - taxcredits));
+
+		// Calculate standard deduction
+		Standard.innerHTML = _StandardDeduction(TaxYear.value, FilingStatus.value,
+			TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, false, 0);
+
+		// Limit taxes paid if 2018
+		taxlimit = (FilingStatus.value == "MFS") ? 5000 : 10000;
+		if (TaxYear.value > 2017) {
+			if (TaxesPaid.value > taxlimit) {
+				alert ("State and local taxes is limited to $" + taxlimit);
+				TaxesPaid.value = taxlimit;
+			}
+		}
+
+		// Get self-employment tax
+		SEresult = _SETax(TaxYear.value, SEIncome.value);
+		SETax.innerHTML = SEresult[0];
+		SETaxCredit.innerHTML = SEresult[1];
+		SETaxCredit.click();
+
+		// Itemized deduction row display or not
+		ItemizeRequiredQuestion.style.display = (FilingStatus.value == "MFS") ? "inline" : "none";
+		IExp = ItemizeExpand.checked || ItemizeRequired.checked;
+		itemlist = document.getElementsByClassName("deductions");
+		for (itno = 0; itno < itemlist.length; itno++) {
+			itemlist[itno].style.display = (IExp) ? "table-row" : "none";
+		}
+		AGILimitRow.style.display = MiscellaneousRow.style.display =(IExp && (TaxYear.value < 2018)) ? "table-row" : "none";
+
+		// Medical limitation
+		var medexclusionindex = (TP65.checked || SP65.checked) ? 1 : 0;
+		var medexclusion = Math.round(+AGI.innerHTML * +_MedicalExclusion[TaxYear.value].split(",")[medexclusionindex]);
+		Medical.innerHTML = Math.max(0, +ActualMedical.value - medexclusion);
+
+		// Two percent limitation
+		TwoPercent.innerHTML = Math.round(+AGI.innerHTML * 0.02);
+
+		// Are itemized deductions limited by Pease (high income) deduction limit?
+		var itemval = +Itemized.value;
+		AGILimit.innerHTML = itemvallimit = +_ItemLimit[TaxYear.value + ":" + FilingStatus.value]
+
+		// Charitable limited to 50% AGI
+		charlimit = Math.round(AGI.innerHTML * 0.5);
+		if (+Charity.value > charlimit) {
+			alert ("Charitable gifts have been limited to 50% of AGI.");
+			Charity.value = charlimit;
+			Itemized.focus();
+		}
+
+		if (ItemizeExpand.checked) {
+			Itemized.value = +Medical.innerHTML + +TaxesPaid.value + +InterestPaid.value +
+				+Charity.value + +OtherItemized.value;
+			// don't use += in the following statement
+			if (+TaxYear.value < 2018) Itemized.value = +Itemized.value + +Miscellaneous.value;
+		}
+
+		if ((itemval > 0) && (+AGI.innerHTML > + itemvallimit)) {
+			Misc.disabled = false;
+			// reduce itemized deductions by lesser of 3% of AGI or 80% non Misc
+			// does not apply to medical, invest exp, gambling loss, casualty losses
+			itemvalnonMisc = itemval - +Misc.value;
+			itemlimit80pct = itemvalnonMisc * .8;
+			itemlimit3pct = +AGI.innerHTML * .03;
+			itemval -= Math.min(itemlimit3pct, itemlimit80pct);
+		}
+		else {
+			Misc.disabled = true;
+			Misc.value = "";
+		}
+		if (ItemizeRequired.checked) Deductions = itemval;
+		else Deductions = Math.round(Math.max(+Standard.innerHTML, itemval));
+		PreExemptAmount.innerHTML = Math.round(Math.max(0, AGI.innerHTML - Deductions));
+
+		// Calculate exemptions
+		var exemptamt = +_Standard[TaxYear.value].split(",")[_Standard["Exemption"]];
+		ExemptRate.innerHTML = exemptamt;
+		ExemptAmount.innerHTML = exemptamt * (((FilingStatus.value == "MFJ") ? 2:1) + +Dependents.value);
+		var elist = document.getElementsByClassName("exemptions");
+		for (elistno = 0; elistno < elist.length; elistno++)
+			elist[elistno].style.display = (exemptamt) ? "table-row" : "none";
+		TaxableAmount.innerHTML = Math.round(Math.max(0, +PreExemptAmount.innerHTML - +ExemptAmount.innerHTML));
+
+		// Determine Tax
+		if (UsingD.checked) {
+			UsingDAmount.style.display = "table-row";
+			CGtoUse = CGLongTerm.value;
+		}
+		else {
+			UsingDAmount.style.display = "none";
+			CGtoUse = CapGains.value;
+		}
+		CG = +QualDividends.value + Math.max(0, +CGtoUse);
+		Tax.innerHTML = Math.round(_TaxLookup(TaxYear.value, FilingStatus.value, +TaxableAmount.innerHTML, CG, true));
+
+		Line8.innerHTML = WorkingTax = Math.round(+Tax.innerHTML + +AdditionalTax.value);
+		ForeignUsed.innerHTML = NRUsed = Math.min(WorkingTax, +Foreign.value);
+		WorkingTax -= NRUsed;
+		if (FilingStatus.value == "MFS") {
+			ChildCareUsed.innerHTML = 0;
+			EducationUsed.innerHTML = 0;
+		}
+		else {
+			ChildCareUsed.innerHTML = NRUsedTemp = Math.min(WorkingTax, +ChildCare.value);
+			WorkingTax -= NRUsedTemp;
+			NRUsed += NRUsedTemp;
+			EducationUsed.innerHTML = NRUsedTemp = Math.min(WorkingTax, +Education.value);
+			WorkingTax -= NRUsedTemp;
+			NRUsed += NRUsedTemp;
+		}
+		RetirementUsed.innerHTML = NRUsedTemp = Math.min(WorkingTax, +Retirement.value);
+		WorkingTax -= NRUsedTemp;
+		NRUsed += NRUsedTemp;
+
+		// Get the CTC and ACTC amounts
+		var CTCresult = [];
+		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value, CTCDependents.value, Dependents.value, Wages.value + SEIncome.value, AGI.innerHTML);
+		var CTCAmount = +CTCresult[0];
+		var FTCAmount = +CTCresult[1];
+		var ACTCLimit = +CTCresult[2];
+		CTCredit.innerHTML = CTCAmount + FTCAmount;
+
+		// FTC - Current assumption - Use FTC before CTC but use the same line
+		NRUsedTemp = FTCUsed = Math.min(WorkingTax, FTCAmount); 
+		WorkingTax -= NRUsedTemp;
+		NRUsed += NRUsedTemp;
+		// CTCreditUsed.innerhtml = NRUsedTemp;
+
+		// CTC
+		NRUsedTemp = Math.min(WorkingTax, CTCAmount);
+		WorkingTax -= NRUsedTemp;
+		NRUsed += NRUsedTemp;
+		CTCreditUsed.innerHTML = FTCUsed + NRUsedTemp;
+		
+		// ACTC
+		ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
+		ACTCredit.innerHTML = ACTCAmount;
+
+		// Residential and other credits
+		NRUsedTemp = Math.min(WorkingTax, +Residential.value);
+		WorkingTax -= NRUsedTemp;
+		NRUsed += NRUsedTemp;
+		ResidentialUsed.innerHTML = NRUsedTemp;
+
+		// Totals
+		Nonrefundable.innerHTML = NRUsed;
+		Line10.innerHTML = Math.round(Math.max(0,Line8.innerHTML - NRUsed));
+
+		// Get the EIC amount
+		var EICAmount = 0;
+		var EICInvest = +CapGains.value + +Interest.value + +TaxExempt.value + +Dividends.value;
+		var EICEarned = +Wages.value + +SEIncome.value - +SETaxCredit.innerHTML;
+		EICCredit.innerHTML = EICAmount = +_EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
+			EICEarned, EICInvest, AGI.innerHTML, TP65.checked, SP65.checked);
+
+		// Total the tax amounts
+		TotalTax.innerHTML = taxamt = Math.round(+Line10.innerHTML + +SETax.innerHTML + +OtherTaxes.value);
+		TaxDue.innerHTML = taxdue = Math.round(+TotalTax.innerHTML - ACTCAmount - EICAmount - +Refundable.value);
+		taxdue = Math.max(0, taxdue);
+		if (taxamt) maxIRA.innerHTML = "N/A";
+		else {
+			IRAgap = - +AGI.innerHTML + Deductions + +ExemptAmount.innerHTML;
+			IRAcalc = 0;
+			if (IRAgap00 > 0) {
+				IRAused = Math.min(IRAgap00, IRAgap);
+				IRAcalc += IRAused;
+				IRAgap = Math.max(0,IRAgap - IRAused);
+			}
+			if (IRAgap50 > 0) {
+				IRAused = Math.min(IRAgap50, IRAgap/1.5);
+				IRAcalc += IRAused;
+				IRAequiv = IRAused * 1.5;
+				IRAgap = Math.max(0,IRAgap - IRAequiv);
+			}
+			if (IRAgap85 > 0) {
+				IRAused = Math.min(IRAgap85, IRAgap/2.35);
+				IRAcalc += IRAused;
+				IRAequiv = IRAused * 2.35;
+				IRAgap = Math.max(0,IRAgap - IRAequiv);
+			}
+			maxIRA.innerHTML = Math.max(0,Math.floor(IRAcalc + IRAgap));
+		}
+
+		// How much needs to be paid
+		Tax90.innerHTML = taxest = Math.round(taxdue * ((Farmer.checked) ? 2/3:0.90));
+		taxlast = +TaxLastYear.value;
+		UseLYTax.disabled = (taxlast) ? false:true; 
+		if (taxlast == 0) UseLYTax.checked = false;
+		LYINC.innerHTML = (HighAGI.checked) ? 110:100;
+		if (taxlast > 0) {
+			//if (taxest == 0) UseLYTax.checked = true;
+			if (HighAGI.checked) taxlast = Math.round(taxlast * 1.1);
+			if (UseLYTax.checked) taxest = taxlast;
+			EstAmount.innerHTML = Math.min(taxest,taxlast);
+		}
+		else {
+			EstAmount.innerHTML = taxest;
+		}
+		if (UseTYTax.checked) EstAmount.innerHTML = taxdue;
+
+		// Figure the voucher amounts
+		if (+OverrideAmount.value > 0) vamount = +OverrideAmount.value;
+		else vamount = Math.max(0,EstAmount.innerHTML - +WHAmount.value);
+		VoucherAmount.innerHTML = vamount;
+		QuarterAmount.innerHTML = Math.round(vamount / 4);
+		PayNotRequired.style.display = (vamount < 1000) ? "inline":"none";
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize()">
+
+<center>
+	<span class="title"><span id="TaxYear2"></span> Estimated Tax Worksheet</span>
+	<br><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+	<br />&nbsp;
+</center>
+
+<div id="ClearAndPrint" class="noPrint">
+	<button onclick="window.open(window.location, '_self')">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</div>
+	
+<!-- ****************************************** FILING INFORMATION TABLE ****************************************** -->
+<div id="FilingInfo">
+	<h1>Basic Filing Information for tax year <select id="TaxYear" onchange="FileChange();"></select></h1>
+	<table id="FilingInfoTbl" onkeyup="FileChange();" onclick="FileChange();">
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr>
+			<td>Taxpayer&apos;s Name:</td>
+			<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td>
+			<td></td>
+			<td rowspan="5" style="text-align: center; vertical-align: top;">
+				<a href="http://www.aarp.org/work/retirement-planning/required_minimuum_distribution_calculator/" target="_blank">Click here for the<br />AARP RMD Calculator</a>
+				<br /><br /><br /><span id="Warning"></span></td></tr>
+		<tr>
+			<td>Filing Status:</td>
+			<td style="text-align:top">
+				<select id="FilingStatus" title="Select the taxpayer's filing status.">
+					<option value="SNG">Single</option>
+					<option value="MFJ">MFJ</option>
+					<option value="MFS">MFS</option>
+					<option value="HOH">HOH</option>
+					<option value="WID">Widow(er)</option></select>
+			</td>
+			<td style="text-align:top">
+				<input id="TP65" type="checkbox" title="Taxpayer is age 65 or older"/> TP 65 or older
+				<br /><input id="SP65" type="checkbox" title="Spouse is age 65 or older"/> SP 65 or older</td>
+			<td style="text-align:top">
+				<input id="TPBlind" type="checkbox" title="Taxpayer is blind"/> blind
+				<br /><input id="SPBlind" type="checkbox" title="Spouse is blind"/> blind</td></tr>
+		<tr><td></td><td></td><td colspan="2">
+				<span id="MFSoption"><input id="MFStogether" type="checkbox" /> Check if you will be living with your spouse.</span>
+				</td></tr>
+		<tr><td colspan="2">Total Dependents claimed:
+			<td><input id="Dependents" size="2" value="0" 
+				title="Total number of dependents in the tax family." /></td></tr>
+		<tr><td colspan="2">Dependents qualified for EIC: </td>
+			<td><input id="EICDependents" size="2" value="0" 
+				title="Number of dependents in the tax family age under age 18 (or 24 if a full time student or any age if disabled)." /></td></tr>
+		<tr><td colspan="2">Dependents qualified for CTC:
+			<td><input id="CTCDependents" size="2" value="0" 
+				title="Number of dependents in the tax family under age 17." /></td></tr>
+		</table>
+
+
+</div> <!-- FilingInfo -->
+<br />
+
+<!-- ****************************************** INCOME WORKSHEET ****************************************** -->
+<div id="IncomeInfo">
+	<h1>Estimated Tax Worksheet:</h1>
+	<table id="IncomeTable" onkeyup="FileChange();" onclick="FileChange();">
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td colspan="2">Income:
+				(<input type="checkbox" id="IncomeExpand" /><i>Expand to enter details.)</i></td>
+			<td colspan="3"><i>Enter Form 1040 expected amounts:</i></td></tr>
+		<tr class="income"><td></td>
+			<td>Wages, salaries, tips, etc from W-2s</td><td></td>
+			<td><input id="Wages" type="number" /></td></tr>
+		<tr class="income"><td></td>
+			<td>Taxable interest</td><td></td>
+			<td><input id="Interest" type="number" /></td></tr>
+		<tr class="income"><td>  </td>
+			<td>&nbsp;&nbsp;&nbsp;Tax-exempt interest expected</td>
+			<td><input id="TaxExempt" type="number" />
+			</td><td></td><td></td></tr>
+		<tr class="income"><td></td>
+			<td>Ordinary dividends</td><td></td>
+			<td><input id="Dividends" type="number" /></td></tr>
+		<tr class="income"><td></td>
+			<td>&nbsp;&nbsp;&nbsp;Qualified dividends</td>
+			<td><input id="QualDividends" type="number" /></td>
+			<td></td><td></td></tr>
+		<tr class="income"><td></td>
+			<td>Self-employment income</td><td></td>
+			<td><input id="SEIncome" type="number" /></td></tr>
+		<tr class="income"><td></td>
+			<td>Capital gains/loss
+				(<input id="UsingD" type="checkbox" /> Check if using Schedule D)</td><td></td>
+			<td><input id="CapGains" type="number" /></td></tr>
+		<tr id="UsingDAmount" class="income"><td></td>
+			<td>&nbsp;&nbsp;&nbsp;Smaller of lines 15 or 16 from Schedule D =
+			<input id="CGLongTerm" type="number"></td><td></td><td></td>
+		<tr class="income"><td></td>
+			<td>IRAs and Pensions</td><td></td>
+			<td><input id="Pensions" type="number" /></td></tr>
+		<tr class="income"><td></td>
+			<td>Amount of social security expected</td>
+			<td><input id="SS" type="number" /></td>
+			<td class="calculated"><span id="TaxableSS">0</span></td></tr>
+		<tr class="income"><td></td>
+			<td>Other income (alimony, royalties, unemployment, etc)</td><td></td>
+			<td><input id="OtherIncome" type="number" /></td></tr>
+		<tr><td></td>
+			<td colspan="3">Gross income expected</td>
+			<td><input id="Gross" type="number" /></td></tr>
+		<tr><td colspan="5">Adjustments to Income:</td>
+		<tr><td></td>
+			<td>Deductible part of self-employment tax (1/2 of SE tax shown below)</td>
+			<td></td>
+			<td class="calculated"><span id="SETaxCredit">0</span></td></tr>
+		<tr><td></td>
+			<td>Student loan interest</td>
+			<td></td>
+			<td><input id="StudentLoanCredit" type="number" />
+		<tr><td></td>
+			<td>Other adjustments expected (HSA, Alimony paid, IRA contrib, Tuition&amp;Fees, etc)</td>
+			<td></td>
+			<td><input id="OtherCredits" type="number" />
+		<tr><td></td>
+			<td colspan="3">Adjusted gross income expected
+			<td class="calculated"><span id="AGI">0</span></td></tr>
+<!--
+		<tr><td> 2</td>
+			<td>Deductions: If a dependent of another, enter earned income</td>
+			<td><input id="Dependent" type="number" /></td><tr>
+-->
+		<tr><td colspan="5">Deductions:
+			(<input type="checkbox" id="ItemizeExpand" /><i>Expand to enter details.)</i></td>
+		<tr><td></td>
+			<td>Standard deduction</td>
+			<td></td>
+			<td class="calculated"><span id="Standard">0</span></td><td></td></tr>
+		<tr class="deductions"><td></td>
+			<td>Medical expenses
+				(Actual expenses = <input id="ActualMedical" type="number" />)</td>
+			<td id="Medical"><!--input id="Medical" type="number" /--></td></tr>
+		<tr class="deductions"><td></td>
+			<td>State income tax or sales tax, and property taxes
+				<span id="Note2018t">($10,000 maximum, $5,000 if MFS)</span></td>
+			<td><input id="TaxesPaid" type="number" /></td></tr>
+		<tr class="deductions"><td></td>
+			<td>Interest paid</td>
+			<td><input id="InterestPaid" type="number" /></td></tr>
+		<tr class="deductions"><td></td>
+			<td>Gifts to charity</td>
+			<td><input id="Charity" type="number" /></td></tr>
+		<tr class="deductions" id="MiscellaneousRow"><td></td>
+			<!-- not available after 2017 -->
+			<td>Job expenses and miscellaneous deductions
+				(2% AGI = <span id="TwoPercent"></span>)</td>
+			<td><input id="Miscellaneous" type="number" /></td></tr>
+		<tr class="deductions"><td></td>
+			<td>Other miscellaneous deductions (gambling losses)</td>
+			<td><input id="OtherItemized" type="number" /></td></tr>
+		<tr class="deductions" id="AGILimitRow"><td>  </td>
+			<td>Medical expenses, investment interest expenses, casualty losses and gambling losses included in the total itemized deductions entered in line above (for AGI > <span id="AGILimit"></span>)</td>
+			<td><input id="Misc" type="number" /></td></tr>
+		<tr><td></td>
+			<td>Total itemized deductions
+				<span id="ItemizeRequiredQuestion">
+				(<input type="checkbox" id="ItemizeRequired" />Required to itemize.)
+			</span>
+			<span id="Note2018a">
+				<br /><b>NOTE: </b>Deduction changes beginning in 2018:
+				<ul>
+					<li>State and Local Taxes is capped at $10,000 ($5,000 if MFS)</li>
+					<li>Job expenses and other 2% deductions no longer available</li>
+				</ul>
+				</span></td>
+			<td></td>
+			<td style="vertical-align: top;"><input id="Itemized" type="number" /></td></tr>
+		<tr class="exemptions"><td></td>
+			<td colspan="2">Amount after deductions</td><td></td>
+			<td class="calculated"><span id="PreExemptAmount">0</span></td></tr>
+		<tr class="exemptions"><td colspan="5">Exemptions:</td>
+		<tr class="exemptions"><td></td>
+			<td colspan="2">Exemptions times <span id="ExemptRate">TBD</span></td>
+			<td class="calculated"><span id="ExemptAmount">0</span></td></tr>
+		<tr><td colspan="5">Taxable income:</td></tr>
+		<tr><td></td>
+			<td colspan="2">Taxable income</td><td></td>
+			<td class="calculated"><span id="TaxableAmount">0</span></td></tr>
+		<tr><td colspan="5" class="tablebreak"></td></tr>
+		<tr><td colspan="5">Tax:</td>
+		<tr><td></td>
+			<td colspan="3">Tax from tax tables</td>
+			<td class="calculated"><span id="Tax">0</span></td></tr>
+		<tr><td></td>
+			<td colspan="2">Enter any additional taxes (Forms 4972, 6251, 8814 or 8889)</td>
+			<td><input id="AdditionalTax" type="number" /></td></tr>
+		<tr><td></td>
+			<td colspan="3">Total tax amounts</td>
+			<td class="calculated"><span id="Line8">0</span></td></tr>
+		<tr><td colspan="2">Nonrefundable Credits:</td>
+			<td><i>max available:</i></td>
+			<td><i>can use:</i></td>
+		<tr><td></td>
+			<td>Foreign tax credit</td>
+			<td><input id="Foreign" type="number" /></td>
+			<td class="calculated"><span id="ForeignUsed"></span></tr>
+		<tr><td>  </td>
+			<td>Credit for child and dependent care expenses</td>
+			<td><input id="ChildCare" type="number" /></td>
+			<td class="calculated"><span id="ChildCareUsed"></span></tr>
+		<tr><td>  </td>
+			<td>Education credits</td>
+			<td><input id="Education" type="number" /></td>
+			<td class="calculated"><span id="EducationUsed"></span></tr>
+		<tr><td>  </td>
+			<td>Retirement savings contributions credit</td>
+			<td><input id="Retirement" type="number" /></td>
+			<td class="calculated"><span id="RetirementUsed"></span></tr>
+		<tr><td>  </td>
+			<td>Child <span id="Note2018b">and Family</span> Tax Credit</td>
+			<td id="CTCredit"><!--input id="CTCredit" type="number" readonly="readonly" /--></td>
+			<td class="calculated"><span id="CTCreditUsed"></span></tr>
+		<tr><td>  </td>
+			<td>Residential energy and other credits</td>
+			<td><input id="Residential" type="number" /></td>
+			<td class="calculated"><span id="ResidentialUsed"></span></tr>
+		<tr><td></td>
+			<td colspan="3">Total Nonrefundable credits:</td>
+			<td class="calculated"><span id="Nonrefundable"></span></td></tr>
+		<tr><td></td>
+			<td colspan="3">Tax amount after credits</td>
+			<td class="calculated"><span id="Line10">0</span></td></tr>
+		<tr><td colspan="5">Other Taxes:</td>
+		<tr><td>  </td>
+			<td colspan="2">Self-employment tax
+				<span id="Note2018d">
+					<b>NOTE: </b>Effect of pass-through reduction for self-employed income in 2018 is unknown.
+				</span></td>
+			<td class="calculated"><span id="SETax">0</span></td></tr>
+		<tr><td></td>
+			<td colspan="2">Other taxes</td>
+			<td><input id="OtherTaxes" type="number" /></td></tr>
+		<tr><td></td>
+			<td colspan="3">Total after other taxes</td>
+			<td class="calculated"><span id="TotalTax">0</span></td></tr>
+		<tr><td colspan="5">Refundable Credits:</td>
+		<tr><td>  </td>
+			<td>Additional Child Tax Credit
+				<span id="Note2018c">(<b>NOTE: </b>ACTC capped at $1400/child in 2018)</span></td>
+			<td id="ACTCredit"><!--input id="ACTCredit" type="number" /--></td></tr>
+		<tr><td></td>
+			<td>Earned income tax credit</td>
+			<td id="EICCredit"><!--input id="EICCredit" type="number" /--></td></tr>
+		<tr><td></td>
+			<td>Other refundable credits (AOC, etc)</td>
+			<td><input id="Refundable" type="number" /></td></tr>
+		<tr><td>  </td>
+			<td colspan="3">Estimated total tax</td>
+			<td class="calculated"><span id="TaxDue">0</span></td></tr>
+		<tr><td colspan="5" class="tablebreak"></td></tr>
+		<tr><td colspan="5">Estimated Payments Needed:</td>
+		<tr><td>  </td>
+			<td colspan="2">90% of estimated total tax
+				(<input id="Farmer" type="checkbox" />
+				66 2/3% for farmers and fishermen)</td>
+			<td class="calculated"><span id="Tax90">0</span></td></tr>
+		<tr><td>  </td>
+			<td colspan = "2">
+				Enter 100% of last year&apos;s income tax
+				(<input id="HighAGI" type="checkbox" />
+				Check if AGI was > $<span id="LYAGI"></span>K)</td>
+			<td><input id="TaxLastYear" type="number" /></td></tr>
+		<tr><td></td>
+			<td><b>Choose which to use...</b></td></tr>
+		<tr><td style="vertical-align: top;"></td>
+			<td colspan="2">
+				&nbsp;&nbsp;&nbsp;<input id="UseSmall" type="radio" name="UseTax" checked="checked" /> Smaller of above or ...
+				<br />&nbsp;&nbsp;&nbsp;<input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% last year&apos;s amount from the line above.
+				<br />&nbsp;&nbsp;&nbsp;<input id="UseTYTax" type="radio" name="UseTax" /> Use 100% of the <span id="TaxYear3"></span> estimated total tax.</td>
+			<td class="calculated" style="vertical-align: bottom;"><span id="EstAmount">0</span></td></tr>
+		<tr><td></td>
+			<td colspan="2">Income tax withheld and estimated to be withheld</td>
+			<td><input id="WHAmount" type="number" /></td></tr>
+		<tr><td></td>
+			<td colspan="2">Balance (override if a different amount is desired:
+				<input id="OverrideAmount" type="number"  />)
+				<span id="PayNotRequired"> (Payment not required if less than $1000)</span></td>
+			<td class="calculated"><span id="VoucherAmount"></span></td></tr>
+		<tr><td>  </td>
+			<td colspan="3">Quarterly amount</td>
+			<td class="calculated"><span id="QuarterAmount"></span></td></tr>
+	</table>
+</div> <!-- IncomeInfo -->
+<br />
+
+<div>
+	Amount of additional income before filing a return is required (e.g. Max IRA distribution)
+	<span id="maxIRA" style="float: right;">?</span>
+</div>
+<br />
+
+<div class="noPrint">
+	Please send corrections and suggestions to
+	<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	<span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+</div>
+
+</body>
+</html>
