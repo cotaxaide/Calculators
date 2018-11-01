@@ -4,6 +4,8 @@
 
         // Form line numbers
         // var LineNo = [];
+		_LineNo[_TY+":Salary"] = "7";
+		_LineNo[_TY+":Pension"] = "16a";
                 _LineNo[_TY+":Earned"] = "7+12";
                 _LineNo[_TY+":TaxExInc"] = "8b";
                 _LineNo[_TY+":CapGains"] = "13";

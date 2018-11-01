@@ -250,6 +250,10 @@
 	</style>
 	
 	<script src="Tax_Data/IRS_2000.js"></script>
+	<script src="Tax_Data/IRS_2015.js"></script>
+	<script src="Tax_Data/IRS_2016.js"></script>
+	<script src="Tax_Data/IRS_2017.js"></script>
+	<script src="Tax_Data/IRS_2018.js"></script>
 		
 	<script type="text/javascript">
 	// --------------------------------------------------------------------
@@ -269,7 +273,9 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.16, 6/14/2018)";
+		var VERSION = "(version 10.17, 11/01/2018)";
+		//	Added variables for Salary and Pension 1040 line numbers
+		//var VERSION = "(version 10.16, 6/14/2018)";
 		//	Corrected PSO medical exemption figures (they were reversed)
 		//var VERSION = "(version 10.15, 6/14/2018)";
 		//	Changed clear and reset button to work with Firefox
@@ -401,10 +407,10 @@
 			Distitle += " the minimum retirement age has been reached.";
 			Distitle += " <br />If that happened this year, you may have to split the 1099-R";
 			Distitle += " into two entries:";
-			Distitle += "<ul><li>the months prior to retirement age"
-			Distitle += " to include in income (Form 1040 line 7)</li>";
+			Distitle += "<ul><li>the months prior to retirement age";
+			Distitle += " to include as wages income.</li>";
 			Distitle += "<li>the months after retirement age";
-			Distitle += " to recover contributions for those months.</li></ul>";
+			Distitle += " to as pension to recover contributions for those months.</li></ul>";
 		var ret_age_yr = [];
 		var ret_age_mo = [];
 		var ret_age_warning_seen = false;
@@ -1391,6 +1397,8 @@
 					if (disability_part1.innerHTML) disability_note_box.style.display = "block";
 					FORM1099DIV.style.display =
 						disability_part2_line.style.display = (showgross) ? "inline" : "none";
+					SalaryLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Salary"];
+					PensionLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Pension"];
 				}
 				else disability_note_box.style.display = "none";
 				RRB1099R_GROSS.innerHTML = F1099R_GROSS.innerHTML = SGRW_GROSS.innerHTML = showgross;
@@ -1499,6 +1507,8 @@
 				if (disability_part1.innerHTML) disability_note_box.style.display = "block";
 				FORM1099DIV.style.display = (SP.value || ((! SP.value) && TPshowgross)) ? "inline" : "none";
 				disability_part2_line.style.display = (TPshowgross) ? "inline" : "none";
+				SalaryLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Salary"];
+				PensionLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Pension"];
 			}
 			else disability_note_box.style.display = "none";
 
@@ -1923,7 +1933,8 @@
 			if (New_TAX_YR < ANN_YR) {
 				message = "Annuity exclusion doesn't start until " + ANN_YR + ".";
 				if (Disability.checked) {
-					message += "\n\nBe sure to check the \"Form 1040 line 7\" box.";
+					message += "\n\nBe sure to check the \"Form 1040 line ";
+					message += _LineNo[EXCL_TY.value + ":Salary"] + "\" box.";
 				}
 				else {
 					message += " It is fully taxable.";
@@ -2212,9 +2223,9 @@
 
 			<div id="disability_note_box">
 				<span id="disability_note">NOTE: </span>The annuitant&apos;s disability pension amount should be entered as two 1099-Rs:
-				<br />&nbsp;&nbsp;&nbsp;#1: <span id="disability_part1"></span> as earned income (<input type="checkbox" checked="checked" disabled="disabled"> Form 1040 line 7) - no pension exclusion
+				<br />&nbsp;&nbsp;&nbsp;#1: <span id="disability_part1"></span> as earned income (<input type="checkbox" checked="checked" disabled="disabled"> Form 1040 line <span id="SalaryLineNo"></span>) - no pension exclusion
 				<br /><span id="disability_PSO">but, exclude <span id="DPSO_amount">0</span> Public Safety Officer insurance</span>
-				<br />&nbsp;&nbsp;&nbsp;#2: <span id="disability_part2_line"><span id="disability_part2"></span> as pension income (Form 1040 line 16a) - see below</span>
+				<br />&nbsp;&nbsp;&nbsp;#2: <span id="disability_part2_line"><span id="disability_part2"></span> as pension income (Form 1040 line <span id="PensionLineNo"></span>) - see below</span>
 			</div>
 			<br />
 
