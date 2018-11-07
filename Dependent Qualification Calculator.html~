@@ -1412,7 +1412,6 @@ function ColorCells() {
 		}
 		if (DependentITIN.checked) {
 			OTC.innerHTML = "NO";
-			BenefitColor.OTC = ColorNo;
 			OTC.title = "- Dependent must have an SSN, not an ITIN";
 		}
 	}
