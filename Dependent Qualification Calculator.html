@@ -62,7 +62,10 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.13 11/8/2018";
+var VERSION = "6.14 11/9/2018";
+//	Re-structured Credit for other dependents test
+//	Added AOC as a seperate result
+//var VERSION = "6.13 11/8/2018";
 //	Dependent ITIN box doesn't clear if dependent changed to US or CAN/MEX status
 //var VERSION = "6.12 11/6/2018";
 //	Added ITIN tests for TP, SP and dependent
@@ -283,12 +286,12 @@ YesMsg["DependCare"] += "<li>Qualified payments must be to a qualified person</l
 YesMsg["DependCare"] += "<li>TP must have the tax id number of the care provider or show due diligence in an attempt to obtain it</li>";
 YesMsg["Medical"] = "<li>Any amount from assistance funds are counted as part of the cost, but not as paid by the TP</li>";
 YesMsg["Medical"] += "<li>Medical deduction considerations may reduce or exclude the benefit</li>";
-YesMsg["CTC"] = "<li>Total income amount may reduce or exclude the benefit</li>";
+YesMsg["CTC"] = "<li>Income amount may reduce or exclude the benefit</li>";
 YesMsg["OTC"] = "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
-YesMsg["OTC"] += "<li>Total income amount may reduce or exclude the benefit</li>";
+YesMsg["OTC"] += "<li>Income amount may reduce or exclude the benefit</li>";
 YesMsg["EITC"] = "<li>Both TP and SP must have valid SSNs and must have been a US Citizen or Resident Alien for the full year</li>";
 YesMsg["EITC"] += "<li>Taxpayer must have earned income, cannot be from penal institutions</li>";
-YesMsg["EITC"] += "<li>Total income amount and investment income amount may reduce or exclude the benefit</li>";
+YesMsg["EITC"] += "<li>Income amount and investment income amount may reduce or exclude the benefit</li>";
 YesMsg["EITC"] += "<li>Cannot claim foreign earned income exclusion</li>";
 YesMsg["EITC"] += "<li>This credit cannot have been disallowed by the IRS in the last 10 years</li>";
 YesMsg["EITC"] += "<li>Dependent residency must be more than half year with parents in the US or on military duty elsewhere</li>";
@@ -297,11 +300,13 @@ YesMsg["EdAdjustment"] = "<li>Must be qualified expenses</li>";
 YesMsg["EdAdjustment"] += "<li>Must be a qualified institution</li>";
 YesMsg["EdAdjustment"] += "<li>Expenses claimed cannot be paid with tax-free funds</li>";
 YesMsg["EdAdjustment"] += "<li>Cannot use expenses for more than one credit option per student</li>";
-YesMsg["EdAdjustment"] += "<li>Total income amount may reduce or exclude the benefit</li>";
+YesMsg["EdAdjustment"] += "<li>Income amount may reduce or exclude the benefit</li>";
 YesMsg["EdCredit"] = YesMsg["EdAdjustment"];
-YesMsg["EdCredit"] += "<li>Amer Opp Credit Limited to 4 years and must be at least half time </li>";
-YesMsg["EdCredit"] += "for at least one academic period during the year, toward a certification or degree</li>";
 YesMsg["EdCredit"] += "<li>Lifetime Learning Credit is \"non-refundable\" thus limited by tax amount</li>";
+YesMsg["AOCCredit"] = YesMsg["EdAdjustment"];
+YesMsg["AOCCredit"] += "<li>Amer Opp Credit is limited to 4 years and must be at least half time";
+YesMsg["AOCCredit"] += " for at least one academic period during the year, toward a certification or degree</li>";
+YesMsg["AOCCredit"] += "<li>Lifetime Learning Credit portion is \"non-refundable\" thus limited by tax amount</li>";
 
 // Test alert message for those who inadvertantly find the little heart symbol
 var TestMsg = "This is a test function, not designed for casual users.";
@@ -796,9 +801,7 @@ function CalcStatus() {
 	// ==============================================================
 	
 	CTC.value = YES; // assume yes until a condition is violated
-	OTC.value = YES; // assume yes until a condition is violated
 	CTC.title = "";
-	OTC.title = "";
 
 		if (BENE_Relation.indexOf("|CTC|") == NOT_A_BENEFIT) SetMessage(CTC,"- Failed relationship test");
 		if (DEP_RealAge > 16) SetMessage(CTC,"- Failed age test");
@@ -809,19 +812,22 @@ function CalcStatus() {
 		if (TPisQC.checked) SetMessage(CTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(CTC,"- TP or SP cannot be a qualified relative");
 		if (QualChild.value == NO) SetMessage(CTC,"- Not a qualified child");
-		// still OK for OTC even if ITIN // add V6.13
-		if (! DependentITIN.checked) {
-			OTC.value = CTC.value; // add V6.13
-		}
-		else {
-			SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
-		}
-		if (QualRelative.value == YES) {
-			OTC.value = YES; // add V6.13
-		}
-		else {
-			if (CTC.value == YES) SetMessage(OTC,"- Dependent is eligible for Child Tax Credit instead"); // add V6.13
-		}
+		if (DependentITIN.checked) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
+
+	// ==============================================================
+	
+	OTC.value = YES; // assume yes until a condition is violated // add V6.13
+	OTC.title = "";
+
+		if (BENE_Relation.indexOf("|OTC|") == NOT_A_BENEFIT) SetMessage(OTC,"- Failed relationship test");
+		if ((! TP_DivorceApplies) && (DEP_Residency < 7)) SetMessage(OTC,"- Failed residency test");
+		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
+			SetMessage(OTC,"- Dependent failed citizenship test");
+		if (TPSPITIN.checked) SetMessage(OTC,"- TP or SP has an ITIN. Both must have an SSN"); // add V6.12
+		if (TPisQC.checked) SetMessage(OTC,"- TP or SP cannot be a qualified child (even if not claimed)");
+		if (TPisQR.checked) SetMessage(OTC,"- TP or SP cannot be a qualified relative");
+		if ((QualChild.value == NO) && (QualRelative.value == NO)) SetMessage(OTC,"- Not a qualified dependent");
+		if (CTC.value == YES) SetMessage(OTC,"- Dependent is eligible for Child Tax Credit instead");
 
 	// ==============================================================
 		
@@ -862,12 +868,23 @@ function CalcStatus() {
 		
 	EdCredit.value = YES; // assume yes until a condition is violated
 	EdCredit.title = "";
+	AOCCredit.value = YES; // assume yes until a condition is violated
+	AOCCredit.title = "";
 
-		// if (BENE_Relation.indexOf("|EDC|") == NOT_A_BENEFIT) SetMessage(EdCredit,"- Failed relationship test");
 		// Most benefits the same as EdAdjustment (for now)
-		if (EdAdjustment.value == NO) {EdCredit.value = NO; EdCredit.title = EdAdjustment.title}
-		if ((EdCredit.value != NO) && (Felony.checked)) EdCredit.value = "FELON";
-		if ((QualRelative.value == "SPOUSE_MAY_USE") && (EdCredit.value != "NO")) EdCredit.value = "SPOUSE_MAY_USE"; // ex-SP has the advantage
+		if (EdAdjustment.value == NO) {
+			EdCredit.value = NO;
+			EdCredit.title = EdAdjustment.title
+			AOCCredit.value = NO;
+			AOCCredit.title = EdAdjustment.title
+		}
+		if ((EdCredit.value != NO) && (Felony.checked)) SetMessage(AOCCredit,"- Not eligible for American Opportunity Credit due to drug felony\n");
+		if ((QualRelative.value == "SPOUSE_MAY_USE") && (EdCredit.value != "NO")) {
+			EdCredit.value = "SPOUSE_MAY_USE"; // ex-SP has the advantage
+		}
+		if ((QualRelative.value == "SPOUSE_MAY_USE") && (AOCCredit.value != "NO")) {
+			AOCCredit.value = "SPOUSE_MAY_USE"; // ex-SP has the advantage
+		}
 
 	// ==============================================================
 
@@ -975,23 +992,23 @@ function DetermineBenefits() {
 // PAR=TP is a parent
 //***************************************************************************************************
 	switch (DEP_Relation) {
-	case "CHILD":			BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "ADOPTING":		BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "CHILD_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "FOSTER":			BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "FOSTER_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "SIBLING":			BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-//	case "HALF_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "NIECE_NEPHEW":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
-	case "STEP_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
-	case "PARENT":			BENE_Relation="|   |   |DPR|HOH|   |   |MED|CAR|    |EDC|EDA|RESX|"; break;
-	case "PARENT_ANC_SIB":		BENE_Relation="|   |   |DPR|HOH|   |   |MED|CAR|    |EDC|EDA|RESX|"; break;
-	case "IN_LAW":			BENE_Relation="|   |   |DPR|HOH|   |   |MED|CAR|    |EDC|EDA|RESX|"; break;
-	case "UNRELATED":		BENE_Relation="|   |   |DPR|   |   |   |MED|CAR|    |EDC|EDA|	 |"; break;
-	case "SPOUSE":			BENE_Relation="|   |   |   |   |   |   |MED|CAR|    |EDC|EDA|	 |"; break;
-	case "CHILD_OF_SPOUSE":		BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
+	case "CHILD":			BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "ADOPTING":		BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "CHILD_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "FOSTER":			BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "FOSTER_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "SIBLING":			BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+//	case "HALF_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "NIECE_NEPHEW":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
+	case "STEP_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
+	case "PARENT":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
+	case "PARENT_ANC_SIB":		BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
+	case "IN_LAW":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
+	case "UNRELATED":		BENE_Relation="|   |   |DPR|   |   |   |OTC|MED|CAR|    |EDC|EDA|	 |"; break;
+	case "SPOUSE":			BENE_Relation="|   |   |   |   |   |   |   |MED|CAR|    |EDC|EDA|	 |"; break;
+	case "CHILD_OF_SPOUSE":		BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
 	}
 
 } // End of DetermineBenefits()
@@ -1418,7 +1435,7 @@ function ColorCells() {
 	CTC.style.backgroundColor = BenefitColor.CTC;
 
 	// Qualified child for Credit for other dependents ----------------------------------
-	OTC.innerHTML = OTC.value
+	OTC.innerHTML = OTC.value;
 	BenefitColor.OTC = (OTC.value == NO)? ColorNo:ColorYes;
 	if (OTC.value == "YES") {
 		BenefitColor.OTC = ColorWarn;
@@ -1457,8 +1474,8 @@ function ColorCells() {
 //		EdAdjustment.title += "- Tuition and fees adjustment expired beginning with tax year 2014\n";
 	}
 //	if (EdAdjustment.value == "YES") {
-//		EdAdjustment.title += "- Tuition and fees adjustment expired beginning with tax year 2014\n";
 //		BenefitColor.EdAdjustment = ColorWarn;
+//		EdAdjustment.title += "- Tuition and fees adjustment expired beginning with tax year 2014\n";
 //	}
 	EdAdjustment.style.backgroundColor = BenefitColor.EdAdjustment;
 
@@ -1471,15 +1488,21 @@ function ColorCells() {
 		BenefitColor.EdCredit = ColorWarn;
 		EdCredit.title += "- Only if the spouse does not use the exemption\n";
 	}
-	if (EdCredit.value == "FELON") {
-		EdCredit.innerHTML = YES;
-		EdCredit.title += "- Not eligible for American Opportunity Credit due to drug felony\n";
-		BenefitColor.EdCredit = ColorWarn;
-	}
 	if (EdCredit.value == "YES") {
 		// place holder
 	}
 	EdCredit.style.backgroundColor = BenefitColor.EdCredit;
+
+	// Qualified dependent for American Opportunity Credit ----------------------------------
+	AOCCredit.innerHTML = AOCCredit.value;
+	BenefitColor.AOCCredit = (AOCCredit.value == NO)? ColorNo:ColorYes;
+	if (AOCCredit.value != "NO") ShowCaution = true;
+	if (AOCCredit.value == "SPOUSE_MAY_USE") {
+		AOCCredit.innerHTML = YES;
+		BenefitColor.AOCCredit = ColorWarn;
+		AOCCredit.title += "- Only if the spouse does not use the exemption\n";
+	}
+	AOCCredit.style.backgroundColor = BenefitColor.AOCCredit;
 
 	// Grey text on all disabled boxes
 	var d="<table border='1'>";
@@ -1973,8 +1996,12 @@ function TestResults() {
 				<td id="EdAdjustment" style="text-align:center;" onclick="ShowReason(this.id,BEDA.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BEDC">Education Credit</td>
+				<td id="BEDC">Lifetime Learning Credit</td>
 				<td id="EdCredit" style="text-align:center;" onclick="ShowReason('EdCredit',BEDC.innerHTML,this.title)">YES</td>
+				</tr>
+			<tr>
+				<td id="BAOC">American Opportunity Credit</td>
+				<td id="AOCCredit" style="text-align:center;" onclick="ShowReason('AOCCredit',BAOC.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr><td> </td><td class=RESHide>YES</td> <!-- Forces space for YES even when all are NO -->
 				</tr>
