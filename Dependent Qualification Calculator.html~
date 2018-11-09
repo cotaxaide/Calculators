@@ -56,12 +56,15 @@
 //	Ted Fox
 //	Gregory Gendron
 //	Jon Naiman
+//	Sue Stavio
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.12 11/6/2018";
+var VERSION = "6.13 11/8/2018";
+//	Dependent ITIN box doesn't clear if dependent changed to US or CAN/MEX status
+//var VERSION = "6.12 11/6/2018";
 //	Added ITIN tests for TP, SP and dependent
 //var VERSION = "6.11 10/23/2018";
 //	Added space for names
@@ -417,13 +420,13 @@ function PreCalc(Source) {
 		 if (DEP_Relation == "SPOUSE") {
 			switch (Source) {
 			case 1: // SP Citizenship clicked
-				 for (j=0; j < CitizenList.length;j++) {
+				for (j=0; j < CitizenList.length;j++) {
 					if (CitizenList[j].value == SPCitizenship.value)  CitizenList[j].checked = true;
-				 }
-				 break;
+				}
+				break;
 			case 2: // DEP Citizenship clicked
-				 SPCitizenship.value = event.currentTarget.id.substr(7); // DEP citizenship changed
-				 break;
+				SPCitizenship.value = event.currentTarget.id.substr(7); // DEP citizenship changed
+				break;
 			}
 		 }
 	}
@@ -576,7 +579,9 @@ function CalcStatus() {
 		 else GreenCard.checked = false;
 		 ShowResBox("ShowButton");
 	}
-	else ShowResBox("Clear"); // Not alien status
+	else {
+		ShowResBox("Clear"); // Not alien status
+	}
 
 	CheckMultiUseBoxes(); // Update settings based on inputs
 	ShowQCA();
@@ -791,7 +796,9 @@ function CalcStatus() {
 	// ==============================================================
 	
 	CTC.value = YES; // assume yes until a condition is violated
+	OTC.value = YES; // assume yes until a condition is violated
 	CTC.title = "";
+	OTC.title = "";
 
 		if (BENE_Relation.indexOf("|CTC|") == NOT_A_BENEFIT) SetMessage(CTC,"- Failed relationship test");
 		if (DEP_RealAge > 16) SetMessage(CTC,"- Failed age test");
@@ -799,10 +806,22 @@ function CalcStatus() {
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
 			SetMessage(CTC,"- Dependent failed citizenship test");
 		if (TPSPITIN.checked) SetMessage(CTC,"- TP or SP has an ITIN. Both must have an SSN"); // add V6.12
-		if (DependentITIN.checked) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
 		if (TPisQC.checked) SetMessage(CTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(CTC,"- TP or SP cannot be a qualified relative");
 		if (QualChild.value == NO) SetMessage(CTC,"- Not a qualified child");
+		// still OK for OTC even if ITIN // add V6.13
+		if (! DependentITIN.checked) {
+			OTC.value = CTC.value; // add V6.13
+		}
+		else {
+			SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
+		}
+		if (QualRelative == YES) {
+			OTC.value = YES; // add V6.13
+		}
+		else {
+			if (CTC.value == YES) SetMessage(OTC,"- Dependent is eligible for Child Tax Credit instead"); // add V6.13
+		}
 
 	// ==============================================================
 		
@@ -1209,6 +1228,7 @@ function ShowResBox(OPTION) {
 		ResBox.style.visibility = "hidden";
 		ResButton.style.visibility = "hidden";
 		DepITIN.style.visibility = "hidden";
+		DependentITIN.checked = false;
 		ResBoxActive = false;
 	case "Reset": // "Clear this window" button on Res window clicked
 		GreenCard.checked = false;
@@ -1398,22 +1418,11 @@ function ColorCells() {
 	CTC.style.backgroundColor = BenefitColor.CTC;
 
 	// Qualified child for Credit for other dependents ----------------------------------
-	OTC.innerHTML = "NO";
-	BenefitColor.OTC = ColorNo;
-	OTC.title = "- Dependent is eligible for Child Tax Credit instead"
-	if (CTC.value == "NO") {
-		if (! ((QualChild.value == "NO") && (QualRelative.value == "NO"))) {
-			OTC.innerHTML = "YES";
-			BenefitColor.OTC = ColorWarn;
-			OTC.title = "- Only in tax year 2018 or later and claimed as a dependent"
-		}
-		else {
-			OTC.title = "- Not a dependent"
-		}
-		if (DependentITIN.checked) {
-			OTC.innerHTML = "NO";
-			OTC.title = "- Dependent must have an SSN, not an ITIN";
-		}
+	OTC.innerHTML = OTC.value
+	BenefitColor.OTC = (OTC.value == NO)? ColorNo:ColorYes;
+	if (OTC.value == "YES") {
+		BenefitColor.OTC = ColorWarn;
+		OTC.title = "- Only in tax year 2018 or later and claimed as a dependent"
 	}
 	OTC.style.backgroundColor = BenefitColor.OTC;
 
