@@ -273,7 +273,9 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.17, 11/01/2018)";
+		var VERSION = "(version 10.17a, 11/11/2019)";
+		//	Minor disability comment prior to retirement age clarification
+		//var VERSION = "(version 10.17, 11/01/2018)";
 		//	Added variables for Salary and Pension 1040 line numbers
 		//var VERSION = "(version 10.16, 6/14/2018)";
 		//	Corrected PSO medical exemption figures (they were reversed)
@@ -1931,20 +1933,18 @@
 		// This function calculates the values for fields 4-7 in the Exclusion Worksheet
 		//----------------------------------------------------------------------------------------
 			if (New_TAX_YR < ANN_YR) {
-				message = "Annuity exclusion doesn't start until " + ANN_YR + ".";
+				message = "Annuity exclusion doesn't start until " + ANN_YR ;
+				message += " so there is no contribution exclusion.";
 				if (Disability.checked) {
 					message += "\n\nBe sure to check the \"Form 1040 line ";
 					message += _LineNo[EXCL_TY.value + ":Salary"] + "\" box.";
 				}
-				else {
-					message += " It is fully taxable.";
-				}
 				if (PSOMEDIC.value > 3000) {
-					message += "\n\nInclude $3,000 as the PSO exclusion";
+					message += "\n\nEnter $3,000 as the PSO exclusion";
 					message += " and the remainder as a medical deduction.";
 				}
 				else if (PSOMEDIC.value > 0) {
-					message += "\n\nInclude $" + PSOMEDIC.value;
+					message += "\n\nEnter $" + PSOMEDIC.value;
 					message += " as the PSO exclusion.";
 				}
 				alert(message);
