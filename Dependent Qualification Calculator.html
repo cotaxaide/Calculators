@@ -24,7 +24,7 @@
 	.DEPOptions {background-color:#FFEEEE; vertical-align:top; border:1px solid; padding:0; margin:0;}
 	.MSRButton {background-color:#FFBBBB; font-size:80%; padding:0; margin:0;}
 	.RESHeader {background-color:#00BB00; font-weight:bold; vertical-align:middle; border:1px solid; padding:0; margin:0;}
-	.RESOptions {background-color:#CCFFCC; vertical-align:top; border:1px solid; padding:0; margin:0;}
+	.RESOptions {background-color:#CCFFCC; vertical-align:top; border:1px solid; padding:5px; margin:0;}
 	.RESHide {color:#CCFFCC;}
 	#MBQ {
 		border: 1px solid black;
@@ -62,7 +62,14 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.14 11/9/2018";
+var VERSION = "6.17 11/11/2018";
+//	Remove TP/SP ITIN test from OTC qualification test
+//var VERSION = "6.16 11/9/2018";
+//	Allow CAN/MEX to have ITIN
+//	Remove ITIN test from CTC qualification test - left from earlier 6.12 change
+//var VERSION = "6.15 11/9/2018";
+//	Removed erroneous residency test from Credit for other dependents
+//var VERSION = "6.14 11/9/2018";
 //	Re-structured Credit for other dependents test
 //	Added AOC as a seperate result
 //var VERSION = "6.13 11/8/2018";
@@ -289,7 +296,7 @@ YesMsg["Medical"] += "<li>Medical deduction considerations may reduce or exclude
 YesMsg["CTC"] = "<li>Income amount may reduce or exclude the benefit</li>";
 YesMsg["OTC"] = "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
 YesMsg["OTC"] += "<li>Income amount may reduce or exclude the benefit</li>";
-YesMsg["EITC"] = "<li>Both TP and SP must have valid SSNs and must have been a US Citizen or Resident Alien for the full year</li>";
+YesMsg["EITC"] = "<li>Both TP and SP must have valid SSNs and must have been a US Citizen, National or Resident Alien for the full year</li>";
 YesMsg["EITC"] += "<li>Taxpayer must have earned income, cannot be from penal institutions</li>";
 YesMsg["EITC"] += "<li>Income amount and investment income amount may reduce or exclude the benefit</li>";
 YesMsg["EITC"] += "<li>Cannot claim foreign earned income exclusion</li>";
@@ -570,11 +577,13 @@ function CalcStatus() {
 	// Get Taxpayer/Spouse citizenship
 	SP_Citizenship = SPCitizenship.value;
 	TP_Citizenship = TPCitizenship.value;
-	TPSPITIN.disabled = ! ((TP_Citizenship == "RES_ALIEN")
-		|| (TP_Citizenship == "NONRES_ALIEN")
-		|| (SP_Citizenship == "RES_ALIEN")
-		|| (SP_Citizenship == "NONRES_ALIEN"));
-	if (TPSPITIN.disabled) TPSPITIN.checked = false;
+	if ((TP_Citizenship == "USA") && (SP_Citizenship == "USA")) {
+		TPSPITIN.disabled = true;
+		TPSPITIN.checked = false;
+	}
+	else {
+		TPSPITIN.disabled = false;
+	}
 
 	// Dependent citizenship
 	for (j=0; j < CitizenList.length;j++) if (CitizenList[j].checked) DEP_Citizenship = CitizenList[j].value;
@@ -587,6 +596,8 @@ function CalcStatus() {
 	else {
 		ShowResBox("Clear"); // Not alien status
 	}
+	DepITIN.style.visibility = (DEP_Citizenship == "USA") ? "hidden" : "visible";
+	if (DepITIN.style.visibility == "hidden") DependentITIN.checked = false;
 
 	CheckMultiUseBoxes(); // Update settings based on inputs
 	ShowQCA();
@@ -808,7 +819,6 @@ function CalcStatus() {
 		if ((! TP_DivorceApplies) && (DEP_Residency < 7)) SetMessage(CTC,"- Failed residency test");
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
 			SetMessage(CTC,"- Dependent failed citizenship test");
-		if (TPSPITIN.checked) SetMessage(CTC,"- TP or SP has an ITIN. Both must have an SSN"); // add V6.12
 		if (TPisQC.checked) SetMessage(CTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(CTC,"- TP or SP cannot be a qualified relative");
 		if (QualChild.value == NO) SetMessage(CTC,"- Not a qualified child");
@@ -820,10 +830,8 @@ function CalcStatus() {
 	OTC.title = "";
 
 		if (BENE_Relation.indexOf("|OTC|") == NOT_A_BENEFIT) SetMessage(OTC,"- Failed relationship test");
-		if ((! TP_DivorceApplies) && (DEP_Residency < 7)) SetMessage(OTC,"- Failed residency test");
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
 			SetMessage(OTC,"- Dependent failed citizenship test");
-		if (TPSPITIN.checked) SetMessage(OTC,"- TP or SP has an ITIN. Both must have an SSN"); // add V6.12
 		if (TPisQC.checked) SetMessage(OTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(OTC,"- TP or SP cannot be a qualified relative");
 		if ((QualChild.value == NO) && (QualRelative.value == NO)) SetMessage(OTC,"- Not a qualified dependent");
@@ -839,7 +847,10 @@ function CalcStatus() {
 		if (DEP_Residency < 7) SetMessage(EITC,"- Failed residency test");
 		if ((TP_Citizenship == "NONRES_ALIEN") || (TP_Citizenship == "CAN_MEX")) SetMessage(EITC,"- TP failed citizenship test");
 		if ((SP_Citizenship == "NONRES_ALIEN") || (SP_Citizenship == "CAN_MEX")) SetMessage(EITC,"- SP failed citizenship test");
-		if (TPSPITIN.checked) SetMessage(EITC,"- TP or SP has an ITIN. Both must have an SSN"); // add V6.12
+		if (TPSPITIN.checked) {
+			if (TPisMarried.checked) SetMessage(EITC,"- Both TP and SP must have an SSN"); // add V6.12
+		 	else SetMessage(EITC,"- TP must have an SSN"); // add V6.12
+		}
 		if (DependentITIN.checked) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
 		if (TP_Filing == "MFS") SetMessage(EITC,"- TP failed joint return test");
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
@@ -1236,7 +1247,6 @@ function ShowResBox(OPTION) {
 	switch (OPTION) {
 	case "ShowButton": // Just show the button
 		ResButton.style.visibility = "visible";
-		DepITIN.style.visibility = "visible";
 		return;
 	case "Display": // "Residency Test" button clicked
 		ResBox.style.visibility = "visible";
@@ -1244,8 +1254,6 @@ function ShowResBox(OPTION) {
 	case "Clear": // Not an alien
 		ResBox.style.visibility = "hidden";
 		ResButton.style.visibility = "hidden";
-		DepITIN.style.visibility = "hidden";
-		DependentITIN.checked = false;
 		ResBoxActive = false;
 	case "Reset": // "Clear this window" button on Res window clicked
 		GreenCard.checked = false;
