@@ -21,6 +21,7 @@
                 _LineNo[_TY+":LLC"] = "50";
                 _LineNo[_TY+":Retire"] = "51";
                 _LineNo[_TY+":CTC"] = "52";
+                _LineNo[_TY+":COD"] = "";
                 _LineNo[_TY+":NRCredit"] = "55";
                 _LineNo[_TY+":IRP"] = "61";
                 _LineNo[_TY+":EIC"] = "66a";

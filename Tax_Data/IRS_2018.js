@@ -12,7 +12,7 @@
                 _LineNo[_TY+":SSI"] = "5a";	// Need update!
                 _LineNo[_TY+":SST"] = "5b";	// Need update!
                 _LineNo[_TY+":AGI"] = "7";	// Need update!
-                _LineNo[_TY+":TNF"] = "S1-34?";	// Need update!
+                _LineNo[_TY+":TNF"] = "";	// Need update! S1-34?
                 _LineNo[_TY+":Adjustments"] = "S1-36";	// Need update!
                 _LineNo[_TY+":ExcessAPTC"] = "S2-46";	// Need update!
                 _LineNo[_TY+":Foreign"] = "S3-48";	// Need update!
@@ -20,6 +20,7 @@
                 _LineNo[_TY+":LLC"] = "S3-50";	// Need update!
                 _LineNo[_TY+":Retire"] = "S3-51";	// Need update!
                 _LineNo[_TY+":CTC"] = "S3-52";	// Need update!
+                _LineNo[_TY+":COD"] = "S3-52";	// Need update!
                 _LineNo[_TY+":NRCredit"] = "S3-55";	// Need update!
                 _LineNo[_TY+":IRP"] = "S4-61";	// Need update!
                 _LineNo[_TY+":EIC"] = "17a";	// Need update!
@@ -90,18 +91,18 @@
 
 	// CGRates // UNVERIFIED - most web sites still use the _TaxRates above	// Need update
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";
-                //_CGRates[_TY+":SNG"] = "38600, 425800";
-                //_CGRates[_TY+":MFJ"] = "77200, 479000";
-                //_CGRates[_TY+":WID"] = "77200, 479000";
-                //_CGRates[_TY+":MFS"] = "38600, 239500";
-                //_CGRates[_TY+":HOH"] = "51700, 452400";
+                _CGRates[_TY+":SNG"] = "38600, 425800";
+                _CGRates[_TY+":MFJ"] = "77200, 479000";
+                _CGRates[_TY+":WID"] = "77200, 479000";
+                _CGRates[_TY+":MFS"] = "38600, 239500";
+                _CGRates[_TY+":HOH"] = "51700, 452400";
                 _CGRates[_TY+":TRUST"]=" 2600,  12700";
-		// We'll use the old scheme for the time being
-                _CGRates[_TY+":SNG"] = "38700, 500000";
-                _CGRates[_TY+":MFJ"] = "77400, 600000";
-                _CGRates[_TY+":WID"] = "77400, 600000";
-                _CGRates[_TY+":MFS"] = "38700, 500000";
-                _CGRates[_TY+":HOH"] = "51800, 500000";
+		// The old scheme would have been:
+                //_CGRates[_TY+":SNG"] = "38700, 500000";
+                //_CGRates[_TY+":MFJ"] = "77400, 600000";
+                //_CGRates[_TY+":WID"] = "77400, 600000";
+                //_CGRates[_TY+":MFS"] = "38700, 500000";
+                //_CGRates[_TY+":HOH"] = "51800, 500000";
 
 	// Self-employment tax rates
 		_SESocSec[_TY] = 0.124;

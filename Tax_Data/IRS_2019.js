@@ -6,7 +6,7 @@
         // var LineNo = [];
 		_LineNo[_TY+":Salary"] = "1";
 		_LineNo[_TY+":Pension"] = "4a";
-                _LineNo[_TY+":EArned"] = "1&S1-12";	// Need update!
+                _LineNo[_TY+":Earned"] = "1&S1-12";	// Need update!
                 _LineNo[_TY+":TaxExInc"] = "2b";	// Need update!
                 _LineNo[_TY+":CapGains"] = "S1-13";	// Need update!
                 _LineNo[_TY+":SSI"] = "5a";	// Need update!
@@ -20,6 +20,7 @@
                 _LineNo[_TY+":LLC"] = "S3-50";	// Need update!
                 _LineNo[_TY+":Retire"] = "S3-51";	// Need update!
                 _LineNo[_TY+":CTC"] = "S3-52";	// Need update!
+                _LineNo[_TY+":COD"] = "S3-52";	// Need update!
                 _LineNo[_TY+":NRCredit"] = "S3-55";	// Need update!
                 _LineNo[_TY+":IRP"] = "S4-61";	// Need update!
                 _LineNo[_TY+":EIC"] = "17a";	// Need update!
