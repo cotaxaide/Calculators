@@ -13,6 +13,8 @@
 	.BigTable {width:100%; border:2px solid black; margin:0; padding:0;}
 	.BigTableTitle {font-size:150%; text-align:center; margin:0;}
 	.NameTable {width:100%; font-size:125%; border: 2px solid black; margin:0; padding:0;}
+	.yearInput {width: 1%;}
+	.yearInput select {font-size: 120%;}
 	.nameTitle {width: 5%;}
 	.nameInput {width: 45%;}
 	.nameInput input{width: 99%; font-size: 120%;}
@@ -26,7 +28,8 @@
 	.RESHeader {background-color:#00BB00; font-weight:bold; vertical-align:middle; border:1px solid; padding:0; margin:0;}
 	.RESOptions {background-color:#CCFFCC; vertical-align:top; border:1px solid; padding:5px; margin:0;}
 	.RESHide {color:#CCFFCC;}
-	#MBQ {
+	#incomeLimit {padding-left: 2em; max-width: 10em;}
+	.MBQ {
 		border: 1px solid black;
 		padding-left: .3em;
 		padding-right: .3em;
@@ -62,7 +65,13 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.17 11/11/2018";
+var VERSION = "6.18 11/12/2018";
+//	Added tax years drop-down
+//	Added code to hide dependent benefits not available
+//	Changed list of low-income test to single entry for the selected year
+//	Expanded low-income for dependent as relative test comments
+//	Swapped Can/Mex and Resident Alien options and added citizenship info box
+//var VERSION = "6.17 11/11/2018";
 //	Remove TP/SP ITIN test from OTC qualification test
 //var VERSION = "6.16 11/9/2018";
 //	Allow CAN/MEX to have ITIN
@@ -266,6 +275,15 @@ var ColorNo = "hotpink";
 var ColorWarn = "yellow";
 var BenefitColor = {}; //local array to hold color values (querying browser gives unexpected results)
 
+// Low income test title
+var lititle = "Check if the dependent's gross income is less than the year's exemption amount.";
+lititle += "\n\nGross income means all income the person received in the form of money, goods, property and services,";
+lititle += " that isn't exempt from tax.";
+lititle += "\n\nDon't include social security benefits unless:";
+lititle += "\n   - the person is married filing a separate return and lived with their spouse at any time during the tax year or";
+lititle += "\n   - if 1/2 the social security benefits plus their other gross income and tax exempt interest";
+lititle += " is more than $25,000 ($32,000 if MFJ).";
+
 // Caution alert for other TP giving permission to this TP
 var PermissionAlert = "CAUTION\n";
 PermissionAlert += "\n- Test the other taxpayer's elegibility before setting this option. ";
@@ -353,19 +371,48 @@ MarriedMsg += "<li>Your are married and living apart, but not legally separated 
 MarriedMsg += " of divorce or separate maintenance.</li>";
 MarriedMsg += "<li>You are separated under an interlocutory (not final) decree of divorce.</li></ol>";
 
+// Alien box message
+var AlienMsg = "<b>US Cit/US Nat</b>:";
+AlienMsg += "<br />A <i>US Citizen</i> is one who was born in the US, Puerto Rico, Guam or the U.S. Virgin Islands";
+AlienMsg += " or born to a parent who is a US citizen,";
+AlienMsg += " or a former alien who has been naturalized.";
+AlienMsg += "<br />A <i>US National</i> is one who was born in the Federated States of Micronesia,";
+AlienMsg += " the Republic of Marshall Islands, or the Republic of Palau.";
+AlienMsg += "<br /><b>Resident alien</b>:";
+AlienMsg += "<br />A person who is not a US Citizen or US National";
+AlienMsg += " but meets the substantial presence test for residency in the US";
+AlienMsg += " or has a \"green card\".";
+AlienMsg += "<br /><b>Canada/Mexico</b>:";
+AlienMsg += "<br />A person who is a resident of Canada or Mexico";
+AlienMsg += " and does not meet the substantial presence test for residency in the US.";
+AlienMsg += "<br /><b>Non-Resident alien</b>:";
+AlienMsg += "<br />A person who is not a US Citizen or US National";
+AlienMsg += " nor a resident of Canada or Mexico";
+AlienMsg += " and does not meet the substantial presence test for residency in the US.";
+
 //***************************************************************************************************
 function Initialize() {
 // Sets up initial defaults when the window is loaded and when the Reset button is clicked
 //***************************************************************************************************
 
-	// list the standard deduction amounts for the last 4 years
-	var ilist = "";
-	for (var ty = _StopYear; ty >= _StartYear; ty--) {
-		var iamount = _Standard[ty].split(",")[_Standard["DepAsRel"]].replace(/(.)(?=(\d{3})+$)/g,'$1,')
-		ilist += "<br />&nbsp;&nbsp;&nbsp;&nbsp;$ " + iamount + " (" + ty + ")\n";
+	// Add the years
+	if (TaxYear.value == "") {
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			if (_LineNo[ty + ":CapGains"] != "") { // Prevent adding if no data
+				var tyopti = document.createElement("option");
+				tyopti.text = tyopti.value = ty;
+				TaxYear.add(tyopti,tyOptIndex++);
+			}
+		}
+		TaxYear.value = _DefaultYear;
+
+		// Had to do this to get formatting to work properly...
+		LowIncomeTitle.title = lititle;
 	}
+
+
 	TPName.value = DEPName.value = "";
-	incomeList.innerHTML = ilist;
 	TPCitizenship.value = "USA";
 	SPCitizenship.value = "USA";
 	TPisDependent = "";
@@ -404,6 +451,7 @@ function Initialize() {
 	CitizenList[0].click(); // USA
 	HelpMessage.innerHTML = HelpMsg; 
 	MarriedBoxContents.innerHTML = MarriedMsg;
+	AlienBoxContents.innerHTML = AlienMsg;
 	}
 
 //***************************************************************************************************
@@ -488,6 +536,22 @@ function CalcStatus() {
 	// An option change resulted in a subsequent option change
 
 	// Set default values before examining checked options
+
+	// list the standard deduction amounts for the selected year
+	var iamount = _Standard[TaxYear.value].split(",")[_Standard["DepAsRel"]].replace(/(.)(?=(\d{3})+$)/g,'$1,');
+	ilimit = "$ " + iamount + " (" + TaxYear.value + ")\n";
+	if (DependentMarriedYes.checked && (! DepFilingMFJ.checked)) {
+		imessage = "including Social Security if filing MFS and lived with spouse any time during the year.";
+	}
+	else {
+		imessage = "excluding Social Security (usually <span class='MBQ'>?</span>).";
+	}
+	incomeLimit.innerHTML = ilimit + "<br />" + imessage;
+
+	// Hide benefits not available
+	TNFRow.style.display = (_LineNo[TaxYear.value + ":TNF"]) ? "table-row" : "none";
+	CODRow.style.display = (_LineNo[TaxYear.value + ":COD"]) ? "table-row" : "none";
+
 	DEP_ChildQualified = true;
 	DEP_ChildQualForCare = true;
 	DEP_ChildQualForHOH = true;
@@ -954,15 +1018,6 @@ function CheckMultiUseBoxes() {
 	DependentMarriedYes.disabled = (MAP_DependentMarried >= DepFilingMFJval);
 	DependentMarriedNo.disabled = DependentMarriedYes.disabled;
 
-//	//-------------------------Residency 50% option--------------------------------
-//	// Originally used for Qual Child of Another testing. Test moved to QCA section
-//	Residency6.disabled = (TP_DivorceApplies) ? false:true;
-//	if (Residency6.checked && ((! LivedWith.checked) || Residency6.disabled)) {
-//		Residency5.checked = true;
-//		DEP_Residency = +Residency6.value;
-//		Residency6.disabled = true;
-//	}
-
 } // End of CheckMultiUseBoxes()
 
 //***************************************************************************************************
@@ -1011,15 +1066,15 @@ function DetermineBenefits() {
 	case "SIBLING":			BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 //	case "HALF_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "NIECE_NEPHEW":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
+	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
 	case "STEP_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
+	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
 	case "PARENT":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
 	case "PARENT_ANC_SIB":		BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
 	case "IN_LAW":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
-	case "UNRELATED":		BENE_Relation="|   |   |DPR|   |   |   |OTC|MED|CAR|    |EDC|EDA|	 |"; break;
-	case "SPOUSE":			BENE_Relation="|   |   |   |   |   |   |   |MED|CAR|    |EDC|EDA|	 |"; break;
-	case "CHILD_OF_SPOUSE":		BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|	 |"; break;
+	case "UNRELATED":		BENE_Relation="|   |   |DPR|   |   |   |OTC|MED|CAR|    |EDC|EDA|    |"; break;
+	case "SPOUSE":			BENE_Relation="|   |   |   |   |   |   |   |MED|CAR|    |EDC|EDA|    |"; break;
+	case "CHILD_OF_SPOUSE":		BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
 	}
 
 } // End of DetermineBenefits()
@@ -1260,16 +1315,16 @@ function ShowResBox(OPTION) {
 		ResYear0.value = "";
 		ResYear1.value = "";
 		ResYear2.value = "";
-		CitizenList[2].disabled = false;
-		CitizenList[3].disabled = false;
+		//CitizenList[1].disabled = false;
+		//CitizenList[3].disabled = false;
 		break;
 	case "Close": // "Close this window" button on Res window clicked
 		ResBox.style.visibility = "hidden";
 		return;
 	case "Calc": // Recalculate due to a changed option
 		ResBoxActive = true;
-		CitizenList[2].disabled = true;
-		CitizenList[3].disabled = true;
+		//CitizenList[1].disabled = true;
+		//CitizenList[3].disabled = true;
 		break;
 	}
 
@@ -1292,7 +1347,7 @@ function ShowResBox(OPTION) {
 	// Manage the main window RA/NRA options
 	if (GreenCard.checked || ((RY0 >= 31) && (ThreeYearTotal >= 183))) {
 		DEP_Citizenship = "RES_ALIEN";
-		CitizenList[2].checked = true;
+		CitizenList[1].checked = true;
 	}
 	else {
 		DEP_Citizenship = "NONRES_ALIEN";
@@ -1445,10 +1500,6 @@ function ColorCells() {
 	// Qualified child for Credit for other dependents ----------------------------------
 	OTC.innerHTML = OTC.value;
 	BenefitColor.OTC = (OTC.value == NO)? ColorNo:ColorYes;
-	if (OTC.value == "YES") {
-		BenefitColor.OTC = ColorWarn;
-		OTC.title = "- Only in tax year 2018 or later and claimed as a dependent"
-	}
 	OTC.style.backgroundColor = BenefitColor.OTC;
 
 	// Qualified dependent for Earned Income Tax Credit ----------------------------------
@@ -1661,9 +1712,11 @@ function TestResults() {
 	TestOut += "<td>" + DependCare.value + "</td>";
 	TestOut += "<td>" + Medical.value + "</td>";
 	TestOut += "<td>" + CTC.value + "</td>";
+	TestOut += "<td>" + OTC.value + "</td>";
 	TestOut += "<td>" + EITC.value + "</td>";
 	TestOut += "<td>" + EdAdjustment.value + "</td>";
 	TestOut += "<td>" + EdCredit.value + "</td>";
+	TestOut += "<td>" + AOCCredit.value + "</td>";
 	TestOut += "</tr>";
 	return(TestOut);
 
@@ -1685,10 +1738,12 @@ function TestResults() {
   </tr></table>
 
   <table class="NameTable"><tr>
-		  <td class="TPHeader" class="nameTitle"><span class="Label">TP/SP&nbsp;Name:</span></td>
-		  <td class="nameInput"><input id="TPName" /></td>
-		  <td class="DEPHeader" class="nameTitle"><span class="Label">Dependent&nbsp;Name:</span></td>
-		  <td class="nameInput"><input id="DEPName" /></td>
+		<td class="RESHeader nameTitle">TaxYear:</td>
+		<td class="yearInput"><select id="TaxYear" onchange="CalcStatus();"></select></td>
+		<td class="TPHeader nameTitle"><span class="Label">TP/SP&nbsp;Name:</span></td>
+		<td class="nameInput"><input id="TPName" /></td>
+		<td class="DEPHeader nameTitle"><span class="Label">Dependent&nbsp;Name:</span></td>
+		<td class="nameInput"><input id="DEPName" /></td>
 </tr></table>
   
   <table class="BigTable">
@@ -1708,16 +1763,16 @@ function TestResults() {
 					style="margin:0"
 					title="Select the taxpayer citizenship status">
 					<option value="USA">US Cit/US Nat'l</option>
-					<option value="CAN_MEX">Canada/Mexico</option>
 					<option value="RES_ALIEN">Resident Alien</option>
+					<option value="CAN_MEX">Canada/Mexico</option>
 					<option value="NONRES_ALIEN">Non-Res Alien</option>
 					</select>
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="SPCitizenshipLabel">SP citizen:</span><select id="SPCitizenship" name="SPCitizenship" onclick="PreCalc(1)"
 					style="margin:0"
 					title="Select the spouse citizenship status. If TP is a US Cit or Res Alien, a non-resident alien spouse can be treated as a resident alien.">
 					<option value="USA">US Cit/US Nat'l</option>
-					<option value="CAN_MEX">Canada/Mexico</option>
 					<option value="RES_ALIEN">Resident Alien</option>
+					<option value="CAN_MEX">Canada/Mexico</option>
 					<option value="NONRES_ALIEN">Non-Res Alien</option>
 					<option value="N/A">N/A</option>
 					</select>
@@ -1739,7 +1794,7 @@ function TestResults() {
 				<input id="TPisMarried" name="TPisMarried" type="checkbox" onclick="CalcStatus()" value="Single"
 				title="The taxpayer is married" checked="checked" />
 				<span class="Label">TP is married</span>
-				<span id="MBQ"
+				<span class="MBQ"
 					onmouseover="MarriedBox.style.display='inline-block';"
 					onmouseout="MarriedBox.style.display='none';">?</span>
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPfilingMFJ" name="TPfilingMFJ" type="checkbox" onclick="CalcStatus()" value="MFJ"
@@ -1896,17 +1951,20 @@ function TestResults() {
 				<span class="Label">12 months</span>
 				<br />&nbsp;
 				</td></tr>
-			<tr class="DEPHeader"><td style="padding:5% 0 5% 0; border:1px solid">Citizenship</td></tr>
+			<tr class="DEPHeader"><td style="padding:5% 0 5% 0; border:1px solid">Citizenship
+				<span class="MBQ"
+					onmouseover="AlienBox.style.display='inline-block';"
+					onmouseout="AlienBox.style.display='none';">?</span></td></tr>
 			<tr><td>
 				<input id="CitizenUSA" name="Citizenship" type="radio" onclick="PreCalc(2)" value="USA" checked="checked"
 				title="Dependent is a US Citizen or a US National" />
 				<span class="Label">US Cit/US Nat'l</span>
-				<br /><input id="CitizenCAN_MEX" name="Citizenship" type="radio" onclick="PreCalc(2)" value="CAN_MEX"
-				title="Dependent is a citizen of Canada or Mexico" />
-				<span class="Label">Canada/Mexico</span>
 				<br /><input id="CitizenRES_ALIEN" name="Citizenship" type="radio" onclick="PreCalc(2)" value="RES_ALIEN"
 				title="Dependent is a resident alien" />
 				<span class="Label">Resident alien</span>
+				<br /><input id="CitizenCAN_MEX" name="Citizenship" type="radio" onclick="PreCalc(2)" value="CAN_MEX"
+				title="Dependent is a citizen of Canada or Mexico" />
+				<span class="Label">Canada/Mexico</span>
 				<br /><input id="CitizenNONRES_ALIEN" name="Citizenship" type="radio" onclick="PreCalc(2)" value="NONRES_ALIEN"
 				title="Dependent is a non-resident alien" />
 				<span class="Label">Non-Res alien</span>
@@ -1952,11 +2010,10 @@ function TestResults() {
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;<input id="DepRefund" name="DepRefund" type="checkbox" onclick="CalcStatus()"
 				title="The dependent is filing a tax return only to claim a refund for withholding or estimated tax payments and no tax is due for either if filed separately" />
 				<span class="Label">&mdash;only for refund</span>
-				<br /><input id="LowIncome" name="LowIncome" type="checkbox" onclick="CalcStatus()"  checked="checked"
-				title="The dependent's gross income is less than the year's exemption amount. Do not include amounts not taxed." />
-				<span class="Label">
-				Income less than:
-		<span id="incomeList"></span>
+				<br /><span id="LowIncomeTitle">
+					<input id="LowIncome" name="LowIncome" type="checkbox" onclick="CalcStatus()"  checked="checked" />
+					<span class="Label">Income less than:</span>
+					<br /><div id="incomeLimit"></div>
 				</span>
 			</td></tr>
 		</table>
@@ -1991,21 +2048,21 @@ function TestResults() {
 				<td id="BCTC">Child Tax Credit</td>
 				<td id="CTC" style="text-align:center;" onclick="ShowReason(this.id,BCTC.innerHTML,this.title)">YES</td>
 				</tr>
-			<tr>
-				<td id="BOTC">Credit for other dependents</td>
-				<td id="OTC" style="text-align:center;" onclick="ShowReason(this.id,BOTC.innerHTML,this.title)">YES</td>
+			<tr id="CODRow">
+				<td id="BCOD">Credit for other dependents</td>
+				<td id="OTC" style="text-align:center;" onclick="ShowReason(this.id,BCOD.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
 				<td id="BEIC">Earned Income Tax Credit</td>
 				<td id="EITC" style="text-align:center;" onclick="ShowReason(this.id,BEIC.innerHTML,this.title)">YES</td>
 				</tr>
-			<tr>
-				<td id="BEDA">Tuition and Fees Adjustment</td>
-				<td id="EdAdjustment" style="text-align:center;" onclick="ShowReason(this.id,BEDA.innerHTML,this.title)">YES</td>
+			<tr id="TNFRow">
+				<td id="BTNF">Tuition and Fees Adjustment</td>
+				<td id="EdAdjustment" style="text-align:center;" onclick="ShowReason(this.id,BTNF.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BEDC">Lifetime Learning Credit</td>
-				<td id="EdCredit" style="text-align:center;" onclick="ShowReason('EdCredit',BEDC.innerHTML,this.title)">YES</td>
+				<td id="BLLC">Lifetime Learning Credit</td>
+				<td id="EdCredit" style="text-align:center;" onclick="ShowReason('EdCredit',BLLC.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
 				<td id="BAOC">American Opportunity Credit</td>
@@ -2130,7 +2187,7 @@ function TestResults() {
 		<td colspan="2">
 		<input id="GreenCard" name="GreenCard" type="checkbox" onclick="ShowResBox('Calc')"
 		title="A lawful permanent resident of the USA at any time during the tax year.  If the taxpayer is a nonresident alien, or has dual status (part of first or last year of residency), it is out of scope." />
-		<span class="Label">Dependant has a valid SSN, and has a "green card"</span>
+		<span class="Label">Check if dependant has a "green card"</span>
 		<hr /><input id="ResYear0" name="ResYear0" type="text" size="3" onchange="ShowResBox('Calc')"
 		title="Number of days physically present, not a commuter, and not exempt" />
 		<span class="Label">Number of days resident in this tax year</span>
@@ -2166,6 +2223,15 @@ function TestResults() {
 	</table>
   </div> <!-- end of MarriedBox -->
 
+  <div id="AlienBox" style="display:none; position:absolute; left:6em; top:8em; width:40%; z-index:1; font-size:100%; background-color:white;">
+	<table style="border:5px solid; width:100%">
+		<tr class="centerbold">
+			<td class="RESHeader" style="width:100%">Residency/Citizenship</td>
+			<td class="RESHeader" style="cursor:default;" onclick="AlienBox.style.display='none';">&nbsp;X&nbsp;</td></tr>
+		<tr><td class="RESOptions" colspan="2"> <div id="AlienBoxContents"> </div> </td></tr>
+	</table>
+  </div> <!-- end of AlienBox -->
+
   <div id="debugbox"></div>
 
   <script type="text/javascript">Resize()</script>
@@ -2174,3 +2240,4 @@ function TestResults() {
 
 </body>
 </html>
+
