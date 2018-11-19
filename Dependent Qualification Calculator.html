@@ -60,6 +60,7 @@
 //	Gregory Gendron
 //	Jon Naiman
 //	Sue Stavio
+//	Patricia Palanker
 //***************************************************************************************************
 
 //***************************************************************************************************
@@ -886,7 +887,7 @@ function CalcStatus() {
 		if (TPisQC.checked) SetMessage(CTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(CTC,"- TP or SP cannot be a qualified relative");
 		if (QualChild.value == NO) SetMessage(CTC,"- Not a qualified child");
-		if (DependentITIN.checked) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
+		if ((TaxYear.value > 2017) && (DependentITIN.checked)) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
 
 	// ==============================================================
 	
