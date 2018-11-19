@@ -21,9 +21,11 @@
 	.comment {font-style:italic;}
 	.calculated {text-align: right;}
 	.tablebreak {background-color: black; height: 0;}
+	.indent {padding-left: 1.5em;}
 	#Warning {color: red; font-weight: bold;}
 	#TPName {width:20em; text-align:left;}
 	#CGOption {display: none;}
+	#QBIOOS {display: none; font-weight: bold; color: red; float: right;}
 	//#CTCredit, #ACTCredit, #EICCredit, #Medical {cursor: not-allowed;}
 	#ClearAndPrint {width: 16em; 
 		text-align:center; 
@@ -81,7 +83,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.16, 8/9/2018)";
+	var VERSION = "(Version 2.17, 11/16/2018)";
+	//	Added QBI lines
+	//	Added validity checks for dividend subcategories
+	//var VERSION = "(Version 2.16, 8/9/2018)";
 	//	Added option for Sched D not being used
 	//var VERSION = "(Version 2.15, 8/8/2018)";
 	//	SE tax deduction not included in EIC calculation
@@ -200,14 +205,6 @@
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
 		if (FilingStatus.value != "MFS") ItemizeRequired.checked = false;
 		
-		// Tax law changes in 2018
-		Note2018d.style.display =
-		Note2018a.style.display = (TaxYear.value > 2017) ? "table-row" : "none";
-		Note2018c.style.display =
-		Note2018t.style.display =
-		Note2018b.style.display = (TaxYear.value > 2017) ? "inline" : "none";
-		Warning.innerHTML = (TaxYear.value > 2017) ? "Results of this worksheet are preliminary pending further guidance from IRS" : "";
-		
 		// Expand the income section
 		if ((! IncomeExpanded) && (! IncomeWasExpanded)) Wages.value = Gross.value;
 		IncomeExpanded = IncomeExpand.checked || (EICDependents.value > 0);
@@ -216,6 +213,10 @@
 		for (ilno = 0; ilno < incomelist.length; ilno++) {
 			incomelist[ilno].style.display = (IncomeExpanded) ? "table-row" : "none";
 		}
+
+		// Check input values
+		QualDividends.style.backgroundColor = (+QualDividends.value > +Dividends.value) ? "hotpink" : "white";
+		QBIDividends.style.backgroundColor = (+QBIDividends.value > +Dividends.value) ? "hotpink" : "white";
 
 		// Get the taxable Social Security amount
 		IncomeNoSS = +Wages.value + +Interest.value + +Dividends.value
@@ -243,7 +244,7 @@
 		Standard.innerHTML = _StandardDeduction(TaxYear.value, FilingStatus.value,
 			TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, false, 0);
 
-		// Limit taxes paid if 2018
+		// Limit taxes paid if 2018+
 		taxlimit = (FilingStatus.value == "MFS") ? 5000 : 10000;
 		if (TaxYear.value > 2017) {
 			if (TaxesPaid.value > taxlimit) {
@@ -318,7 +319,25 @@
 		var elist = document.getElementsByClassName("exemptions");
 		for (elistno = 0; elistno < elist.length; elistno++)
 			elist[elistno].style.display = (exemptamt) ? "table-row" : "none";
-		TaxableAmount.innerHTML = Math.round(Math.max(0, +PreExemptAmount.innerHTML - +ExemptAmount.innerHTML));
+		var PostExemptAmount = Math.round(Math.max(0, +PreExemptAmount.innerHTML - +ExemptAmount.innerHTML));
+
+		// QBI Calc
+		var QBIDeduction = 0;
+		if (_LineNo[TaxYear.value + ":QBI"]) {
+			QBILine.style.display = "table-line";
+			var QBIDeduction = _QBICalc(TaxYear.value, FilingStatus.value, SEIncome.value,
+				(+QualDividends.value + +CapGains.value),
+				QBIDividends.value, Gross.value);
+			QBIOOS.style.display = (QBIDeduction == -1) ? "inline" : "none";
+			QBIAmount.innerHTML = QBIDeduction = Math.max(0, +QBIDeduction);
+		}
+		else {
+			QBILine.style.display = "none";
+		}
+
+		// Determine taxable amount
+		TaxableAmount.innerHTML = Math.max(0, PostExemptAmount - QBIDeduction);
+
 
 		// Determine Tax
 		if (UsingD.checked) {
@@ -527,15 +546,19 @@
 			<td>Taxable interest</td><td></td>
 			<td><input id="Interest" type="number" /></td></tr>
 		<tr class="income"><td>  </td>
-			<td>&nbsp;&nbsp;&nbsp;Tax-exempt interest expected</td>
+			<td class="indent">Tax-exempt interest expected</td>
 			<td><input id="TaxExempt" type="number" />
 			</td><td></td><td></td></tr>
 		<tr class="income"><td></td>
 			<td>Ordinary dividends</td><td></td>
 			<td><input id="Dividends" type="number" /></td></tr>
 		<tr class="income"><td></td>
-			<td>&nbsp;&nbsp;&nbsp;Qualified dividends</td>
+			<td class="indent">Qualified dividends</td>
 			<td><input id="QualDividends" type="number" /></td>
+			<td></td><td></td></tr>
+		<tr class="income"><td></td>
+			<td class="indent">Section 199A dividends</td>
+			<td><input id="QBIDividends" type="number" /></td>
 			<td></td><td></td></tr>
 		<tr class="income"><td></td>
 			<td>Self-employment income</td><td></td>
@@ -592,8 +615,7 @@
 				(Actual expenses = <input id="ActualMedical" type="number" />)</td>
 			<td id="Medical"><!--input id="Medical" type="number" /--></td></tr>
 		<tr class="deductions"><td></td>
-			<td>State income tax or sales tax, and property taxes
-				<span id="Note2018t">($10,000 maximum, $5,000 if MFS)</span></td>
+			<td>State income tax or sales tax, and property taxes</td>
 			<td><input id="TaxesPaid" type="number" /></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Interest paid</td>
@@ -616,14 +638,8 @@
 			<td>Total itemized deductions
 				<span id="ItemizeRequiredQuestion">
 				(<input type="checkbox" id="ItemizeRequired" />Required to itemize.)
-			</span>
-			<span id="Note2018a">
-				<br /><b>NOTE: </b>Deduction changes beginning in 2018:
-				<ul>
-					<li>State and Local Taxes is capped at $10,000 ($5,000 if MFS)</li>
-					<li>Job expenses and other 2% deductions no longer available</li>
-				</ul>
-				</span></td>
+				</span>
+			</td>
 			<td></td>
 			<td style="vertical-align: top;"><input id="Itemized" type="number" /></td></tr>
 		<tr class="exemptions"><td></td>
@@ -633,6 +649,11 @@
 		<tr class="exemptions"><td></td>
 			<td colspan="2">Exemptions times <span id="ExemptRate">TBD</span></td>
 			<td class="calculated"><span id="ExemptAmount">0</span></td></tr>
+		<tr id="QBILine"><td></td>
+			<td colspan="2">Qualified Business Income deduction
+				<span id="QBIOOS"> OUT OF SCOPE </span>
+				</td><td></td>
+			<td class="calculated"><span id="QBIAmount">0</span></td></tr>
 		<tr><td colspan="5">Taxable income:</td></tr>
 		<tr><td></td>
 			<td colspan="2">Taxable income</td><td></td>
@@ -683,10 +704,7 @@
 			<td class="calculated"><span id="Line10">0</span></td></tr>
 		<tr><td colspan="5">Other Taxes:</td>
 		<tr><td>  </td>
-			<td colspan="2">Self-employment tax
-				<span id="Note2018d">
-					<b>NOTE: </b>Effect of pass-through reduction for self-employed income in 2018 is unknown.
-				</span></td>
+			<td colspan="2">Self-employment tax</td>
 			<td class="calculated"><span id="SETax">0</span></td></tr>
 		<tr><td></td>
 			<td colspan="2">Other taxes</td>
@@ -696,8 +714,7 @@
 			<td class="calculated"><span id="TotalTax">0</span></td></tr>
 		<tr><td colspan="5">Refundable Credits:</td>
 		<tr><td>  </td>
-			<td>Additional Child Tax Credit
-				<span id="Note2018c">(<b>NOTE: </b>ACTC capped at $1400/child in 2018)</span></td>
+			<td>Additional Child Tax Credit</td>
 			<td id="ACTCredit"><!--input id="ACTCredit" type="number" /--></td></tr>
 		<tr><td></td>
 			<td>Earned income tax credit</td>
@@ -724,10 +741,10 @@
 		<tr><td></td>
 			<td><b>Choose which to use...</b></td></tr>
 		<tr><td style="vertical-align: top;"></td>
-			<td colspan="2">
-				&nbsp;&nbsp;&nbsp;<input id="UseSmall" type="radio" name="UseTax" checked="checked" /> Smaller of above or ...
-				<br />&nbsp;&nbsp;&nbsp;<input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% last year&apos;s amount from the line above.
-				<br />&nbsp;&nbsp;&nbsp;<input id="UseTYTax" type="radio" name="UseTax" /> Use 100% of the <span id="TaxYear3"></span> estimated total tax.</td>
+			<td colspan="2" class="indent">
+				<input id="UseSmall" type="radio" name="UseTax" checked="checked" /> Smaller of above or ...
+				<br /><input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% last year&apos;s amount from the line above.
+				<br /><input id="UseTYTax" type="radio" name="UseTax" /> Use 100% of the <span id="TaxYear3"></span> estimated total tax.</td>
 			<td class="calculated" style="vertical-align: bottom;"><span id="EstAmount">0</span></td></tr>
 		<tr><td></td>
 			<td colspan="2">Income tax withheld and estimated to be withheld</td>

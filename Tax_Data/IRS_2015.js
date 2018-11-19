@@ -14,6 +14,7 @@
                 _LineNo[_TY+":TNF"] = "34";
                 _LineNo[_TY+":Adjustments"] = "36";
                 _LineNo[_TY+":CapGains"] = "13";
+                _LineNo[_TY+":QBI"] = "";
                 _LineNo[_TY+":AGI"] = "37";
                 _LineNo[_TY+":ExcessAPTC"] = "46";
                 _LineNo[_TY+":Foreign"] = "48";
@@ -170,3 +171,11 @@
 
 	// var AffordRateEmployerSelf = [];
 		_AffordRateEmployerSelf[_TY] = 0.0956;
+
+	// var Qualified Business Income Deduction
+		_QBILimits[_TY+":Rate"] = 0;
+		_QBILimits[_TY+":SNG"] = "0";
+		_QBILimits[_TY+":MFJ"] = "0";
+		_QBILimits[_TY+":MFS"] = "0";
+		_QBILimits[_TY+":HOH"] = "0";
+		_QBILimits[_TY+":WID"] = "0";

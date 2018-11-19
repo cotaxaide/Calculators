@@ -6,6 +6,7 @@
 //	_TaxLookup		Tax table lookup
 //	_CTCLookup		Child and Dependent Tax Credit
 //	_EICLookup		Earned Income Credit table lookup
+//	_QBICalc		Qualified Business Income deduction calculation
 //----------------------------------------------------------------------------------------
 
 //----------------------------------------------------------------------------------------
@@ -308,4 +309,31 @@ function _EICLookup(	// Earned Income Credit table lookup
 		var EICAmount = (vid == 0) ? EICResult : Math.min(EICAmount, EICResult);
 	}
 	return (EICAmount);
+}
+
+//----------------------------------------------------------------------------------------
+function _QBICalc (	// Qualified Business Income deduction
+	taxYear,	// tax year tables to use
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	SEIncome,	// Self-employment income
+	nonTaxCG,	// Qualified dividends + capital gains
+	QBIDividends,	// Section 166A dividends
+	income		// Income amount (before adjustmens or deductions)
+
+	) {
+// Returns the QBI Deduction
+// Returns -1 if above the first threshhold
+//----------------------------------------------------------------------------------------
+	var QBIMax = +_QBILimits[taxYear + ":" + filingStatus];
+	if (+AGI > +QBIMax) return -1;
+	var QBIRate = +_QBILimits[taxYear + ":Rate"];
+	var QBI05 = Math.round(Math.max(0, +SEIncome) * QBIRate);
+	var QBI09 = Math.round(Math.max(0, +QBIDividends) * QBIRate);
+	var QBI10 = QBI05 + QBI09;
+	var QBI11 = +income;
+	var QBI12 = Math.max(0, +nonTaxCG); // qualified dividends and capital gains
+	var QBI13 = Math.max(0, QBI11 - QBI12);
+	var QBI14 = Math.round(QBI13 * QBIRate);
+	var QBIDeduction = Math.min(QBI10, QBI14); // line 15
+	return QBIDeduction;
 }

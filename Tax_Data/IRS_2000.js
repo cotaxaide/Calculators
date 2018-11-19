@@ -18,6 +18,7 @@ var _AffordRateEmployerSelf = [];
 var _SESocSec = [];
 var _SEMedicare = [];
 var _SEMaxWages = [];
+var _QBILimits = [];
 
 //------------------------------------------------------------
 // DATE VARIABLES

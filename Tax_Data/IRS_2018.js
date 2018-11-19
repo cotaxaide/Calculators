@@ -12,6 +12,7 @@
                 _LineNo[_TY+":SSI"] = "5a";	// Need update!
                 _LineNo[_TY+":SST"] = "5b";	// Need update!
                 _LineNo[_TY+":AGI"] = "7";	// Need update!
+                _LineNo[_TY+":QBI"] = "9";
                 _LineNo[_TY+":TNF"] = "";	// Need update! S1-34?
                 _LineNo[_TY+":Adjustments"] = "S1-36";	// Need update!
                 _LineNo[_TY+":ExcessAPTC"] = "S2-46";	// Need update!
@@ -185,3 +186,12 @@
 
 	// var AffordRateEmployerSelf = [];
 		_AffordRateEmployerSelf[_TY] = 0.0956;
+
+	// var Qualified Business Income Deduction (0.24 tax rate?)
+		_QBILimits[_TY+":Rate"] = "0.2";
+		_QBILimits[_TY+":SNG"] = "157500";
+		_QBILimits[_TY+":MFJ"] = "315000";
+		_QBILimits[_TY+":MFS"] = "157500";
+		_QBILimits[_TY+":HOH"] = "157500";
+		_QBILimits[_TY+":WID"] = "157500";
+		

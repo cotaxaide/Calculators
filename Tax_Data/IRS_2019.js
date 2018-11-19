@@ -12,6 +12,7 @@
                 _LineNo[_TY+":SSI"] = "5a";	// Need update!
                 _LineNo[_TY+":SST"] = "5b";	// Need update!
                 _LineNo[_TY+":AGI"] = "7";	// Need update!
+                _LineNo[_TY+":QBI"] = "9";	// Need update!
                 _LineNo[_TY+":TNF"] = "S1-34?";	// Need update!
                 _LineNo[_TY+":Adjustments"] = "S1-36";	// Need update!
                 _LineNo[_TY+":ExcessAPTC"] = "S2-46";	// Need update!
@@ -53,11 +54,11 @@
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, WID)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
 	
-                _EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";	// Need update!
-                //_EdExpenseLimits[_TY+":TNF"] = "4000,65000,2000,80000,0";	// Need update!
-                _EdExpenseLimits[_TY+":LLC"] = "10000,56000,66000,112000,132000";	// Need update!
-                _EdExpenseLimits[_TY+":AOC"] = "4000,80000,90000,160000,180000";	// Need update!
-		_EdExpenseLimits[_TY+":SAV"] = "N/A,77550,92550,116300,146300";	//Needs update	// Need update!
+                _EdExpenseLimits[_TY+":TNF"] = " 4000, 66000, 2000,  80000,       0";
+                _EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";
+                _EdExpenseLimits[_TY+":LLC"] = "10000, 58000, 66000, 116000, 132000";	// Need update!
+                _EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";	// Need update!
+		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 81100, 96100, 121600, 151600";
 
         // var Standard = [];	// Exemption and standard deductions
                 _Standard["Exemption"] = 0;
@@ -71,7 +72,7 @@
 		_Standard["DepAsRel"] = 13; // maximum earned income to be a Dependent as a Relative
 
                 // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    WID,inc,    HOH,inc,  Kiddie, DepAsRel
-                _Standard[_TY] = "          0,1050,   12000,1600, 12000,1300, 24000,1300, 24000,1300, 18000,1600,  2100,   4150";
+                _Standard[_TY] = "          0,1100,   12200,1650, 12200,1300, 24400,1300, 24400,1300, 18350,1650,  2100,   4200";
 
 	// var ItemLimit = []; // Limit repealed by new tax law
                 _ItemLimit[_TY+":SNG"] = 10000000; //261500;
@@ -82,27 +83,21 @@
 
         // var TaxRates = [];			// New tax law
                 _TaxRates[_TY+":PCT"] = " 0.10,  0.12,   0.22,   0.24,   0.32,   0.35,   0.37";
-                _TaxRates[_TY+":SNG"] = " 9525, 38700,  82500, 157500, 200000, 500000";
-                _TaxRates[_TY+":MFJ"] = "19051, 77400, 165000, 315000, 400000, 600000";
-                _TaxRates[_TY+":WID"] = "19051, 77400, 165000, 315000, 400000, 600000";
-                _TaxRates[_TY+":MFS"] = " 9526, 38700,  82500, 157500, 200000, 300000";
-                _TaxRates[_TY+":HOH"] = "13601, 51800,  82500, 157500, 200000, 500000";
-                _TaxRates[_TY+":TRUST"]=" 2550,  2550,   2550,   9150,   9150,  12500";
+                _TaxRates[_TY+":SNG"] = " 9700, 39475,  84200, 160725, 204100, 510300";
+                _TaxRates[_TY+":MFJ"] = "19400, 78950, 168400, 321450, 408200, 612350";
+                _TaxRates[_TY+":WID"] = "19400, 78950, 168400, 321450, 408200, 612350";
+                _TaxRates[_TY+":MFS"] = " 9700, 39475,  84200, 160725, 204100, 306175";
+                _TaxRates[_TY+":HOH"] = "13850, 52850,  84200, 160700, 204100, 510300";
+                _TaxRates[_TY+":TRUST"]=" 2600,  2600,   2600,   9300,   9300,  12750";
 
-	// CGRates // UNVERIFIED - most web sites still use the _TaxRates above	// Need update
+	// CGRates
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";
-                //_CGRates[_TY+":SNG"] = "38600, 425800";
-                //_CGRates[_TY+":MFJ"] = "77200, 479000";
-                //_CGRates[_TY+":WID"] = "77200, 479000";
-                //_CGRates[_TY+":MFS"] = "38600, 239500";
-                //_CGRates[_TY+":HOH"] = "51700, 452400";
-                _CGRates[_TY+":TRUST"]=" 2600,  12700";
-		// We'll use the old scheme for the time being
-                _CGRates[_TY+":SNG"] = "38700, 500000";
-                _CGRates[_TY+":MFJ"] = "77400, 600000";
-                _CGRates[_TY+":WID"] = "77400, 600000";
-                _CGRates[_TY+":MFS"] = "38700, 500000";
-                _CGRates[_TY+":HOH"] = "51800, 500000";
+                _CGRates[_TY+":SNG"] = "38750, 434550";
+                _CGRates[_TY+":MFJ"] = "78750, 488850";
+                _CGRates[_TY+":WID"] = "78750, 488850";
+                _CGRates[_TY+":MFS"] = "39375, 244425";
+                _CGRates[_TY+":HOH"] = "52750, 461700";
+                _CGRates[_TY+":TRUST"]=" 2650,  12950";
 
 	// Self-employment tax rates
 		_SESocSec[_TY] = 0.124;
@@ -110,7 +105,7 @@
 		_SEMaxWages[_TY] = 128400;
 
 	// var MedicalExclusion = [];
-		_MedicalExclusion[_TY] = "0.10, 0.10";	// for 2019?
+		_MedicalExclusion[_TY] = "0.10, 0.10";
 
         // var RetireLimits = [];
                 // Source: 1040 instructions for line 51
@@ -120,7 +115,7 @@
                 _RetireLimits["MFS"] = 0;
                 _RetireLimits["HOH"] = 1;
                 _RetireLimits["MFJ"] = 2;
-                _RetireLimits[_TY] = "31500,47250,63000";
+                _RetireLimits[_TY] = "31500, 47250, 63000"; 	// Need update
 
         // var CTCLimits = [];
                 // Source: 1040 instructions for line 52 and Form 8812
@@ -148,14 +143,14 @@
 		// INVEST is the max investment limit to qualify for EIC
                 // Columns are: 0, 1, 2, 3 children
 
-                _EICRates[_TY+":AGISNG"] =   "  8350,  18350,  18350,  18350"; // Need update
-                _EICRates[_TY+":AGIMFJ"] =   " 13950,  23950,  23950,  23950"; // Need update
-                _EICRates[_TY+":SNG"] =      " 15310,  40402,  45898,  49296";
-                _EICRates[_TY+":MFJ"] =      " 21000,  46102,  51598,  54998";
-                _EICRates[_TY+":MAX"] =      "   520,   3468,   5728,   6444";
+                _EICRates[_TY+":AGISNG"] =   "  8650,  19030,  19030,  19030";
+                _EICRates[_TY+":AGIMFJ"] =   " 14450,  24820,  24820,  24820";
+                _EICRates[_TY+":SNG"] =      " 15570,  41094,  46703,  50162";
+                _EICRates[_TY+":MFJ"] =      " 21370,  46884,  52493,  55952";
+                _EICRates[_TY+":MAX"] =      "   529,   3526,   5828,   6557";
                 _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";
                 _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";
-                _EICRates[_TY+":INVEST"] = 3500;
+                _EICRates[_TY+":INVEST"] = 3600;
 
 	// var FPL = [];
 		_FPL[_TY+":US"] =     "12140, 4320";
@@ -185,3 +180,12 @@
 
 	// var AffordRateEmployerSelf = [];	// Need verification!
 		_AffordRateEmployerSelf[_TY] = 0.0986;
+		
+	// var Qualified Business Income Deduction (0.24 tax rate?)	// Need update
+		_QBILimits[_TY+":Rate"] = "0.2";
+		_QBILimits[_TY+":SNG"] = "160700";
+		_QBILimits[_TY+":MFJ"] = "321400";
+		_QBILimits[_TY+":MFS"] = "160725";
+		_QBILimits[_TY+":HOH"] = "160700";
+		_QBILimits[_TY+":WID"] = "160700";
+	
