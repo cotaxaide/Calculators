@@ -270,10 +270,13 @@
 	//	Douglas Feuerhelm
 	//	Deb Fisher
 	//	Frank Krider
+	//	Paul Renard
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.17a, 11/11/2019)";
+		var VERSION = "(version 10.18, 11/27/2019)";
+		//	Addded PSO insurance calculations to pre-retirement disability messages
+		//var VERSION = "(version 10.17a, 11/11/2019)";
 		//	Minor disability comment prior to retirement age clarification
 		//var VERSION = "(version 10.17, 11/01/2018)";
 		//	Added variables for Salary and Pension 1040 line numbers
@@ -995,7 +998,31 @@
 			else if (ANN_YR > TAX_YR) {
 				CANNOT_CALC |= RETAGE_ERROR;
 				if (! ret_age_warning_seen) {
-					alert("For a disability retirement, the recovery of contributions does not take effect until the annuitant reaches minimum retirement age, which can vary based on the employer and length of service. For this annuitant, this will occur in " + MIN_ANN_YR + ". \n\nThis year, the disability pension is fully taxable.");
+					Disable_alert = "For a disability retirement, the recovery of contributions does not take effect until the annuitant reaches minimum retirement age, which can vary based on the employer and length of service. For this annuitant, this will occur in " + MIN_ANN_YR + ".\n\n";
+					if (PSOMEDIC.value > 0) {
+						Pension_part = "This year,";
+						if (PSOMEDIC.value > 3000) { // More than the limit entered
+							Pension_part += "\n\n   The taxable amount of the annuity is $";
+							Pension_part += (+TPGROSS.value - 3000);
+							Pension_part += "\n   The public safety officer insurance exclusion is (reduced to the tax law limit) $3000.";
+							Pension_part += "\n\nBe sure to include the additional $";
+							Pension_part += (+PSOMEDIC.value - 3000);
+							Pension_part += " in the Schedule A medical deductions.";
+							MEDIC.value = Math.round(3000);
+							MEDICc.innerHTML = "Limited to 3000";
+							MEDICc.style.backgroundColor = "hotpink";
+						}
+						else { // Less than the limit entered
+							Pension_part += "\n\n   The taxable amount of the annuity is $";
+							Pension_part += (+TPGROSS.value - +PSOMEDIC.value);
+							Pension_part += "\n   The public safety officer insurance exclusion is $";
+							Pension_part += +PSOMEDIC.value;
+						}
+					}
+					else {
+						Pension_part = "This year, the disability pension is fully taxable.";
+					}
+					alert(Disable_alert + Pension_part);
 					ret_age_warning_seen = true;
 				}
 				NO_MO.innerHTML = "0";
@@ -1229,7 +1256,7 @@
 			OVERAGE = Math.round(Math.max(0, overage_gross, overage_limit, overage_exclude));
 			switch (OVERAGE) {
 				case overage_gross:
-					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
+					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
 					message += "The public safety officer insurance exclusion has been limited to the gross distribution of $";
 					message += Math.round(+TPGROSS.value);
 					message += ". \n\nBe sure to include the additional $";
@@ -1240,7 +1267,7 @@
 					MEDIC.value = Math.round(+TPGROSS.value);
 					break;
 				case overage_limit:
-					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
+					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
 					message += "The public safety officer insurance exclusion has been reduced to the tax law limit of $";
 					message += mediclimit;
 					message += ". \n\nBe sure to include the additional $";
@@ -1253,7 +1280,7 @@
 				case overage_exclude:
 					MEDIC.value = Math.round(+TPGROSS.value - tax_exclusion);
 					PSOMEDIC.value = +MEDIC.value + +SALMEDIC.value;
-					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
+					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
 					message += "The public safety officer insurance exclusion has been limited to $";
 					message += PSOMEDIC.value;
 					message += " to allow the full exclusion to be taken. \n\nBe sure to include the additional $";
