@@ -430,6 +430,7 @@
 		var SPtaxable = 0;
 		var TPprior = 0;
 		var SPprior = 0;
+		var MedTaxLimit = 3000;
 	
 		//----------------------------------------------------------------------------------------
 		function Initialize() {
@@ -1001,15 +1002,15 @@
 					Disable_alert = "For a disability retirement, the recovery of contributions does not take effect until the annuitant reaches minimum retirement age, which can vary based on the employer and length of service. For this annuitant, this will occur in " + MIN_ANN_YR + ".\n\n";
 					if (PSOMEDIC.value > 0) {
 						Pension_part = "This year,";
-						if (PSOMEDIC.value > 3000) { // More than the limit entered
+						if (PSOMEDIC.value > MedTaxLimit) { // More than the limit entered
 							Pension_part += "\n\n   The taxable amount of the annuity is $";
-							Pension_part += (+TPGROSS.value - 3000);
-							Pension_part += "\n   The public safety officer insurance exclusion is (reduced to the tax law limit) $3000.";
+							Pension_part += (+TPGROSS.value - MedTaxLimit);
+							Pension_part += "\n   The public safety officer insurance exclusion is (reduced to the tax law limit) $" + MedTaxLimit + ".";
 							Pension_part += "\n\nBe sure to include the additional $";
-							Pension_part += (+PSOMEDIC.value - 3000);
+							Pension_part += (+PSOMEDIC.value - MedTaxLimit);
 							Pension_part += " in the Schedule A medical deductions.";
-							MEDIC.value = Math.round(3000);
-							MEDICc.innerHTML = "Limited to 3000";
+							MEDIC.value = MedTaxLimit;
+							MEDICc.innerHTML = "Limited to " + MedTaxLimit;
 							MEDICc.style.backgroundColor = "hotpink";
 						}
 						else { // Less than the limit entered
@@ -1238,8 +1239,8 @@
 
 
 			if (Disability.checked) {
-				SALMEDIC.value = (DIS_MO) ? Math.round(DIS_MO * FULLMEDEX / (DIS_MO + NON_DIS_MO)) : 0;
-				MEDIC.value = FULLMEDEX - +SALMEDIC.value;
+				SALMEDIC.value = (DIS_MO) ? Math.round(DIS_MO * (Math.min(FULLMEDEX, MedTaxLimit)) / (DIS_MO + NON_DIS_MO)) : 0;
+				MEDIC.value = Math.min(FULLMEDEX, MedTaxLimit) - +SALMEDIC.value;
 			}
 
 			// Still just inputting the value
@@ -1249,9 +1250,8 @@
 			}
 
 			message = "";
-			mediclimit = 3000;
 			overage_gross = FULLMEDEX - Math.round(+TPGROSS.value);
-			overage_limit = FULLMEDEX - mediclimit;
+			overage_limit = FULLMEDEX - MedTaxLimit;
 			overage_exclude = overage_gross + +tax_exclusion;
 			OVERAGE = Math.round(Math.max(0, overage_gross, overage_limit, overage_exclude));
 			switch (OVERAGE) {
@@ -1269,13 +1269,13 @@
 				case overage_limit:
 					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
 					message += "The public safety officer insurance exclusion has been reduced to the tax law limit of $";
-					message += mediclimit;
+					message += MedTaxLimit;
 					message += ". \n\nBe sure to include the additional $";
 					message += OVERAGE;
 					message += " in the Schedule A medical deductions.";
-					MEDICc.innerHTML = "Limited to 3000";
+					MEDICc.innerHTML = "Limited to " + MedTaxLimit;
 					IGNOREMED = true;
-					MEDIC.value = Math.round(mediclimit);
+					MEDIC.value = MedTaxLimit;
 					break;
 				case overage_exclude:
 					MEDIC.value = Math.round(+TPGROSS.value - tax_exclusion);
@@ -1306,7 +1306,7 @@
 	
 			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0) && (EXCL_TY.value < 2017)) ? "inline" : "none";
 			MedTable.style.display = ((PSO.checked && TS_VISIBLE && OVERAGE) || (FULLMEDEX > +MEDIC.value)) ? "inline" : "none";
-			SGRW_PSO.innerHTML = MEDIC.value;
+			SGRW_PSO.innerHTML = +MEDIC.value - +SALMEDIC.value;
 			DPSO_amount.innerHTML = SALMEDIC.value;
 		}
 		
@@ -1966,7 +1966,7 @@
 					message += "\n\nBe sure to check the \"Form 1040 line ";
 					message += _LineNo[EXCL_TY.value + ":Salary"] + "\" box.";
 				}
-				if (PSOMEDIC.value > 3000) {
+				if (PSOMEDIC.value > MedTaxLimit) {
 					message += "\n\nEnter $3,000 as the PSO exclusion";
 					message += " and the remainder as a medical deduction.";
 				}
