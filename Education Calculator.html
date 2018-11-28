@@ -108,22 +108,23 @@
 	#TaxFormResults tr td:nth-child(3) { width: 5em; }
 	#TPTaxForm tr td:nth-child(4),
 	#StudentTaxForm tr td:nth-child(4),
-	#TaxFormResults tr td:nth-child(4) { width: 5em; text-align: right;}
+	#TaxFormResults tr td:nth-child(4) { width: 5em; text-align: right; }
 	#TPTaxForm tr td:nth-child(5),
 	#StudentTaxForm tr td:nth-child(5),
-	#TaxFormResults tr td:nth-child(5) { width: 5em; text-align: right;}
+	#TaxFormResults tr td:nth-child(5) { width: 5em; text-align: right; }
 	#TPTaxForm tr td:nth-child(6),
 	#StudentTaxForm tr td:nth-child(6),
-	#TaxFormResults tr td:nth-child(6) { width: 5em; text-align: right;}
+	#TaxFormResults tr td:nth-child(6) { width: 5em; text-align: right; }
 	#OptimizeButtons {display: none;}
 	#OptimizeButtons tr td:first-child { width: 90%; }
 	#OptimizeButtons tr td:nth-child(2) { width: 10%; }
+	#OptimizeButtons input { width: 9em; }
 	#optDiv { border:2px solid black; width:30em; padding: 3px; }
 	#optDiv table { width: 100%; }
 	#optDiv th, #optDiv td:first-child { text-align: left; }
 	#optDiv td:nth-child(2) { text-align: right; }
 	#testPrint {color: red; font-size: 60%; float: right; cursor: none; }
-	#KiddieOverrideOption { display: none; } // For pre 2018, not implemented
+	#KiddieOverrideOption { padding-left: 2em; }
 	#NoOptimize1,
 	#NoOptimize2,
 	#NoOptimize3,
@@ -175,7 +176,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.06a, 10/23/2018";
+	var VERSION = "Version 3.07, 11/28/2018";
+	//	Added Allow Kiddie Tax option for states that did not change rules
+	//var VERSION = "Version 3.06a, 10/23/2018";
 	//	Strange server substitution for html page closure in plot function
 	//var VERSION = "Version 3.06, 8/1/2018";
 	//	New form line numbers for 2018 required some changes
@@ -475,6 +478,8 @@
 
 		// Child (and Family) Tax Credit name change in 2018
 		FTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
+		KiddieOverride.disabled = (+TaxYear.value > 2017) ? false : true;
+		if (KiddieOverride.disabled) KiddieOverride.checked = false;
 
 		// Calculate Fed Poverty Line for the given year
 		if (+TaxYear.value < 2019) { // FPL only needed for years 2014 - 2018
@@ -525,6 +530,9 @@
 		}
 		else { // Student is a dependent
 			KiddieWarn.style.display = "list-item";
+			if (whatChanged == "TaxYear") {
+				KiddieOverride.checked = (TaxYear.value > 2017); // true/false
+			}
 		}
 		Exemptions += +Dependents.value;
 
@@ -756,7 +764,7 @@
 		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
-		if (+TaxYear.value < 2018) {
+		if ((+TaxYear.value < 2018) || (! KiddieOverride.checked)) {
 			if (DependentUnderage) { // kiddie unearned tax limit
 				// Get the student's current unearned income amount and determine if must file
 
@@ -1439,7 +1447,7 @@
 		}
 
 		// adjust for kiddie tax avoidance
-		if ((+TaxYear.value < 2018) ) { // && (! document.getElementById("KiddieOverride").checked)) {
+		if ((+TaxYear.value < 2018) || (! KiddieOverride.checked)) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -2656,7 +2664,7 @@
 				title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td></tr>
 		<tr title="Select the tax year being prepared and the location of the taxpayer's home.">
 			<td>Tax Year:</td>
-			<td><select id="TaxYear"></select></td>
+			<td><select id="TaxYear" onchange="ChangeInfo(this.id);"></select></td>
 			<td id="FilingIn" colspan="2">Filing in:
 				<input name="Region" id="RegionUS" type="radio" value="US" checked="checked" />48 states&nbsp;&nbsp;
 				<input name="Region" id="RegionAlaska" type="radio" value="Alaska" />Alaska&nbsp;&nbsp;
@@ -3651,7 +3659,8 @@
 		<p style="page-break-before: always;"></p>
 		<hr /><div class="TaxReturnHeader">Student&apos;s return:
 			<span id="KiddieOverrideOption"> (<input id="KiddieOverride" type="checkbox"
-				title= "check to allow kiddie tax calculation" /> Allow kiddie tax)
+				checked="true"
+				title="check to allow kiddie tax calculation" /> Allow kiddie tax)
 			</span>
 		</div>
 	<table id="StudentTaxForm" onchange="BudgetChange()">
@@ -3801,10 +3810,12 @@
 
 	<table id="OptimizeButtons">
 		<tr class="noPrint">
-			<td>Click this button to optimize using some scholarship funds as income for this tax return;
+			<td>Click the OPTIMIZE button to optimize using some scholarship funds as income for this tax return;
 				<br />&nbsp;&nbsp;this adjusts the amount taxed in the Funding Sources tab.</td>
-			<td><input id="OptimizeButton" type="button" value="Click to optimize" onclick="Optimize()" />
-				<br /><input id="DataButton" type="button" value="Click to plot data" onclick="DataPlot()" /></td></tr>
+			<td><input id="OptimizeButton" type="button" value="OPTIMIZE" onclick="Optimize();" />
+				<br /><input id="DataButton" type="button" value="Plot Data" onclick="DataPlot();" />
+				<br /><br /><input id="Pbutton2" type="button" value="Print all tabs" onclick="PrintAll();" />
+		</td></tr>
 	</table>
 
 	<div id="NoOptimize1">
