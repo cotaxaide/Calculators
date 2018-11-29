@@ -1726,7 +1726,7 @@
 					<li>&quot;EXM&quot; for any person that is covered by another exemption.</li> 
 					<li>&quot;MEC&quot; if they already have insurance for the months being tested.
 						<ul>	<li>If by employer, see employer offers below</li>
-							<li>If by government-sponsored (Medicare, Medicaid, CHIP, etc), use GOV.</li>
+							<li>If by govenrment-sponsored (Medicare, Medicaid, CHIP, etc), use GOV.</li>
 						</ul></li>
 					<li>&quot;GOV&quot; for anyone eligible for government insurance regardless of whether
 						they have taken that coverage to exclude them from the Silver plan list.
