@@ -105,7 +105,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.03, 6/6/2018)";
+	var VERSION = "(Version 1.04, 9/6/2018)";
+	//	CO 104AD still not added in 2018
+	//	Remaining question - what's the effect of not reporting RRB income?
+	//var VERSION = "(Version 1.03, 6/6/2018)";
 	//	Added buttons to show or hide the Summary Totals section
 	//	Hide the TS Subtractions form if not needed
 	//var VERSION = "(Version 1.02, 1/25/2018)";
@@ -697,7 +700,7 @@
 		COOtherSubtractions.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
 
-		if ((TaxYear.value == 2017) && (SFItotal > (TPAnnuityLimit + SPAnnuityLimit))) {
+		if ((TaxYear.value >= 2017) && (SFItotal > (TPAnnuityLimit + SPAnnuityLimit))) {
 			var message = "<h1>TaxSlayer cannot produce an accurate partial year return for Colorado for this taxpayer.</h1>";
 			message += "<ol>";
 			message += "<li>Print the Colorado return from TaxSlayer and modify forms as follows:</li>";
@@ -732,10 +735,10 @@
 			TSMessageDiv.style.display = "block";
 		}
 		else {
-			COSubtractDiv.style.display = (TaxYear.value == 2017) ? "none" : "block";
+			COSubtractDiv.style.display = (TaxYear.value >= 2017) ? "none" : "block";
 			TSMessageDiv.style.display = "none";
 		}
-		TSError1.style.display = (TaxYear.value == 2017) ? "none" : "inline";
+		TSError1.style.display = (TaxYear.value >= 2017) ? "none" : "inline";
 	}
 
 	//----------------------------------------------------------------------------------------
