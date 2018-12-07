@@ -108,6 +108,7 @@
 	var VERSION = "(Version 1.04, 9/6/2018)";
 	//	CO 104AD still not added in 2018
 	//	Remaining question - what's the effect of not reporting RRB income?
+	//	Minor rearrangement of input descriptions
 	//var VERSION = "(Version 1.03, 6/6/2018)";
 	//	Added buttons to show or hide the Summary Totals section
 	//	Hide the TS Subtractions form if not needed
@@ -279,10 +280,10 @@
 		switch (Typeptr.value) {
 			case "W-2_wages":
 			case "Self_Employment":
-			case "Gross_Social_Security":
-			case "Gross_RRB_Tier1":
-			case "Taxable_RRB_Tier2":
-			case "Taxable_Annuity/Pension":
+			case "Social_Security-Gross":
+			case "RRB_Tier1-Gross":
+			case "RRB_Tier2-Taxable":
+			case "Pension/Annuity-Taxable":
 			case "Unemployment":
 				if (Ownerptr.value == "J") Ownerptr.options.selectedIndex = 2; // TP
 				break;
@@ -475,22 +476,22 @@
 					FedEarnedIncome += +Amountptr.value;
 					StateEarnedIncome += +Stateptr.value;
 					// no break
-				case "Taxable_Annuity/Pension":
+				case "Pension/Annuity-Taxable":
 				case "Capital_Gain/Loss":
 				case "Dividend":
 				case "Interest":
 				case "Other":
 				case "Rent":
 				case "Royalty":
-				case "Taxable_RRB_Tier2":
+				case "RRB_Tier2-Taxable":
 				case "Unemployment":
 					FedGrossIncome += +Amountptr.value;
 					StateGrossIncome += +Stateptr.value;
 					FedSSAGI += +Amountptr.value;
 					break;
 
-				case "Gross_Social_Security":
-				case "Gross_RRB_Tier1":
+				case "Social_Security-Gross":
+				case "RRB_Tier1-Gross":
 					FedSSAmount += +Amountptr.value;
 					break;
 
@@ -517,7 +518,7 @@
 			
 			// Total TP/SP retirement totals for exclusion limit
 			switch (Typeptr.value) {
-				case "Taxable_Annuity/Pension":
+				case "Pension/Annuity-Taxable":
 					if (Ownerptr.value == "T") {
 						TPAnnuityState += +Stateptr.value;
 						TPAnnuityTotal += +Amountptr.value;
@@ -527,7 +528,7 @@
 						SPAnnuityTotal += +Amountptr.value;
 					}
 					break;
-				case "Gross_Social_Security":
+				case "Social_Security-Gross":
 					if (Ownerptr.value == "T") {
 						TPSSState += +Stateptr.value;
 						TPSSTotal += +Amountptr.value;
@@ -537,13 +538,13 @@
 						SPSSTotal += +Amountptr.value;
 					}
 					break;
-				case "Gross_RRB_Tier1":
+				case "RRB_Tier1-Gross":
 					if (Ownerptr.value == "T") TPRRB1Total += +Stateptr.value;
 					if (Ownerptr.value == "S") SPRRB1Total += +Stateptr.value;
 					HasRRB = true;
 					RRBTotal += +Amountptr.value;
 					break;
-				case "Taxable_RRB_Tier2":
+				case "RRB_Tier2-Taxable":
 					if (Ownerptr.value == "T") TPRRB2Total += +Stateptr.value;
 					if (Ownerptr.value == "S") SPRRB2Total += +Stateptr.value;
 					HasRRB = true;
@@ -564,14 +565,14 @@
 		if (FedSSAmount) SSPercent = +result[0] / FedSSAmount;
 
 		// Reduce SS/Tier1 totals
-		Gross_Social_SecurityTotalState.innerHTML =
-			StateSum["Gross_Social_Security"] = Math.round(StateSum["Gross_Social_Security"] * SSPercent);
-		Gross_Social_SecurityTotalOther.innerHTML =
-			OtherSum["Gross_Social_Security"] = Math.round(OtherSum["Gross_Social_Security"] * SSPercent);
-		Gross_RRB_Tier1TotalState.innerHTML = 
-			StateSum["Gross_RRB_Tier1"] = Math.round(StateSum["Gross_RRB_Tier1"] * SSPercent);
-		Gross_RRB_Tier1TotalOther.innerHTML = 
-			OtherSum["Gross_RRB_Tier1"] = Math.round(OtherSum["Gross_RRB_Tier1"] * SSPercent);
+		document.getElementById("Social_Security-GrossTotalState").innerHTML =
+			StateSum["Social_Security-Gross"] = Math.round(StateSum["Social_Security-Gross"] * SSPercent);
+		document.getElementById("Social_Security-GrossTotalOther").innerHTML =
+			OtherSum["Social_Security-Gross"] = Math.round(OtherSum["Social_Security-Gross"] * SSPercent);
+		document.getElementById("RRB_Tier1-GrossTotalState").innerHTML = 
+			StateSum["RRB_Tier1-Gross"] = Math.round(StateSum["RRB_Tier1-Gross"] * SSPercent);
+		document.getElementById("RRB_Tier1-GrossTotalOther").innerHTML = 
+			OtherSum["RRB_Tier1-Gross"] = Math.round(OtherSum["RRB_Tier1-Gross"] * SSPercent);
 		TPSSAlloc = Math.round(TPSSState * SSPercent);
 		SPSSAlloc = Math.round(SPSSState * SSPercent);
 		TPSSTotal = Math.round(TPSSTotal * SSPercent);
@@ -579,13 +580,13 @@
 
 		// Add subtractions for RRB retirement accounts
 		RRB_Tier1_subtractionTotalState.innerHTML =
-			StateSum["RRB_Tier1_subtraction"] = StateSum["Gross_RRB_Tier1"];
+			StateSum["RRB_Tier1_subtraction"] = StateSum["RRB_Tier1-Gross"];
 		RRB_Tier1_subtractionTotalOther.innerHTML =
-			OtherSum["RRB_Tier1_subtraction"] = OtherSum["Gross_RRB_Tier1"];
+			OtherSum["RRB_Tier1_subtraction"] = OtherSum["RRB_Tier1-Gross"];
 		RRB_Tier2_subtractionTotalState.innerHTML =
-			StateSum["RRB_Tier2_subtraction"] = StateSum["Taxable_RRB_Tier2"];
+			StateSum["RRB_Tier2_subtraction"] = StateSum["RRB_Tier2-Taxable"];
 		RRB_Tier2_subtractionTotalOther.innerHTML =
-			OtherSum["RRB_Tier2_subtraction"] = OtherSum["Taxable_RRB_Tier2"];
+			OtherSum["RRB_Tier2_subtraction"] = OtherSum["RRB_Tier2-Taxable"];
 
 		// Apply limits to retirement accounts (used getElementById due to "/")
 		TPState = TPAnnuityState + TPSSAlloc;
@@ -622,10 +623,10 @@
 		COCapitalGains.innerHTML = 0
 			+ StateSum["Capital_Gain/Loss"]; 
 		COAnnuities.innerHTML = 0
-			+ StateSum["Taxable_Annuity/Pension"]
-			+ StateSum["Gross_Social_Security"]
-			+ StateSum["Gross_RRB_Tier1"]
-			+ StateSum["Taxable_RRB_Tier2"];
+			+ StateSum["Pension/Annuity-Taxable"]
+			+ StateSum["Social_Security-Gross"]
+			+ StateSum["RRB_Tier1-Gross"]
+			+ StateSum["RRB_Tier2-Taxable"];
 		CORoyalties.innerHTML = 0
 			+ StateSum["Rent"]
 			+ StateSum["Royalty"];
@@ -760,25 +761,28 @@
 		var newsel = document.createElement("select");
 		newsel.id = "Typ" + ItemCount;
 		Add_Option(newsel, "?", "Please enter the type of income or adjustment");
+
 		Add_Group(newsel, "Earned Income");
 		Add_Option(newgrp, "W-2_wages", "Wages from employment");
 		Add_Option(newgrp, "Self_Employment", "Self-employment income or loss");
+
 		Add_Group(newsel, "Other Income");
 		Add_Option(newgrp, "Capital_Gain/Loss", "Capital gain income or loss");
 		Add_Option(newgrp, "Dividend", "Dividend income");
 		Add_Option(newgrp, "Dividend-CO_or_gov_adjust", "Colorado or government dividend income subtraction");
-		Add_Option(newgrp, "Gross_RRB_Tier1", "Gross amount of Railroad Retirement Tier 1 (Social security equivalent)");
-		Add_Option(newgrp, "Gross_Social_Security", "Gross amount of Social Security income");
 		Add_Option(newgrp, "Interest", "Interest from savings or investment accounts");
 		Add_Option(newgrp, "Interest-CO_1st_Time_Home", "Interest from a Colorado first time homebuyer savings account (2017 and later)");
 		Add_Option(newgrp, "Interest-gov", "Government bond savings or investment interest");
 		Add_Option(newgrp, "Interest-tax-free_non-CO", "Tax free interest from non-Colorado bonds.");
 		Add_Option(newgrp, "Other", "Other income");
+		Add_Option(newgrp, "Pension/Annuity-Taxable", "Taxable amount of annuity or pension income");
 		Add_Option(newgrp, "Rent", "Rent income");
 		Add_Option(newgrp, "Royalty", "Royalty income");
-		Add_Option(newgrp, "Taxable_RRB_Tier2", "Taxable amount of Railroad Retirement Tier 2 (Pension)");
-		Add_Option(newgrp, "Taxable_Annuity/Pension", "Taxable amount of annuity or pension income");
+		Add_Option(newgrp, "RRB_Tier1-Gross", "Gross amount of Railroad Retirement Tier 1 (Social security equivalent)");
+		Add_Option(newgrp, "RRB_Tier2-Taxable", "Taxable amount of Railroad Retirement Tier 2 (Pension)");
+		Add_Option(newgrp, "Social_Security-Gross", "Gross amount of Social Security income");
 		Add_Option(newgrp, "Unemployment", "Unemployment income");
+
 		Add_Group(newsel, "Federal adjustments to income");
 		Add_Option(newgrp, "Educator_expense", "Educator expenses");
 		Add_Option(newgrp, "HSA deduction", "Health Savings Account deduction");
@@ -791,8 +795,10 @@
 		Add_Option(newgrp, "Tuition_and_Fees", "Tuition and Fees deduction");
 		Add_Option(newgrp, "Jury_duty_pay_to_employer", "Jury duty pay given to employer");
 		Add_Option(newgrp, "Other_Adjustment", "Other adjustment to income");
+
 		Add_Group(newsel, "State AGI Additions");
 		Add_Option(newgrp, "Other_Addition", "Other additions to state Adjusted Gross Income");
+
 		Add_Group(newsel, "State AGI Subtractions");
 		Add_Option(newgrp, "CO_Capital_gain_subtraction", "Capital gain on Colorado investments");
 		Add_Option(newgrp, "College_tuition_contribution", "Contribution to one of the state's college 529 plans");
@@ -804,6 +810,7 @@
 		Add_Option(newgrp, "Qualfied_reservation_income", "Exclusion of reservation income from state tax");
 		Add_Option(newgrp, "State_income_tax_subtraction", "This state's portion of state tax refunds");
 		Add_Option(newgrp, "Other_Subtraction", "Other subtractions from state Adjusted Gross Income");
+
 		newsel.setAttribute("onchange", "Data_Change(\"Type\", " + ItemCount + ");");
 		newcol.appendChild(newsel);
 		newrow.appendChild(newcol);
