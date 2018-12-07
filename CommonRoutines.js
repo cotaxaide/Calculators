@@ -8,6 +8,9 @@
 //	_EICLookup		Earned Income Credit table lookup
 //	_QBICalc		Qualified Business Income deduction calculation
 //----------------------------------------------------------------------------------------
+//
+// Version 1.01 12/7/2018
+// 	Correction to QBI calculation to not show OOS if no SE or 199A
 
 //----------------------------------------------------------------------------------------
 function _SETax (	// Self-employment tax
@@ -318,14 +321,13 @@ function _QBICalc (	// Qualified Business Income deduction
 	SEIncome,	// Self-employment income
 	nonTaxCG,	// Qualified dividends + capital gains
 	QBIDividends,	// Section 166A dividends
-	income		// Income amount (before adjustmens or deductions)
-
+	income		// Taxable income amount (before QBI deduction)
 	) {
 // Returns the QBI Deduction
 // Returns -1 if above the first threshhold
 //----------------------------------------------------------------------------------------
 	var QBIMax = +_QBILimits[taxYear + ":" + filingStatus];
-	if (+AGI > +QBIMax) return -1;
+	if ((+income > +QBIMax) && (+QBIDividends + +SEIncome > 0)) return -1;
 	var QBIRate = +_QBILimits[taxYear + ":Rate"];
 	var QBI05 = Math.round(Math.max(0, +SEIncome) * QBIRate);
 	var QBI09 = Math.round(Math.max(0, +QBIDividends) * QBIRate);

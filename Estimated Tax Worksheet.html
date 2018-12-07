@@ -84,7 +84,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.17, 11/16/2018)";
+	var VERSION = "(Version 2.18, 12/7/2018)";
+	//	Corrected QBI calculation
+	//var VERSION = "(Version 2.17, 11/16/2018)";
 	//	Added QBI lines
 	//	Added validity checks for dividend subcategories
 	//var VERSION = "(Version 2.16, 8/9/2018)";
@@ -328,7 +330,7 @@
 			QBILine.style.display = "table-line";
 			var QBIDeduction = _QBICalc(TaxYear.value, FilingStatus.value, SEIncome.value,
 				(+QualDividends.value + +CapGains.value),
-				QBIDividends.value, Gross.value);
+				QBIDividends.value, PostExemptAmount);
 			QBIOOS.style.display = (QBIDeduction == -1) ? "inline" : "none";
 			QBIAmount.innerHTML = QBIDeduction = Math.max(0, +QBIDeduction);
 		}
