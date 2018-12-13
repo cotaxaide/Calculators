@@ -149,11 +149,11 @@
 		// INVEST is the max investment limit to qualify for EIC
                 // Columns are: 0, 1, 2, 3 children
 
-                _EICRates[_TY+":AGISNG"] =   "  8350,  18350,  18350,  18350"; // Need update
-                _EICRates[_TY+":AGIMFJ"] =   " 13950,  23950,  23950,  23950"; // Need update
-                _EICRates[_TY+":SNG"] =      " 15310,  40402,  45898,  49296";
-                _EICRates[_TY+":MFJ"] =      " 21000,  46102,  51598,  54998";
-                _EICRates[_TY+":MAX"] =      "   520,   3468,   5728,   6444";
+                _EICRates[_TY+":AGISNG"] =   "  8500,  18700,  18700,  18700";
+                _EICRates[_TY+":AGIMFJ"] =   " 14200,  24350,  24350,  24350";
+                _EICRates[_TY+":SNG"] =      " 15270,  40320,  45802,  49194";
+                _EICRates[_TY+":MFJ"] =      " 20950,  46010,  51492,  54884";
+                _EICRates[_TY+":MAX"] =      "   519,   3461,   5716,   6431";
                 _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";
                 _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";
                 _EICRates[_TY+":INVEST"] = 3500;
