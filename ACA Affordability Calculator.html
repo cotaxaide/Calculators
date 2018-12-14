@@ -152,7 +152,9 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 4.35e, 11/28/2018)";
+	var VERSION = "(Version 4.36, 12/14/2018)";
+	//	Corrected Code G - added test for family plan affordability if offered
+	//var VERSION = "(Version 4.35e, 11/28/2018)";
 	//	Typo correction
 	//var VERSION = "(Version 4.35d, 10/20/2018)";
 	//	Typo correction
@@ -1232,6 +1234,8 @@
 		QualForCodeG = ((QualForCodeGNum > 1)
 				&& (QualForCodeGCost > +HIAffordRatePerMo)
 				&& (! TPFamilySal.checked)
+				&& ((TPFamily.value == 0) || (TPFamily.value > +HIAffordRatePerMo))
+				&& ((SPFamily.value == 0) || (SPFamily.value > +HIAffordRatePerMo))
 				&& (! SPFamilySal.checked)) ?  true:false;
 		if ((+(HouseIncome8962.value) < vFPL138) && MedicaidN.checked) QualForCodeG = true;
 
