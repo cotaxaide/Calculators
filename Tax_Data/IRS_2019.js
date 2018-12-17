@@ -20,9 +20,9 @@
                 _LineNo[_TY+":Care"] = "S3-49";	// Need update!
                 _LineNo[_TY+":LLC"] = "S3-50";	// Need update!
                 _LineNo[_TY+":Retire"] = "S3-51";	// Need update!
-                _LineNo[_TY+":CTC"] = "S3-52";	// Need update!
-                _LineNo[_TY+":COD"] = "S3-52";	// Need update!
-                _LineNo[_TY+":NRCredit"] = "S3-55";	// Need update!
+                _LineNo[_TY+":CTC"] = "12a";	// Need update!
+                _LineNo[_TY+":COD"] = "12a";	// Need update!
+                _LineNo[_TY+":NRCredit"] = "12";	// Need update!
                 _LineNo[_TY+":IRP"] = "S4-61";	// Need update!
                 _LineNo[_TY+":EIC"] = "17a";	// Need update!
                 _LineNo[_TY+":ACTC"] = "S5-67";	// Need update!

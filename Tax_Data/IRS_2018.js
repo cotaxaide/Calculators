@@ -8,30 +8,30 @@
 		_LineNo[_TY+":Pension"] = "4a";
                 _LineNo[_TY+":Earned"] = "1&S1-12";
                 _LineNo[_TY+":TaxExInc"] = "8b";
-                _LineNo[_TY+":CapGains"] = "S1-13";	// Need update!
-                _LineNo[_TY+":SSI"] = "5a";	// Need update!
-                _LineNo[_TY+":SST"] = "5b";	// Need update!
-                _LineNo[_TY+":AGI"] = "7";	// Need update!
+                _LineNo[_TY+":CapGains"] = "S1-13";
+                _LineNo[_TY+":SSI"] = "5a";
+                _LineNo[_TY+":SST"] = "5b";
+                _LineNo[_TY+":AGI"] = "7";
                 _LineNo[_TY+":QBI"] = "9";
-                _LineNo[_TY+":TNF"] = "";	// Need update! S1-34?
-                _LineNo[_TY+":Adjustments"] = "S1-36";	// Need update!
-                _LineNo[_TY+":ExcessAPTC"] = "S2-46";	// Need update!
-                _LineNo[_TY+":Foreign"] = "S3-48";	// Need update!
-                _LineNo[_TY+":Care"] = "S3-49";	// Need update!
-                _LineNo[_TY+":LLC"] = "S3-50";	// Need update!
-                _LineNo[_TY+":Retire"] = "S3-51";	// Need update!
-                _LineNo[_TY+":CTC"] = "S3-52";	// Need update!
-                _LineNo[_TY+":COD"] = "S3-52";	// Need update!
-                _LineNo[_TY+":NRCredit"] = "S3-55";	// Need update!
-                _LineNo[_TY+":IRP"] = "S4-61";	// Need update!
-                _LineNo[_TY+":EIC"] = "17a";	// Need update!
-                _LineNo[_TY+":ACTC"] = "S5-67";	// Need update!
-                _LineNo[_TY+":AOC"] = "S5-68";	// Need update!
-                _LineNo[_TY+":NetPTC"] = "S5-69";	// Need update!
-	        _LineNo[_TY+":F8962A"] = "11a";	// Need update!
-	        _LineNo[_TY+":F8962B"] = "11b";	// Need update!
-	        _LineNo[_TY+":F8962F"] = "11f";	// Need update!
-	        _LineNo[_TY+":F2555"] = "45 & 50";	// Need update!
+                _LineNo[_TY+":TNF"] = "";
+                _LineNo[_TY+":Adjustments"] = "S1-36";
+                _LineNo[_TY+":ExcessAPTC"] = "S2-46";
+                _LineNo[_TY+":Foreign"] = "S3-48";
+                _LineNo[_TY+":Care"] = "S3-49";
+                _LineNo[_TY+":LLC"] = "S3-50";
+                _LineNo[_TY+":Retire"] = "S3-51";
+                _LineNo[_TY+":CTC"] = "12a";
+                _LineNo[_TY+":COD"] = "12a";
+                _LineNo[_TY+":NRCredit"] = "12";
+                _LineNo[_TY+":IRP"] = "S4-61";
+                _LineNo[_TY+":EIC"] = "17a";
+                _LineNo[_TY+":ACTC"] = "S5-67";
+                _LineNo[_TY+":AOC"] = "S5-68";
+                _LineNo[_TY+":NetPTC"] = "S5-69";
+	        _LineNo[_TY+":F8962A"] = "11a";
+	        _LineNo[_TY+":F8962B"] = "11b";
+	        _LineNo[_TY+":F8962F"] = "11f";
+	        _LineNo[_TY+":F2555"] = "45 & 50";
 
         // var EdExpenseLimits = [];
 		// Source: Pub 970 or Form 8863 (AOC & LLC)
@@ -54,7 +54,7 @@
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, WID)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
 	
-                _EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";	// Need update!
+                _EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";
                 //_EdExpenseLimits[_TY+":TNF"] = "4000,65000,2000,80000,0";	// Need update!
                 _EdExpenseLimits[_TY+":LLC"] = "10000,56000,66000,112000,132000";	// Need update!
                 _EdExpenseLimits[_TY+":AOC"] = "4000,80000,90000,160000,180000";	// Need update!
@@ -90,7 +90,7 @@
                 _TaxRates[_TY+":HOH"] = "13601, 51800,  82500, 157500, 200000, 500000";
                 _TaxRates[_TY+":TRUST"]=" 2550,  2550,   2550,   9150,   9150,  12500";
 
-	// CGRates // UNVERIFIED - most web sites still use the _TaxRates above	// Need update
+	// CGRates // 
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";
                 _CGRates[_TY+":SNG"] = "38600, 425800";
                 _CGRates[_TY+":MFJ"] = "77200, 479000";
@@ -164,7 +164,7 @@
 		_FPL[_TY+":Hawaii"] = "13960, 4970";
 
 	// var PTCFactorVal = [];
-		// A,B are FPL% ranges, C-D are PTC multipliers * 100		// Need update!
+		// A,B are FPL% ranges, C-D are PTC multipliers * 100
 		// A-B = C-D : (C+(%%%-A)*(D-C)/(B-A))/100	
 		// 0-133 = 2-2	
 		// 133-150 = 3-4	
@@ -176,8 +176,8 @@
 
 		_PTCFactorVal[_TY+":0"] =   "133, 2.01, 2.01,  300";
 		_PTCFactorVal[_TY+":133"] = "150, 3.02, 4.03,  300";
-		_PTCFactorVal[_TY+":150"] = "200, 4.03, 6.34,  300";
-		_PTCFactorVal[_TY+":200"] = "250, 6.34, 8.10,  750";
+		_PTCFactorVal[_TY+":150"] = "200, 4.03, 6.38,  300";
+		_PTCFactorVal[_TY+":200"] = "250, 6.38, 8.10,  750";
 		_PTCFactorVal[_TY+":250"] = "300, 8.10, 9.56,  750";
 		_PTCFactorVal[_TY+":300"] = "400, 9.56, 9.56, 1250";
 
