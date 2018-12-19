@@ -5,9 +5,9 @@
         // Form line numbers
         // var LineNo = [];
 		_LineNo[_TY+":Salary"] = "1";
-		_LineNo[_TY+":Pension"] = "4a";
+		_LineNo[_TY+":Pension"] = "4b";
                 _LineNo[_TY+":Earned"] = "1&S1-12";
-                _LineNo[_TY+":TaxExInc"] = "8b";
+                _LineNo[_TY+":TaxExInc"] = "2a";
                 _LineNo[_TY+":CapGains"] = "S1-13";
                 _LineNo[_TY+":SSI"] = "5a";
                 _LineNo[_TY+":SST"] = "5b";
@@ -25,9 +25,9 @@
                 _LineNo[_TY+":NRCredit"] = "12";
                 _LineNo[_TY+":IRP"] = "S4-61";
                 _LineNo[_TY+":EIC"] = "17a";
-                _LineNo[_TY+":ACTC"] = "S5-67";
-                _LineNo[_TY+":AOC"] = "S5-68";
-                _LineNo[_TY+":NetPTC"] = "S5-69";
+                _LineNo[_TY+":ACTC"] = "17b";
+                _LineNo[_TY+":AOC"] = "17c";
+                _LineNo[_TY+":NetPTC"] = "S5-70";
 	        _LineNo[_TY+":F8962A"] = "11a";
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";
