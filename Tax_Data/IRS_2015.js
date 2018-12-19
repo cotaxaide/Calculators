@@ -13,6 +13,8 @@
                 _LineNo[_TY+":SST"] = "20b";
                 _LineNo[_TY+":TNF"] = "34";
                 _LineNo[_TY+":Adjustments"] = "36";
+                _LineNo[_TY+":Deductions"] = "40";
+                _LineNo[_TY+":TaxAmount"] = "44";
                 _LineNo[_TY+":CapGains"] = "13";
                 _LineNo[_TY+":QBI"] = "";
                 _LineNo[_TY+":AGI"] = "37";
@@ -29,6 +31,7 @@
                 _LineNo[_TY+":ACTC"] = "67";
                 _LineNo[_TY+":AOC"] = "68";
                 _LineNo[_TY+":NetPTC"] = "69";
+                _LineNo[_TY+":ItemDed"] = "29"; // Sched A
 	        _LineNo[_TY+":F8962A"] = "11a";
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";

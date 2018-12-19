@@ -15,6 +15,8 @@
                 _LineNo[_TY+":QBI"] = "9";
                 _LineNo[_TY+":TNF"] = "";
                 _LineNo[_TY+":Adjustments"] = "S1-36";
+                _LineNo[_TY+":Deductions"] = "8";
+                _LineNo[_TY+":TaxAmount"] = "15";
                 _LineNo[_TY+":ExcessAPTC"] = "S2-46";
                 _LineNo[_TY+":Foreign"] = "S3-48";
                 _LineNo[_TY+":Care"] = "S3-49";
@@ -28,10 +30,11 @@
                 _LineNo[_TY+":ACTC"] = "17b";
                 _LineNo[_TY+":AOC"] = "17c";
                 _LineNo[_TY+":NetPTC"] = "S5-70";
+                _LineNo[_TY+":ItemDed"] = "18"; // Sched A
 	        _LineNo[_TY+":F8962A"] = "11a";
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";
-	        _LineNo[_TY+":F2555"] = "45 & 50";
+	        _LineNo[_TY+":F2555"] = "45 & 50"; //Form 2555
 
         // var EdExpenseLimits = [];
 		// Source: Pub 970 or Form 8863 (AOC & LLC)

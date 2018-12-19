@@ -176,7 +176,10 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.07, 11/28/2018";
+	var VERSION = "Version 3.08, 12/19/2018";
+	//	Added QBI lines to TP and Student returns
+	//	Corrected line numbers to match new forms
+	//var VERSION = "Version 3.07, 11/28/2018";
 	//	Added Allow Kiddie Tax option for states that did not change rules
 	//var VERSION = "Version 3.06a, 10/23/2018";
 	//	Strange server substitution for html page closure in plot function
@@ -458,6 +461,10 @@
 		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _LineNo[TaxYear.value + ":CapGains"];
 		AGILineNoA.innerHTML = AGILineNoB.innerHTML = _LineNo[TaxYear.value + ":AGI"];
 		EarnedLineNoA.innerHTML = EarnedLineNoB.innerHTML = _LineNo[TaxYear.value + ":Earned"];
+		ItemDedLineNoA.innerHTML = ItemDedLineNoB.innerHTML = _LineNo[TaxYear.value + ":ItemDed"];
+		DeductionsLineNoA.innerHTML = DeductionsLineNoB.innerHTML = _LineNo[TaxYear.value + ":Deductions"];
+		QBILineNoA.innerHTML = QBILineNoB.innerHTML = _LineNo[TaxYear.value + ":QBI"];
+		TaxAmountLineNoA.innerHTML = TaxAmountLineNoB.innerHTML = _LineNo[TaxYear.value + ":TaxAmount"];
 		TNFLineNo.innerHTML = _LineNo[TaxYear.value + ":TNF"];
 		ExcessAPTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":ExcessAPTC"];
 		CareLineNoB.innerHTML = _LineNo[TaxYear.value + ":Care"];
@@ -475,6 +482,10 @@
 		F8962BLineNoA.innerHTML = F8962BLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962B"];
 		F8962FLineNoA.innerHTML = F8962FLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962F"];
 		//F8962MAGILineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962MAGI"];
+
+		// QBI Added in 2018
+		QBILineA.style.display = QBILineB.style.display = (+TaxYear.value > 2017) ? "table-row" : "none";
+		if (TaxYear.value < 2018) QBITax.value = StudQBITax.value = "";
 
 		// Child (and Family) Tax Credit name change in 2018
 		FTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
@@ -1135,6 +1146,18 @@
 			StudAGITNF.innerHTML = +StudAGITax.value + +IncomeTNF.innerHTML;
 		}
 
+		// QBI lines
+		if (isNaN(QBITax.value)) QBITax.value = "";
+		QBIAOC.innerHTML =
+		QBILLC.innerHTML =
+		QBITNF.innerHTML = CapGainsTax.value;
+		if (DependentYes.checked) {
+			if (isNaN(StudQBITax.value)) StudQBITax.value = "";
+			StudQBIAOC.innerHTML =
+			StudQBILLC.innerHTML =
+			StudQBITNF.innerHTML = StudQBITax.value;
+		}
+
 		// Capital Gains lines
 		if (isNaN(CapGainsTax.value)) CapGainsTax.value = "";
 		CapGainsAOC.innerHTML =
@@ -1764,8 +1787,14 @@
 		// Take the largest deduction
 		result.deduction = Math.max(result.deduction, itemizedDeduction);
 
+		// Add QBI if present
+		QBIAmount = 0;
+		if (_LineNo[TaxYear.value + ":QBI"]) {
+			QBIAmount += (isStudent) ? +StudQBITax.value : +QBITax.value;
+		}
+
 		// Look up the tax
-		var taxable = Math.max(0, ctAGI - exemptionAmount - result.deduction);
+		var taxable = Math.max(0, ctAGI - exemptionAmount - (result.deduction + QBIAmount));
 
 		if ((TaxYear.value > 2017) && (isStudent)) {
 			// Definition of earned/unearned is different if kiddie tax applies
@@ -3437,18 +3466,25 @@
 			<td class="TNFClass" id="MedicalTNF"></td></tr>
 		<tr>
 			<td>Itemized deduction amount (used or not)</td>
-			<td>Sched A line 29</td>
+			<td>Sched A line <span id="ItemDedLineNoA">29</span></td>
 			<td><input class="taxreturn" id="ItemizedTax" type="number" /></td>
 			<td class="AOCClass" id="ItemizedAOC"></td>
 			<td class="LLCClass" id="ItemizedLLC"></td>
 			<td class="TNFClass" id="ItemizedTNF"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
-			<td>1040 line 40</td>
+			<td>1040 line <span id="DeductionsLineNoB">40</span></td>
 			<td class="calculatedEntry" id="DeductionTax"></td>
 			<td class="AOCClass" id="DeductionAOC"></td>
 			<td class="LLCClass" id="DeductionLLC"></td>
 			<td class="TNFClass" id="DeductionTNF"></td></tr>
+		<tr id="QBILineA">
+			<td>QBI deduction amount</td>
+			<td>1040 line <span id="QBILineNoA">??</span></td>
+			<td><input class="taxreturn" id="QBITax" type="number" /></td>
+			<td class="AOCClass" id="QBIAOC"></td>
+			<td class="LLCClass" id="QBILLC"></td>
+			<td class="TNFClass" id="QBITNF"></td></tr>
 		<tr>
 			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="CapGainsLineNoA">??</span></td>
 			<td>QD&amp;CG Wkt line <span id="CapGainsLineNoB">??</span></td>
@@ -3458,7 +3494,7 @@
 			<td class="TNFClass" id="CapGainsTNF"></td></tr>
 		<tr>
 			<td class="bold">Tax amount:</td>
-			<td>1040 line 44</td>
+			<td>1040 line <span id="TaxAmountLineNoB">44</span></td>
 			<td class="calculatedEntry" id="TaxTax"></td>
 			<td class="AOCClass" id="TaxAOC"></td>
 			<td class="LLCClass" id="TaxLLC"></td>
@@ -3694,18 +3730,25 @@
 			<td class="TNFClass" id="StudAGITNF"></td></tr>
 		<tr>
 			<td>Itemized deduction amount (used or not)</td>
-			<td>Sched A line 29</td>
+			<td>Sched A line <span id="ItemDedLineNoB">29</span></td>
 			<td><input class="taxreturn" id="StudItemizedTax" type="number" /></td>
 			<td class="AOCClass" id="StudItemizedAOC"></td>
 			<td class="LLCClass" id="StudItemizedLLC"></td>
 			<td class="TNFClass" id="StudItemizedTNF"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
-			<td>1040 line 40</td>
+			<td>1040 line <span id="DeductionsLineNoA">40</span></td>
 			<td class="calculatedEntry" id="StudDeductionTax"></td>
 			<td class="AOCClass" id="StudDeductionAOC"></td>
 			<td class="LLCClass" id="StudDeductionLLC"></td>
 			<td class="TNFClass" id="StudDeductionTNF"></td></tr>
+		<tr id="QBILineB">
+			<td>QBI deduction amount</td>
+			<td>1040 line <span id="QBILineNoB">??</span></td>
+			<td><input class="taxreturn" id="StudQBITax" type="number" /></td>
+			<td class="AOCClass" id="QBIAOC"></td>
+			<td class="LLCClass" id="QBILLC"></td>
+			<td class="TNFClass" id="QBITNF"></td></tr>
 		<tr>
 			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="StudCapGainsLineNoA">??</span></td>
 			<td>QD&amp;CG Wkt line <span id="StudCapGainsLineNoB">??</span></td>
@@ -3715,7 +3758,7 @@
 			<td class="TNFClass" id="StudCapGainsTNF"></td></tr>
 		<tr>
 			<td class="bold">Tax amount:</td>
-			<td>1040 line 44</td>
+			<td>1040 line <span id="TaxAmountLineNoA">44</span></td>
 			<td class="calculatedEntry" id="StudTaxTax"></td>
 			<td class="AOCClass" id="StudTaxAOC"></td>
 			<td class="LLCClass" id="StudTaxLLC"></td>
