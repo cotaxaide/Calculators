@@ -176,7 +176,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.08, 12/19/2018";
+	var VERSION = "Version 3.09, 12/29/2018";
+	//	Tax computation in final result was showing wrong choice (LLC vs AOC)
+	//var VERSION = "Version 3.08, 12/19/2018";
 	//	Added QBI lines to TP and Student returns
 	//	Corrected line numbers to match new forms
 	//var VERSION = "Version 3.07, 11/28/2018";
@@ -226,6 +228,7 @@
 	//	Bob Wells
 	//	Jay Wiedwald
 	//	Edie Loughmiller
+	//	Harold Rowe
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -291,6 +294,10 @@
 	var ResultingExpense = 0;
 	var UnusedCTC = 0;
 	var WarningMessage = "";
+	var StudKiddieTax = [];
+	var StudKiddieAOC = [];
+	var StudKiddieLLC = [];
+	var StudKiddieTNF = [];
 
 	//----------------------------------------------------------------------------------------
 	// This function initializes options when the application is first loaded
@@ -1190,15 +1197,19 @@
 			result = CalculateTax(StudAGITax.value, StudEarnedTax.value, 0, StudCapGainsTax.value, true);
 				StudDeductionTax.innerHTML = result.deduction;
 				StudTaxTax.innerHTML = result.tax;
+				StudKiddieTax = result;
 			result = CalculateTax(StudAGIAOC.innerHTML, StudEarnedAOC.innerHTML, StudScholarAOC.innerHTML, StudCapGainsAOC.innerHTML, true);
 				StudDeductionAOC.innerHTML = result.deduction;
 				StudTaxAOC.innerHTML = result.tax;
+				StudKiddieAOC = result;
 			result = CalculateTax(StudAGILLC.innerHTML, StudEarnedLLC.innerHTML, StudScholarLLC.innerHTML, StudCapGainsLLC.innerHTML, true);
 				StudDeductionLLC.innerHTML = result.deduction;
 				StudTaxLLC.innerHTML = result.tax;
+				StudKiddieLLC = result;
 			result = CalculateTax(StudAGITNF.innerHTML, StudEarnedTNF.innerHTML, StudScholarTNF.innerHTML, StudCapGainsTNF.innerHTML, true);
 				StudDeductionTNF.innerHTML = result.deduction;
 				StudTaxTNF.innerHTML = result.tax;
+				StudKiddieTNF = result;
 		}
 
 		// Determine new APTC and Net PTC amounts
@@ -1346,6 +1357,10 @@
 			ResultingExpense = +QualExpensesTNF.innerHTML;
 			MaxRefundAGI = +AGITNF.innerHTML;
 			MaxRefundTaxable = +IncomeTNF.innerHTML;
+			KiddieIncomeStandard.innerHTML = StudKiddieTNF.kiddieIncomeStandard;
+			KiddieResultStandard.innerHTML = StudKiddieTNF.kiddieResultStandard;
+			KiddieIncomeTrust.innerHTML = StudKiddieTNF.kiddieIncomeTrust;
+			KiddieResultTrust.innerHTML = StudKiddieTNF.kiddieResultTrust;
 		}
 		else RefundTNF.style.backgroundColor = "hotpink";
 
@@ -1356,6 +1371,10 @@
 			ResultingExpense = +QualExpensesLLC.innerHTML;
 			MaxRefundAGI = +AGILLC.innerHTML;
 			MaxRefundTaxable = +IncomeLLC.innerHTML;
+			KiddieIncomeStandard.innerHTML = StudKiddieLLC.kiddieIncomeStandard;
+			KiddieResultStandard.innerHTML = StudKiddieLLC.kiddieResultStandard;
+			KiddieIncomeTrust.innerHTML = StudKiddieLLC.kiddieIncomeTrust;
+			KiddieResultTrust.innerHTML = StudKiddieLLC.kiddieResultTrust;
 		}
 		else RefundLLC.style.backgroundColor = "hotpink";
 			
@@ -1366,6 +1385,10 @@
 			ResultingExpense = +QualExpensesAOC.innerHTML;
 			MaxRefundAGI = +AGIAOC.innerHTML;
 			MaxRefundTaxable = +IncomeAOC.innerHTML;
+			KiddieIncomeStandard.innerHTML = StudKiddieAOC.kiddieIncomeStandard;
+			KiddieResultStandard.innerHTML = StudKiddieAOC.kiddieResultStandard;
+			KiddieIncomeTrust.innerHTML = StudKiddieAOC.kiddieIncomeTrust;
+			KiddieResultTrust.innerHTML = StudKiddieAOC.kiddieResultTrust;
 		}
 		else RefundAOC.style.backgroundColor = "hotpink";
 
@@ -1750,6 +1773,11 @@
 	//returns:
 	//	result.deduction
 	//	result.tax
+	//if student:
+	//	result.kiddieIncomeStandard
+	//	result.kiddieResultStandard
+	//	result.kiddieIncomeTrust
+	//	result.kiddieResultTrust
 	//----------------------------------------------------------------------------------------
 
 		var result = {};
@@ -1831,12 +1859,12 @@
 				}
 
 				// Add the two tax rate results and return
+				result.kiddieIncomeStandard = standardTaxable;
+				result.kiddieResultStandard = standardTax;
+				result.kiddieIncomeTrust = trustTaxable;
+				result.kiddieResultTrust = trustTax;
 				result.tax = standardTax + trustTax;
 				if (standardTaxable + trustTaxable) {
-					KiddieIncomeStandard.innerHTML = standardTaxable;
-					KiddieResultStandard.innerHTML = standardTax;
-					KiddieIncomeTrust.innerHTML = trustTaxable;
-					KiddieResultTrust.innerHTML = trustTax;
 					KiddieResults.style.display = "block";
 				}
 				else {
