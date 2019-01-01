@@ -274,7 +274,9 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.18, 11/27/2018)";
+		var VERSION = "(version 10.19, 1/1/2019)";
+		//	Added Sched C as a carryover location for excess insurance
+		//var VERSION = "(version 10.18, 11/27/2018)";
 		//	Addded PSO insurance calculations to pre-retirement disability messages
 		//var VERSION = "(version 10.17a, 11/11/2018)";
 		//	Minor disability comment prior to retirement age clarification
@@ -408,14 +410,16 @@
 			PSOtitle += "<li>accident insurance premiums</li>";
 			PSOtitle += "<li>long term care insurance premiums</li></ul>";
 			PSOtitle += "<b>Note:</b> a surviving spouse does not receive the exclusion.";
-		var Distitle = "For disabiltity pensions, the contributions are not recovered until";
+		var Distitle = "For disability pensions, the contributions are not recovered until";
 			Distitle += " the minimum retirement age has been reached.";
-			Distitle += " <br />If that happened this year, you may have to split the 1099-R";
+			Distitle += " The annuity recovery will start with the first payment after reaching minimum retirement age.";
+			Distitle += " <br /><br />If that happened this year, you may have to split the 1099-R";
 			Distitle += " into two entries:";
-			Distitle += "<ul><li>the months prior to retirement age";
+			Distitle += "<ul><li>the months prior to minimum retirement age";
 			Distitle += " to include as wages income.</li>";
-			Distitle += "<li>the months after retirement age";
+			Distitle += "<li>the months after minimum retirement age";
 			Distitle += " to as pension to recover contributions for those months.</li></ul>";
+			Distitle += " The calculator will tell you how what to include in each 1099-R.";
 		var ret_age_yr = [];
 		var ret_age_mo = [];
 		var ret_age_warning_seen = false;
@@ -1261,7 +1265,8 @@
 					message += Math.round(+TPGROSS.value);
 					message += ". \n\nBe sure to include the additional $";
 					message += OVERAGE;
-					message += " in the Schedule A medical deductions.";
+					message += " in the Schedule C medical expense or ";
+					message += " Schedule A medical deductions.";
 					MEDICc.innerHTML = "Limited to gross distrib";
 					IGNOREMED = true;
 					MEDIC.value = Math.round(+TPGROSS.value);
@@ -1272,7 +1277,8 @@
 					message += MedTaxLimit;
 					message += ". \n\nBe sure to include the additional $";
 					message += OVERAGE;
-					message += " in the Schedule A medical deductions.";
+					message += " in the Schedule C medical expense or ";
+					message += " Schedule A medical deductions.";
 					MEDICc.innerHTML = "Limited to " + MedTaxLimit;
 					IGNOREMED = true;
 					MEDIC.value = MedTaxLimit;
@@ -1285,7 +1291,8 @@
 					message += PSOMEDIC.value;
 					message += " to allow the full exclusion to be taken. \n\nBe sure to include the additional $";
 					message += OVERAGE;
-					message += " in the Schedule A medical deductions.";
+					message += " in the Schedule C medical expense or ";
+					message += " Schedule A medical deductions.";
 					MEDICc.innerHTML = "Limited due to contribution recovery";
 					IGNOREMED = true;
 					break;
@@ -1619,7 +1626,7 @@
 	
 			// Anything remaining?
 			if (TARR[TROW-1].remaining > 0) {
-				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as a Miscellaneous Deduction on Schedule A.");
+				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as a Miscellaneous Deduction on Schedule A or Schedule C expense.");
 				deathMessage.innerHTML = TARR[TROW-1].remaining;
 				DeathTable.style.display = "inline";
 			}
