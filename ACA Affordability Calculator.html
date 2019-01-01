@@ -152,7 +152,9 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 4.36, 12/14/2018)";
+	var VERSION = "(Version 4.37, 1/1/2019)";
+	//	Annualized family plan taken was x12 each time Click to test was clicked
+	//var VERSION = "(Version 4.36, 12/14/2018)";
 	//	Corrected Code G - added test for family plan affordability if offered
 	//var VERSION = "(Version 4.35e, 11/28/2018)";
 	//	Typo correction
@@ -1066,8 +1068,8 @@
 
 		// Determine the minimum family plan offered
 		FamilyTaken = 0;
-		if (TPFamilySal.checked) FamilyTaken = Math.max(0.00001, +TPFamily.value);
-		if (SPFamilySal.checked) FamilyTaken = Math.max(0.00001, +SPFamily.value);
+		if (TPFamilySal.checked) FamilyTaken = Math.max(0.00001, +TPFamily.value/MoYr);
+		if (SPFamilySal.checked) FamilyTaken = Math.max(0.00001, +SPFamily.value/MoYr);
 		switch (fmTP = TPFamily.value) {
 			case "":
 			case "X": fmTP = -1; break;
@@ -1110,8 +1112,9 @@
 			if ((ptr2.disabled == false) && (FamilyMinimum > 0) && (ptr2.value != "X")) {
 				P2temp = ptr2.value;
 				if ((P2temp == "") || (! TwoFamilyPlans)) P2temp = (FamilyTaken) ? +FamilyTaken * MoYr : +FamilyMinimum * MoYr;
-				ptr2.value = (P2temp < 1) ? 0 : Math.round(+P2temp).toFixed(2);
-				if (((xP > 1) && (FamilyTaken) && (FamilyTaken >= ptr2.value))
+				//ptr2.value = (P2temp < 1) ? 0 : Math.round(+P2temp).toFixed(2);
+				ptr2.value = (P2temp < 1) ? 0 : +P2temp.toFixed(2);
+				if (((xP > 1) && (FamilyTaken) && (FamilyTaken >= (ptr2.value/MoYr)))
 				|| ((xP == 0) && SPFamilySal.checked && TPinSPYes.checked)
 				|| ((xP == 1) && TPFamilySal.checked && SPinTPYes.checked)) {
 					if (ptrX.value != "MEC") MECChangeFlag = true;
