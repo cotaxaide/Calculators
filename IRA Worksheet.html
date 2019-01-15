@@ -126,7 +126,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.03, 6/20/2018)";
+	var VERSION = "(Version 1.04, 1/15/2019)";
+	//	Corrected year list due to non-numeric line number
+	//var VERSION = "(Version 1.03, 6/20/2018)";
 	//	Changed year list creation
 	//var VERSION = "(Version 1.02, 1/23/2018)";
 	//	Check inputs for commas and delete them
@@ -144,7 +146,7 @@
 		// Add tax year options
 		var tyOptIndex = 0;
 		for (var ty = _StartYear; ty <= _StopYear; ty++) {
-			if (_LineNo[ty + ":CapGains"] > 0) { // Prevent adding if no data file
+			if (_LineNo[ty + ":CapGains"] != "") { // Prevent adding if no data file
 				var tyopti = document.createElement("option");
 				tyopti.text = tyopti.value = ty;
 				TaxYear.add(tyopti,tyOptIndex++);
