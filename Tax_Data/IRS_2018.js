@@ -16,7 +16,7 @@
                 _LineNo[_TY+":TNF"] = "";
                 _LineNo[_TY+":Adjustments"] = "S1-36";
                 _LineNo[_TY+":Deductions"] = "8";
-                _LineNo[_TY+":TaxAmount"] = "15";
+                _LineNo[_TY+":TaxAmount"] = "11";
                 _LineNo[_TY+":ExcessAPTC"] = "S2-46";
                 _LineNo[_TY+":Foreign"] = "S3-48";
                 _LineNo[_TY+":Care"] = "S3-49";
