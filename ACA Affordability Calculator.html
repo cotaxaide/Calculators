@@ -41,11 +41,6 @@
 	.aff_exm { width: 6em; text-align:left; }
 	#TPName { width:20em; text-align:left; }
 	#APW { display: none; background-color: white; }
-	#OpenAPW { background-color: lightgreen;
-		border: 1px solid black;
-		cursor: pointer;
-		padding-left: 3px;
-		padding-right: 3px; }
 	#Instructions { width: 16em; 
 		text-align:center; 
 		border:0;
@@ -62,8 +57,8 @@
 	#ClearAndPrint button { margin: 2px; }
 	#FilingInfoTbl tr td:nth-child(1) { width:20%; }
 	#FilingInfoTbl tr td:nth-child(2) { width:10%; }
-	#FilingInfoTbl tr td:nth-child(3) { width:38%; }
-	#FilingInfoTbl tr td:nth-child(4) { width:32%; }
+	#FilingInfoTbl tr td:nth-child(3) { width:32%; }
+	#FilingInfoTbl tr td:nth-child(4) { width:38%; }
 	#FilingInfoTbl tr td:nth-child(5) { width:10%; }
 	#FPL8962 { font-weight: bold; }
 	#TaxYear { width: 6em; }
@@ -147,12 +142,16 @@
 	//	Ted Wolanin
 	//	Bill Tuel
 	//	Patricia George
+	//	Paul Dangler
 	// --------------------------------------------------------------------------------
 
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 4.37, 1/1/2019)";
+	var VERSION = "(Version 4.38, 1/23/2019)";
+	//	Added ACA Basic Health Program option
+	//	Fixed a problem where code G did not work
+	//var VERSION = "(Version 4.37, 1/1/2019)";
 	//	Annualized family plan taken was x12 each time Click to test was clicked
 	//var VERSION = "(Version 4.36, 12/14/2018)";
 	//	Corrected Code G - added test for family plan affordability if offered
@@ -287,7 +286,6 @@
 
 	var vFPL138 = 0;
 	var vFPL249 = 0;
-	var MedicaidExpand = true;
 	var PersonList = ["TP","SP","D1","D2","D3","D4","D5"];
 	var FamilyPlan = false;
 	var FedPovLine = 0;
@@ -326,7 +324,7 @@
 		ShowMo.checked = true;
 
 		// Read any cookies
-		var noRegion = noMedicaid = true;
+		var noRegion = noMedicaid = noACABHP = true;
 		switch (_Read_Cookie("Region")) {
 			case "US"    : RegionUS.checked = true    ; noRegion = false; break;
 			case "Alaska": RegionAlaska.checked = true; noRegion = false; break;
@@ -335,6 +333,10 @@
 		switch (_Read_Cookie("MedExpand")) {
 			case "Yes": MedicaidY.checked = true; noMedicaid = false; break;
 			case "No": MedicaidN.checked = true; noMedicaid = false; break;
+		}
+		switch (_Read_Cookie("BHProgram")) {
+			case "Yes": ACABHPY.checked = true; noACABHP = false; break;
+			case "No": ACABHPN.checked = true; noACABHP = false; break;
 		}
 		switch (_Read_Cookie("ShowResults")) {
 			case "1": ShowMo.checked = true; MoYr =  1; break;
@@ -347,6 +349,7 @@
 		// No cookies, set defaults
 		if (noRegion) RegionUS.checked = true;
 		if (noMedicaid) MedicaidY.checked = true;
+		if (noACABHP) ACABHPN.checked = true;
 
 		FileChange();
 	}
@@ -383,6 +386,15 @@
 		if (MedicaidY.checked) {
 			QualForCodeG = false;
 		}
+
+		// Adjust for Basic Health Program
+		if (ACABHPY.checked) {
+			FPL138PCT.innerHTML = "200%";
+		}
+		else {
+			FPL138PCT.innerHTML = "138%";
+		}
+
 
 		FileCalc();
 		ShadeDepList(false);
@@ -549,12 +561,10 @@
 		for (i = 0; i < RegionList.length; i++){
 			if (RegionList[i].checked) ThisRegion = RegionList[i].value;
 				}
-		MedicaidExpand = (MedicaidN.checked) ? false:true;
-
 		// Set cookies
 		_Write_Cookie("Region",ThisRegion);
-		var MEvar =(MedicaidExpand) ? "Yes":"No";
-		_Write_Cookie("MedExpand",MEvar);
+		_Write_Cookie("MedExpand", (MedicaidN.checked) ? "No" : "Yes");
+		_Write_Cookie("BHProgram", (ACABHPN.checked) ? "No" : "Yes");
 
 		// Federal Poverty Lines - Use previous year's FPL tables for ACA affordability
 		iFPLIndex = (TaxYear.value - 1) + ":" + ThisRegion;
@@ -572,7 +582,7 @@
 			MFSStop.innerHTML = "";
 		}
 		FPL100.innerHTML = FedPovLine;
-		FPL138.innerHTML = Math.round(1.38 * FedPovLine);
+		FPL138.innerHTML = Math.round( ((ACABHPY.checked) ? 2.00 : 1.38) * FedPovLine);
 		SOAmount.innerHTML = Math.round(FPL138.innerHTML / 12);
 		FPL400.innerHTML = 4 * +FedPovLine;
 		MCA05.innerHTML = FedPovLine;
@@ -969,7 +979,7 @@
 		ifPLPercent = (iFPLPercent/100).toFixed(2);
 		MCA06.innerHTML = ifPLPercent;
 
-		vFPL138 = FedPovLine * 1.38;
+		vFPL138 = +FPL138.innerHTML;
 		vFPL249 = FedPovLine * 2.49;
 		FPL8962.innerHTML = "(" + iFPLPercent + "% of FPL)";
 
@@ -984,7 +994,7 @@
 				QualForPTC = false;
 			}
 			else if (! SilverOverride.checked) {
-				NoPTCStop.innerHTML = "<span class='noteflag'>NOTE!</span> Household income is less than 138% of Fed Poverty Line.<br />The TP does not qualify for the PTC and would have paid the full cost of the Bronze plan.";
+				NoPTCStop.innerHTML = "<span class='noteflag'>NOTE!</span> Household income is less than " + FPL138PCT.innerHTML + " of Fed Poverty Line.<br />The TP does not qualify for the PTC and would have paid the full cost of the Bronze plan.";
 				Silver.value = 0;
 				NoSilver = true;
 				QualForPTC = false;
@@ -1113,7 +1123,7 @@
 				P2temp = ptr2.value;
 				if ((P2temp == "") || (! TwoFamilyPlans)) P2temp = (FamilyTaken) ? +FamilyTaken * MoYr : +FamilyMinimum * MoYr;
 				//ptr2.value = (P2temp < 1) ? 0 : Math.round(+P2temp).toFixed(2);
-				ptr2.value = (P2temp < 1) ? 0 : +P2temp.toFixed(2);
+				ptr2.value = (P2temp < 1) ? 0 : (+P2temp).toFixed(2);
 				if (((xP > 1) && (FamilyTaken) && (FamilyTaken >= (ptr2.value/MoYr)))
 				|| ((xP == 0) && SPFamilySal.checked && TPinSPYes.checked)
 				|| ((xP == 1) && TPFamilySal.checked && SPinTPYes.checked)) {
@@ -1507,14 +1517,21 @@
 			<td>Tax Year:</td>
 			<td colspan="2">
 				<select id="TaxYear" title="Select the tax year being prepared." onchange="FileChange()"></select></td>
-			<td colspan="2" style="text-align:center;">
-		      	<input name="Region" type="radio" id="RegionUS" value="US" onchange="FileChange()" />48 states&nbsp;&nbsp;
-		      	<input name="Region" type="radio" id="RegionAlaska" value="Alaska" onchange="FileChange()" />Alaska&nbsp;&nbsp;
-		      	<input name="Region" type="radio" id="RegionHawaii" value="Hawaii" onchange="FileChange()" />Hawaii
-		      	<br />
-		      	State expanded Medicaid?
-		      	<input name="Medicaid" id="MedicaidY" type="radio" value="Y" onchange="FileChange()" />Yes&nbsp;&nbsp;
-		      	<input name="Medicaid" id="MedicaidN" type="radio" value="N" onchange="FileChange()" />No&nbsp;&nbsp;</td></tr>
+			<td colspan="2" style="text-align:right;">
+				<span title="Different parts of the US use unique FPL figures.">Region:&nbsp;
+		      		<input name="Region" type="radio" id="RegionUS" value="US" onchange="FileChange()" />48 states&nbsp;&nbsp;
+		      		<input name="Region" type="radio" id="RegionAlaska" value="Alaska" onchange="FileChange()" />Alaska&nbsp;&nbsp;
+		      		<input name="Region" type="radio" id="RegionHawaii" value="Hawaii" onchange="FileChange()" />Hawaii
+				</span>
+				<br /><span title="Affordability criteria differs if the state did not expand Medicaid">
+		      		State expanded Medicaid?
+		      		<input name="Medicaid" id="MedicaidY" type="radio" value="Y" onchange="FileChange()" />Yes&nbsp;&nbsp;
+		      		<input name="Medicaid" id="MedicaidN" type="radio" value="N" onchange="FileChange()" />No&nbsp;&nbsp;
+				</span>
+				<br /><span title='Some states (NY, MN) implemented an optional, expanded "Basic Health Program" such that under 200% FPL is ineligible for PTC. See the "GOV" option in the instructions below for more information.'>
+		      		State has ACA Basic Health Program?
+		      		<input name="ACABHP" id="ACABHPY" type="radio" value="Y" onchange="FileChange()" />Yes&nbsp;&nbsp;
+				<input name="ACABHP" id="ACABHPN" type="radio" value="N" onchange="FileChange()" />No&nbsp;&nbsp;</span></td></tr>
 		<tr>
 			<td>Filing Status:</td>
 			<td style="text-align:top">
@@ -1527,8 +1544,16 @@
 			<td style="text-align:top">
 				<input id="TP65" type="checkbox" onchange="FileChange()" title="Taxpayer is age 65 or older"/> TP 65 or older in <span id="TP65Y"></span>
 				<br /><input id="SP65" type="checkbox" onchange="FileChange()" title="Spouse is age 65 or older"/> SP 65 or older in <span id="SP65Y"></span></td>
-			<td rowspan="2" style="text-align:right;"><br />Filing Threshold:<br />100% Fed Poverty Line:<br />138% Fed Poverty Line:<br />400% Fed Poverty Line:</td>
-			<td rowspan="2" style="text-align:right;"><br /><span id="Thresh"></span><br /><span id="FPL100"></span><br /><span id="FPL138"></span><br /><span id="FPL400"></span></td></tr>
+			<td rowspan="2" style="text-align:right;">
+				<br />Filing Threshold:
+				<br />100% Fed Poverty Line:
+				<br /><span id="FPL138PCT">138%</span> Fed Poverty Line:
+				<br />400% Fed Poverty Line:</td>
+			<td rowspan="2" style="text-align:right;">
+				<br /><span id="Thresh"></span>
+				<br /><span id="FPL100"></span>
+				<br /><span id="FPL138"></span>
+				<br /><span id="FPL400"></span></td></tr>
 		<tr>
 			<td>Number of dependents:</td>
 			<td><input id="Dependents" size="2" value="0" onchange="FileChange()" onkeyup="FileChange()" 
@@ -1740,9 +1765,15 @@
 							<li>If by government-sponsored (Medicare, Medicaid, CHIP, etc), use GOV.</li>
 						</ul></li>
 					<li>&quot;GOV&quot; for anyone eligible for government insurance regardless of whether
-						they have taken that coverage to exclude them from the Silver plan list.
+						they have taken that coverage to exclude them from the PTC.
 						(The actual cost of GOV coverage is never used so do not enter it anywhere.)
-						<ul>	<li>If also eligible for employer coverage, see employer offers below</li></ul>
+						<ul>
+							<li><a href="Instructions/NYS Essential workaround.pdf" target="_blank">
+						<button>Click here</button></a>
+				       		for an explanation of how to deal with more generous government programs.
+						(Basic Health Plans in NY and MN, pregnant women in many other states)</li>
+							<li>If also eligible for employer coverage, see employer offers below</li>
+						</ul>
 						</li></ul></li>
 			<li>Employer offers:
 				<ul>	<li>Enter the lowest cost employer offered insurance for self-only (line 1)
@@ -1754,7 +1785,7 @@
 						(even if it had &quot;0&quot; cost).</li>
 					<li>If employer coverage premiums include a <u>partial month</u> of coverage,
 						you must use the Annualized Premium Worksheet
-						<span id="OpenAPW" onclick="UseAPW()">Click to open</span>
+						<button id="OpenAPW" onclick="UseAPW()">Click to open</button>
 						<br /><span id="APW">
 							<hr />
 							The total premium amount for the period (paid or not):
