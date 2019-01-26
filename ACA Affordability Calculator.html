@@ -143,12 +143,15 @@
 	//	Bill Tuel
 	//	Patricia George
 	//	Paul Dangler
+	//	Joe Egloff
 	// --------------------------------------------------------------------------------
 
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 4.38, 1/23/2019)";
+	var VERSION = "(Version 4.38a, 1/26/2019)";
+	//	Messaging modification on first click to test if TP is filing MFS
+	//var VERSION = "(Version 4.38, 1/23/2019)";
 	//	Added ACA Basic Health Program option
 	//	Fixed a problem where code G did not work
 	//var VERSION = "(Version 4.37, 1/1/2019)";
@@ -1035,7 +1038,9 @@
 		else if ((HH8962v < vFPL138) && MedicaidN.checked) { // Add socsecv back in
 			Household138.style.display = "inline";
 		}
-		else if ((HH8965v >= vFPL138) && (HH8965v <= vFPL249) && (socsecv == 0)) {
+		else if ((HH8965v >= vFPL138) && (HH8965v <= vFPL249)
+			&& (socsecv == 0)
+			&& (FilingStatus.value != "MFS")) {
 			Household249.style.display = "inline";
 			AffordTable.disabled = false;
 			AffordButton.style.visibility = "visible";
