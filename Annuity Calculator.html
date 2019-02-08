@@ -274,7 +274,9 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.19a, 1/17/2019)";
+		var VERSION = "(version 10.20, 2/7/2019)";
+		//	Correction to unrecovered investment in pension text
+		//var VERSION = "(version 10.19a, 1/17/2019)";
 		//	Added comment to directly enter taxable amount or use worksheet
 		//var VERSION = "(version 10.19, 1/1/2019)";
 		//	Added Sched C as a carryover location for excess insurance
@@ -1628,7 +1630,7 @@
 	
 			// Anything remaining?
 			if (TARR[TROW-1].remaining > 0) {
-				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as a Miscellaneous Deduction on Schedule A or Schedule C expense.");
+				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as an \"Other\" Deduction on Schedule A.");
 				deathMessage.innerHTML = TARR[TROW-1].remaining;
 				DeathTable.style.display = "inline";
 			}
@@ -2387,7 +2389,7 @@
 			<b>Federal Section > Deductions > Itemized Deductions > <br />Miscellaneous Deductions > Unrecovered Investment in Pension:</b>
 			<table class="entrytable">
 				<tr>
-					<td class="center bold">Schedule A - Miscellaneous Deductions</td></tr>
+					<td class="center bold">Schedule A - Other Deductions</td></tr>
 				<tr>
 					<td>&nbsp;Unrecovered Investment in Pension - $ <span id="deathMessage"></span>&nbsp;&nbsp;</td></tr> </table>
 		</div>
