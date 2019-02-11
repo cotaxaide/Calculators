@@ -9,6 +9,8 @@
 //	_QBICalc		Qualified Business Income deduction calculation
 //----------------------------------------------------------------------------------------
 //
+// Version 1.02 2/3/2019
+// 	Correction to MFS and living with spouse - did not use 1/2 Soc Sec
 // Version 1.01 12/7/2018
 // 	Correction to QBI calculation to not show OOS if no SE or 199A
 
@@ -59,28 +61,32 @@ function _TaxableSS(	// Taxable amount of Social Security
 	var ssline5 = +otherIncome + ssline2;
 	var ssline6 = +adjustments;
 	var ssline7 = Math.max(0, ssline5 - ssline6);
-	switch (filingStatus) {
-		case "MFJ":
+	if (MFStogether) {
+		var ssline16 = ssline7 * 0.85;
+		var IRAgap00 = 0;
+		var IRAgap50 = 0;
+		var IRAgap85 = 0;
+	}
+	else {
+		if (filingStatus == "MFJ") {
 			var ssline8 = 32000;
 			var ssline10 = 12000;
-			break;
-		case "MFS":
-			if (MFStogether) return ([ssline1 * 0.85,0,0,0]);
-			// no break
-		default:
+		}
+		else {
 			var ssline8 = 25000;
 			var ssline10 = 9000;
+		}
+		var IRAgap00 = Math.round(Math.max(0, ssline8 - ssline7));
+		var ssline9 = Math.max(0, ssline7 - ssline8);
+		var IRAgap50 = Math.round(Math.max(0, ssline10 - ssline9));
+		var ssline11 = Math.max(0, ssline9 - ssline10);
+		var IRAgap85 = Math.round(Math.max(0, ssline1 - ssline11));
+		var ssline12 = Math.min(ssline9, ssline10);
+		var ssline13 = ssline12 * 0.5;
+		var ssline14 = Math.min(ssline2, ssline13);
+		var ssline15 = ssline11 * 0.85;
+		var ssline16 = ssline14 + ssline15;
 	}
-	var IRAgap00 = Math.round(Math.max(0, ssline8 - ssline7));
-	var ssline9 = Math.max(0, ssline7 - ssline8);
-	var IRAgap50 = Math.round(Math.max(0, ssline10 - ssline9));
-	var ssline11 = Math.max(0, ssline9 - ssline10);
-	var IRAgap85 = Math.round(Math.max(0, ssline1 - ssline11));
-	var ssline12 = Math.min(ssline9, ssline10);
-	var ssline13 = ssline12 * 0.5;
-	var ssline14 = Math.min(ssline2, ssline13);
-	var ssline15 = ssline11 * 0.85;
-	var ssline16 = ssline14 + ssline15;
 	var ssline17 = ssline1 * 0.85;
 	var ssline18 = Math.round(Math.min(ssline16, ssline17));
 	var SSresult = [ssline18, IRAgap00, IRAgap50, IRAgap85];
@@ -318,7 +324,7 @@ function _EICLookup(	// Earned Income Credit table lookup
 function _QBICalc (	// Qualified Business Income deduction
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
-	SEIncome,	// Self-employment income
+	SEIncome,	// Self-employment income less s-e adjustments
 	nonTaxCG,	// Qualified dividends + capital gains
 	QBIDividends,	// Section 166A dividends
 	income		// Taxable income amount (before QBI deduction)
