@@ -274,7 +274,9 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.20, 2/7/2019)";
+		var VERSION = "(version 10.21, 2/10/2019)";
+		//	Corrected date for survivor option
+		//var VERSION = "(version 10.20, 2/7/2019)";
 		//	Correction to unrecovered investment in pension text
 		//var VERSION = "(version 10.19a, 1/17/2019)";
 		//	Added comment to directly enter taxable amount or use worksheet
@@ -1895,7 +1897,7 @@
 				return; 
 			}
 	
-			if (AnnTest > 19971231) { // Survivor option added to tax law
+			if (AnnTest > 19731231) { // Survivor option added to tax law
 				SPa.style.backgroundColor = "yellow";
 				SPb.style.backgroundColor = "yellow";
 				TPdiedQ.style.display = "inline";
