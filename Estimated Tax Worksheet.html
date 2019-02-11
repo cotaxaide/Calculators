@@ -84,7 +84,13 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.18, 12/7/2018)";
+	var VERSION = "(Version 2.19, 2/10/2019)";
+	//	Reordered income lines to match new tax forms]
+	//	Added SEHI deduction and other adjustment lines
+	//	Made adjustment section expandable
+	//	Corrected QBI calculation
+	//	Fixed problem where total income was written to Wages when un-expanded
+	//var VERSION = "(Version 2.18, 12/7/2018)";
 	//	Corrected QBI calculation
 	//var VERSION = "(Version 2.17, 11/16/2018)";
 	//	Added QBI lines
@@ -197,6 +203,8 @@
 		// Check dependent consistency
 		var dep = Math.max(CTCDependents.value, EICDependents.value);
 		if (Dependents.value < dep) Dependents.value = dep;
+		// if (TP65.checked) Kiddie.checked = false;
+		// if (Kiddie.checked) TP65.checked = false;
 		
 		// Deactivate unneeded entries
 		SP65.disabled = ! (FilingStatus.value == "MFJ");
@@ -207,9 +215,11 @@
 		MFSoption.style.display = (FilingStatus.value == "MFS") ? "inline" : "none";
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
 		if (FilingStatus.value != "MFS") ItemizeRequired.checked = false;
+		SP65Option.style.display = SPBlindOption.style.display = (FilingStatus.value == "MFJ") ? "inline" : "none";
+		// IsDependent.style.display = ((FilingStatus.value == "SNG") && (! TP65.checked)) ? "inline" : "none";
 		
 		// Expand the income section
-		if ((! IncomeExpanded) && (! IncomeWasExpanded)) Wages.value = Gross.value;
+		//if ((! IncomeExpanded) && (! IncomeWasExpanded)) Wages.value = Gross.value;
 		IncomeExpanded = IncomeExpand.checked || (EICDependents.value > 0);
 		if (IncomeExpanded) IncomeWasExpanded = true;
 		incomelist = document.getElementsByClassName("income");
@@ -239,8 +249,27 @@
 			Gross.value = Math.round(IncomeNoSS + +TaxableSS.innerHTML);
 		}
 
+		IExp = AdjustExpand.checked;
+		itemlist = document.getElementsByClassName("adjustment");
+		for (itno = 0; itno < itemlist.length; itno++) {
+			itemlist[itno].style.display = (IExp) ? "table-row" : "none";
+		}
+
+		// Total the adjustments
+		SEInsurance.disabled = SESEP.disabled = (+SEIncome.value == 0);
+		if (SEInsurance.disabled) SEInsurance.value = "";
+		SEHI.innerHTML = Math.min(+SEIncome.value, +SEInsurance.value);
+		var SEHIRemainder = Math.max(0, +SEInsurance.value - +SEHI.innerHTML);
+		SEHIExcess.innerHTML = (SEHIRemainder) ? "<br />&nbsp;&nbsp;&nbsp;<i>Excess " + +SEHIRemainder + " will carry to Schedule A medical expenses</i>" : "";
+
+
+		var taxcredits = +EdExpenses.value + +HSADeduction.value
+			+ +SETaxCredit.innerHTML + +SESEP.value + +SEHI.innerHTML
+			+ +AlimonyPaid.value + +IRADeduction.value
+			+ +StudentLoanCredit.value + +OtherCredits.value;
+		TotalAdjustments.value = taxcredits;
+
 		// Figure the AGI
-		var taxcredits = +SETaxCredit.innerHTML + +StudentLoanCredit.value + +OtherCredits.value;
 		AGI.innerHTML = Math.round(Math.max(0,Gross.value - taxcredits));
 
 		// Calculate standard deduction
@@ -272,9 +301,10 @@
 		AGILimitRow.style.display = MiscellaneousRow.style.display =(IExp && (TaxYear.value < 2018)) ? "table-row" : "none";
 
 		// Medical limitation
+		NoInsurance.style.display = (+SEInsurance.value) ? "inline" : "none";
 		var medexclusionindex = (TP65.checked || SP65.checked) ? 1 : 0;
 		var medexclusion = Math.round(+AGI.innerHTML * +_MedicalExclusion[TaxYear.value].split(",")[medexclusionindex]);
-		Medical.innerHTML = Math.max(0, +ActualMedical.value - medexclusion);
+		Medical.innerHTML = Math.max(0, +ActualMedical.value + SEHIRemainder - medexclusion);
 
 		// Two percent limitation
 		TwoPercent.innerHTML = Math.round(+AGI.innerHTML * 0.02);
@@ -327,8 +357,9 @@
 		// QBI Calc
 		var QBIDeduction = 0;
 		if (_LineNo[TaxYear.value + ":QBI"]) {
-			QBILine.style.display = "table-line";
-			var QBIDeduction = _QBICalc(TaxYear.value, FilingStatus.value, SEIncome.value,
+			QBILine.style.display = "table-row";
+			var SENetIncome = +SEIncome.value - +SETaxCredit.innerHTML - +SESEP.value - +SEHI.innerHTML;
+			var QBIDeduction = _QBICalc(TaxYear.value, FilingStatus.value, SENetIncome,
 				(+QualDividends.value + +CapGains.value),
 				QBIDividends.value, PostExemptAmount);
 			QBIOOS.style.display = (QBIDeduction == -1) ? "inline" : "none";
@@ -343,7 +374,7 @@
 
 
 		// Determine Tax
-		if (UsingD.checked) {
+		if ((UsingD.checked) && (IncomeExpand.checked)) {
 			UsingDAmount.style.display = "table-row";
 			CGtoUse = CGLongTerm.value;
 		}
@@ -512,13 +543,18 @@
 			</td>
 			<td style="text-align:top">
 				<input id="TP65" type="checkbox" title="Taxpayer is age 65 or older"/> TP 65 or older
-				<br /><input id="SP65" type="checkbox" title="Spouse is age 65 or older"/> SP 65 or older</td>
+				<span id="SP65Option"><br /><input id="SP65" type="checkbox" title="Spouse is age 65 or older"/> SP 65 or older</span></td>
 			<td style="text-align:top">
 				<input id="TPBlind" type="checkbox" title="Taxpayer is blind"/> blind
-				<br /><input id="SPBlind" type="checkbox" title="Spouse is blind"/> blind</td></tr>
-		<tr><td></td><td></td><td colspan="2">
+				<span id="SPBlindOption"><br /><input id="SPBlind" type="checkbox" title="Spouse is blind"/> blind</span></td></tr>
+			<tr><td></td><td></td><td colspan="2">
 				<span id="MFSoption"><input id="MFStogether" type="checkbox" /> Check if you will be living with your spouse.</span>
 				</td></tr>
+<!--
+			<tr><td></td><td></td><td colspan="2">
+				<span id="IsDependent"><input id="Kiddie" type="checkbox" /> TP 17 or younger and a dependent.</span>
+				</td></tr>
+-->
 		<tr><td colspan="2">Total Dependents claimed:
 			<td><input id="Dependents" size="2" value="0" 
 				title="Total number of dependents in the tax family." /></td></tr>
@@ -564,41 +600,71 @@
 			<td><input id="QBIDividends" type="number" /></td>
 			<td></td><td></td></tr>
 		<tr class="income"><td></td>
-			<td>Self-employment income</td><td></td>
-			<td><input id="SEIncome" type="number" /></td></tr>
-		<tr class="income"><td></td>
-			<td>Capital gains/loss
-				(<input id="UsingD" type="checkbox" /> Check if using Schedule D)</td><td></td>
-			<td><input id="CapGains" type="number" /></td></tr>
-		<tr id="UsingDAmount" class="income"><td></td>
-			<td>&nbsp;&nbsp;&nbsp;Smaller of lines 15 or 16 from Schedule D =
-			<input id="CGLongTerm" type="number"></td><td></td><td></td>
-		<tr class="income"><td></td>
-			<td>IRAs and Pensions</td><td></td>
+			<td>IRAs, pensions and annuities</td><td></td>
 			<td><input id="Pensions" type="number" /></td></tr>
 		<tr class="income"><td></td>
 			<td>Amount of social security expected</td>
 			<td><input id="SS" type="number" /></td>
 			<td class="calculated"><span id="TaxableSS">0</span></td></tr>
 		<tr class="income"><td></td>
+			<td>Business income</td><td></td>
+			<td><input id="SEIncome" type="number" /></td></tr>
+		<tr class="income"><td></td>
+			<td>Capital gains/loss
+				(<input id="UsingD" type="checkbox" /> Check if using Schedule D)</td><td></td>
+			<td><input id="CapGains" type="number" /></td></tr>
+		<tr class="income" id="UsingDAmount"><td></td>
+			<td>&nbsp;&nbsp;&nbsp;Smaller of lines 15 or 16 from Schedule D =
+				<input id="CGLongTerm" type="number"></td><td></td><td></td></tr>
+		<tr class="income"><td></td>
 			<td>Other income (alimony, royalties, unemployment, etc)</td><td></td>
 			<td><input id="OtherIncome" type="number" /></td></tr>
 		<tr><td></td>
 			<td colspan="3">Gross income expected</td>
 			<td><input id="Gross" type="number" /></td></tr>
-		<tr><td colspan="5">Adjustments to Income:</td>
-		<tr><td></td>
+		<tr><td colspan="5">Adjustments to Income:
+			(<input type="checkbox" id="AdjustExpand" /><i>Expand to enter details.)</i></td></tr>
+		<tr class="adjustment"><td></td>
+			<td>Educator expenses</td>
+			<td></td>
+			<td><input id="EdExpenses" type="number" /></tr>
+		<tr class="adjustment"><td></td>
+			<td>Health savings account deduction</td>
+			<td></td>
+			<td><input id="HSADeduction" type="number" /></tr>
+		<tr class="adjustment"><td></td>
 			<td>Deductible part of self-employment tax (1/2 of SE tax shown below)</td>
 			<td></td>
 			<td class="calculated"><span id="SETaxCredit">0</span></td></tr>
-		<tr><td></td>
+		<tr class="adjustment"><td></td>
+			<td>Self-employment SEP, SIMPLE and qualified plans</td>
+			<td></td>
+			<td><input id="SESEP" type="number" /></tr>
+		<tr class="adjustment"><td></td>
+			<td colspan="2">Self-employment health insurance deduction
+			(Total health insurance: <input id="SEInsurance" type="number" />)
+			<span id="SEHIExcess"><br /></span>
+			<td><span id="SEHI">0</span></td></tr>
+		<tr class="adjustment"><td></td>
+			<td>Alimony paid</td>
+			<td></td>
+			<td><input id="AlimonyPaid" type="number" /></tr>
+		<tr class="adjustment"><td></td>
+			<td>IRA deduction</td>
+			<td></td>
+			<td><input id="IRADeduction" type="number" /></tr>
+		<tr class="adjustment"><td></td>
 			<td>Student loan interest</td>
 			<td></td>
-			<td><input id="StudentLoanCredit" type="number" />
-		<tr><td></td>
-			<td>Other adjustments expected (HSA, Alimony paid, IRA contrib, Tuition&amp;Fees, etc)</td>
+			<td><input id="StudentLoanCredit" type="number" /></tr>
+		<tr class="adjustment"><td></td>
+			<td>Other adjustments expected (Forms 2106 &amp; 3903, early withdrawal penalty)</td>
 			<td></td>
-			<td><input id="OtherCredits" type="number" />
+			<td><input id="OtherCredits" type="number" /></tr>
+		<tr><td></td>
+			<td>Total adjustments
+			<td></td><td></td>
+			<td style="vertical-align: top;"><input id="TotalAdjustments" type="number" /></td></tr>
 		<tr><td></td>
 			<td colspan="3">Adjusted gross income expected
 			<td class="calculated"><span id="AGI">0</span></td></tr>
@@ -615,7 +681,9 @@
 			<td class="calculated"><span id="Standard">0</span></td><td></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Medical expenses
-				(Actual expenses = <input id="ActualMedical" type="number" />)</td>
+				(Total expenses
+				<span id="NoInsurance"><i>without insurance</i></span>
+				= <input id="ActualMedical" type="number" />)</td>
 			<td id="Medical"><!--input id="Medical" type="number" /--></td></tr>
 		<tr class="deductions"><td></td>
 			<td>State income tax or sales tax, and property taxes</td>
