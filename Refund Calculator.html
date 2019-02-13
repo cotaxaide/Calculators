@@ -172,7 +172,9 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.15a, 11/17/2018)";
+	VERSION = "(Version 1.15b, 2/13/2019)";
+	//	Added Schedule 1 to Taxable amounts section for years 2018+
+	//VERSION = "(Version 1.15a, 11/17/2018)";
 	//	Minor instruction text change
 	//VERSION = "(Version 1.15, 6/14/2018)";
 	//	Changed reset button to work with Firefox
@@ -218,9 +220,10 @@
 
 	//----------------------------------------------------------------------------------------
 	//Contributors:
-	//		Keith Gillen
-	//		Wells Johnson
-	//		Ronald Schmaeman
+	//	Keith Gillen
+	//	Wells Johnson
+	//	Ronald Schmaeman
+	//	Sam Kaplan
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -272,6 +275,14 @@
 	SPBlind.disabled = SP65.disabled = false;
 	MFSItemize.style.display = "none";
 	SNGDependent.style.display = "none";
+	if (TaxYear.value >= 2018) {
+		TaxableState.innerHTML = "Schedule 1 line 10";
+		TaxableSales.innerHTML = "Schedule 1 line 21";
+	}
+	else {
+		TaxableState.innerHTML = "1040 line 10";
+		TaxableSales.innerHTML = "1040 line 21";
+	}
 	switch (FilingStatus.value) {
 		case "MFJ":
 			SPBlind.disabled = SP65.disabled = false;
@@ -649,7 +660,9 @@
 					onmouseover="preinfodiv.style.display='table-row';"
 					onmouseout="preinfodiv.style.display='none';">&nbsp;?&nbsp;</span>
 			<td><input id="Estimated0" type="number" tabindex="13" /></td></tr>
-		<tr id="preinfodiv"><td colspan="2">
+		<tr id="preinfodiv"
+			onmouseover="preinfodiv.style.display='table-row';"
+			onmouseout="preinfodiv.style.display='none';"><td colspan="2">
 			Estimated taxes paid in the 4th quarter could also include other payments made for the previous year, such as:
 			<ul>
 				<li> any tax amount due paid when the return was filed, or thereafter in the same year</li>
@@ -713,13 +726,15 @@
 			</td></tr>
 		<tr><td colspan="2"><hr /><h1>Taxable amounts</h1></td></tr>
 		<tr><td><u>Taxable amount of state tax refund:</u>
-				<br /><span class="comment"><b>1040 line 10</b>
+				<br /><span class="comment">
+				<b><span id="TaxableState">1040 line 10</span></b>
 				<br />(TS Income &gt; State and Local Refunds &gt; Bypass worksheet line).</span></td>
 			<td><span id="StateTaxable">0</span></td></tr>
 		<tr><td colspan="2">&nbsp;</td></tr>
 		<tr id="OtherTaxableShow"><td><u>Taxable amount of sales tax &amp; other refunds:</u>
-				<br /><span class="comment"><b>1040 line 21</b>
-					<br />(TS Income &gt; Other Income).</span></td>
+				<br /><span class="comment">
+				<b><span id="TaxableSales">1040 line 21</span></b>
+				<br />(TS Income &gt; Other Income).</span></td>
 			<td><span id="OtherTaxable">0</span></td></tr>
 		<tr><td colspan="2"><hr /><h1>Deductible amounts</h1></td></tr>
 		<tr id="ReduceSchedA"><td><u>Prior year 4th quarter estimated payment:</u>
