@@ -24,9 +24,16 @@
 	.title {font-size:125%; font-weight:bold;}
 	.instruction {font-style: italic; float: right;}
 	.comment {font-style:italic;}
-	.output {width: 6em; border: 1px solid black; text-align: right;}
-	.link {text-decoration:underline; color:purple; cursor:pointer;}
-	.noPrint {float:left;}
+		#TPName {
+		text-align: left;
+		width: auto;
+		margin-top: 0;
+		font-size: 120%;
+		width: 25em;
+	}
+	#TPNameDiv {
+		width: 99%;
+	}
 	#ClearAndPrint {text-align: center; float:right; z-level:2; position: absolute; top: 0.5em; right: 1em;}
 	#CalcButton {font-size: 120%;}
 	#IncomeTable {border: 1px solid black; width: 100%}
@@ -47,6 +54,11 @@
 	}
 </style>
 
+<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2015.js"></script>
+<script src="Tax_Data/IRS_2016.js"></script>
+<script src="Tax_Data/IRS_2017.js"></script>
+<script src="Tax_Data/IRS_2018.js"></script>
 <script type="text/javascript">
 	var VERSION;
 	// --------------------------------------------------------------------------------
@@ -55,7 +67,11 @@
 	//	Nancy or Don Metzger
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.04, 4/4/2018)";
+	VERSION = "Version 1.06, 1/27/2019";
+	//	Corrected RR exclusion - TS adjusts to what's already there (vs replace)
+	//VERSION = "(Version 1.05, 1/26/2019)";
+	//	Modified to match TaxSlayer treatment of Tier II
+	//VERSION = "(Version 1.04, 4/4/2018)";
 	//	Clarified entries in TaxSlayer
 	//VERSION = "(Version 1.03, 2/3/2018)";
 	//	Added test for missing pension allowed limit
@@ -72,15 +88,39 @@
 	var ErrorColor = "hotpink";
 
 	//----------------------------------------------------------------------------------------
-	function Initialize(){
+	function Initialize() {
 	//----------------------------------------------------------------------------------------
 
-	ShowError.style.display = "none";
+		// Add tax year options
+		TaxYear.length = 0;
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+		TaxYear.value = _DefaultYear;
+		ShowError.style.display = "none";
+		Clear_Results();
 
 	}
 
 	//----------------------------------------------------------------------------------------
-	function IncomeCheck(){
+	function Clear_Results() {
+	//----------------------------------------------------------------------------------------
+		COSubtractTP.value = "";
+		COSubtractMessageTP.innerHTML = "";
+		COSubtractSP.value = "";
+		COSubtractMessageSP.innerHTML = "";
+		COSubtractRR.value = "";
+		COSubtractMessageRR.innerHTML = "";
+		ShowError.style.display = "none";
+		Tier2FixA.style.display = (+TaxYear.value < 2018) ? "inline" : "none";
+		Income_Check();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Income_Check() {
 	// This function adds the Income columns
 	//----------------------------------------------------------------------------------------
 		Error = false;
@@ -147,10 +187,10 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function IncomeCalc(){
+	function IncomeCalc() {
 	// This function adds the Income columns
 	//----------------------------------------------------------------------------------------
-		IncomeCheck();
+		Income_Check();
 
 		// Determine taxable amounts of SS and Tier1
 		Tier1Total = +Tier1TP.value + +Tier1SP.value;
@@ -162,8 +202,8 @@
 		T1TaxableTP = +Tier1TP.value * SSPercent;
 		T1TaxableSP = +Tier1SP.value * SSPercent;
 
-		RRTP = T1TaxableTP + +Tier2TP.value;
-		RRSP = T1TaxableSP + +Tier2SP.value;
+		RRTP = T1TaxableTP + ((TaxYear.value < 2018) ? +Tier2TP.value : 0);
+		RRSP = T1TaxableSP + ((TaxYear.value < 2018) ? +Tier2SP.value : 0);
 
 		// Do we need to make adjustments?
 		if (((RRTP == 0) || (+COPensionTP.value == +COAllowedTP.value))
@@ -175,7 +215,8 @@
 			return;
 		}
 
-		// Remove RRB Tier 1 and Tier 2 from CO retirement amount
+		// Remove RRB Tier 1 and Tier 2 from CO retirement amount (prior to 2018)
+		// Remove RRB Tier 1 from CO retirement amount (2018)
 		PensionTP = Math.max(0,+COPensionTP.value - RRTP);
 		//PensionTP = Math.min(PensionTP, COAllowedTP.value);
 		if (RRTP) {
@@ -211,7 +252,8 @@
 		}
 
 		if (RRTP || RRSP) {
-			COSubtractRR.value = Math.round(T1TaxableTP + T1TaxableSP + +Tier2TP.value + +Tier2SP.value);
+			COSubtractRR.value = Math.round(T1TaxableTP + T1TaxableSP 
+				+ ((+TaxYear.value < 2018) ? (+Tier2TP.value + +Tier2SP.value) : 0));
 			COSubtractMessageRR.innerHTML = "";
 		}
 		else {
@@ -240,22 +282,30 @@
 	<button onclick="window.location.reload()">Clear and reset calculator</button>
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </span>
+	
+	<div id="TPNameDiv">
+		<span class="inputTitle">Current Tax Year: </span><select style="width:6em;" id="TaxYear" title="Select the tax year being prepared." onchange="Clear_Results()"></select>
+		<span class="inputTitle">Taxpayer&apos;s Name: </span>
+		<input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" />
+	</div>
 
-	<div id="RRBWorksheet">
+	<div id="RRBWorksheet" onchange="Clear_Results();">
 		<span class="tblHeader">Income Worksheet:</span>
 		<br />
 		<br />
 		TaxSlayer incorrectly includes RR retirement benefits in the retirement exclusion.
 		But RR retirement benefits are not taxable in any state, thus has its own exclusion line.
 		Consequently, other retirement exclusions are capped at the 20K/24K limit prematurely.
-		This calculator removes the taxable portions of Tier 1 and Tier 2 RR benefits from the CO retirement
+		This calculator removes the taxable portions of Tier 1
+		<span id="Tier2FixA">and Tier 2</span>
+		RR benefits from the CO retirement
 		amount and totals those RR retirement amounts, all to be entered on the CO &quot;Subtractions from income&quot; page.
 		<br /><br />
 		<b>NOTE: If the person(s) with RR retirement benefits have not reached the maximum pension exclusion (see the CO Pension Exclusion Worksheet), the outcome will be correct, no change is necessary and you do not need to use this worksheet.</b>
 		<ul>
-			<li>The Pension Exclusion Worksheet referenced below is printed with the CO return immediately following the CO 104.</li>
-			<li>Other sources come from the taxpayer's documents or their entry in TaxSlayer.</li>
-			<li>The taxable amount of Social Security benefits from Form 1040 is used to determine how much of the 1099-SSA and RRB 1099 Tier I amounts are taxable. If that box turns red, check all 1099-SSA and Tier 1 amounts also.</li>
+			<li>The Pension Exclusion Worksheet referenced is printed with the CO return immediately following the CO 104.</li>
+			<li>Other input comes from the taxpayer's documents or their entry in TaxSlayer.</li>
+			<li>The taxable amount of Social Security benefits from Form 1040 is used to determine how much of the 1099-SSA and RRB 1099 Tier I amounts are taxable. If that box turns red, verify all 1099-SSA and Tier 1 amounts also.</li>
 			<li>If any income amounts are subsequently adjusted (e.g.: by QR), remove the state corrections from TaxSlayer and re-calculate.</li>
 		</ul>
 		<table id="IncomeTable" >
