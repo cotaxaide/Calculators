@@ -80,11 +80,14 @@
 	//	John Swaney
 	//	Gloria Coyle
 	//	Joe Ohrazda
+	//	Russ Gross
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.19, 2/10/2019)";
+	var VERSION = "(Version 2.20, 2/17/2019)";
+	//	Added new adjustments in calculating taxable Social Security
+	//var VERSION = "(Version 2.19, 2/10/2019)";
 	//	Reordered income lines to match new tax forms]
 	//	Added SEHI deduction and other adjustment lines
 	//	Made adjustment section expandable
@@ -231,24 +234,6 @@
 		QualDividends.style.backgroundColor = (+QualDividends.value > +Dividends.value) ? "hotpink" : "white";
 		QBIDividends.style.backgroundColor = (+QBIDividends.value > +Dividends.value) ? "hotpink" : "white";
 
-		// Get the taxable Social Security amount
-		IncomeNoSS = +Wages.value + +Interest.value + +Dividends.value
-			+ +SEIncome.value + +CapGains.value + +Pensions.value
-			+ +OtherIncome.value;
-		SSresult = _TaxableSS(TaxYear.value, FilingStatus.value, SS.value,
-			(IncomeNoSS + +TaxExempt.value),
-			(+SETaxCredit.innerHTML + +OtherCredits.value),
-			MFStogether.checked);
-		TaxableSS.innerHTML = SSresult[0];
-		var IRAgap00 = +SSresult[1];
-		var IRAgap50 = +SSresult[2];
-		var IRAgap85 = +SSresult[3];
-
-		// Total the income
-		if (IncomeExpanded) {
-			Gross.value = Math.round(IncomeNoSS + +TaxableSS.innerHTML);
-		}
-
 		IExp = AdjustExpand.checked;
 		itemlist = document.getElementsByClassName("adjustment");
 		for (itno = 0; itno < itemlist.length; itno++) {
@@ -262,15 +247,31 @@
 		var SEHIRemainder = Math.max(0, +SEInsurance.value - +SEHI.innerHTML);
 		SEHIExcess.innerHTML = (SEHIRemainder) ? "<br />&nbsp;&nbsp;&nbsp;<i>Excess " + +SEHIRemainder + " will carry to Schedule A medical expenses</i>" : "";
 
-
-		var taxcredits = +EdExpenses.value + +HSADeduction.value
+		// Get the taxable Social Security amount
+		var SSAdjustments = +EdExpenses.value + +HSADeduction.value
 			+ +SETaxCredit.innerHTML + +SESEP.value + +SEHI.innerHTML
 			+ +AlimonyPaid.value + +IRADeduction.value
-			+ +StudentLoanCredit.value + +OtherCredits.value;
-		TotalAdjustments.value = taxcredits;
+			+ +SavingsPenalty.value + +OtherCredits.value;
+		TotalAdjustments.value = SSAdjustments + +StudentLoanCredit.value;
+
+		IncomeNoSS = +Wages.value + +Interest.value + +Dividends.value
+			+ +SEIncome.value + +CapGains.value + +Pensions.value
+			+ +OtherIncome.value;
+		SSresult = _TaxableSS(TaxYear.value, FilingStatus.value, SS.value,
+			(IncomeNoSS + +TaxExempt.value), SSAdjustments,
+			MFStogether.checked);
+		TaxableSS.innerHTML = SSresult[0];
+		var IRAgap00 = +SSresult[1];
+		var IRAgap50 = +SSresult[2];
+		var IRAgap85 = +SSresult[3];
+
+		// Total the income
+		if (IncomeExpanded) {
+			Gross.value = Math.round(IncomeNoSS + +TaxableSS.innerHTML);
+		}
 
 		// Figure the AGI
-		AGI.innerHTML = Math.round(Math.max(0,Gross.value - taxcredits));
+		AGI.innerHTML = Math.round(Math.max(0,Gross.value - +TotalAdjustments.value));
 
 		// Calculate standard deduction
 		Standard.innerHTML = _StandardDeduction(TaxYear.value, FilingStatus.value,
@@ -646,6 +647,10 @@
 			<span id="SEHIExcess"><br /></span>
 			<td><span id="SEHI">0</span></td></tr>
 		<tr class="adjustment"><td></td>
+			<td>Penalty on early withdawal of savings</td>
+			<td></td>
+			<td><input id="SavingsPenalty" type="number" /></tr>
+		<tr class="adjustment"><td></td>
 			<td>Alimony paid</td>
 			<td></td>
 			<td><input id="AlimonyPaid" type="number" /></tr>
@@ -658,7 +663,7 @@
 			<td></td>
 			<td><input id="StudentLoanCredit" type="number" /></tr>
 		<tr class="adjustment"><td></td>
-			<td>Other adjustments expected (Forms 2106 &amp; 3903, early withdrawal penalty)</td>
+			<td>Other adjustments expected (Forms 2106 &amp; 3903)</td>
 			<td></td>
 			<td><input id="OtherCredits" type="number" /></tr>
 		<tr><td></td>
