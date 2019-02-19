@@ -105,7 +105,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.04, 9/6/2018)";
+	var VERSION = "(Version 1.05, 1/28/2019)";
+	//	Added CO wildfire mitigation
+	//	Rearranged instructions if 104AD adjustments are required
+	//var VERSION = "(Version 1.04, 9/6/2018)";
 	//	CO 104AD still not added in 2018
 	//	Remaining question - what's the effect of not reporting RRB income?
 	//	Minor rearrangement of input descriptions
@@ -320,6 +323,7 @@
 			case "Type": // Display From/To options?
 				switch (Typeptr.value) {
 					case "Alimony_paid":
+					case "Charitable_Contributions-total":
 					case "CO_Capital_gain_subtraction":
 					case "College_tuition_contribution":
 					case "Ded_part_of_self_empl_tax":
@@ -367,6 +371,7 @@
 						break;
 					case "Interest-tax-free_non-CO":
 					case "Early_withdrawal_penalty":
+					case "Charitable_Contributions-total":
 					case "CO_Capital_gain_subtraction":
 					case "College_tuition_contribution":
 					case "Interest-CO_1st_Time_Home":
@@ -502,7 +507,7 @@
 				case "Early_withdrawal_penalty":
 				case "Alimony_paid":
 				case "IRA_deduction":
-				case "Student_loan_interest":
+				//case "Student_loan_interest": // Not included in SS calc
 				case "Tuition_and_Fees":
 				case "Jury_duty_pay_to_employer":
 				case "Other_Adjustment":
@@ -564,7 +569,7 @@
 		result = _TaxableSS(TaxYear.value, FilingStatus.value, FedSSAmount, FedSSAGI + FedSSTFI, 0, false);
 		if (FedSSAmount) SSPercent = +result[0] / FedSSAmount;
 
-		// Reduce SS/Tier1 totals
+		// Reduce SS/Tier1
 		document.getElementById("Social_Security-GrossTotalState").innerHTML =
 			StateSum["Social_Security-Gross"] = Math.round(StateSum["Social_Security-Gross"] * SSPercent);
 		document.getElementById("Social_Security-GrossTotalOther").innerHTML =
@@ -662,6 +667,7 @@
 			+ StateSum["RRB_Tier1_subtraction"]
 			+ StateSum["RRB_Tier2_subtraction"]
 			+ StateSum["State_income_tax_subtraction"]
+			+ StateSum["Wildfire_mitigation_exclusion"]
 			+ StateSum["Other_Subtraction"];
 
 		// Set up for TaxSlayer problem correction
@@ -673,7 +679,7 @@
 		testsum = StateSum["CO_Capital_gain_subtraction"];
 		COCapGain.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
-
+ 
 		testsum = StateSum["College_tuition_contribution"];
 		COTuition.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
@@ -697,37 +703,46 @@
 		COHomeBuyer.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
 
+		testsum = StateSum["Wildfire_mitigation_exclusion"]
+		COWildfire.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		SFItotal += testsum;
+
 		testsum	= StateSum["Other_Subtraction"];
 		COOtherSubtractions.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
 
-		if ((TaxYear.value >= 2017) && (SFItotal > (TPAnnuityLimit + SPAnnuityLimit))) {
+		if ((TaxYear.value >= 2017)
+			&& (SFItotal > (TPAnnuityLimit + SPAnnuityLimit))) {
 			var message = "<h1>TaxSlayer cannot produce an accurate partial year return for Colorado for this taxpayer.</h1>";
 			message += "<ol>";
 			message += "<li>Print the Colorado return from TaxSlayer and modify forms as follows:</li>";
-			message += "<li>CO form 104:";
-			message += "<ul>";
-			message += "<li>change line 5 to $" + SFItotal + "</li>";
-			message += "</ul></li>";
 			message += "<li>CO form 104AD:";
 			message += "<ul>";
-			message += "<li>change line 1 (State income tax subtraction) to $" + StateSum["State_income_tax_subtraction"] + "</li>";
-			message += "<li>change line 2 (Government interest) to $" + StateSum["Interest-gov"] + "</li>";
-			message += "<li>change line 3 (TP pension exclusion) to $" + TPTotalExcl + "</li>";
-			message += "<li>change line 4 (SP pension exclusion) to $" + SPTotalExcl + "</li>";
-			message += "<li>change line 5 (CO capital gains subraction) to $" + StateSum["CO_Capital_gain_subtraction"] + "</li>";
-			message += "<li>change line 6 (College tuition contribution) to $" + StateSum["College_tuition_contribution"] + "</li>";
-			message += "<li>change line 8 (Qualified reservation income)to $" + StateSum["Qualfied_reservation_income"] + "</li>";
-			message += "<li>change line 9 (PERA/DPRS subtraction) to $" + StateSum["PERA/DPSRS_subtraction"] + "</li>";
-			message += "<li>change line 10 (RR retirement TIerI/TierII) to $" + RRBAdjust + "</li>";
-			message += "<li>change line 16 (FIrst time homebuyer interest) to $" + StateSum["Interest-CO_1st_Time_Home"] + "</li>";
-			message += "<li>change line 17 (Other subtractions) to $" + StateSum["Other_Subtraction"] + "</li>";
-			message += "<li>change line 18 (Total) to $" + SFItotal + "</li>";
+			message += "<li>change line 1 (State income tax subtraction) to $<b>" + StateSum["State_income_tax_subtraction"] + "</b>.</li>";
+			message += "<li>change line 2 (Government interest) to $<b>" + StateSum["Interest-gov"] + "</b>.</li>";
+			message += "<li>change line 3 (TP pension exclusion) to $<b>" + TPTotalExcl + "</b>.</li>";
+			message += "<li>change line 4 (SP pension exclusion) to $<b>" + SPTotalExcl + "</b>.</li>";
+			message += "<li>change line 5 (CO capital gains subraction) to $<b>" + StateSum["CO_Capital_gain_subtraction"] + "</b>.</li>";
+			message += "<li>change line 6 (College tuition contribution) to $<b>" + StateSum["College_tuition_contribution"] + "</b>.</li>";
+			message += "<li>change line 8 (Qualified reservation income)to $<b>" + StateSum["Qualfied_reservation_income"] + "</b>.</li>";
+			message += "<li>change line 9 (PERA/DPRS subtraction) to $<b>" + StateSum["PERA/DPSRS_subtraction"] + "</b>.</li>";
+			message += "<li>change line 10 (RR retirement TIerI/TierII) to $<b>" + RRBAdjust + "</b>.</li>";
+			message += "<li>change line 11 (Wildfire mitigation) to $<b>" + StateSum["Wildfire_mitigation_exclusion"] + "</b>.</li>";
+			message += "<li>change line 16 (FIrst time homebuyer interest) to $<b>" + StateSum["Interest-CO_1st_Time_Home"] + "</b>.</li>";
+			message += "<li>change line 17 (Other subtractions) to $<b>" + StateSum["Other_Subtraction"] + "</b>.</li>";
+			message += "<li>change line 18 (Total) to $<b>" + SFItotal + "</b>.</li>";
 			message += "</ul></li>";
 			message += "<li>CO form 104PN:";
 			message += "<ul>";
-			message += "<li>change line 30 to $" + SFItotal + "</li>";
-			message += "<li>change line 31 to $" + COSubtractions.innerHTML + "</li>";
+			message += "<li>change line 30 to $<b>" + SFItotal + "</b>.</li>";
+			message += "<li>change line 31 to $<b>" + COSubtractions.innerHTML + "</b>.</li>";
+			message += "<li>adjust the math in the ensuing lines as needed.</li>";
+			message += "</ul></li>";
+			message += "<li>CO form 104:";
+			message += "<ul>";
+			message += "<li>change line 5 to $<b>" + SFItotal + "</b>.</li>";
+			message += "<li>adjust the amount in line 6.</li>";
+			message += "<li>change line 7 with the new CO tax from 104PN.</li>";
 			message += "<li>adjust the math in the ensuing lines as needed.</li>";
 			message += "</ul></li>";
 			message += "<li>Paper file the Colorado tax return.</li></ol>";
@@ -809,6 +824,7 @@
 		Add_Option(nogrp, "Spouse_Annuity/Pension_exclusion", "Spouse Annuity/Pension exclusion from state tax");
 		Add_Option(newgrp, "Qualfied_reservation_income", "Exclusion of reservation income from state tax");
 		Add_Option(newgrp, "State_income_tax_subtraction", "This state's portion of state tax refunds");
+		Add_Option(newgrp, "Wildfire_mitigation_exclusion", "Wildfire mitigation exclusion from state tax");
 		Add_Option(newgrp, "Other_Subtraction", "Other subtractions from state Adjusted Gross Income");
 
 		newsel.setAttribute("onchange", "Data_Change(\"Type\", " + ItemCount + ");");
@@ -1122,7 +1138,7 @@
 			<li>Entry of annuities/pensions/Social Security/RR Retirement benefits
 				automatically calculate the correct exclusion amounts for Colorado Subtractions
 				from AGI using age limits and owner as needed.
-				<ul><li>For Social Security and RRB Tier I benefits enter gross amounts;
+				<ul><li>For Social Security and RRB Tier I benefits enter the gross amounts;
 					the taxable amount will be calculated.</li></ul></li>
 			<li>The Colorado allocation will be calculated automatically based on residency dates,
 				account dates and income ratios as appropriate for the entry type.
@@ -1196,8 +1212,11 @@
 				<td>PERA/DPSRS Subtraction</td>
 				<td><span id="COPERA">leave&nbsp;blank</span></td></tr>
 			<tr><td></td>
-				<td>Railroad Benefit Subtraction, Tier I or II Only</td>
+				<td>Railroad Benefit Subtraction, Tier I or II</td>
 				<td><span id="CORRBAdjust">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>Wildfire Mitigation Management Subtraction</td>
+				<td><span id="COWildfire">leave&nbsp;blank</span></td></tr>
 			<tr><td></td>
 				<td>First Time Home Buyer Savings Account Deduction</td>
 				<td><span id="COHomeBuyer">leave&nbsp;blank</span></td></tr>
