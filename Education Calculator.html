@@ -94,6 +94,8 @@
 	#AGItable tr td:nth-child(5) { width: 36%; }
 	.TaxReturnHeader { width: 99%; padding: 5px; border: 2px solid blue;
 		background-color: lightblue; font-size: 150%; }
+	#EarnedRow { display: none;}
+	#StudEarnedRow { display: none;}
 	#TPTaxForm tr,
 	#StudentTaxForm tr,
 	#TaxFormResults tr { text-align: right; height: 1.5em;}
@@ -176,7 +178,13 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.09, 12/29/2018";
+	var VERSION = "Version 3.10, 2/23/2019";
+	//	Split earned income into Salary and Business income lines
+	//	Corrected QBI calculations when limited by taxable income
+	//	Hide QBI line when no business income
+	//	Added SEHI for QBI calculation
+	//	Changed EIC from input value to calculated
+	//var VERSION = "Version 3.09, 12/29/2018";
 	//	Tax computation in final result was showing wrong choice (LLC vs AOC)
 	//var VERSION = "Version 3.08, 12/19/2018";
 	//	Added QBI lines to TP and Student returns
@@ -294,6 +302,8 @@
 	var ResultingExpense = 0;
 	var UnusedCTC = 0;
 	var WarningMessage = "";
+	var BusinessSETax = 0;
+	var StudBusinessSETax = 0;
 	var StudKiddieTax = [];
 	var StudKiddieAOC = [];
 	var StudKiddieLLC = [];
@@ -467,10 +477,12 @@
 		CapGainsLineNoA.innerHTML = CapGainsLineNoB.innerHTML =
 		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _LineNo[TaxYear.value + ":CapGains"];
 		AGILineNoA.innerHTML = AGILineNoB.innerHTML = _LineNo[TaxYear.value + ":AGI"];
-		EarnedLineNoA.innerHTML = EarnedLineNoB.innerHTML = _LineNo[TaxYear.value + ":Earned"];
+		QBILineNoA.innerHTML = QBILineNoB.innerHTML = _LineNo[TaxYear.value + ":QBI"];
+		SalaryLineNoA.innerHTML = SalaryLineNoB.innerHTML = _LineNo[TaxYear.value + ":Salary"];
+		BusinessLineNoA.innerHTML = BusinessLineNoB.innerHTML = _LineNo[TaxYear.value + ":Business"];
+		SEHILineNoA.innerHTML = SEHILineNoB.innerHTML = _LineNo[TaxYear.value + ":SEHI"];
 		ItemDedLineNoA.innerHTML = ItemDedLineNoB.innerHTML = _LineNo[TaxYear.value + ":ItemDed"];
 		DeductionsLineNoA.innerHTML = DeductionsLineNoB.innerHTML = _LineNo[TaxYear.value + ":Deductions"];
-		QBILineNoA.innerHTML = QBILineNoB.innerHTML = _LineNo[TaxYear.value + ":QBI"];
 		TaxAmountLineNoA.innerHTML = TaxAmountLineNoB.innerHTML = _LineNo[TaxYear.value + ":TaxAmount"];
 		TNFLineNo.innerHTML = _LineNo[TaxYear.value + ":TNF"];
 		ExcessAPTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":ExcessAPTC"];
@@ -490,12 +502,8 @@
 		F8962FLineNoA.innerHTML = F8962FLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962F"];
 		//F8962MAGILineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962MAGI"];
 
-		// QBI Added in 2018
-		QBILineA.style.display = QBILineB.style.display = (+TaxYear.value > 2017) ? "table-row" : "none";
-		if (TaxYear.value < 2018) QBITax.value = StudQBITax.value = "";
-
 		// Child (and Family) Tax Credit name change in 2018
-		FTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
+		OTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
 		KiddieOverride.disabled = (+TaxYear.value > 2017) ? false : true;
 		if (KiddieOverride.disabled) KiddieOverride.checked = false;
 
@@ -539,6 +547,9 @@
 			KiddieWarn.style.display = "none";
 
 			// Clear the student tax return
+			StudSalaryTax.value =
+			StudBusinessTax.value =
+			StudSEHITax.value =
 			StudEarnedTax.value =
 			StudAGITax.value =
 			StudItemizedTax.value =
@@ -727,6 +738,46 @@
 
 		Optimized = false;
 
+		// Displayed line adjustments
+
+		// QBI and SEHI Added in 2018
+		if (_LineNo[TaxYear.value + ":QBI"] != "") {
+
+			if (BusinessTax.value > 0) {
+				SEHIRow.style.display =
+				QBIRow.style.display = "table-row";
+				BusinessSETax = _SETax(TaxYear.value, BusinessTax.value)[1];
+			}
+
+			else {
+				SEHIRow.style.display =
+				QBIRow.style.display = "none";
+				QBITax.value = BusinessSETax = SEHITax.innerHTML = 0;
+			}
+
+			if (StudBusinessTax.value > 0) {
+				StudSEHIRow.style.display =
+				StudQBIRow.style.display = "table-row";
+				StudBusinessSETax = _SETax(TaxYear.value, StudBusinessTax.value)[1];
+			}
+
+			else {
+				StudSEHIRow.style.display =
+				StudQBIRow.style.display = "none";
+				StudQBITax.innerHTML = StudBusinessSETax = StudSEHITax.value = 0;
+			}
+		}
+
+		else { // prior to 2018
+			SEHIRow.style.display =
+			QBIRow.style.display =
+			StudSEHIRow.style.display =
+			StudQBIRow.style.display = "none";
+			QBITax.innerHTML = StudQBITax.innerHTML = 0;
+			SEHITax.value = StudSEHITax.value = 0;
+		}
+
+
 		//-----------------------Scholarship calculations --------------------------------
 
 		// Determine how much of the scholarship is available for expenses
@@ -763,13 +814,13 @@
 
 		if (ScholarW2No.checked) {
 			// add the W-2 to the student's return income line
-			if (StudEarnedTax.value == "") { // If there was a W-2, probably would be entered
+			if (StudSalaryTax.value == "") { // If there was a W-2, probably would be entered
 				if (DependentYes.checked) {
-					StudEarnedTax.value = ScholarIncome;
+					StudSalaryTax.value = ScholarIncome;
 					StudAGITax.value = +StudAGITax.value + +ScholarIncome; // don't use +=
 				}
 				else {
-					EarnedTax.value = ScholarIncome;
+					SalaryTax.value = ScholarIncome;
 					AGITax.value = +AGITax.value + +ScholarIncome; // don't use +=
 				}
 			}
@@ -1126,14 +1177,28 @@
 			StudScholarTNF.innerHTML = +IncomeTNF.innerHTML;
 
 		// Earned income lines
-		if (isNaN(EarnedTax.value)) EarnedTax.value = "";
+		if (isNaN(SalaryTax.value)) SalaryTax.value = "";
+		if (isNaN(BusinessTax.value)) BusinessTax.value = "";
+		SEHIAOC.innerHTML = SEHILLC.innerHTML = SEHITNF.innerHTML = SEHITax.value;
+		BusinessAOC.innerHTML = BusinessLLC.innerHTML = BusinessTNF.innerHTML = BusinessTax.value;
+		EarnedTax.value = +SalaryTax.value + +BusinessTax.value;
+		SalaryAOC.innerHTML = +SalaryTax.value + +ScholarAOC.innerHTML;
 		EarnedAOC.innerHTML = +EarnedTax.value + +ScholarAOC.innerHTML;
+		SalaryLLC.innerHTML = +SalaryTax.value + +ScholarLLC.innerHTML;
 		EarnedLLC.innerHTML = +EarnedTax.value + +ScholarLLC.innerHTML;
+		SalaryTNF.innerHTML = +SalaryTax.value + +ScholarTNF.innerHTML;
 		EarnedTNF.innerHTML = +EarnedTax.value + +ScholarTNF.innerHTML;
 		if (DependentYes.checked) {
-			if (isNaN(StudEarnedTax.value)) StudEarnedTax.value = "";
+			if (isNaN(StudSalaryTax.value)) StudSalaryTax.value = "";
+			if (isNaN(StudBusinessTax.value)) StudBusinessTax.value = "";
+			StudSEHIAOC.innerHTML = StudSEHILLC.innerHTML = StudSEHITNF.innerHTML = StudSEHITax.value;
+			StudBusinessAOC.innerHTML = StudBusinessLLC.innerHTML = StudBusinessTNF.innerHTML = StudBusinessTax.value;
+			StudEarnedTax.value = +StudSalaryTax.value + +StudBusinessTax.value;
+			StudSalaryAOC.innerHTML = +StudSalaryTax.value + +StudScholarAOC.innerHTML;
 			StudEarnedAOC.innerHTML = +StudEarnedTax.value + +StudScholarAOC.innerHTML;
+			StudSalaryLLC.innerHTML = +StudSalaryTax.value + +StudScholarLLC.innerHTML;
 			StudEarnedLLC.innerHTML = +StudEarnedTax.value + +StudScholarLLC.innerHTML;
+			StudSalaryTNF.innerHTML = +StudSalaryTax.value + +StudScholarTNF.innerHTML;
 			StudEarnedTNF.innerHTML = +StudEarnedTax.value + +StudScholarTNF.innerHTML;
 		}
 
@@ -1151,18 +1216,6 @@
 			StudAGIAOC.innerHTML = +StudAGITax.value + +IncomeAOC.innerHTML;
 			StudAGILLC.innerHTML = +StudAGITax.value + +IncomeLLC.innerHTML;
 			StudAGITNF.innerHTML = +StudAGITax.value + +IncomeTNF.innerHTML;
-		}
-
-		// QBI lines
-		if (isNaN(QBITax.value)) QBITax.value = "";
-		QBIAOC.innerHTML =
-		QBILLC.innerHTML =
-		QBITNF.innerHTML = QBITax.value;
-		if (DependentYes.checked) {
-			if (isNaN(StudQBITax.value)) StudQBITax.value = "";
-			StudQBIAOC.innerHTML =
-			StudQBILLC.innerHTML =
-			StudQBITNF.innerHTML = StudQBITax.value;
 		}
 
 		// Capital Gains lines
@@ -1183,33 +1236,41 @@
 		result = CalculateTax(AGITax.value, EarnedTax.value, 0, CapGainsTax.value, ClaimedYes.checked);
 			DeductionTax.innerHTML = result.deduction;
 			TaxTax.innerHTML = result.tax;
+			QBITax.innerHTML = result.qbi;
 		result = CalculateTax(AGIAOC.innerHTML, EarnedAOC.innerHTML, ScholarAOC.innerHTML, CapGainsAOC.innerHTML, false);
 			DeductionAOC.innerHTML = result.deduction;
 			TaxAOC.innerHTML = result.tax;
+			QBIAOC.innerHTML = result.qbi;
 		result = CalculateTax(AGILLC.innerHTML, EarnedLLC.innerHTML, ScholarLLC.innerHTML, CapGainsLLC.innerHTML, false);
 			DeductionLLC.innerHTML = result.deduction;
 			TaxLLC.innerHTML = result.tax;
+			QBILLC.innerHTML = result.qbi;
 		result = CalculateTax(AGITNF.innerHTML, EarnedTNF.innerHTML, ScholarTNF.innerHTML, CapGainsTNF.innerHTML, false);
 			DeductionTNF.innerHTML = result.deduction;
 			TaxTNF.innerHTML = result.tax;
+			QBITNF.innerHTML = result.qbi;
 		if (DependentYes.checked) {
 			if (isNaN(StudItemizedTax.value)) StudItemizedTax.value = "";
 			result = CalculateTax(StudAGITax.value, StudEarnedTax.value, 0, StudCapGainsTax.value, true);
 				StudDeductionTax.innerHTML = result.deduction;
 				StudTaxTax.innerHTML = result.tax;
 				StudKiddieTax = result;
+				StudQBITax.innerHTML = result.qbi;
 			result = CalculateTax(StudAGIAOC.innerHTML, StudEarnedAOC.innerHTML, StudScholarAOC.innerHTML, StudCapGainsAOC.innerHTML, true);
 				StudDeductionAOC.innerHTML = result.deduction;
 				StudTaxAOC.innerHTML = result.tax;
 				StudKiddieAOC = result;
+				StudQBIAOC.innerHTML = result.qbi;
 			result = CalculateTax(StudAGILLC.innerHTML, StudEarnedLLC.innerHTML, StudScholarLLC.innerHTML, StudCapGainsLLC.innerHTML, true);
 				StudDeductionLLC.innerHTML = result.deduction;
 				StudTaxLLC.innerHTML = result.tax;
 				StudKiddieLLC = result;
+				StudQBILLC.innerHTML = result.qbi;
 			result = CalculateTax(StudAGITNF.innerHTML, StudEarnedTNF.innerHTML, StudScholarTNF.innerHTML, StudCapGainsTNF.innerHTML, true);
 				StudDeductionTNF.innerHTML = result.deduction;
 				StudTaxTNF.innerHTML = result.tax;
 				StudKiddieTNF = result;
+				StudQBITNF.innerHTML = result.qbi;
 		}
 
 		// Determine new APTC and Net PTC amounts
@@ -1256,7 +1317,7 @@
 			CareTax.innerHTML = result.Care;
 			LLCTax.value = result.Ed;
 			RetireTax.innerHTML = result.Retire;
-			CTCTax.innerHTML = result.CTC + result.FTC;
+			CTCTax.innerHTML = result.CTC + result.OTC;
 			ACTCTax.innerHTML = result.ACTC;
 
 		// Calculate Education and AOC nonrefundable credits for the taxpayer
@@ -1281,33 +1342,32 @@
 		}
 
 		// Calculate Earned Income Credits
-		if (isNaN(EICTax.value)) EICTax.value = "";
 		if ((NoEIC.checked) || (ClaimedYes.checked)) {
 			// Probable high investment income, NR Alien, or dependent
-			EICTax.value =
+			EICTax.innerHTML = "";
 			EICAOC.innerHTML =
 			EICLLC.innerHTML =
 			EICTNF.innerHTML = 0;
 		}
 		else {
 			EICInvest.innerHTML = _EICRates[TaxYear.value + ':INVEST'];
-			EICTax.value = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedTax.value,
+			EICTax.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
+				(+EarnedTax.value - BusinessSETax),
 				CapGainsTax.value, AGITax.value, TP65.checked, SP65.checked);
 			EICAOC.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedAOC.innerHTML - +ScholarAOC.innerHTML,
+				+EarnedAOC.innerHTML - +ScholarAOC.innerHTML - BusinessSETax,
 				CapGainsAOC.innerHTML, AGIAOC.innerHTML, TP65.checked, SP65.checked);
 			EICLLC.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedLLC.innerHTML - +ScholarLLC.innerHTML,
+				+EarnedLLC.innerHTML - +ScholarLLC.innerHTML - BusinessSETax,
 				CapGainsLLC.innerHTML, AGILLC.innerHTML, TP65.checked, SP65.checked);
 			EICTNF.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedTNF.innerHTML - +ScholarTNF.innerHTML,
+				+EarnedTNF.innerHTML - +ScholarTNF.innerHTML - BusinessSETax,
 				CapGainsTNF.innerHTML, AGITNF.innerHTML, TP65.checked, SP65.checked);
 		}
 
 		// Calculate the refund fields
 		var BaseRefund = Math.max(0, +TaxTax.innerHTML + +ExcessAPTCTax.innerHTML - +NRCreditTax.value)
-			- +ACTCTax.innerHTML - +AOCTax.value - +EICTax.value - +NetPTCTax.innerHTML;
+			- +ACTCTax.innerHTML - +AOCTax.value - +EICTax.innerHTML - +NetPTCTax.innerHTML;
 		TaxpayerRefundAOC0.innerHTML = 
 		TaxpayerRefundAOC.innerHTML = BaseRefund - (Math.max(0, +TaxAOC.innerHTML - +NRCreditAOC.innerHTML)
 			+ +ExcessAPTCAOC.innerHTML
@@ -1678,7 +1738,7 @@
 			CareTNF.innerHTML = result.Care;
 			LLCTNF.innerHTML = result.Ed;
 			RetireTNF.innerHTML = result.Retire;
-			CTCTNF.innerHTML = result.CTC + result.FTC;
+			CTCTNF.innerHTML = result.CTC + result.OTC;
 			NRCreditTNF.innerHTML = result.NRC;
 			ACTCTNF.innerHTML = result.ACTC;
 	}
@@ -1711,7 +1771,7 @@
 			CareLLC.innerHTML = result.Care;
 			LLCLLC.innerHTML = result.Ed;
 			RetireLLC.innerHTML = result.Retire;
-			CTCLLC.innerHTML = result.CTC + result.FTC;
+			CTCLLC.innerHTML = result.CTC + result.OTC;
 			NRCreditLLC.innerHTML = result.NRC;
 			ACTCLLC.innerHTML = result.ACTC;
 			return;
@@ -1755,7 +1815,7 @@
 			CareAOC.innerHTML = result.Care;
 			LLCAOC.innerHTML = result.Ed;
 			RetireAOC.innerHTML = result.Retire;
-			CTCAOC.innerHTML = result.CTC + result.FTC;
+			CTCAOC.innerHTML = result.CTC + result.OTC;
 			NRCreditAOC.innerHTML = result.NRC;
 			ACTCAOC.innerHTML = result.ACTC;
 			return;
@@ -1773,6 +1833,7 @@
 	//returns:
 	//	result.deduction
 	//	result.tax
+	//	result.qbi
 	//if student:
 	//	result.kiddieIncomeStandard
 	//	result.kiddieResultStandard
@@ -1814,16 +1875,27 @@
 
 		// Take the largest deduction
 		result.deduction = Math.max(result.deduction, itemizedDeduction);
+		var taxable = Math.max(0, ctAGI - exemptionAmount - (result.deduction));
 
 		// Add QBI if present
 		QBIAmount = 0;
 		if (_LineNo[TaxYear.value + ":QBI"]) {
-			QBIAmount += (isStudent) ? +StudQBITax.value : +QBITax.value;
+			SEIncome = (isStudent) ? (+StudBusinessTax.value - StudBusinessSETax - +StudSEHITax.value) :
+				(+BusinessTax.value - BusinessSETax - +SEHITax.value);
+			result.qbi = _QBICalc(TaxYear.value, FilingStatus.value, +SEIncome, 0, 0, taxable);
+			//_QBICalc (	// Qualified Business Income deduction
+			//taxYear,	// tax year tables to use
+			//filingStatus,	// SNG, MFJ, WID, MFS, HOH
+			//SEIncome,	// Self-employment income less s-e adjustments
+			//nonTaxCG,	// Qualified dividends + capital gains
+			//QBIDividends,	// Section 166A dividend
+			//income)	// Taxable income amount (before QBI deduction)
 		}
+		taxable = Math.max(0, taxable - +result.qbi);
 
 		// Look up the tax
-		var taxable = Math.max(0, ctAGI - exemptionAmount - (result.deduction + QBIAmount));
 
+		// Kiddie tax in scope beginning in 2018 when rules changed
 		if ((TaxYear.value > 2017) && (isStudent)) {
 			// Definition of earned/unearned is different if kiddie tax applies
 			ctEarned = Math.max(0, ctEarned - ctScholar);
@@ -2033,18 +2105,18 @@
 			case "LLC": earnedCTC = EarnedLLC.innerHTML - +ScholarLLC.innerHTML; break;
 			case "TNF": earnedCTC = EarnedTNF.innerHTML - +ScholarTNF.innerHTML; break;
 		}
-		CTCAmount = FTCAmount = ACTCLimit = 0;
+		CTCAmount = OTCAmount = ACTCLimit = 0;
 		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value,
 			CTCDependents.value, Dependents.value, earnedCTC, testAGI, 0);
 		CTCAmount = +CTCresult[0];
-		FTCAmount = +CTCresult[1];
+		OTCAmount = +CTCresult[1];
 		ACTCLimit = +CTCresult[2];
 
-		// Current assumption is that FTC is used before CTC
-		// Space for FTC
-		result.FTC = Math.min(FTCAmount, availableNRC);
-		availableNRC -= result.FTC;
-		result.NRC += result.FTC;
+		// Current assumption is that OTC is used before CTC
+		// Space for OTC
+		result.OTC = Math.min(OTCAmount, availableNRC);
+		availableNRC -= result.OTC;
+		result.NRC += result.OTC;
 
 		// Space for CTC
 		result.CTC = Math.min(CTCAmount, availableNRC);
@@ -2659,6 +2731,7 @@
 	<ul>
 		<li>Effect of taxable amount of Social Security due to change in income and it&apos;s ripple effect with other items.</li>
 		<li>Significant 1250 gain and 28% gain dividend income (doesn&apos;t account for different tax rates)</li>
+		<li>QBI calculations for 166A dividends
 		<li>Significant tax-free interest relative to other investment income</li>
 		<li>Education deductible on Schedule C - see the
 			<a href="http://docs.cotaxaide.org/Education Cookbook.pdf" target="_blank">Education Cookbook</a></li>
@@ -2677,21 +2750,21 @@
 	As an example of how the optimizer works, try the following:
 	<div class="example">
 		<ul class="circle">
-			<li>In tax year 2015, George is a 25 year old taxpayer attending
+			<li>In tax year 2018, George is a 25 year old taxpayer attending
 			a school half time that qualifies for the American opportunity credit.
-			He and his wife Sally have one child and they earned income of $21,000 for the year.</li>
-			<li>George has received an unrestricted grant of $7,000,
-			used to pay for his $3,000 tuition and $1,000 for books which he bought second hand
-			and $8,000 that they used for living expenses.</li>
+			He and his wife Sally have one child and they earned income of $22,500 for the year.</li>
+			<li>George has received an unrestricted grant of $4,000, 
+			used to pay for his $4,000 tuition and $500 for books.</li>
 		</ul>
 	</div>
 	<ul>
-		<li>Without optimizing, you will find that they will lose $63 in earned income credit
-		due to the increased AGI ($3,000 for the housing expense is taxable) and since his expenses were paid,
-		there&apos;s no AOC.</li>
-		<li>When you do optimize, you will find that they will have to pay a little more
-		tax by declaring $4,999 taxable, 
-		but will gain $425 by receiving $939 in AOC which offsets an additional decrease in the earned income credit and then some.
+		<li>Without optimizing, the entire grant is used to pay for the tuition, they owe no tax
+		and they will receive a refundable $200 for AOC, $1400 for ACTC and $3,461 earned income credit.
+		Sounds pretty good, right?</li>
+		<li>But if you optimize, using $4,000 as living expenses,
+		you will find that they will now have to pay a little tax by declaring $1,894 taxable, 
+		but will gain an additional $636 by receiving $840 in AOC and $39 education credit, which offsets
+		the resulting tax and the decrease (-$4) in the earned income credit.
 		To see what&apos;s happening, <button class="noPrint" onclick="ShowExample(true)">click here</button>.</li>
 		<span id="exampleGraph" class="noPrint center">
 				<button onclick="ShowExample(false)">Click to close graph</button>
@@ -2752,13 +2825,13 @@
 				<input id="SPNRA" type="checkbox" title="Taxpayer is a non-resident alien for tax purposes" /> Non-res Alien </td></tr>
 		<tr title="Number of dependents in the tax family. Do not include those you could claim but did not claim.">
 			<td>Total dependents claimed:</td>
-			<td><input id="Dependents" value="0" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
+			<td><input id="Dependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
 		<tr title="Number of dependents who qualify for Earned Income Credit.">
 			<td>Dependents claimed for EIC:</td>
-			<td><input id="EICDependents" value="0" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
+			<td><input id="EICDependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
 		<tr title="Number of dependents who qualify for Child Tax Credit.">
 			<td>Dependents claimed for CTC:</td>
-			<td><input id="CTCDependents" value="0" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
+			<td><input id="CTCDependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
 </table></div>
 	<br />
 	<hr />
@@ -2849,7 +2922,7 @@
 			<td>
 				<input name="FourYears" id="FourYearsYes" type="radio" /> Yes 
 				<input name="FourYears" id="FourYearsNo" type="radio" checked /> No </td> </tr>
-		<tr title="Has the American opportunity credit or the Hope scholarship credit been claimed (by anyone) for this student for any 4 tax years before 2014.">
+		<tr title="Has the American opportunity credit or the Hope scholarship credit already been claimed (by anyone) for this student for any 4 tax years.">
 			<td>Has the student used American Opportunity Credit for 4 years?</td>
 			<td>
 				<input name="FourYearsAOC" id="FourYearsAOCYes" type="radio" /> Yes 
@@ -3456,16 +3529,37 @@
 			<th>Tax return<br />amount</th>
 			<th>American<br />Opportunity</th>
 			<th>Lifetime<br />Learning</th>
-			<th>Tuition &<br />Fees</th></tr>
+			<th>Tuition &amp;<br />Fees</th></tr>
 		<tr id="TPScholarIncome">
 			<td>Calculated scholarship income</td>
-			<td>TS Schol & Grants</td>
+			<td>TS Schol &amp; Grants</td>
 			<td></td>
 			<td class="AOCClass" id="ScholarAOC"> </td>
 			<td class="LLCClass" id="ScholarLLC"> </td>
 			<td class="TNFClass" id="ScholarTNF"> </td></tr>
-		<tr>
-			<td>Earned Income (not Total Income)</td>
+		<tr id="SalaryRow">
+			<td>Wages, Salary and Tips</td>
+			<td>1040 line <span id="SalaryLineNoA">7</span></td>
+			<td><input class="taxreturn" id="SalaryTax" type="number" /></td>
+			<td class="AOCClass" id="SalaryAOC"> </td>
+			<td class="LLCClass" id="SalaryLLC"> </td>
+			<td class="TNFClass" id="SalaryTNF"> </td></tr>
+		<tr id="BusinessRow">
+			<td>Business Income</td>
+			<td>1040 line <span id="BusinessLineNoA">12</span></td>
+			<td><input class="taxreturn" id="BusinessTax" type="number" /></td>
+			<td class="AOCClass" id="BusinessAOC"> </td>
+			<td class="LLCClass" id="BusinessLLC"> </td>
+			<td class="TNFClass" id="BusinessTNF"> </td></tr>
+		<tr id="SEHIRow">
+			<td>Self employed health insurance</td>
+			<td>1040 line <span id="SEHILineNoA">??</span></td>
+			<td><input class="taxreturn" id="SEHITax" type="number" /></td>
+			<td class="AOCClass" id="SEHIAOC"> </td>
+			<td class="LLCClass" id="SEHILLC"> </td>
+			<td class="TNFClass" id="SEHITNF"> </td></tr>
+		<tr id="EarnedRow">
+			<td>Earned Income</td>
 			<td>1040 lines <span id="EarnedLineNoA">7+12</span></td>
 			<td><input class="taxreturn" id="EarnedTax" type="number" /></td>
 			<td class="AOCClass" id="EarnedAOC"> </td>
@@ -3498,7 +3592,7 @@
 			<td><input class="taxreturn" id="ItemizedTax" type="number" /></td>
 			<td class="AOCClass" id="ItemizedAOC"></td>
 			<td class="LLCClass" id="ItemizedLLC"></td>
-			<td class="TNFClass" id="ItemizedTNF"></td></tr>
+			<td class="TNFClass" id="ItemizedTNF"></td>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
 			<td>1040 line <span id="DeductionsLineNoB">40</span></td>
@@ -3506,10 +3600,10 @@
 			<td class="AOCClass" id="DeductionAOC"></td>
 			<td class="LLCClass" id="DeductionLLC"></td>
 			<td class="TNFClass" id="DeductionTNF"></td></tr>
-		<tr id="QBILineA">
+		<tr id="QBIRow">
 			<td>QBI deduction amount</td>
 			<td>1040 line <span id="QBILineNoA">??</span></td>
-			<td><input class="taxreturn" id="QBITax" type="number" /></td>
+			<td class="calculatedEntry" id="QBITax"></td>
 			<td class="AOCClass" id="QBIAOC"></td>
 			<td class="LLCClass" id="QBILLC"></td>
 			<td class="TNFClass" id="QBITNF"></td></tr>
@@ -3635,7 +3729,7 @@
 			<td class="LLCClass" id="RetireLLC"></td>
 			<td class="TNFClass" id="RetireTNF"></td></tr>
 		<tr>
-			<td>&nbsp;&nbsp;&nbsp;Child<span id="FTC"> and Family</span> Tax Credit</td>
+			<td>&nbsp;&nbsp;&nbsp;Child<span id="OTC"> and other dependents</span> Tax Credit</td>
 			<td>1040 line <span id="CTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="CTCTax"></td>
 			<td class="AOCClass" id="CTCAOC"></td>
@@ -3665,11 +3759,11 @@
 			<td class="LLCClass"></td>
 			<td class="TNFClass"></td></tr>
 		<tr>
-			<td>Earned income credit (check "No" if not qualfied)
+			<td>Earned income credit (check "No" if not qualfied
 				<span id="EICInfo" class="help"
 					onmouseover="EICInfoText.style.display='block';"
 					onmouseout="EICInfoText.style.display='none';">&nbsp;?&nbsp;
-				</span>
+				</span>)
 				<span id="EICInfoText" class="helpText"
 					onmouseover="EICInfoText.style.display='block';"
 					onmouseout="EICInfoText.style.display='none';">
@@ -3682,7 +3776,7 @@
 					</ul>
 				</span></td>
 			<td>No:<input id="NoEIC" type="checkbox"> 1040 line <span id="EICLineNoB">??</span></td>
-			<td><input class="taxreturn" id="EICTax" type="number"></td>
+			<td class="calculatedEntry" id="EICTax"></td>
 			<td class="AOCClass" id="EICAOC"></td>
 			<td class="LLCClass" id="EICLLC"></td>
 			<td class="TNFClass" id="EICTNF"></td></tr>
@@ -3743,7 +3837,28 @@
 			<td class="AOCClass" id="StudScholarAOC"> </td>
 			<td class="LLCClass" id="StudScholarLLC"> </td>
 			<td class="TNFClass" id="StudScholarTNF"> </td></tr>
-		<tr>
+		<tr id="StudSalaryRow">
+			<td>Wages, Salary and Tips</td>
+			<td>1040 line <span id="SalaryLineNoB">7</span></td>
+			<td><input class="taxreturn" id="StudSalaryTax" type="number" /></td>
+			<td class="AOCClass" id="StudSalaryAOC"> </td>
+			<td class="LLCClass" id="StudSalaryLLC"> </td>
+			<td class="TNFClass" id="StudSalaryTNF"> </td></tr>
+		<tr id="StudBusinessRow">
+			<td>Business Income</td>
+			<td>1040 line <span id="BusinessLineNoB">12</span></td>
+			<td><input class="taxreturn" id="StudBusinessTax" type="number" /></td>
+			<td class="AOCClass" id="StudBusinessAOC"> </td>
+			<td class="LLCClass" id="StudBusinessLLC"> </td>
+			<td class="TNFClass" id="StudBusinessTNF"> </td></tr>
+		<tr id="StudSEHIRow">
+			<td>Self employed health insurance</td>
+			<td>1040 line <span id="SEHILineNoB">??</span></td>
+			<td><input class="taxreturn" id="StudSEHITax" type="number" /></td>
+			<td class="AOCClass" id="StudSEHIAOC"> </td>
+			<td class="LLCClass" id="StudSEHILLC"> </td>
+			<td class="TNFClass" id="StudSEHITNF"> </td></tr>
+		<tr id="StudEarnedRow">
 			<td>Earned Income (not Total Income)</td>
 			<td>1040 lines <span id="EarnedLineNoB">7+12</span></td>
 			<td><input class="taxreturn" id="StudEarnedTax" type="number" /></td>
@@ -3771,10 +3886,10 @@
 			<td class="AOCClass" id="StudDeductionAOC"></td>
 			<td class="LLCClass" id="StudDeductionLLC"></td>
 			<td class="TNFClass" id="StudDeductionTNF"></td></tr>
-		<tr id="QBILineB">
+		<tr id="StudQBIRow">
 			<td>QBI deduction amount</td>
 			<td>1040 line <span id="QBILineNoB">??</span></td>
-			<td><input class="taxreturn" id="StudQBITax" type="number" /></td>
+			<td class="calculatedEntry" id="StudQBITax"></td>
 			<td class="AOCClass" id="StudQBIAOC"></td>
 			<td class="LLCClass" id="StudQBILLC"></td>
 			<td class="TNFClass" id="StudQBITNF"></td></tr>

@@ -5,8 +5,9 @@
         // Form line numbers
         // var LineNo = [];
 		_LineNo[_TY+":Salary"] = "7";
-		_LineNo[_TY+":Pension"] = "16a";
+		_LineNo[_TY+":Business"] = "12";
                 _LineNo[_TY+":Earned"] = "7+12";
+		_LineNo[_TY+":Pension"] = "16a";
                 _LineNo[_TY+":TaxExInc"] = "8b";
                 _LineNo[_TY+":CapGains"] = "13";
                 _LineNo[_TY+":SSI"] = "20a";
@@ -14,6 +15,7 @@
                 _LineNo[_TY+":QBI"] = "";
                 _LineNo[_TY+":AGI"] = "37";
                 _LineNo[_TY+":TNF"] = "34";
+		_LineNo[_TY+":SEHI"] = "29";
                 _LineNo[_TY+":Adjustments"] = "36";
                 _LineNo[_TY+":Deductions"] = "40";
                 _LineNo[_TY+":TaxAmount"] = "44";
