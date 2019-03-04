@@ -126,7 +126,7 @@
 	#optDiv th, #optDiv td:first-child { text-align: left; }
 	#optDiv td:nth-child(2) { text-align: right; }
 	#testPrint {color: red; font-size: 60%; float: right; cursor: none; }
-	#KiddieOverrideOption { padding-left: 2em; }
+	#KiddieAllowOption { padding-left: 2em; }
 	#NoOptimize1,
 	#NoOptimize2,
 	#NoOptimize3,
@@ -178,7 +178,11 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.10, 2/23/2019";
+	var VERSION = "Version 3.11, 3/4/2019";
+	//	Added check to insure that disabled student income question is marked Yes
+	//	Corrected kiddie tax calculation so not done if so indicated by test questions
+	//	Hide AOC parent alive question if already asked
+	//var VERSION = "Version 3.10, 2/23/2019";
 	//	Split earned income into Salary and Business income lines
 	//	Corrected QBI calculations when limited by taxable income
 	//	Hide QBI line when no business income
@@ -237,6 +241,7 @@
 	//	Jay Wiedwald
 	//	Edie Loughmiller
 	//	Harold Rowe
+	//	Brad Kirby
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -258,12 +263,12 @@
 	var NQExpenses = []; // allowed by the funding source but not qualified for credit
 	var Exemptions = 0;
 	var CTCTotal = 0;
-	var DependentUnderage = false; // test for refundable AOC and kiddy tax
 	var RelativeViolation = false; // test for age 24 and too high AGI
 	var ExcessAPTC = [];
 	var FedPovertyLine = 0;
+	var KiddieTaxApplies = false; // test for Kiddie Tax on info tab
+	var KiddieTaxFlag = false; // display Allow kiddie tax option on optimizer
 	var KiddieTaxThreshold = 0;
-	var KiddieTaxFlag = false;
 	var KiddieFileMargin = -1;
 	var StudentFileMargin = -1;
 	var ExtraNRC = 0;
@@ -363,6 +368,7 @@
 		if ((newTab != "InformationTab") && (newTab != "InstructionsTab")) {
 			if (DependentYes.checked) {
 				var message = "";
+
 				if (+Dependents.value == 0) {
 					message += "\x0DThe taxpayer has not claimed any dependents but the student is marked as a dependent.";
 					message += "\x0D\x0DYou must claim the student as a dependent to qualify for education credits.";
@@ -389,6 +395,7 @@
 						message += " (or more than) the number of dependents you are claiming for exemptions.";
 					}
 				}
+
 				if (message != "") {
 					if (! Optimizing) {
 						alert(message);
@@ -504,8 +511,8 @@
 
 		// Child (and Family) Tax Credit name change in 2018
 		OTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
-		KiddieOverride.disabled = (+TaxYear.value > 2017) ? false : true;
-		if (KiddieOverride.disabled) KiddieOverride.checked = false;
+		KiddieAllow.disabled = (+TaxYear.value > 2017) ? false : true;
+		if (KiddieAllow.disabled) KiddieAllow.checked = false;
 
 		// Calculate Fed Poverty Line for the given year
 		if (+TaxYear.value < 2019) { // FPL only needed for years 2014 - 2018
@@ -560,7 +567,7 @@
 		else { // Student is a dependent
 			KiddieWarn.style.display = "list-item";
 			if (whatChanged == "TaxYear") {
-				KiddieOverride.checked = (TaxYear.value > 2017); // true/false
+				KiddieAllow.checked = (TaxYear.value > 2017); // true/false
 			}
 		}
 		Exemptions += +Dependents.value;
@@ -576,6 +583,7 @@
 
 		IncomeLessYes.disabled =
 		IncomeLessNo.disabled = StudentAge16.checked || StudentAge17.checked || StudentAge24.checked;
+		if (IncomeLessYes.disabled) IncomeLessYes.checked = true;
 		ParentAliveYes.disabled = ParentAliveNo.disabled = StudentAge24.checked;
 
 		var cqlist = document.getElementsByClassName("ClaimedQuestion");
@@ -598,24 +606,30 @@
 		for (var sqi = 0; sqi < sqlist.length; sqi++) {
 			sqlist[sqi].style.display = (TPisParentNo.checked && DependentYes.checked) ? "inline" : "none";
 		}
+		if ((TPisParentRow.style.display == "inline") && TPisParentYes.checked) ParentAliveYes.checked = ParentAlive2Yes.checked = true;
 
 		// Age and relationship tests for AOC refundable and kiddie tax
 		// Get the dependent's current AGI
-		KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 
-		DependentUnderage = false;
-		KTdiv.style.display = "none";
+		KTui.innerHTML = KiddieTaxThreshold = 0;
+
+		KiddieTaxApplies = false;
 		if      (( StudentAge16.checked
 			|| StudentAge17.checked
 			|| (StudentAge18.checked && IncomeLessYes.checked)
 			|| (StudentAge19.checked && IncomeLessYes.checked && TimeFull.checked))
+
 			&& (! ((ParentAliveNo.checked && DependentNo.checked)
 				|| (ParentAlive2No.checked && DependentYes.checked)))
-			&& (StudentFilingStatus.value != "MFJ")) {
-				DependentUnderage = true;
-				KTui.innerHTML = KiddieTaxThreshold;
-				KTdiv.style.display = "inline";
+
+			&& ((((FilingStatus.value != "MFJ") || MFJRefund.checked) && DependentNo.checked)
+				|| ((StudentFilingStatus.value != "MFJ") && DependentYes.checked))) {
+			
+			KiddieTaxApplies = true;
+			KTui.innerHTML = 
+			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 		}
+		KTdiv.style.display = (KiddieTaxApplies) ? "inline" : "none";
 
 		// Hide tax return results line if student not a dependent
 		StudentInput.style.display = (DependentNo.checked) ? "none" : "inline";
@@ -631,6 +645,13 @@
 		for (var aocqi = 0; aocqi < aocqlist.length; aocqi++) {
 			aocqlist[aocqi].style.display = (ClaimedYes.checked || StudentAge24.checked) ? "none" : "inline";
 		}
+		// Suppress the same question asked earlier (if it was) and copy the response
+		if (ParentAlive2Row.style.display == "inline") {
+			ParentAliveYes.checked = ParentAlive2Yes.checked;
+			ParentAliveNo.checked = ParentAlive2No.checked;
+			ParentAliveRow.style.display = "none";
+		}
+		else ParentAliveRow.style.display = "table-row";
 
 		// Show Job Skill question if not a half-time student
 		var jsqlist = document.getElementsByClassName("JobSkills");
@@ -667,7 +688,7 @@
 		StudentAOC.innerHTML = (+MaxAOC.innerHTML == 0) ? "No" : "Yes";
 		StudentLLC.innerHTML = (+MaxLLC.innerHTML == 0) ? "No" : "Yes";
 		StudentTNF.innerHTML = (+MaxTNF.innerHTML == 0) ? "No" : "Yes";
-		StudentAOCR.innerHTML = ((DependentNo.checked && ClaimedNo.checked && DependentUnderage) 
+		StudentAOCR.innerHTML = ((DependentNo.checked && ClaimedNo.checked && KiddieTaxApplies) 
 				|| (+MaxAOC.innerHTML == 0)) ? "No" : "Yes";
 
 		// Update figures in the Manual Comparison page CreditLimitTable
@@ -833,45 +854,43 @@
 		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
-		if ((+TaxYear.value < 2018) || (! KiddieOverride.checked)) {
-			if (DependentUnderage) { // kiddie unearned tax limit
-				// Get the student's current unearned income amount and determine if must file
+		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
+			// Get the student's current unearned income amount and determine if must file
 
-				// Taxable scholarship is earned income for this test
-				var fileAmount = +_StandardDeduction(TaxYear.value, StudentFilingStatus.value,
-					StudentTP65.checked, StudentTPBlind.checked, StudentSP65.checked, StudentSPBlind.checked,
-					false, 0);
-				var fileMinimum = +_Standard[TaxYear.value].split(",")[_Standard["Minimum"]];
-				taxableLimit = Math.min(fileAmount, taxableLimit);
-				if (KiddieFileMargin == -1) {
-					KiddieFileMargin = KiddieTaxThreshold;
-					StudentFileMargin = fileAmount;
-				}
+			// Taxable scholarship is earned income for this test
+			var fileAmount = +_StandardDeduction(TaxYear.value, StudentFilingStatus.value,
+				StudentTP65.checked, StudentTPBlind.checked, StudentSP65.checked, StudentSPBlind.checked,
+				false, 0);
+			var fileMinimum = +_Standard[TaxYear.value].split(",")[_Standard["Minimum"]];
+			taxableLimit = Math.min(fileAmount, taxableLimit);
+			if (KiddieFileMargin == -1) {
+				KiddieFileMargin = KiddieTaxThreshold;
+				StudentFileMargin = fileAmount;
+			}
 
-				// Get the student's current unearned (not quite accurate - should use total income)
-				var studentUnearned = Math.max(0, +StudAGITax.value - +StudEarnedTax.value);
-				var unearnedMargin = fileMinimum - studentUnearned;
-				var earnedMargin = fileAmount - +StudEarnedTax.value;
-				var grossMargin = fileAmount - +StudAGITax.value;
-				KiddieFileMargin = KiddieTaxThreshold - studentUnearned; // Taxable scholarship is not included
-				if (studentUnearned > 350) {
-					StudentFileMargin = unearnedMargin; // amount to earn before having to file
-				}
-				else {
-					StudentFileMargin = Math.min(earnedMargin, grossMargin); // amount to earn before having to file
-				}
+			// Get the student's current unearned (not quite accurate - should use total income)
+			var studentUnearned = Math.max(0, +StudAGITax.value - +StudEarnedTax.value);
+			var unearnedMargin = fileMinimum - studentUnearned;
+			var earnedMargin = fileAmount - +StudEarnedTax.value;
+			var grossMargin = fileAmount - +StudAGITax.value;
+			KiddieFileMargin = KiddieTaxThreshold - studentUnearned; // Taxable scholarship is not included
+			if (studentUnearned > 350) {
+				StudentFileMargin = unearnedMargin; // amount to earn before having to file
+			}
+			else {
+				StudentFileMargin = Math.min(earnedMargin, grossMargin); // amount to earn before having to file
+			}
 
-				if ((unearnedMargin < 0) || (earnedMargin < 0) || (grossMargin < 0)) { // must file
-					taxableLimit = Math.min(KiddieFileMargin, taxableLimit);
-				}
-				else { // dont have to file yet
-					//taxableLimit = Math.min(StudentFileMargin, taxableLimit);
-				}
+			if ((unearnedMargin < 0) || (earnedMargin < 0) || (grossMargin < 0)) { // must file
+				taxableLimit = Math.min(KiddieFileMargin, taxableLimit);
+			}
+			else { // dont have to file yet
+				//taxableLimit = Math.min(StudentFileMargin, taxableLimit);
+			}
 
-				if (ScholarTaxable.value > taxableLimit) {
-					if (! Optimizing) alert("CAUTION!\x0DYou are exceeding the taxable amount to your dependent child that makes the taxpayer \"kiddie tax\" come into effect for the taxpayer. You don't want to do that.");
-					ScholarTaxable.value = "";
-				}
+			if (ScholarTaxable.value > taxableLimit) {
+				if (! Optimizing) alert("CAUTION!\x0DYou are exceeding the taxable amount to your dependent child that makes the taxpayer \"kiddie tax\" come into effect for the taxpayer. You don't want to do that.");
+				ScholarTaxable.value = "";
 			}
 		}
 
@@ -1099,7 +1118,7 @@
 			NoOptimize3.style.display = "block";
 			showPerhaps = false;
 		}
-		else if (KiddieTaxFlag && (! KiddieOverride.checked) && (+TaxLLC.innerHTML > 0)) {
+		else if (KiddieTaxFlag && (! KiddieAllow.checked) && (+TaxLLC.innerHTML > 0)) {
 			messageNoUnqualified.style.display = "list-item";
 			OptimizeButtons.style.display = "none";
 			NoOptimize4.style.display = "block";
@@ -1553,7 +1572,7 @@
 		}
 
 		// adjust for kiddie tax avoidance
-		if ((+TaxYear.value < 2018) || (! KiddieOverride.checked)) {
+		if ((+TaxYear.value < 2018) || (! KiddieAllow.checked)) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -1804,7 +1823,7 @@
 		// Determine refundable vs nonrefundable amounts
 		var AOCRefundable = Math.round(0.4 * available);
 		if (StudentAOCR.innerHTML == "No") AOCRefundable = 0;
-		if (DependentNo.checked && ClaimedNo.checked && DependentUnderage) AOCRefundable = 0;
+		if (DependentNo.checked && ClaimedNo.checked && KiddieTaxApplies) AOCRefundable = 0;
 		var nonrefundable = available - AOCRefundable + +LLCTax.value;
 		AOCAOC.innerHTML = AOCRefundable + +AOCTax.value;
 		AOCLLC.innerHTML = +AOCTax.value;
@@ -1896,13 +1915,13 @@
 		// Look up the tax
 
 		// Kiddie tax in scope beginning in 2018 when rules changed
-		if ((TaxYear.value > 2017) && (isStudent)) {
+		if ((TaxYear.value > 2017) && isStudent && KiddieTaxApplies) {
 			// Definition of earned/unearned is different if kiddie tax applies
 			ctEarned = Math.max(0, ctEarned - ctScholar);
 			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
 
 			// Is student subject to kiddie tax
-			if (unearnedIncome > KiddieTaxThreshold) { // Yes
+			if (KiddieTaxApplies && (unearnedIncome > KiddieTaxThreshold)) { // Yes
 
 				// Use normal rate for taxable earned income and Kiddie Tax threshold amount
 				var standardTax = 0;
@@ -1994,8 +2013,8 @@
 		if (FPLPercent > 999) FPLPercent = 999;
 		FPLPercent = Math.floor(FPLPercent); // truncate rather than round since 2015
 
-		if (FPLPercent < 133) { result.APTC = PTCAdvance; return (result) } // not eligible for PTC
-		if (FPLPercent > 400) { result.APTC = PTCAdvance; return (result) } // must pay it all back
+		if (FPLPercent < 133) { result.APTC = +PTCAdvance; return (result) } // not eligible for PTC
+		if (FPLPercent > 400) { result.APTC = +PTCAdvance; return (result) } // must pay it all back
 
 		var PTCFactor = 0;
 		var PTCRange = 0;
@@ -2016,7 +2035,7 @@
 		PTCFactor = Math.round(10000 * PTCFactor) / 10000; // round to 4 decimal places
 
 		var PTCContribution = testAGI * PTCFactor;
-		var PTCMaximum = Math.round(Math.min(PTCPremium, Math.max(0, (PTC_SLCSP - PTCContribution))));
+		var PTCMaximum = Math.round(Math.min(+PTCPremium, Math.max(0, (+PTC_SLCSP - PTCContribution))));
 		if (PTCMonths != 12) {
 			PTCMaximum = PTCMonths * Math.round(PTCMaximum / 12);
 		}
@@ -2845,12 +2864,12 @@
 				<input name="Dependent" id="DependentNo" type="radio" onclick="ChangeInfo(this.id)" /> TP or SP </td> </tr>
 		<tr title="Is the TP or SP a parent of this dependent.">
 			<td><span class="DependentQuestion">&nbsp;&nbsp;Is the TP or SP a parent of this dependent?</span></td>
-			<td><span class="DependentQuestion">
+			<td><span id="TPisParentRow" class="DependentQuestion">
 				<input name="TPisParent" id="TPisParentYes" type="radio" checked /> Yes 
 				<input name="TPisParent" id="TPisParentNo" type="radio" /> No</span></td></tr>
 		<tr title="Was at least one of the dependent's parents alive at the end of the tax year.">
 			<td><span class="NoParentQuestion">&nbsp;&nbsp;&nbsp;&nbsp;Was at least one parent alive at the end of the tax year?</span></td>
-			<td><span class="NoParentQuestion">
+			<td><span id="ParentAlive2Row" class="NoParentQuestion">
 				<input name="ParentAlive2" id="ParentAlive2Yes" type="radio" checked /> Yes 
 				<input name="ParentAlive2" id="ParentAlive2No" type="radio" /> No</span></td></tr>
 		<tr title="What was the student's age at the end of the tax year.">
@@ -2890,12 +2909,13 @@
 			<td><span class="ClaimedQuestion">
 				<input name="Claimed" id="ClaimedYes" type="radio" /> Yes 
 				<input name="Claimed" id="ClaimedNo" type="radio" checked="checked" /> No</span></td></tr>
-		<tr title="Was your earned income less than one-half of your support.">
-			<td><span class="AOCRefundQuestions">&nbsp;&nbsp;&nbsp;&nbsp;Was your earned income less than one-half of your support?</span></td>
+		<tr title="Check &quot;No&quot; if the student&apos;s earned income was one-half or more of their support. (Note: the earned income may not have been used for their support but added to savings, etc.)">
+			<td><span class="AOCRefundQuestions">&nbsp;&nbsp;&nbsp;&nbsp;Was the student&apos;s earned income less than one-half of their support?</span></td>
 			<td><span class="AOCRefundQuestions">
 				<input name="IncomeLess" id="IncomeLessYes" type="radio" checked /> Yes 
 				<input name="IncomeLess" id="IncomeLessNo" type="radio" /> No <i>(Scholarships are not considered support)</i></span></td></tr>
-		<tr title="Was at least one of the taxpayer's or spouse's parents alive at the end of the tax year.">
+		<tr id="ParentAliveRow"
+			title="Was at least one of the taxpayer&apos;s or spouse's parents alive at the end of the tax year.">
 			<td><span class="AOCRefundQuestions">&nbsp;&nbsp;&nbsp;&nbsp;Was at least one parent alive at the end of the tax year?</span></td>
 			<td><span class="AOCRefundQuestions">
 				<input name="ParentAlive" id="ParentAliveYes" type="radio" checked /> Yes 
@@ -3816,7 +3836,7 @@
 	<div id="StudentTaxFormDiv">
 		<p style="page-break-before: always;"></p>
 		<hr /><div class="TaxReturnHeader">Student&apos;s return:
-			<span id="KiddieOverrideOption"> (<input id="KiddieOverride" type="checkbox"
+			<span id="KiddieAllowOption"> (<input id="KiddieAllow" type="checkbox"
 				checked="true"
 				onchange="BudgetChange();"
 				title="check to allow kiddie tax calculation" /> Allow kiddie tax)
