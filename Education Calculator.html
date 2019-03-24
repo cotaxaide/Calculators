@@ -178,7 +178,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.11, 3/4/2019";
+	var VERSION = "Version 3.12, 3/22/2019";
+	//	Reset optimized value found after reducing the scan range to find earlier max
+	//var VERSION = "Version 3.11, 3/4/2019";
 	//	Added check to insure that disabled student income question is marked Yes
 	//	Corrected kiddie tax calculation so not done if so indicated by test questions
 	//	Hide AOC parent alive question if already asked
@@ -242,6 +244,7 @@
 	//	Edie Loughmiller
 	//	Harold Rowe
 	//	Brad Kirby
+	//	Stephen Enk
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -2241,7 +2244,8 @@
 			high = Math.round(Math.min(optimizedTaxable + (5 * stepsize), high));
 			stepsize = (stepsize > 1 && stepsize < 5) ? 1 : Math.round(stepsize/10);
 			PlotCanv.fillStyle = "black";
-			PlotCanv.fillRect(PlotprogH0,PlotprogV0,ProgBarWidth,ProgBarHeight);
+			PlotCanv.fillRect(PlotprogH0, PlotprogV0, ProgBarWidth, ProgBarHeight);
+			optimizedRefund = 0;
 		}
 		ScholarTaxable.value = Math.round(optimizedTaxable);
 		BudgetChange();
