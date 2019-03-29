@@ -7,8 +7,11 @@
 //	_CTCLookup		Child and Dependent Tax Credit
 //	_EICLookup		Earned Income Credit table lookup
 //	_QBICalc		Qualified Business Income deduction calculation
+//	_NIITCalc		Net Investment Income Tax calculation
 //----------------------------------------------------------------------------------------
 //
+// Version 1.03 3/29/2019
+// 	Added NIITCalc
 // Version 1.02 2/3/2019
 // 	Correction to MFS and living with spouse - did not use 1/2 Soc Sec
 // Version 1.01 12/7/2018
@@ -21,6 +24,7 @@ function _SETax (	// Self-employment tax
 		) {
 // returns an array: [self-employment tax amount, deductible amount]
 //----------------------------------------------------------------------------------------
+
 	var selfamt = +SEIncome;
 	var selftax = 0;
 	var selftest = selfamt * 0.9235;
@@ -345,3 +349,24 @@ function _QBICalc (	// Qualified Business Income deduction
 	var QBIDeduction = Math.min(QBI10, QBI14); // line 15
 	return QBIDeduction;
 }
+
+//----------------------------------------------------------------------------------------
+function _NIITCalc (	// Net Investment Income Tax calculation
+	taxYear,	// tax year tables to use
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	AGI,		// AGI
+	interest,	// Taxable interest income
+	dividends,	// Gross dividend income
+	capGains,	// Taxable Capital gains income
+	expenses	// Investment expenses
+		) {
+// returns NIIT amount
+// Form 8960 line numbers
+//----------------------------------------------------------------------------------------
+	var NIIT_income = Math.max(0, +interest + +dividends + +capGains - +expenses); // line 8
+	var NIIT_limit = Math.max(0, AGI - +_NIITLimits[taxYear + ":" + filingStatus]); // line 15
+	var NIIT_amount = Math.min(NIIT_income, NIIT_limit); // line 16
+	var NIIT_rate = +_NIITLimits[taxYear + ":Rate"];
+	var NIIT_tax = Math.round(NIIT_amount * NIIT_rate); // line 17
+	return NIIT_tax;
+	}

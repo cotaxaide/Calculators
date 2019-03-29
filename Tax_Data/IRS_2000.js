@@ -19,6 +19,7 @@ var _SESocSec = [];
 var _SEMedicare = [];
 var _SEMaxWages = [];
 var _QBILimits = [];
+var _NIITLimits = [];
 
 //------------------------------------------------------------
 // DATE VARIABLES

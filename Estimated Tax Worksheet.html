@@ -81,11 +81,14 @@
 	//	Gloria Coyle
 	//	Joe Ohrazda
 	//	Russ Gross
+	//	Larry Rafferty
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.20, 2/17/2019)";
+	var VERSION = "(Version 2.21, 3/29/2019)";
+	//	Added detection and calculation of NIIT
+	//var VERSION = "(Version 2.20, 2/17/2019)";
 	//	Added new adjustments in calculating taxable Social Security
 	//var VERSION = "(Version 2.19, 2/10/2019)";
 	//	Reordered income lines to match new tax forms]
@@ -243,7 +246,7 @@
 		// Total the adjustments
 		SEInsurance.disabled = SESEP.disabled = (+SEIncome.value == 0);
 		if (SEInsurance.disabled) SEInsurance.value = "";
-		SEHI.innerHTML = Math.min(+SEIncome.value, +SEInsurance.value);
+		SEHI.innerHTML = Math.max(0,Math.min(+SEIncome.value, +SEInsurance.value));
 		var SEHIRemainder = Math.max(0, +SEInsurance.value - +SEHI.innerHTML);
 		SEHIExcess.innerHTML = (SEHIRemainder) ? "<br />&nbsp;&nbsp;&nbsp;<i>Excess " + +SEHIRemainder + " will carry to Schedule A medical expenses</i>" : "";
 
@@ -446,8 +449,16 @@
 		EICCredit.innerHTML = EICAmount = +_EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
 			EICEarned, EICInvest, AGI.innerHTML, TP65.checked, SP65.checked);
 
+		// Does NIIT apply?
+		var NIITAmount = _NIITCalc(TaxYear.value, FilingStatus.value, AGI.innerHTML, Interest.value, Dividends.value, CapGains.value, NIITExpenses.value);
+		NIITTax.innerHTML = NIITAmount;
+		if ((NIITAmount > 0) || (NIITExpenses.value != "")) {
+			NIITRow.style.display = "table-row";
+		}
+		else NIITRow.style.display = "none";
+
 		// Total the tax amounts
-		TotalTax.innerHTML = taxamt = Math.round(+Line10.innerHTML + +SETax.innerHTML + +OtherTaxes.value);
+		TotalTax.innerHTML = taxamt = Math.round(+Line10.innerHTML + +SETax.innerHTML + +NIITTax.innerHTML + +OtherTaxes.value);
 		TaxDue.innerHTML = taxdue = Math.round(+TotalTax.innerHTML - ACTCAmount - EICAmount - +Refundable.value);
 		taxdue = Math.max(0, taxdue);
 		if (taxamt) maxIRA.innerHTML = "N/A";
@@ -782,6 +793,10 @@
 		<tr><td>  </td>
 			<td colspan="2">Self-employment tax</td>
 			<td class="calculated"><span id="SETax">0</span></td></tr>
+		<tr id="NIITRow"><td>  </td>
+			<td colspan="2">Net Investment Income tax
+			(Enter investment expenses: <input id="NIITExpenses" type="number" />)</td>
+			<td class="calculated"><span id="NIITTax">0</span></td></tr>
 		<tr><td></td>
 			<td colspan="2">Other taxes</td>
 			<td><input id="OtherTaxes" type="number" /></td></tr>

@@ -200,3 +200,10 @@
 		_QBILimits[_TY+":HOH"] = "157500";
 		_QBILimits[_TY+":WID"] = "157500";
 		
+	// Net Investment Income Tax
+		_NIITLimits[_TY+":Rate"] = "0.038";
+		_NIITLimits[_TY+":SNG"] = "200000";
+		_NIITLimits[_TY+":MFJ"] = "250000";
+		_NIITLimits[_TY+":MFS"] = "125000";
+		_NIITLimits[_TY+":HOH"] = "200000";
+		_NIITLimits[_TY+":WID"] = "250000";	

@@ -194,3 +194,11 @@
 		_QBILimits[_TY+":HOH"] = "160700";
 		_QBILimits[_TY+":WID"] = "160700";
 	
+	// Net Investment Income Tax		// Need update
+		_NIITLimits[_TY+":Rate"] = "0.038";
+		_NIITLimits[_TY+":SNG"] = "200000";
+		_NIITLimits[_TY+":MFJ"] = "250000";
+		_NIITLimits[_TY+":MFS"] = "125000";
+		_NIITLimits[_TY+":HOH"] = "200000";
+		_NIITLimits[_TY+":WID"] = "250000";
+
