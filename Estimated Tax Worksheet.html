@@ -81,12 +81,15 @@
 	//	Gloria Coyle
 	//	Joe Ohrazda
 	//	Russ Gross
-	//	Larry Rafferty
+	//	Larry Raffery
+	//	Kathleen Quinn
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.21, 3/29/2019)";
+	var VERSION = "(Version 2.22, 4/1/2019)";
+	//	Added a QCD subtraction from pension line
+	//var VERSION = "(Version 2.21, 3/29/2019)";
 	//	Added detection and calculation of NIIT
 	//var VERSION = "(Version 2.20, 2/17/2019)";
 	//	Added new adjustments in calculating taxable Social Security
@@ -250,6 +253,9 @@
 		var SEHIRemainder = Math.max(0, +SEInsurance.value - +SEHI.innerHTML);
 		SEHIExcess.innerHTML = (SEHIRemainder) ? "<br />&nbsp;&nbsp;&nbsp;<i>Excess " + +SEHIRemainder + " will carry to Schedule A medical expenses</i>" : "";
 
+		// Pension with QCD
+		Pensions.innerHTML = +TotalPensions.value - QCD.value;
+
 		// Get the taxable Social Security amount
 		var SSAdjustments = +EdExpenses.value + +HSADeduction.value
 			+ +SETaxCredit.innerHTML + +SESEP.value + +SEHI.innerHTML
@@ -258,7 +264,7 @@
 		TotalAdjustments.value = SSAdjustments + +StudentLoanCredit.value;
 
 		IncomeNoSS = +Wages.value + +Interest.value + +Dividends.value
-			+ +SEIncome.value + +CapGains.value + +Pensions.value
+			+ +SEIncome.value + +CapGains.value + +Pensions.innerHTML
 			+ +OtherIncome.value;
 		SSresult = _TaxableSS(TaxYear.value, FilingStatus.value, SS.value,
 			(IncomeNoSS + +TaxExempt.value), SSAdjustments,
@@ -612,12 +618,14 @@
 			<td><input id="QBIDividends" type="number" /></td>
 			<td></td><td></td></tr>
 		<tr class="income"><td></td>
-			<td>IRAs, pensions and annuities</td><td></td>
-			<td><input id="Pensions" type="number" /></td></tr>
+			<td>IRAs, pensions and annuities
+			(Amount of QCD included: <input id="QCD" type="number" />)</td>
+			<td><input id="TotalPensions" type="number" /></td>
+			<td class="calculated"><span id="Pensions"> </span></tr>
 		<tr class="income"><td></td>
 			<td>Amount of social security expected</td>
 			<td><input id="SS" type="number" /></td>
-			<td class="calculated"><span id="TaxableSS">0</span></td></tr>
+			<td class="calculated"><span id="TaxableSS"> </span></td></tr>
 		<tr class="income"><td></td>
 			<td>Business income</td><td></td>
 			<td><input id="SEIncome" type="number" /></td></tr>
