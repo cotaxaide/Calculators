@@ -9,6 +9,7 @@
                 _LineNo[_TY+":Earned"] = "1&S1-12";
                 _LineNo[_TY+":TaxExInc"] = "2a";
                 _LineNo[_TY+":CapGains"] = "S1-13";
+                _LineNo[_TY+":QDCG"] = "12";
 		_LineNo[_TY+":Pension"] = "4b";
                 _LineNo[_TY+":SSI"] = "5a";
                 _LineNo[_TY+":SST"] = "5b";

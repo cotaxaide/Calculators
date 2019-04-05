@@ -178,7 +178,10 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.12, 3/22/2019";
+	var VERSION = "Version 3.13, 4/5/2019";
+	//	Correct line number for QDCG worksheet
+	//	Input line rearrangment
+	//var VERSION = "Version 3.12, 3/22/2019";
 	//	Reset optimized value found after reducing the scan range to find earlier max
 	//var VERSION = "Version 3.11, 3/4/2019";
 	//	Added check to insure that disabled student income question is marked Yes
@@ -485,7 +488,7 @@
 
 		// Show line numbers for the selected tax year in the Optimizer tab
 		CapGainsLineNoA.innerHTML = CapGainsLineNoB.innerHTML =
-		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _LineNo[TaxYear.value + ":CapGains"];
+		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _LineNo[TaxYear.value + ":QDCG"];
 		AGILineNoA.innerHTML = AGILineNoB.innerHTML = _LineNo[TaxYear.value + ":AGI"];
 		QBILineNoA.innerHTML = QBILineNoB.innerHTML = _LineNo[TaxYear.value + ":QBI"];
 		SalaryLineNoA.innerHTML = SalaryLineNoB.innerHTML = _LineNo[TaxYear.value + ":Salary"];
@@ -3618,6 +3621,13 @@
 			<td class="LLCClass" id="ItemizedLLC"></td>
 			<td class="TNFClass" id="ItemizedTNF"></td>
 		<tr>
+			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="CapGainsLineNoA">??</span></td>
+			<td>QD&amp;CG Wkt line <span id="CapGainsLineNoB">??</span></td>
+			<td><input class="taxreturn" id="CapGainsTax" type="number" /></td>
+			<td class="AOCClass" id="CapGainsAOC"></td>
+			<td class="LLCClass" id="CapGainsLLC"></td>
+			<td class="TNFClass" id="CapGainsTNF"></td></tr>
+		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
 			<td>1040 line <span id="DeductionsLineNoB">40</span></td>
 			<td class="calculatedEntry" id="DeductionTax"></td>
@@ -3631,13 +3641,6 @@
 			<td class="AOCClass" id="QBIAOC"></td>
 			<td class="LLCClass" id="QBILLC"></td>
 			<td class="TNFClass" id="QBITNF"></td></tr>
-		<tr>
-			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="CapGainsLineNoA">??</span></td>
-			<td>QD&amp;CG Wkt line <span id="CapGainsLineNoB">??</span></td>
-			<td><input class="taxreturn" id="CapGainsTax" type="number" /></td>
-			<td class="AOCClass" id="CapGainsAOC"></td>
-			<td class="LLCClass" id="CapGainsLLC"></td>
-			<td class="TNFClass" id="CapGainsTNF"></td></tr>
 		<tr>
 			<td class="bold">Tax amount:</td>
 			<td>1040 line <span id="TaxAmountLineNoB">44</span></td>
@@ -3904,6 +3907,13 @@
 			<td class="LLCClass" id="StudItemizedLLC"></td>
 			<td class="TNFClass" id="StudItemizedTNF"></td></tr>
 		<tr>
+			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="StudCapGainsLineNoA">??</span></td>
+			<td>QD&amp;CG Wkt line <span id="StudCapGainsLineNoB">??</span></td>
+			<td><input class="taxreturn" id="StudCapGainsTax" type="number" /></td>
+			<td class="AOCClass" id="StudCapGainsAOC"></td>
+			<td class="LLCClass" id="StudCapGainsLLC"></td>
+			<td class="TNFClass" id="StudCapGainsTNF"></td></tr>
+		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
 			<td>1040 line <span id="DeductionsLineNoA">40</span></td>
 			<td class="calculatedEntry" id="StudDeductionTax"></td>
@@ -3917,13 +3927,6 @@
 			<td class="AOCClass" id="StudQBIAOC"></td>
 			<td class="LLCClass" id="StudQBILLC"></td>
 			<td class="TNFClass" id="StudQBITNF"></td></tr>
-		<tr>
-			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="StudCapGainsLineNoA">??</span></td>
-			<td>QD&amp;CG Wkt line <span id="StudCapGainsLineNoB">??</span></td>
-			<td><input class="taxreturn" id="StudCapGainsTax" type="number" /></td>
-			<td class="AOCClass" id="StudCapGainsAOC"></td>
-			<td class="LLCClass" id="StudCapGainsLLC"></td>
-			<td class="TNFClass" id="StudCapGainsTNF"></td></tr>
 		<tr>
 			<td class="bold">Tax amount:</td>
 			<td>1040 line <span id="TaxAmountLineNoA">44</span></td>
