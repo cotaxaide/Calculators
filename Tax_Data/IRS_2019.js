@@ -15,6 +15,7 @@
                 _LineNo[_TY+":SST"] = "5b";
                 _LineNo[_TY+":AGI"] = "7";
                 _LineNo[_TY+":QBI"] = "9";
+                _LineNo[_TY+":Taxable"] = "10";
                 _LineNo[_TY+":TNF"] = "";
                 _LineNo[_TY+":SEHI"] = "S1-29";
                 _LineNo[_TY+":Adjustments"] = "S1-36";
@@ -33,7 +34,9 @@
                 _LineNo[_TY+":ACTC"] = "17b";
                 _LineNo[_TY+":AOC"] = "17c";
                 _LineNo[_TY+":NetPTC"] = "S5-70";
-                _LineNo[_TY+":ItemDed"] = "18"; // Sched A
+                _LineNo[_TY+":ItemDed"] = "17"; // Sched A
+		_LineNo[_TY+":SALT"] = "5d"; // Sched A
+		_LineNo[_TY+":UseSchedA"] = "18"; // Sched A
 	        _LineNo[_TY+":F8962A"] = "11a";
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";
@@ -98,7 +101,7 @@
 
 	// CGRates
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";
-                _CGRates[_TY+":SNG"] = "38750, 434550";
+                _CGRates[_TY+":SNG"] = "39375, 434550";
                 _CGRates[_TY+":MFJ"] = "78750, 488850";
                 _CGRates[_TY+":WID"] = "78750, 488850";
                 _CGRates[_TY+":MFS"] = "39375, 244425";
@@ -108,10 +111,13 @@
 	// Self-employment tax rates
 		_SESocSec[_TY] = 0.124;
 		_SEMedicare[_TY] = 0.029;
-		_SEMaxWages[_TY] = 128400;
+		_SEMaxWages[_TY] = 132900;
 
 	// var MedicalExclusion = [];
 		_MedicalExclusion[_TY] = "0.10, 0.10";
+
+	// StateTaxCap
+		_SALT[_TY] = 10000;			// New tax law		
 
         // var RetireLimits = [];
                 // Source: 1040 instructions for line 51
@@ -187,7 +193,7 @@
 	// var AffordRateEmployerSelf = [];	// Need verification!
 		_AffordRateEmployerSelf[_TY] = 0.0986;
 		
-	// var Qualified Business Income Deduction (0.24 tax rate?)	// Need update
+	// var Qualified Business Income Deduction (0.24 tax rate?)
 		_QBILimits[_TY+":Rate"] = "0.2";
 		_QBILimits[_TY+":SNG"] = "160700";
 		_QBILimits[_TY+":MFJ"] = "321400";
@@ -195,7 +201,7 @@
 		_QBILimits[_TY+":HOH"] = "160700";
 		_QBILimits[_TY+":WID"] = "160700";
 	
-	// Net Investment Income Tax		// Need update
+	// Net Investment Income Tax
 		_NIITLimits[_TY+":Rate"] = "0.038";
 		_NIITLimits[_TY+":SNG"] = "200000";
 		_NIITLimits[_TY+":MFJ"] = "250000";
@@ -203,3 +209,10 @@
 		_NIITLimits[_TY+":HOH"] = "200000";
 		_NIITLimits[_TY+":WID"] = "250000";
 
+	// Alternative Minimum Tax
+		//                  Exempt  Phaseout
+		_AMT[_TY+":MFJ"] = "111700, 1020600";
+		_AMT[_TY+":SNG"] = "71700,   510300";
+		_AMT[_TY+":MFS"] = "55850,   510300";
+		_AMT[_TY+":HOH"] = "71700,   510300";
+		_AMT[_TY+":WID"] = "71700,   510300";

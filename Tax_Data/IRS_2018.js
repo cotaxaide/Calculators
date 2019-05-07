@@ -15,6 +15,7 @@
                 _LineNo[_TY+":SST"] = "5b";
                 _LineNo[_TY+":AGI"] = "7";
                 _LineNo[_TY+":QBI"] = "9";
+                _LineNo[_TY+":Taxable"] = "10";
                 _LineNo[_TY+":TNF"] = "";
                 _LineNo[_TY+":SEHI"] = "S1-29";
                 _LineNo[_TY+":Adjustments"] = "S1-36";
@@ -33,7 +34,9 @@
                 _LineNo[_TY+":ACTC"] = "17b";
                 _LineNo[_TY+":AOC"] = "17c";
                 _LineNo[_TY+":NetPTC"] = "S5-70";
-                _LineNo[_TY+":ItemDed"] = "18"; // Sched A
+                _LineNo[_TY+":SALT"] = "5d"; // Sched A
+                _LineNo[_TY+":ItemDed"] = "17"; // Sched A
+		_LineNo[_TY+":UseSchedA"] = "18"; // Sched A
 	        _LineNo[_TY+":F8962A"] = "11a";
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";
@@ -116,10 +119,13 @@
 		_SEMedicare[_TY] = 0.029;
 		_SEMaxWages[_TY] = 128400;
 
-	// var MedicalExclusion = [];
+	// MedicalExclusion
 		_MedicalExclusion[_TY] = "0.075, 0.075";	// New tax law
 
-        // var RetireLimits = [];
+	// StateTaxCap
+		_SALT[_TY] = 10000;			// New tax law
+
+        // RetireLimits = [];
                 // Source: 1040 instructions for line 51
                 // MFJ,SNG,HOH,WID,MFS	
                 _RetireLimits["SNG"] = 0;
@@ -208,3 +214,11 @@
 		_NIITLimits[_TY+":MFS"] = "125000";
 		_NIITLimits[_TY+":HOH"] = "200000";
 		_NIITLimits[_TY+":WID"] = "250000";	
+				
+	// Alternative Minimum Tax
+		//                  Exempt  Phaseout //  amounts not correct
+		_AMT[_TY+":MFJ"] = "109400, 1000000";
+		_AMT[_TY+":SNG"] = "70300,   500000";
+		_AMT[_TY+":MFS"] = "54700,   500000";
+		_AMT[_TY+":HOH"] = "70300,   500000";
+		_AMT[_TY+":WID"] = "70300,   500000";

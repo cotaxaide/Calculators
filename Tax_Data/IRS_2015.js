@@ -14,7 +14,7 @@
                 _LineNo[_TY+":SSI"] = "20a";
                 _LineNo[_TY+":SST"] = "20b";
                 _LineNo[_TY+":TNF"] = "34";
-                _LineNo[_TY+":SEHI"] = "29":
+                _LineNo[_TY+":SEHI"] = "29";
                 _LineNo[_TY+":Adjustments"] = "36";
                 _LineNo[_TY+":Deductions"] = "40";
                 _LineNo[_TY+":TaxAmount"] = "44";
@@ -34,6 +34,8 @@
                 _LineNo[_TY+":AOC"] = "68";
                 _LineNo[_TY+":NetPTC"] = "69";
                 _LineNo[_TY+":ItemDed"] = "29"; // Sched A
+		_LineNo[_TY+":SALT"] = "9"; // Sched A
+		_LineNo[_TY+":UseSchedA"] = "30"; // Sched A
 	        _LineNo[_TY+":F8962A"] = "11a";
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";
@@ -101,6 +103,9 @@
 
 	// var MedicalExclusion = [];
 		_MedicalExclusion[_TY] = "0.100, 0.075";
+
+	// StateTaxCap
+		_SALT[_TY] = 0; // unlimited
 
         // var RetireLimits = [];
                 // Source: 1040 instructions
@@ -192,3 +197,11 @@
 		_NIITLimits[_TY+":MFS"] = "125000";
 		_NIITLimits[_TY+":HOH"] = "200000";
 		_NIITLimits[_TY+":WID"] = "250000";
+				
+	// Alternative Minimum Tax
+		//                  Exempt  Phaseout // Phaseout amounts not correct
+		_AMT[_TY+":MFJ"] = "83800, 1020600";
+		_AMT[_TY+":SNG"] = "53900,  510300";
+		_AMT[_TY+":MFS"] = "41900,  510300";
+		_AMT[_TY+":HOH"] = "53900,  510300";
+		_AMT[_TY+":WID"] = "53900,  510300";

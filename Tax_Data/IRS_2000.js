@@ -20,6 +20,8 @@ var _SEMedicare = [];
 var _SEMaxWages = [];
 var _QBILimits = [];
 var _NIITLimits = [];
+var _AMT = [];
+var _SALT = [];
 
 //------------------------------------------------------------
 // DATE VARIABLES
