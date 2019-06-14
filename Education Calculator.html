@@ -127,6 +127,7 @@
 	#optDiv td:nth-child(2) { text-align: right; }
 	#testPrint {color: red; font-size: 60%; float: right; cursor: none; }
 	#KiddieAllowOption { padding-left: 2em; }
+	#messageNoUnqualified,
 	#NoOptimize1,
 	#NoOptimize2,
 	#NoOptimize3,
@@ -178,7 +179,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.13, 4/5/2019";
+	var VERSION = "Version 3.14, 4/6/2019";
+	//	Tax not calculating for 2015-2017
+	//var VERSION = "Version 3.13, 4/5/2019";
 	//	Correct line number for QDCG worksheet
 	//	Input line rearrangment
 	//var VERSION = "Version 3.12, 3/22/2019";
@@ -1904,6 +1907,7 @@
 
 		// Add QBI if present
 		QBIAmount = 0;
+		result.qbi = 0;
 		if (_LineNo[TaxYear.value + ":QBI"]) {
 			SEIncome = (isStudent) ? (+StudBusinessTax.value - StudBusinessSETax - +StudSEHITax.value) :
 				(+BusinessTax.value - BusinessSETax - +SEHITax.value);
@@ -2768,6 +2772,7 @@
 		<li>Employer education assistance benefits</li>
 		<li>Reduction of exemption amount for high income taxpayers</li>
 		<li>Employer provided child care benefits, carryovers, prior year expenses</li>
+		<li>Schedule R reduction of the education credit</li>
 		<li>Shared Responsibility Payment required of the taxpayer</li>
 		<li>Income deductions on the student&apos;s return when the student is a dependent of the TP</li>
 		<li>Unearned income other than that calculated here for a dependent subject to the kiddie tax</li>
@@ -3171,7 +3176,7 @@
 			<td class="LLCClass" id="NotSuppliesLLC"></td>
 			<td class="TNFClass" id="NotSuppliesTNF"></td>
 			<td class="SCHClass" id="NotSuppliesSCH"></td></tr>
-		<tr title="The purchase of computer technology or equipment is only a qualified education expense if the computer technology or equipment is required for enrollment or attendance at an eligible institution.">
+		<tr>
 			<td><span id="ServicesAllowed"></span></td>
 			<td>Expenses for special needs services:</td>
 			<td><input id="Services" type="number" /></td>
