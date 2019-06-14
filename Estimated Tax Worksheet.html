@@ -416,7 +416,7 @@
 
 		// Get the CTC and ACTC amounts
 		var CTCresult = [];
-		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value, CTCDependents.value, Dependents.value, Wages.value + SEIncome.value, AGI.innerHTML);
+		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value, CTCDependents.value, Dependents.value, (+Wages.value + +SEIncome.value), AGI.innerHTML);
 		var CTCAmount = +CTCresult[0];
 		var FTCAmount = +CTCresult[1];
 		var ACTCLimit = +CTCresult[2];
