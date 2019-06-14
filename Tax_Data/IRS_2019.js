@@ -193,7 +193,7 @@
 	// var AffordRateEmployerSelf = [];	// Need verification!
 		_AffordRateEmployerSelf[_TY] = 0.0986;
 		
-	// var Qualified Business Income Deduction (0.24 tax rate?)
+	// var Qualified Business Income Deduction 
 		_QBILimits[_TY+":Rate"] = "0.2";
 		_QBILimits[_TY+":SNG"] = "160700";
 		_QBILimits[_TY+":MFJ"] = "321400";
