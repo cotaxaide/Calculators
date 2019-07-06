@@ -214,7 +214,10 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.02, 6/12/2019)";
+	VERSION = "(Version 2.03, 7/2/2019)";
+	//	Remove negative taxable income warning message if box is checked
+	//	Added SALT limit amount in comment part of SALT total line
+	//VERSION = "(Version 2.02, 6/12/2019)";
 	//	Added fields for property and personal tax and calculate total state taxes
 	//	Added a checkbox for state taxability of property tax refund/rebate
 	//	Added a checkbox for states without sales taxes and alert message for 0 entry
@@ -432,6 +435,7 @@
 		NYAllocLabel.innerHTML = "&nbsp;&nbsp;" + NY;
 		NYAllocText.innerHTML = "This will reduce the " + CY + " Q4 deduction &ndash; part has already been refunded!";
 		SALTLineNo.innerHTML = _LineNo[CY + ":SALT"];
+		SALTLimit.innerHTML = _SALT[CY];
 		ItemizedLineNo.innerHTML = _LineNo[CY + ":ItemDed"];
 		UseSchedALineNo.innerHTML = _LineNo[CY + ":UseSchedA"];
 		CTCAGIText.innerHTML = AGILineNo.innerHTML = _LineNo[CY + ":AGI"];
@@ -878,6 +882,7 @@
 			}
 			else { // Taxable is positive
 				TaxableTable.style.display = "none";
+				TaxablePositive.style.display = "none";
 				AGI.value = "";
 				Exemption.value = "";
 				QBIIncome.value = "";
@@ -1398,7 +1403,7 @@
 			<tr id="SALTRow" class="hidden">
 				<td><span id="SALTLineNo"></span>. State &amp; Local tax total:</td>
 				<td><input id="SALT" type="myinput" disabled="true"/></td>
-				<td>&quot;SALT&quot; total prior to limit</td></tr>
+				<td>&quot;SALT&quot; total prior to <span id="SALTLimit"></span> limit</td></tr>
 			<tr id="ItemizedRow"><td><span id="ItemizedLineNo"></span>. Total itemized deductions:</td>
 				<td><input id="Itemized" type="myinput" /></td>
 				<td><input id="UseSchedA" type="checkbox" />
