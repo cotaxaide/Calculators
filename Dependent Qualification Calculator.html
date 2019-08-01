@@ -6,7 +6,8 @@
 <title>Dependent Qualification Calculator</title>
 
 <style type="text/css">
-	body {margin:0; padding:0}
+	body {margin:0; padding:0;}
+	abbr, input, button, select {cursor: pointer;}
 	.center {text-align:center; padding:0; margin:0;}
 	.centerbold {text-align:center; font-weight:bold; margin:0; padding:0;}
 	.BeneBox1 {font-size:100%; font-weight:bold; text-decoration:underline;}
@@ -61,12 +62,16 @@
 //	Jon Naiman
 //	Sue Stavio
 //	Patricia Palanker
+//	Paul Renard
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.18 11/12/2018";
+var VERSION = "6.19 8/7/2019";
+//	Added FT to student aged 19-23
+//	Changed cursor to pointer on input and select boxes
+//var VERSION = "6.18 11/12/2018";
 //	Added tax years drop-down
 //	Added code to hide dependent benefits not available
 //	Changed list of low-income test to single entry for the selected year
@@ -280,9 +285,9 @@ var BenefitColor = {}; //local array to hold color values (querying browser give
 var lititle = "Check if the dependent's gross income is less than the year's exemption amount.";
 lititle += "\n\nGross income means all income the person received in the form of money, goods, property and services,";
 lititle += " that isn't exempt from tax.";
-lititle += "\n\nDon't include social security benefits unless:";
+lititle += "\n\nDon't include social security benefits unless either:";
 lititle += "\n   - the person is married filing a separate return and lived with their spouse at any time during the tax year or";
-lititle += "\n   - if 1/2 the social security benefits plus their other gross income and tax exempt interest";
+lititle += "\n   - 1/2 the social security benefits plus their other gross income and tax exempt interest";
 lititle += " is more than $25,000 ($32,000 if MFJ).";
 
 // Caution alert for other TP giving permission to this TP
@@ -290,7 +295,7 @@ var PermissionAlert = "CAUTION\n";
 PermissionAlert += "\n- Test the other taxpayer's elegibility before setting this option. ";
 PermissionAlert += "Permission to use a child's benefits cannot be given to an ineligible taxpayer. ";
 PermissionAlert += "\n\n- Also, only one taxpayer can use the child for all of the following benefits:.";
-PermissionAlert += "\n--- Child as exemption";
+PermissionAlert += "\n--- Child as exemption (prior to 2018)";
 PermissionAlert += "\n--- Head of Household filing";
 PermissionAlert += "\n--- Child/Dependent Care";
 PermissionAlert += "\n--- Exclusion from Income for Dependent Care Benefits";
@@ -730,7 +735,7 @@ function CalcStatus() {
 
 		// Other qualified taxpayer optioms
 		TestFor = "";
-		Support10.disabled = Support11.disabled = (SupportSelf.checked || (QualChild.value == YES));
+		Support10.disabled = Support11.disabled = ((SupportSelf.checked) || (QualChild.value == YES));
 
 		// --------------------EITC does not depend on following tests--------------------------
 
@@ -1855,7 +1860,7 @@ function TestResults() {
 				<span class="Label">17-18</span>
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="23"
 				title="A dependent aged 19-23 on 12/31 and a full-time student for at least 5 months during the year" />
-				<span class="Label">19-23 student</span>
+				<span class="Label">19-23 <abbr title="full-time"><u>FT</u></abbr> student</span>
 				<br /><input id="AgeOther" name="Age" type="radio" onclick="CalcStatus()" value="24"
 				title="A non-student older than 18 or a student older than 23 on 12/31" />
 				<span class="Label">other</span>
@@ -1920,7 +1925,7 @@ function TestResults() {
 		<span class="Label">Parent of TP/SP</span>
 		<br /><input name="Relation" type="radio" onclick="CalcStatus()" value="PARENT_ANC_SIB"
 		title="Taxpayer's or spouse's (great)grandparents, aunt, or uncle.  (Cousins do not qualify: use Unrelated)" />
-		<span class="Label">Ancestor or Sibling of</span>
+		<span class="Label">Ancestor/Sibling of</span>
 		<hr style="font-size:80%;" /><input name="Relation" type="radio" onclick="CalcStatus()" value="IN_LAW"
 		title="Taxpayer's or spouse's stepmother, stepfather, mother-in-law, father-in-law, sister-in-law, brother-in-law, son-in-law or daughter-in-law" />
 		<span class="Label">In-law or stepparent</span>
