@@ -214,7 +214,9 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.03, 7/2/2019)";
+	VERSION = "(Version 2.03a, 8/9/2019)";
+	//	Corrected comment on SALT line to show MFS value
+	//VERSION = "(Version 2.03, 7/2/2019)";
 	//	Remove negative taxable income warning message if box is checked
 	//	Added SALT limit amount in comment part of SALT total line
 	//VERSION = "(Version 2.02, 6/12/2019)";
@@ -435,7 +437,7 @@
 		NYAllocLabel.innerHTML = "&nbsp;&nbsp;" + NY;
 		NYAllocText.innerHTML = "This will reduce the " + CY + " Q4 deduction &ndash; part has already been refunded!";
 		SALTLineNo.innerHTML = _LineNo[CY + ":SALT"];
-		SALTLimit.innerHTML = _SALT[CY];
+		SALTLimit.innerHTML = _SALT[CY] / ((FilingStatus.value == "MFS") ? 2 : 1);
 		ItemizedLineNo.innerHTML = _LineNo[CY + ":ItemDed"];
 		UseSchedALineNo.innerHTML = _LineNo[CY + ":UseSchedA"];
 		CTCAGIText.innerHTML = AGILineNo.innerHTML = _LineNo[CY + ":AGI"];
