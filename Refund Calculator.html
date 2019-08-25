@@ -214,7 +214,9 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.03a, 8/9/2019)";
+	VERSION = "(Version 2.04, 8/24/2019)";
+	//	Corrected QBI amount used in negative taxable income test
+	//VERSION = "(Version 2.03a, 8/9/2019)";
 	//	Corrected comment on SALT line to show MFS value
 	//VERSION = "(Version 2.03, 7/2/2019)";
 	//	Remove negative taxable income warning message if box is checked
@@ -249,6 +251,7 @@
 	//	Milus Campbell
 	//	Peter Steefel
 	//	Deb Fisher
+	//	Lance Lauerhass
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -376,7 +379,7 @@
 		if (CY >= 2018) {
 			PostCreditLineNo.innerHTML = "1040 line 13";
 			SalesTaxText.style.display = "none";
-			ExemptionLabel.innerHTML = "Potential QBI deduction";
+			ExemptionLabel.innerHTML = "Usable QBI deduction";
 			Exemption.disabled = "true";
 			ODC.style.display = "inline";
 			EnergyRow.style.display = "none";
@@ -777,7 +780,6 @@
 
 	//----------------------------------------------------------------------------------------
 		// Compare itemized and standard deduction
-		OriginalItemized.value = Itemized.value;
 		if (TotalTaxable) {
 			// Determine the new Schedule A total to be used for testing
 			TestingSchedAFor.innerHTML = "Comparing itemized and standard deductions";
@@ -825,6 +827,16 @@
 	//----------------------------------------------------------------------------------------
 		// Test for negative taxable income
 		if (TotalTaxable) {
+			// Recalculate the revised itemized total
+			if ((CY >= 2018) & (! SalesTaxUsedBox.checked)) {
+				var revisedSALT = Math.max(0, +StateWH.value - +StateTaxRefund.value) + +Property.value + +Personal.value;
+				revisedSALT = Math.max(0, +SALT.value - Math.min(SALTlimit, revisedSALT));
+				RevisedItemized.value = Math.max(0, +Itemized.value - revisedSALT);
+			}
+			else {
+				RevisedItemized.value = Itemized.value;
+			}
+
 			TaxableDiv.style.display = "block";
 			if (! PositiveTaxable.checked) {
 				TestingTaxableFor.innerHTML = "Testing for negative taxable income";
@@ -842,8 +854,10 @@
 				}
 				else if (CY >= 2018) {
 					if (Business.value != "") QBIIncome.value = Business.value;
-					Exemption.value = _QBICalc(CY, FilingStatus.value, QBIIncome.value,
-						0, 0, (+Salary.value + +QBIIncome.value));
+					var IncomeGap = Math.max(+AGI.value - +RevisedItemized.value);
+					var IncomeUsable = Math.min(+QBIIncome.value, IncomeGap);
+					Exemption.value = _QBICalc(CY, FilingStatus.value, IncomeUsable,
+						0, 0, IncomeGap);
 					if (QBIIncome.value == "") {
 						NeedData++;
 						QBIIncome.style.backgroundColor = "yellow";
@@ -1441,9 +1455,9 @@
 			<tr id="AGIRow"><td>Adjusted gross income:</td>
 				<td><input id="AGI" type="myinput" /></td>
 				<td>From Form 1040 line <span id="AGILineNo"></span></td></tr>
-			<tr id="OriginalItemizedRow"><td>Itemized deductions:</td>
-				<td><input id="OriginalItemized" type="myinput" disabled="true" /></td>
-				<td>(Calculated)</td></tr>
+			<tr id="RevisedItemizedRow"><td>Revised itemized deductions:</td>
+				<td><input id="RevisedItemized" type="myinput" disabled="true" /></td>
+				<td>(Calculated to determine what the QBI deduction would have been)</tr>
 			<tr id="ExemptionRow"><td id="ExemptionLabel"></td>
 				<td><input id="Exemption" type="myinput" /></td>
 				<td><span id="ExemptionText"></span>
