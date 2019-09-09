@@ -39,6 +39,10 @@
 	.link { text-decoration:underline; color:purple; cursor:pointer; }
 	.aff_td { text-align:center; }
 	.aff_exm { width: 6em; text-align:left; }
+	#Disclaimer { background-color: red;
+		color: yellow;
+		font-weight: bold;
+		border: 5px solid black;}
 	#TPName { width:20em; text-align:left; }
 	#APW { display: none; background-color: white; }
 	#Instructions { width: 16em; 
@@ -149,7 +153,9 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 4.38a, 1/26/2019)";
+	var VERSION = "(Version 4.38b, 9/9/2019)";
+	//	Added the "does not apply" banner for TY 2019 and later
+	//var VERSION = "(Version 4.38a, 1/26/2019)";
 	//	Messaging modification on first click to test if TP is filing MFS
 	//var VERSION = "(Version 4.38, 1/23/2019)";
 	//	Added ACA Basic Health Program option
@@ -361,6 +367,21 @@
 		// This function readjusts settings when filing status information is changed
 		function FileChange() {	
 		//----------------------------------------------------------------------------------------
+
+		if (+TaxYear.value >= 2019) {
+			Disclaimer.style.display = "block";
+			IncomeInfo.style.display =
+			AffordIncome.style.display =
+			AffordTable.style.display =
+			MCATable.style.display = "none";
+		}
+		else {
+			Disclaimer.style.display = "none";
+			IncomeInfo.style.display =
+			AffordIncome.style.display =
+			AffordTable.style.display =
+			MCATable.style.display = "block";
+		}
 
 		// Initialize filing status to single, under 65, no dependents
 		TP65.disabled = false;
@@ -1572,6 +1593,13 @@
 </div> <!-- FilingInfo -->
 <br />
 	
+<!-- ****************************************** 2019 DISCLAIMER ****************************************** -->
+<div id="Disclaimer">
+	<center>
+		Affordability does not apply for tax years 2019 and later
+	</center>
+</div>
+
 <!-- ****************************************** INCOME WORKSHEET ****************************************** -->
 <div id="IncomeInfo">
 	<h1>Household Income Information:</h1>
