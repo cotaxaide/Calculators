@@ -274,7 +274,9 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.21, 2/10/2019)";
+		var VERSION = "(version 10.22, 9/27/2019)";
+		//	Reversed entry of spouse birthdate pre 1998
+		//var VERSION = "(version 10.21, 2/10/2019)";
 		//	Corrected date for survivor option
 		//var VERSION = "(version 10.20, 2/7/2019)";
 		//	Correction to unrecovered investment in pension text
@@ -802,7 +804,8 @@
 					SPAGE.innerHTML = "Not used";
 					if (SP.value != "") {
 						if (AGE < 0) {
-							SPAGE.innerHTML = "Invalid birthdate"; SPAGE.style.backgroundColor = "hotpink";
+							SPAGE.innerHTML = "Invalid birthdate";
+							SPAGE.style.backgroundColor = "hotpink";
 							alert("Spouse birthdate entry is not valid");
 							CANNOT_CALC |= SPAGE_ERROR;
 							return(1); 
@@ -1380,6 +1383,7 @@
 	
 			AnnTest = Math.max(ANN_START, MIN_ANN_START);
 			if ( COMBageChecked && (AnnTest > 19971231) ) {
+				SGRW_AGE.innerHTML = COMB.innerHTML;
 				switch(true) {
 					case (COMB.innerHTML < 111): NO_MO.innerHTML = 410; break;
 					case (COMB.innerHTML < 121): NO_MO.innerHTML = 360; break;
@@ -1390,6 +1394,7 @@
 			}
 	
 			else if (AnnTest > 19961118) {
+				SGRW_AGE.innerHTML = TPAGE.innerHTML;
 				switch(true) {
 					case (TPAGE.innerHTML < 56): NO_MO.innerHTML = 360; break;
 					case (TPAGE.innerHTML < 61): NO_MO.innerHTML = 310; break;
@@ -1400,6 +1405,7 @@
 			}
 	
 			else {
+				SGRW_AGE.innerHTML = TPAGE.innerHTML;
 				switch(true) {
 					case (TPAGE.innerHTML < 56): NO_MO.innerHTML = 300; break;
 					case (TPAGE.innerHTML < 61): NO_MO.innerHTML = 260; break;
@@ -1410,7 +1416,6 @@
 			}
 	
 			// Populate calculated fields in the tables
-			SGRW_AGE.innerHTML = (COMBageChecked) ? COMB.innerHTML : TPAGE.innerHTML;
 			SGRW_JOINT.checked = COMBageChecked;
 		
 			CONTR.value = Math.round(CONTR.value);
@@ -1854,6 +1859,8 @@
 				}
 			}
 			SPdiedQ.style.display = (SPdied.checked) ? "inline" : "none";
+			TPGROSS.style.display = "inline";
+			SPGROSS.style.display = "inline";
 	
 			AnnTest = Math.max(ANN_START, MIN_ANN_START);
 			if (TestForGeneral && (AnnTest > 0) && (AnnTest < 19860702)) { 
@@ -1897,7 +1904,7 @@
 				return; 
 			}
 	
-			if (AnnTest > 19731231) { // Survivor option added to tax law
+			if (AnnTest > 19971231) { // Survivor option added to tax law in 1974 but no effect until 1998
 				SPa.style.backgroundColor = "yellow";
 				SPb.style.backgroundColor = "yellow";
 				TPdiedQ.style.display = "inline";
@@ -1913,7 +1920,7 @@
 					TPdiedQ.style.display = "inline";
 					if (SPdec.checked) SPdiedQ.style.display = "inline";
 				}
-				if (isNaN(SPAGE.innerHTML)) SPAGE.innerHTML = "Enter only if surv annty";
+				if (SP.value === "") SPAGE.innerHTML = "Enter only if joint annuity";
 				SP.style.display = "inline";
 				SPX.style.display = "none";
 			}
