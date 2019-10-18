@@ -1,0 +1,508 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Home Cost Worksheet</title>
+
+<style type="text/css">
+	html { background-color: #cccccc; }
+	body { background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%; }
+	button { cursor: pointer; background-color: lightgreen; }
+	table { background-color: #eeeeee; border-collapse: collapse; }
+	h1 { text-align: center; font-size: 110%; text-decoration: underline}
+	tr { vertical-align: top; }
+	th { background-color: #c7c7c7; }
+	select { width: 6em; font-size: 100%; }
+	input { text-align: left; }
+	input, select { background-color: white; }
+	input[type="number"] { width: 6em; text-align: right; }
+	input[type="radio"] { margin-left: 1em; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.bold { font-weight: bold; }
+	.center { text-align: center; }
+	.tblHeader { font-size:110%; font-weight:bold; text-decoration:underline; }
+	.title { font-size:125%; font-weight:bold; }
+	.instruction { font-style: italic; float: right; }
+	.comment { font-style:italic; }
+	.section { background-color: #eeeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 98%; }
+	.noPrint { float:left; }
+	#DepName,
+	#TPName { width: 16em; font-size: 100%; }
+	#TPNameTable { width: 80%; margin-left: 10%; }
+	#TPNameTable tr td { font-size: 120%; }
+	#ClearAndPrint { text-align: center; float:right; z-level:2; position: absolute; top: 0.8em; right: 1em; }
+	#ShowError { text-decoration: italic; text-align: right; display: none; }
+	#CostTable { width: 80%; margin-left: 10%; }
+	#CostTable tr { border-bottom: 1px solid #a0a0a0; }
+	#CostTable tr td:nth-child(2),
+	#CostTable tr td:nth-child(3) {text-align: center; }
+	#CostTable tr:last-child { font-weight: bold; border-top: 2px solid black; }
+	#DependentTable { width: 80%; margin-left: 10%; }
+	#DependentTable tr { border-bottom: 1px solid #a0a0a0; }
+	#Dep4c, #Dep4d { margin-left: 3em; }
+	#DepResultChild,
+	#DepResultRelative { font-weight: bold; font-size: 120%; }
+	#ErrorMessage1,
+	#ErrorMessage2a,
+	#ErrorMessage2b { background-color: hotpink; font-size: 120%; }
+	
+	@media print {
+		.doPrint { display:inline; }
+		.noPrint { display:none; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding:0; margin:0; }
+		input, select, option { font-size: 0.8em; }
+		table { background-color: white; }
+	}
+</style>
+
+<script src="Tax_Data/IRS_2000.js"></script>
+<script type="text/javascript">
+	var VERSION;
+	// --------------------------------------------------------------------------------
+	// Contributors:
+	//
+	// --------------------------------------------------------------------------------
+
+	VERSION = "(Version 1.00, 10/17/2019)";
+
+	var Error = false;
+	var ErrorColor = "hotpink";
+
+	//----------------------------------------------------------------------------------------
+	function Initialize() {
+	// This function adds tax year options to the Filing Information section
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= (+_StartYear + 3); ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+
+		// Set the default to the tax year
+		TaxYear.value = _DefaultYear + 1;
+		Cost_Calc(false);
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Cost_Calc(test) {
+	// test = Click to test button was clicked
+	// This function adds the columns and determines if paid more than half
+	//----------------------------------------------------------------------------------------
+		// Show the dependent information input table or not
+		DependentDiv.style.display = (Support.checked) ? "block" : "none";
+
+		if (HomeTypeRent.checked) { // Show rows relevant to renters
+			DepOwnsHomeOption.style.display =
+			HomeTypeOwnOption.style.display = "none";
+			FMV.checked = false;
+			Rent01.style.display = "table-row";
+			Own02.style.display = "none";
+			Paid02.value = Cost02.value = "";
+			Own02a.style.display = "none";
+			Paid02a.value = Cost02a.value = "";
+			Own03.style.display = "none";
+			Paid03.value = Cost03.value = "";
+			Own04.style.display = "table-row";
+			Own04a.style.display = "none";
+			Paid04a.value = Cost04a.value = "";
+		}
+		else { // Show rows relevant to owners
+			DepOwnsHomeOption.style.display =
+			HomeTypeOwnOption.style.display = "inline";
+			Rent01.style.display = "none";
+			Paid01.value = Cost01.value = "";
+			Own04.style.display = "none";
+			Paid04.value = Cost04.value = "";
+
+			if (Support.checked) FMV.checked = true;
+
+			if (FMV.checked) { // Show just the FMV row
+				Own02a.style.display = "table-row";
+				Own02.style.display = "none";
+				Paid02.value = Cost02.value = "";
+				Own03.style.display = "none";
+				Paid03.value = Cost03.value = "";
+				Own04a.style.display = "none";
+				Paid04a.value = Cost04.value = "";
+			}
+			else { // Show the homeowner expens3 rows
+				Own02a.style.display = "none";
+				Paid02a.value = Cost02a.value = "";
+				Own02.style.display = "table-row";
+				Own03.style.display = "table-row";
+				Own04a.style.display = "table-row";
+			}
+		}
+
+		AmountPaidTitle.innerHTML = (HOH.checked) ? "Amount you paid" : "Person&apos;s Share";
+		TestButton1.style.display = (HOH.checked) ? "inline" : "none";
+
+		// Check for inconsistencies
+		var errorFound = false;
+		var TP = 0;
+		var TC = 0;
+		InputSet = document.getElementsByClassName("Paid");
+		for (j = 0; j < InputSet.length; j++) {
+			PaidPtr = InputSet[j];
+			PaidPtr.style.backgroundColor ="white";
+			CostId = "Cost" + PaidPtr.id.substr(4);
+			CostPtr = document.getElementById(CostId);
+			CostPtr.style.backgroundColor ="white";
+			if ((+PaidPtr.value < 0) || isNaN(PaidPtr.value)) PaidPtr.value = "";
+			if ((+CostPtr.value < 0) || isNaN(CostPtr.value)) CostPtr.value = "";
+			if (HOH.checked) {
+				FMVProposed.style.display = "inline";
+				FamilyCountQuestion.style.display = "none";
+				PaidPtr.disabled = false;
+				if ((+PaidPtr.value > 0) && (CostPtr.value ==="")) {
+					if (test) CostPtr.value = 0;
+					else CostPtr.style.backgroundColor ="yellow";
+				}
+				if ((+CostPtr.value > 0) && (PaidPtr.value ==="")) {
+					if (test) PaidPtr.value = 0;
+					else PaidPtr.style.backgroundColor ="yellow";
+				}
+				if ((PaidPtr.value === "") || (CostPtr.value === "")) continue;
+			}
+			if (Support.checked) {
+				FMVProposed.style.display = "none";
+				FamilyCountQuestion.style.display = "inline";
+				PaidPtr.value = Math.round(100 * +CostPtr.value / FamilyCount.value) / 100;
+				PaidPtr.disabled = true;
+				PaidPtr.style.backgroundColor = "lightgrey";
+			}
+			error = (+PaidPtr.value > +CostPtr.value);
+			if (error) {
+				errorFound = true;
+				PaidPtr.style.backgroundColor = 
+				CostPtr.style.backgroundColor = "hotpink";
+			}
+
+			// Compute amounts paid and total costs
+			TP += +PaidPtr.value;
+			TC += +CostPtr.value;
+		}
+
+		// Display the results
+		ErrorMessage1.style.display = (errorFound) ? "block" : "none";
+		if (errorFound) {
+			TotalPaid.innerHTML = "";
+			TotalCost.innerHTML = "";
+			TotalPct.innerHTML = "";
+			FinalResult.innerHTML = "";
+			FinalResult.style.backgroundColor = "";
+			return;
+		}
+		TotalPaid.innerHTML = Math.round(TP);
+		TotalCost.innerHTML = Math.round(TC);
+		if (HOH.checked && test) {
+			ResultLine1.style.display = "inline";
+			if (TC) { // protect for divide by 0
+				TotalPercent = 100 * TP / TC;
+				TotalPct.innerHTML = "You paid " + Math.floor(TotalPercent) + "%, ";
+				if (TotalPercent > 50) {
+					FinalResult.innerHTML = "You paid more than half of household expenses.";
+					FinalResult.style.backgroundColor = "lightgreen";
+				}
+				else {
+					FinalResult.innerHTML = "You did not pay more than half of household expenses.";
+					FinalResult.style.backgroundColor = "hotpink";
+				}
+				TotalOthers.innerHTML = "Others Paid " + (+TotalCost.innerHTML - +TotalPaid.innerHTML);
+			}
+		}
+		else {
+			ResultLine1.style.display = "none";
+		}
+
+		// Do the dependent support tests
+		// DepNN references correspond to line numbers on Pub 17 worksheet 3-1.
+		if (Support.checked) {
+			if ((+Dep01a.value < 0) || isNaN(Dep01a.value)) Dep01a.value = "";
+			if ((+Dep01b.value < 0) || isNaN(Dep01b.value)) Dep01b.value = "";
+			if ((+Dep01c.value < 0) || isNaN(Dep01c.value)) Dep01c.value = "";
+			if ((+Dep01d.value < 0) || isNaN(Dep01d.value)) Dep01d.value = "";
+			if ((+Dep04c.value < 0) || isNaN(Dep04c.value)) Dep04c.value = "";
+			if ((+Dep04d.value < 0) || isNaN(Dep04d.value)) Dep04d.value = "";
+			Dep05.value = 0
+				+ +Dep01a.value
+				+ +Dep01b.value
+				+ +Dep01c.value
+				+ +Dep01d.value
+				- +Dep04c.value
+				- +Dep04d.value;
+			Dep13.value = TotalPaid.innerHTML;
+			if ((+Dep14.value < 0) || isNaN(Dep14.value)) Dep14.value = "";
+			if ((+Dep15.value < 0) || isNaN(Dep15.value)) Dep15.value = "";
+			if ((+Dep16.value < 0) || isNaN(Dep16.value)) Dep16.value = "";
+			if ((+Dep17.value < 0) || isNaN(Dep17.value)) Dep17.value = "";
+			if ((+Dep18.value < 0) || isNaN(Dep18.value)) Dep18.value = "";
+			Dep19.value = 0
+				+ +Dep13.value
+				+ +Dep14.value
+				+ +Dep15.value
+				+ +Dep16.value
+				+ +Dep17.value
+				+ +Dep18.value;
+		}
+
+		// Show results
+		DepResultChild.innerHTML = "";
+		DepResultRelative.innerHTML = "";
+		ErrorMessage2a.style.display = "none";
+		ErrorMessage2b.style.display = "none";
+		Dep05.style.backgroundColor = "lightgrey";
+		Dep02.style.backgroundColor = "white"
+
+		if (+Dep05.value < 0) {
+			ErrorMessage2a.style.display = "block";
+			Dep05.style.backgroundColor = "hotpink";
+			Dep03.value = "";
+			return;
+		}
+
+		if (+Dep02.value > +Dep05.value) {
+			ErrorMessage2b.style.display = "block";
+			Dep02.style.backgroundColor = "hotpink"
+			Dep03.value = "";
+			return;
+		}
+
+		Dep03.value = +Dep05.value - +Dep02.value;
+
+		if ((+Dep19.value > 0) && test) {
+			var Dep20 = +Dep19.value * 0.5;
+			var Dep21 = +Dep02.value + ((DepOwnsHome.checked) ? +Own02a.value : 0);
+			if (Dep21 > Dep20) {
+				DepResultChild.innerHTML = "<br />You do not meet the support test to be either your qualifying child or your qualifying relative.";
+				DepResultRelative.innerHTML = "";
+				DepResultChild.style.backgroundColor = "hotpink";
+				return;
+			}
+			else {
+				DepResultChild.innerHTML = "<br />You meet the support test to be your qualifying child if other tests are met.";
+				DepResultChild.style.backgroundColor = "lightgreen";
+			}
+			
+			var Dep24 = Dep21 + +Dep23.value;
+			var Dep25 = +Dep19.value - Dep24;
+			if (Dep25 > Dep20) {
+				DepResultRelative.innerHTML = "<br />You meet the support test to be your qualifying relative.";
+				DepResultRelative.style.backgroundColor = "lightgreen";
+			}
+			else {
+				DepResultRelative.innerHTML = "<br />You do not meet the support test to be your qualifying relative unless under a multiple support agreement.";
+				DepResultRelative.style.backgroundColor = "hotpink";
+		
+			}
+		}
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize();">
+
+<center>
+	<span class="title">Home Cost and Support Worksheet</span>
+	<br /><span id="Version"></span>
+	<script>Version.innerHTML = VERSION;</script>
+</center>
+
+	<span id="ClearAndPrint" class="noPrint">
+	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</span>
+	<div id="TPInfo" class="section">
+		<span class="tblHeader">Taxpayer Information:</span>
+		<br />
+		<br />
+		<table id="TPNameTable">
+			<tr><td>Taxpayer&apos;s Name: <input id="TPName" /></td>
+				<td>Tax Year: <select id="TaxYear"></select></td></tr>
+		</table>
+	</div>
+
+	<div id="CalcTypeDiv" class="section" onchange="Cost_Calc();">
+		<span class="tblHeader">Calculation Type:</span>
+		<br />
+		<br /><input id="HOH" name="CalcType" type="radio" checked="checked" />
+		Determine if the taxpayer paid more than 50% household cost to qualify for Head of Household.
+		<br /><input id="Support" name="CalcType" type="radio" />
+		Determine if the taxpayer provided sufficient support to qualify a person as a dependent.
+	</div>
+
+	<div id="WorksheetDiv" class="section" onchange="Cost_Calc();">
+		<span class="tblHeader">Home Expense Information:</span>
+		<br />
+		<br /><b>Home type:</b> 
+		<input type="radio" id="HomeTypeRent" name="HomeType" checked="checked" /> Rent
+		<input type="radio" id="HomeTypeOwn" name="HomeType" /> Own
+		<span id="HomeTypeOwnOption">
+			<br /><input type="checkbox" id="FMV">
+			Use Fair market rental value instead of mortgage interest,
+			real estate taxes and property insurance.
+			<span id="FMVProposed"><i>(proposed legislation)</i></span>
+		</span>
+		<span id="FamilyCountQuestion">
+		<br /><b>Number of residents in the home:</b> 
+			<input type="number" id="FamilyCount" value="2" />
+		</span>
+		<hr />
+		<ul>
+			<li>Combine utilities on one line if from the same billing entity.</li>
+			<li>Don&apos;t include the cost of clothing, education,
+			medical treatment, vacations, life insurance, or transportation.</li>
+		 	<li>Don&apos;t include the value of your services or those of a
+			member of your household.</li>
+		 	<li>Payments received under Temporary Assistance for Needy Families
+			or other public assistance programs used to pay the costs of keeping
+			up the home can be counted as money you paid.</li>
+		 	<li>Amounts paid out of funds received in the child&apos;s
+			or qualifying person&apos;s name, such as social security,
+			are considered paid by the child or other person.</li>
+	 	</ul>
+		<hr />
+		<table id="CostTable" onchange="Cost_Calc();">
+			<tr><th>Income description</th><th id="AmountPaidTitle">Amount you paid</th><th>Total cost</th></tr>
+			<tr id="Rent01">	
+				<td>Rent</td>
+				<td><input type="number" id="Paid01" class="Paid" /></td>
+					<td><input type="number" id="Cost01" /></td></tr>
+			<tr id="Own02a">	
+				<td>Fair market rental value</td>
+				<td><input type="number" id="Paid02a" class="Paid" /></td>
+					<td><input type="number" id="Cost02a" /></td></tr>
+			<tr id="Own02">	
+				<td>Property taxes</td>
+				<td><input type="number" id="Paid02" class="Paid" /></td>
+					<td><input type="number" id="Cost02" /></td></tr>
+			<tr id="Own03">	
+				<td>Mortgage interest expenses</td>
+				<td><input type="number" id="Paid03" class="Paid" /></td>
+					<td><input type="number" id="Cost03" /></td></tr>
+			<tr id="Own04">	
+				<td>Renter&apos;s insurance</td>
+				<td><input type="number" id="Paid04" class="Paid" /></td>
+					<td><input type="number" id="Cost04" /></td></tr>
+			<tr id="Own04a">	
+				<td>Property insurance</td>
+				<td><input type="number" id="Paid04a" class="Paid" /></td>
+					<td><input type="number" id="Cost04a" /></td></tr>
+			<tr>
+				<td>Utilities - Water</td>
+				<td><input type="number" id="Paid05" class="Paid" /></td>
+					<td><input type="number" id="Cost05" /></td></tr>
+			<tr>	
+				<td>Utilities - Heat</td>
+				<td><input type="number" id="Paid06" class="Paid" /></td>
+					<td><input type="number" id="Cost06" /></td></tr>
+			<tr>	
+				<td>Utilities - Electric</td>
+				<td><input type="number" id="Paid07" class="Paid" /></td>
+					<td><input type="number" id="Cost07" /></td></tr>
+			<tr>
+				<td>Home phone used by all</td>
+				<td><input type="number" id="Paid08" class="Paid" /></td>
+					<td><input type="number" id="Cost08" /></td></tr>
+			<tr>
+				<td>Home maintenance expenses</td>
+				<td><input type="number" id="Paid09" class="Paid" /></td>
+					<td><input type="number" id="Cost09" /></td></tr>
+			<tr>
+				<td>Food eaten in the home</td>
+				<td><input type="number" id="Paid10" class="Paid" /></td>
+					<td><input type="number" id="Cost10" /></td></tr>
+			<tr>
+				<td>Other home expenses</td>
+				<td><input type="number" id="Paid11" class="Paid" /></td>
+					<td><input type="number" id="Cost11" /></td></tr>
+			<tr>
+				<td>HOME EXPENSE TOTALS</td>
+				<td id="TotalPaid"></td>
+				<td id="TotalCost"></td></tr>
+		</table>
+
+		<span id="ErrorMessage1">The amount paid cannot exceed the cost on the line in red above.</span>
+
+		<button id="TestButton1" onclick="Cost_Calc(true);">Click to test</button>
+		<span id="ResultLine1">
+			<span id="TotalPct"></span>
+			<span id="FinalResult"></span>
+			<span id="TotalOthers"></span>
+		</span>
+	</div>
+
+	<div id="DependentDiv" class="section" onchange="Cost_Calc();">
+		<span class="tblHeader">The person&apos;s information:</span>
+		<br />
+		<br />Person&apos;s Name: <input id="DepName" />
+		<span id="DepOwnsHomeOption">
+			<br /><input id="DepOwnsHome" type="checkbox" /> Check if the person owns the home.
+		</span>
+		<br />
+		<br />
+		<table id="DependentTable">
+			<tr><th>Resources:</th><th></th><th></th></tr>
+			<tr><td>Total income received (taxable and nontaxable)</td>
+				<td><input id = "Dep01a" type="number" /></td><td></td></tr>
+			<tr><td>Amount borrowed</td>
+				<td><input id = "Dep01b" type="number" /></td><td></td></tr>
+			<tr><td>Amount in checking accounts at beginning of year</td>
+				<td><input id = "Dep01c" type="number" /></td><td></td></tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;Amount in checking accounts at end of year</td>
+				<td><input id = "Dep04c" type="number" /></td><td></td></tr>
+			<tr><td>Amount in savings accounts at beginning of year</td>
+				<td><input id = "Dep01d" type="number" /></td><td></td></tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;Amount in savings accounts at end of year</td>
+				<td><input id = "Dep04d" type="number" /></td><td></td></tr>
+			<tr><td>Amount available to the person for support</td>
+				<td></td><td><input id = "Dep05" type="number" disabled="disabled" /></td></tr>
+			<tr><td>Amount used by the person for their own support</td>
+				<td></td><td><input id = "Dep02" type="number" /></td></tr>
+			<tr><td>Amount used by the person for other purposes</td>
+				<td><input id = "Dep03" type="number" disabled="disabled" /></td><td></td></tr>
+			<tr><th>Expenses:</th><th></th><th></th></tr>
+			<tr><td>The person&apos;s share of household expenses</td>
+				<td><input id = "Dep13" type="number" disabled="disabled" /></td><td></td></tr>
+			<tr><td>The person&apos;s clothing expenses</td>
+				<td><input id = "Dep14" type="number" /></td><td></td></tr>
+			<tr><td>The person&apos;s education expenses</td>
+				<td><input id = "Dep15" type="number" /></td><td></td></tr>
+			<tr><td>The person&apos;s unreimbursed medical and dental expenses</td>
+				<td><input id = "Dep16" type="number" /></td><td></td></tr>
+			<tr><td>The person&apos;s travel and recreation expenses</td>
+				<td><input id = "Dep17" type="number" /></td><td></td></tr>
+			<tr><td>The person&apos;s other expenses</td>
+				<td><input id = "Dep18" type="number" /></td><td></td></tr>
+			<tr><td>Total cost of the person&apos;s support for the year</td>
+				<td></td><td><input id = "Dep19" type="number" disabled="disabled" /></td></tr>
+			<tr><th>Amount provided by others:</th><th></th><th></th></tr>
+			<tr><td>Amount from others, including state, local or other welfare agencies</td>
+				<td></td><td><input id = "Dep23" type="number" /></td></tr>
+		</table>
+		<button id="TestButton2" onclick="Cost_Calc(true);">Click to test</button>
+		<span id="ErrorMessage2a">There seems to be some amount of income missing. Interest perhaps?</span>
+		<span id="ErrorMessage2b">The amount used by the person for support cannot exceed the amount available.</span>
+		<span id="DepResultChild"></span>
+		<span id="DepResultRelative"></span>
+	</div>
+
+
+	<div class="noPrint section">
+		Please send corrections and suggestions to
+		<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	  	<span id="printbutton2" style="float: right;">
+			<button onclick="window.print()">Print a taxpayer copy</button>
+		</span>
+	</div>
+</body>
