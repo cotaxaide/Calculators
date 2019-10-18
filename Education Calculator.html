@@ -78,7 +78,7 @@
 	#EItable tr td:nth-child(4) { width: 10%; }
 	#EItable tr td:nth-child(5) { width: 10%; }
 	#EItable tr td:nth-child(6) { width: 10%; }
-	#EItable tr td:nth-child(7) { width: 2%; }
+	#EItable tr td:nth-child(7) { width:  2%; }
 	#MCtable tr th { text-align: left; }
 	#MCtable tr td:first-child { width: 28%; font-weight: bold; }
 	#MCtable tr td:nth-child(2) { width: 18%; }
@@ -179,7 +179,13 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.14, 4/6/2019";
+	var VERSION = "Version 3.16, 9/14/2019";
+	//	More expense granularity
+	//	Added checkboxes if scholarship can be used for an expense group
+	//	Some code changes, variable name changes for consistency, etc
+	//var VERSION = "Version 3.15, 8/19/2019";
+	//	Changed kiddie tax for first $2100 to use 10% vs tax tables to match TS
+	//var VERSION = "Version 3.14, 4/6/2019";
 	//	Tax not calculating for 2015-2017
 	//var VERSION = "Version 3.13, 4/5/2019";
 	//	Correct line number for QDCG worksheet
@@ -359,6 +365,7 @@
 
 		// Start with the Taxpayer Information tab
 		ChangeTab("InformationTab");
+		if (! DependentNo.checked) DependentYes.checked = true;
 
 		// Start with essentially no input information
 		ChangeInfo();
@@ -524,16 +531,14 @@
 		if (KiddieAllow.disabled) KiddieAllow.checked = false;
 
 		// Calculate Fed Poverty Line for the given year
-		if (+TaxYear.value < 2019) { // FPL only needed for years 2014 - 2018
-			RegionList = document.getElementsByName("Region");
-			for (i = 0; i < RegionList.length; i++){
-				if (RegionList[i].checked) ThisRegion = RegionList[i].value;
-			}
-			_Write_Cookie("Region", ThisRegion);
-			var FPLi = (TaxYear.value - 1) + ":" + ThisRegion;
-			FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (+Dependents.value * +_FPL[FPLi].split(",")[1]);
-			if (FilingStatus.value == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
+		RegionList = document.getElementsByName("Region");
+		for (i = 0; i < RegionList.length; i++){
+			if (RegionList[i].checked) ThisRegion = RegionList[i].value;
 		}
+		_Write_Cookie("Region", ThisRegion);
+		var FPLi = (TaxYear.value - 1) + ":" + ThisRegion;
+		FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (+Dependents.value * +_FPL[FPLi].split(",")[1]);
+		if (FilingStatus.value == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
 
 		// Assume all dependents are claimed for EIC until changed, prior to 2018
 		Dependents.value = Math.max(EICDependents.value, CTCDependents.value, Dependents.value);
@@ -815,18 +820,8 @@
 		var ScholarIncome = +ScholarTeaching.value;
 		var allScholarships = +Nonrestricted.value + +Scholarship.value;
 
-		// Data consistency checks
-		if ((ScholarIncome + +ScholarTaxable.value) > allScholarships) {
-			if (! Optimizing) {
-				alert("Designated use of scholarship amounts cannot be greater than the scholarship itself.");
-				document.getElementById(whatChanged).value = ""; // clear the offending entry
-				ScholarTaxable.value = 0;
-				return;
-			}
-		}
-
 		ScholarAvailable = allScholarships - ScholarIncome - +ScholarRestricted.value;
-		if (ScholarAvailable < 0) {
+		if (ScholarAvailable < 0) { // Data consistency check
 			if (! Optimizing) {
 				alert("Designated use of scholarship amounts cannot be greater than the scholarship itself.");
 				document.getElementById(whatChanged).value = ""; // clear the offending entry
@@ -835,15 +830,16 @@
 			}
 		}
 
+		// Adjust scholarship if lack of a W2 needs to be accounted for
 		ScholarW2Yes.disabled = ScholarW2No.disabled = ! (ScholarIncome > 0);
 
-		if (ScholarW2Yes.disabled) {
+		if (ScholarW2Yes.disabled) { // already accounted for
 			ScholarW2Yes.checked = false;
 			ScholarW2No.checked = false;
 		}
 
 		if (ScholarW2No.checked) {
-			// add the W-2 to the student's return income line
+			// add the W-2 equivalant amount to the student's return income line
 			if (StudSalaryTax.value == "") { // If there was a W-2, probably would be entered
 				if (DependentYes.checked) {
 					StudSalaryTax.value = ScholarIncome;
@@ -859,8 +855,19 @@
 			}
 		}
 
-		// Calculate the amount that can be taxable
-		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
+		// Calculate the amount of the scholarship that can be made taxable
+
+		// Determine unqualified expenses that may be paid from any scholarship
+		var uqexp = 0;
+		if (LivingOption.checked) uqexp += +Living.value; // only checked if no unrestricted scholarships
+		if (ServicesOption.checked) uqexp += +Services.value;
+		if (SportsOption.checked) uqexp += +Sports.value;
+		if (NonCreditOption.checked) uqexp += +NonCredit.value;
+		if (InsuranceOption.checked) uqexp += +Insurance.value;
+		if (TransportOption.checked) uqexp += +Transport.value;
+		if (ClericalOption.checked) uqexp += +Clerical.value;
+		var nruqexp = Math.min(Scholarship.value, uqexp); // amount of restricted scholarships that can be used
+		var taxableLimit = Math.min((+Nonrestricted.value + nruqexp), ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
 		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
@@ -961,13 +968,13 @@
 		ScholarSupplemental = +ScholarESA.value + +ScholarQTP.value;
 		SupplementalTaxable.style.display = (DegreeNo.checked & (ScholarSupplemental > 0)) ? "inline" : "none";
 		//ScholarSupplemental += +ScholarIRA.value;
-		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value;
+		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value + nruqexp;
 
 		ScholarAvailableTotal.innerHTML = ScholarAvailable = +ScholarTaxFree.innerHTML + ScholarSupplemental;
 		var scholarAvailableAOC = ScholarAvailable;
 		var scholarAvailableLLC = ScholarAvailable;
 		var scholarAvailableTNF = ScholarAvailable;
-		ExpenseAllowed.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
+		ExpenseAllowedFlag.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
 
 		//-----------------------Expense calculations --------------------------------
 
@@ -977,10 +984,19 @@
 		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = AllowedExpenses["TNF"] = 0;
 
 		// Must be at least half time to apply funds to living expenses
-		var housingESA = (TimeHalf.checked || TimeFull.checked) ? +ScholarESA.value : 0;
-		var housingQTP = (TimeHalf.checked || TimeFull.checked) ? +ScholarQTP.value : 0;
-		var housingIRA = (TimeHalf.checked || TimeFull.checked) ? +ScholarIRA.value : 0;
-		var housingNRH = (TimeHalf.checked || TimeFull.checked) ? +Nonrestricted.value : 0;
+		var livingAvailable = (! TimePart.checked) ? (+ScholarNQMax + +ScholarIRA.value) : 0;
+		var servicesAvailable = +ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value;
+		if (ServicesOption.checked) servicesAvailable += ScholarNQMax;
+		var sportsAvailable = 0;
+		if (SportsOption.checked) sportsAvailable += ScholarNQMax;
+		var noncreditAvailable = 0;
+		if (NonCreditOption.checked) noncreditAvailable += ScholarNQMax;
+		var insuranceAvailable = 0;
+		if (InsuranceOption.checked) insuranceAvailable += ScholarNQMax;
+		var transportAvailable = 0;
+		if (TransportOption.checked) transportAvailable += ScholarNQMax;
+		var clericalAvailable = 0;
+		if (ClericalOption.checked) clericalAvailable += ScholarNQMax;
 
 		// VerifyExpense(Category,   AOC,   LLC,   TNF,   LIMIT)
 		VerifyExpense("Tuition",     true,  true,  true,  ScholarAvailable);
@@ -988,17 +1004,22 @@
 		VerifyExpense("InstBooks",   true,  true,  true,  ScholarAvailable);
 		VerifyExpense("SecondBooks", true,  false, false, ScholarAvailable);
 		VerifyExpense("Supplies",    true,  true,  true , ScholarAvailable);
-		VerifyExpense("NotSupplies", true,  false, false, ScholarAvailable);
-		VerifyExpense("Services",    false, false, false, (+ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value));
-		VerifyExpense("Sports",      false, false, false, 0);
-		VerifyExpense("NonCredit",   false, false, false, 0);
-		VerifyExpense("Housing",     false, false, false, (housingNRH + housingESA + housingQTP + housingIRA));
-		VerifyExpense("Insurance",   false, false, false, 0);
+		VerifyExpense("OtherStuff",  true,  false, false, ScholarAvailable);
+		VerifyExpense("Living",      false, false, false, livingAvailable);
+		VerifyExpense("Insurance",   false, false, false, insuranceAvailable);
+		VerifyExpense("Services",    false, false, false, servicesAvailable);
+		VerifyExpense("Transport",   false, false, false, transportAvailable);
+		VerifyExpense("Sports",      false, false, false, sportsAvailable);
+		VerifyExpense("NonCredit",   false, false, false, noncreditAvailable);
+		VerifyExpense("Clerical",    false, false, false, clericalAvailable);
 
 		// show the expense totals
-		LivingAOC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"];
-		LivingLLC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["LLC"];
-		LivingTNF.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["TNF"];
+		NQTotalAOC.innerHTML = NonqualExpenses["AOC"];
+		NQTotalLLC.innerHTML = NonqualExpenses["LLC"];
+		NQTotalTNF.innerHTML = NonqualExpenses["TNF"];
+		NQAvailAOC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"];
+		NQAvailLLC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["LLC"];
+		NQAvailTNF.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["TNF"];
 		ExpensesAOC.innerHTML = QualExpenses["AOC"];
 		ExpensesLLC.innerHTML = QualExpenses["LLC"];
 		ExpensesTNF.innerHTML = QualExpenses["TNF"];
@@ -1015,12 +1036,14 @@
 		NQExpense("InstBooks");
 		NQExpense("SecondBooks");
 		NQExpense("Supplies");
-		NQExpense("NotSupplies");
+		NQExpense("OtherStuff");
+		NQExpense("Living");
+		NQExpense("Insurance");
 		NQExpense("Services");
+		NQExpense("Transport");
 		NQExpense("Sports");
 		NQExpense("NonCredit");
-		NQExpense("Housing");
-		NQExpense("Insurance");
+		NQExpense("Clerical");
 
 		NQAvailAOC.innerHTML = NQExpenses["AOC"];
 		NQAvailLLC.innerHTML = NQExpenses["LLC"];
@@ -1035,17 +1058,12 @@
 			if (TaxYear < 2018) {
 				WarningMessage += "<br />Kiddie tax cannot be avoided. Results may not be correct.";
 			}
-			//else {
-			//	WarningMessage += "<br />Kiddie tax may be encountered.";
-			//	WarningMessage += " Using trust tax rates for part of the student income";
-			//	WarningMessage += " if the student must file.";
-			//}
 			KiddieTaxFlag = true;
 		}
 
 		// Warning messages for supplementary funds
 
-		var expensesSupplemental = +ExpensesAOC.innerHTML + +Services.value + +Housing.value;
+		var expensesSupplemental = +ExpensesAOC.innerHTML + +Services.value + +Living.value;
 		var CombinedWarning = true;
 		if (+ScholarESA.value > expensesSupplemental) {
 			WarningMessage += "<br />The amount used from your Coverdel ESA exceeds";
@@ -1681,25 +1699,49 @@
 		valTNF,		// qualified expense (true/false)
 		limit) {
 	//----------------------------------------------------------------------------------------
-		ExpenseNameElement = document.getElementById(category);
-		ExpenseAllowedElement = document.getElementById(category + "Allowed");
+		ExpenseCategoryAmount = document.getElementById(category);
+		ExpenseOption = document.getElementById(category + "Option");
+		qualifiedScholarshipExpense = (ExpenseOption === null); // no option checkbox
+		ExpenseAllowedColumn = document.getElementById(category + "Allowed");
 
 		// Add a check mark if funds are available for the category
-		ExpenseAllowedElement.innerHTML = (+limit > 0) ? "&#x2714;" : "";
-		ExpenseAmount = Math.round(Math.max(0,+(ExpenseNameElement.value)));
+		ExpenseAmount = 0;
+		if (qualifiedScholarshipExpense) { // show fixed checkmark
+			ExpenseAllowedColumn.innerHTML = (+limit > 0) ? "&#x2714;" : "";
+			ExpenseAmount = Math.round(Math.max(0,+(ExpenseCategoryAmount.value)));
+		}
+		else { // show optional checkbox on non-qualified funds
+			var LivingExpenseFlagged = false;
+			if (category === "Living") {
+				// show fixed checkmark if there is an unrestricted scholarship
+				if (+Nonrestricted.value > 0) {
+					LivingAllowed.innerHTML = "&#x2714;";
+					ExpenseOption.style.display = "none";
+					LivingExpenseFlagged = true;
+				}
+				else {
+					LivingAllowed.innerHTML = "";
+					ExpenseOption.style.display = "inline";
+				}
+			}
+			ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit));
+		}
 
-		// For each category, include as qualified or non-qualified expense
+		// For each category column, include as qualified or non-qualified expense
 		for (var eni=1; eni < arguments.length-1; eni++) {
 			ProgramElement = document.getElementById(category + Program[eni-1]);
-			AllowedElement = document.getElementById(category + "SCH");
+			AllowedAmount = document.getElementById(category + "SCH");
 			if (arguments[eni]) {
+				// This is a qualified deduction expense
 				QualExpenses[Program[eni-1]] += ExpenseAmount;
-				AllowedElement.value = limit;
+				AllowedAmount.value = +limit;
 				ProgramElement.style.color = QualColor;
 			}
 			else {
+				// This is a non-qualified deduction expense
 				NonqualExpenses[Program[eni-1]] += ExpenseAmount;
-				AllowedExpenses[Program[eni-1]] += (AllowedElement.value = Math.min(ExpenseAmount, limit));
+				AllowedAmount.value = Math.min(ExpenseAmount, +limit);
+				AllowedExpenses[Program[eni-1]] += AllowedAmount.value;
 				ProgramElement.style.color = NonqualColor;
 			}
 			ProgramElement.innerHTML = ExpenseAmount;
@@ -1711,14 +1753,21 @@
 	function NQExpense(
 		category) {	// the expense category
 	//----------------------------------------------------------------------------------------
-		ExpenseAllowedElement = document.getElementById(category + "Allowed")
-		if (ExpenseAllowedElement.innerHTML == "") return;
+		ExpenseAllowedColumn = document.getElementById(category + "Allowed")
+		ExpenseOption = document.getElementById(category + "Option");
+		qualifiedExpense = (ExpenseOption === null); // no optional checkbox
+		if (qualifiedExpense) {
+			if (ExpenseAllowedColumn.innerHTML === "") return;
+		}
+		else {
+			if ((! ExpenseOption.checked) && (LivingAllowed.innerHTML === "")) return;
+		}
 
 		for (var eni=0; eni < 3; eni++) {
 			ProgramElement = document.getElementById(category + Program[eni]);
-			AllowedElement = document.getElementById(category + "SCH");
+			AllowedAmount = document.getElementById(category + "SCH");
 			if (ProgramElement.style.color == NonqualColor) {
-				var amount = NQExpenses[Program[eni]] + AllowedElement.value;
+				var amount = NQExpenses[Program[eni]] + AllowedAmount.value;
 				NQExpenses[Program[eni]] = Math.min(amount, ScholarNQMax);
 			}
 		}
@@ -1931,7 +1980,9 @@
 			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
 
 			// Is student subject to kiddie tax
-			if (KiddieTaxApplies && (unearnedIncome > KiddieTaxThreshold)) { // Yes
+			Form8615P1L3 = Math.max( 0 , unearnedIncome - KiddieTaxThreshold);
+			Form8615P1L5 = Math.max( 0 , ctAGI - result.deduction);
+			if ((Form8615P1L3 > 0) && (Form8615P1L5 > 0)) { // Yes
 
 				// Use normal rate for taxable earned income and Kiddie Tax threshold amount
 				var standardTax = 0;
@@ -1941,7 +1992,9 @@
 				var standardTaxable = ctEarned + kiddieStandard - result.deduction;
 
 				if (standardTaxable > 0) { // get the tax amount at the standard rate
-					standardTax = _TaxLookup(TaxYear.value, fsv, standardTaxable, 0, false);
+					stdCG.style.display = "none";
+					//standardTax = _TaxLookup(TaxYear.value, fsv, standardTaxable, 0, false);
+					standardTax = standardTaxable * _TaxRates[TaxYear.value + ":PCT"].split(",")[0];
 				}
 				else { // Unused deductions go to reduce the trustTaxable
 					trustTaxable += standardTaxable;
@@ -2620,15 +2673,13 @@
 	// This function checks for an entry in the NonRefundable credit entry on the optimizer
 	function NRCreditCheck() {
 	//----------------------------------------------------------------------------------------
-		if ((+FTCTax.value >  0)
-		|| (+AllowedCareTax.value > 0)
-		|| (+LLCTax.value > 0)
-		|| (+MaxRetireTax.value > 0)
-	 	|| (+CTCTax.innerHTML > 0)) {
-			if (NRCreditTax.value === "") {
-				alert('Please enter a value in the taxpayer\'s "Total Nonrefundable Credits" line'); return(1); }
-			if (+NRCreditTax.value > +TaxTax.innerHTML) {
-				alert('"Taxpayer\'s Total Nonrefundable Credits" cannot be more than the tax amount'); return(1); }
+		if (NRCreditTax.value === "") {
+			alert('Please enter a value in the taxpayer\'s "Total Nonrefundable Credits" line');
+			return(1);
+		}
+		else if (+NRCreditTax.value > +TaxTax.innerHTML) {
+			alert('"Taxpayer\'s Total Nonrefundable Credits" cannot be more than the tax amount');
+			return(1);
 		}
 		else return(0);
 	}
@@ -2826,10 +2877,10 @@
 		<tr title="Select the tax year being prepared and the location of the taxpayer's home.">
 			<td>Tax Year:</td>
 			<td><select id="TaxYear" onchange="ChangeInfo(this.id);"></select></td>
-			<td id="FilingIn" colspan="2">Filing in:
+			<td colspan="2"><span id="FilingIn">Filing in:
 				<input name="Region" id="RegionUS" type="radio" value="US" checked="checked" />48 states&nbsp;&nbsp;
 				<input name="Region" id="RegionAlaska" type="radio" value="Alaska" />Alaska&nbsp;&nbsp;
-				<input name="Region" id="RegionHawaii" type="radio" value="Hawaii" />Hawaii </td></tr>
+				<input name="Region" id="RegionHawaii" type="radio" value="Hawaii" />Hawaii</span></td></tr>
 		<tr title="Select the taxpayer's filing status.">
 			<td>Filing Status:</td>
 			<td><select id="FilingStatus">
@@ -3118,8 +3169,10 @@
 
 	<hr />
 
-	<span id="ExpenseAllowed">&nbsp;&#x2714;&nbsp;<i>Check marks indicate expenses allowed for scholarships or other funds.</i></span>
+	<span id="ExpenseAllowedFlag">&nbsp;&#x2714;&nbsp;<i>Check marks indicate expenses allowed for scholarships or other funds.</i></span>
 	<table id="EItable" onchange="BudgetChange()">
+		<tr>	<td><center><b>&darr;</b></center></td>
+			<td><i>Check the box if the scholarship can be used to pay for the expenses:</i></td></tr>
 		<tr>
 			<th></th>
 			<th>Expense category</th>
@@ -3169,15 +3222,31 @@
 			<td class="TNFClass" id="SuppliesTNF"></td>
 			<td class="SCHClass" id="SuppliesSCH"></td></tr>
 		<tr>
-			<td><span id="NotSuppliesAllowed"></span></td>
+			<td><span id="OtherStuffAllowed"></span></td>
 			<td>Required supplies and equipment fees NOT paid to the institution:</td>
-			<td><input id="NotSupplies" type="number" /></td>
-			<td class="AOCClass" id="NotSuppliesAOC"></td>
-			<td class="LLCClass" id="NotSuppliesLLC"></td>
-			<td class="TNFClass" id="NotSuppliesTNF"></td>
-			<td class="SCHClass" id="NotSuppliesSCH"></td></tr>
+			<td><input id="OtherStuff" type="number" /></td>
+			<td class="AOCClass" id="OtherStuffAOC"></td>
+			<td class="LLCClass" id="OtherStuffLLC"></td>
+			<td class="TNFClass" id="OtherStuffTNF"></td>
+			<td class="SCHClass" id="OtherStuffSCH"></td></tr>
 		<tr>
-			<td><span id="ServicesAllowed"></span></td>
+			<td><input id="LivingOption" type="checkbox" /><span id="LivingAllowed"></span></td>
+			<td>Living Expenses:</td>
+			<td><input id="Living" type="number" /></td>
+			<td class="AOCClass" id="LivingAOC"></td>
+			<td class="LLCClass" id="LivingLLC"></td>
+			<td class="TNFClass" id="LivingTNF"></td>
+			<td class="SCHClass" id="LivingSCH"></td></tr>
+		<tr>
+			<td><input id="InsuranceOption" type="checkbox" /><span id="InsuranceAllowed"></span></td>
+			<td>Required insurance or student health fees:</td>
+			<td><input id="Insurance" type="number" /></td>
+			<td class="AOCClass" id="InsuranceAOC"></td>
+			<td class="LLCClass" id="InsuranceLLC"></td>
+			<td class="TNFClass" id="InsuranceTNF"></td>
+			<td class="SCHClass" id="InsuranceSCH"></td></tr>
+		<tr>
+			<td><input id="ServicesOption" type="checkbox" /><span id="ServicesAllowed"></span></td>
 			<td>Expenses for special needs services:</td>
 			<td><input id="Services" type="number" /></td>
 			<td class="AOCClass" id="ServicesAOC"></td>
@@ -3185,7 +3254,15 @@
 			<td class="TNFClass" id="ServicesTNF"></td>
 			<td class="SCHClass" id="ServicesSCH"></td></tr>
 		<tr>
-			<td><span id="SportsAllowed"></span></td>
+			<td><input id="TransportOption" type="checkbox" /><span id="TransportAllowed"></span></td>
+			<td>Transportation or parking fees:</td>
+			<td><input id="Transport" type="number" /></td>
+			<td class="AOCClass" id="TransportAOC"></td>
+			<td class="LLCClass" id="TransportLLC"></td>
+			<td class="TNFClass" id="TransportTNF"></td>
+			<td class="SCHClass" id="TransportSCH"></td></tr>
+		<tr>
+			<td><input id="SportsOption" type="checkbox" /><span id="SportsAllowed"></span></td>
 			<td>Sports:</td>
 			<td><input id="Sports" type="number" /></td>
 			<td class="AOCClass" id="SportsAOC"></td>
@@ -3193,7 +3270,7 @@
 			<td class="TNFClass" id="SportsTNF"></td>
 			<td class="SCHClass" id="SportsSCH"></td></tr>
 		<tr>
-			<td><span id="NonCreditAllowed"></span></td>
+			<td><input id="NonCreditOption" type="checkbox" /><span id="NonCreditAllowed"></span></td>
 			<td>Games, hobbies, non-credit courses:</td>
 			<td><input id="NonCredit" type="number" /></td>
 			<td class="AOCClass" id="NonCreditAOC"></td>
@@ -3201,35 +3278,27 @@
 			<td class="TNFClass" id="NonCreditTNF"></td>
 			<td class="SCHClass" id="NonCreditSCH"></td></tr>
 		<tr>
-			<td><span id="HousingAllowed"></span></td>
-			<td>Living Expenses:</td>
-			<td><input id="Housing" type="number" /></td>
-			<td class="AOCClass" id="HousingAOC"></td>
-			<td class="LLCClass" id="HousingLLC"></td>
-			<td class="TNFClass" id="HousingTNF"></td>
-			<td class="SCHClass" id="HousingSCH"></td></tr>
-		<tr>
-			<td><span id="InsuranceAllowed"></span></td>
-			<td>Insurance, student health fees, transportation, clerical or research:</td>
-			<td><input id="Insurance" type="number" /></td>
-			<td class="AOCClass" id="InsuranceAOC"></td>
-			<td class="LLCClass" id="InsuranceLLC"></td>
-			<td class="TNFClass" id="InsuranceTNF"></td>
-			<td class="SCHClass" id="InsuranceSCH"></td></tr>
+			<td><input id="ClericalOption" type="checkbox" /><span id="ClericalAllowed"></span></td>
+			<td>Clerical or research fees or expenses:</td>
+			<td><input id="Clerical" type="number" /></td>
+			<td class="AOCClass" id="ClericalAOC"></td>
+			<td class="LLCClass" id="ClericalLLC"></td>
+			<td class="TNFClass" id="ClericalTNF"></td>
+			<td class="SCHClass" id="ClericalSCH"></td></tr>
 
 		<tr><td colspan="7"><hr /></td></tr>
 
 		<tr>
 			<td></td>
 			<td>Total nonqualified education expenses:</td>
-			<td id="Living"></td>
-			<td class="AOCClass nqexpense" id="LivingAOC"></td>
-			<td class="LLCClass nqexpense" id="LivingLLC"></td>
-			<td class="TNFClass nqexpense" id="LivingTNF"></td></tr>
+			<td id="NQTotal"></td>
+			<td class="AOCClass nqexpense" id="NQTotalAOC"></td>
+			<td class="LLCClass nqexpense" id="NQTotalLLC"></td>
+			<td class="TNFClass nqexpense" id="NQTotalTNF"></td></tr>
 		<tr>
 			<td></td>
 			<td>Nonqualified education expenses that can be used:</td>
-			<td id="Living"></td>
+			<td id="NQAvail"></td>
 			<td class="AOCClass nqexpense" id="NQAvailAOC"></td>
 			<td class="LLCClass nqexpense" id="NQAvailLLC"></td>
 			<td class="TNFClass nqexpense" id="NQAvailTNF"></td></tr>
@@ -3315,12 +3384,12 @@
 			you must use the Optimizer tab to enter that income to avoid any possible kiddie tax.</span>
 		<span id="messageAllMaxedOut">Because expenses exceed scholarships,
 			there is no point in optimizing however,
-			you can still use the optimizer to view the option details</span>
+			you can still use the optimizer to view the tax return details</span>
 		<span id="messageNoUnqualified">Because there are no unqualified expenses,
 			there is no point in optimizing however,
-			you can still use the optimizer to view the option details</span>
+			you can still use the optimizer to view the tax return details</span>
 		<span id="messageNoScholar">Although there are no scholarships that can be diverted to certain nonqualified expenses,
-			you can still use the optimizer to view the option details</span>
+			you can still use the optimizer to view the tax return details</span>
 		<span id="messageAOCMaxedOut">Expenses exceed scholarships by more than the limit
 			for American Opportunity Credit.
 			There is no point in optimizing if that is your best choice.</span>
