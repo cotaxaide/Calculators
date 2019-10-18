@@ -74,6 +74,7 @@
 			width: 25em;
 			margin: 3px;
 		}
+		#SPXQ,
 		#DisQ,
 		#PSOQ {
 			border: 1px solid black;
@@ -84,6 +85,7 @@
 			cursor: pointer;
 			font-size: 80%;
 		}
+		#SPXQtitleBox,
 		#DistitleBox,
 		#PSOtitleBox {
 			display: none;
@@ -99,6 +101,10 @@
 		}
 		#PSOtitleBox {
 			top: 7.3em;
+		}
+		#SPXQtitleBox {
+			top: 16em;
+			right: 16em;
 		}
 		#TSform table, #TSform tr, #TSform td { border: 0; }
 		#NTIncomeTable table, #NTIncomeTable tr, #NTIncomeTable td { border: 0; }
@@ -159,6 +165,10 @@
 			right: calc(50% - 28.4em);
 			padding: 5px;
 			width: 30em;
+		}
+		#SGRW_JOINT {
+			background-color: white;
+			font-size: 110%;
 		}
 		#RetAgeHelpBox ul { list-style-type: none; }
 		#RetAgeHelpBox table { border: none; }
@@ -276,6 +286,7 @@
 	// --------------------------------------------------------------------
 		var VERSION = "(version 10.22, 9/27/2019)";
 		//	Reversed entry of spouse birthdate pre 1998
+		//	Added clarification question drop-down instead
 		//var VERSION = "(version 10.21, 2/10/2019)";
 		//	Corrected date for survivor option
 		//var VERSION = "(version 10.20, 2/7/2019)";
@@ -428,6 +439,9 @@
 			Distitle += "<li>the months after minimum retirement age";
 			Distitle += " to as pension to recover contributions for those months.</li></ul>";
 			Distitle += " The calculator will tell you how what to include in each 1099-R.";
+		var SPXQtitle = "Although joint annuities were established in 1974,";
+			SPXQtitle += " the exclusion calculation did not include the beneficiary's";
+			SPXQtitle += " age until 1998. There is no need to enter it.";
 		var ret_age_yr = [];
 		var ret_age_mo = [];
 		var ret_age_warning_seen = false;
@@ -478,6 +492,7 @@
 			CONTRc.style.backgroundColor = "tan";
 			PSOtitleBox.innerHTML = PSOtitle;
 			DistitleBox.innerHTML = Distitle;
+			SPXQtitleBox.innerHTML = SPXQtitle;
 			TPGROSStext.style.display = 
 			SPGROSStext.style.display =
 			DeathTable.style.display =
@@ -1416,7 +1431,7 @@
 			}
 	
 			// Populate calculated fields in the tables
-			SGRW_JOINT.checked = COMBageChecked;
+			SGRW_JOINT.innerHTML = (COMBageChecked) ? "&nbsp;&#x2611&nbsp;" : "&nbsp;&#x2610&nbsp;";
 		
 			CONTR.value = Math.round(CONTR.value);
 		
@@ -2147,7 +2162,13 @@
 							<span id="SPdiedQ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id="SPdied" type="checkbox" tabindex="9" onchange="if (this.checked) SPdec.checked = true; Annuity_Change();"> Died in <span id="SPdiedQYR"></span></span>
 							</td></tr></table></td>
 				<td id="SPb" class="commentfield2">
-					<span id="SPX">(N/A for annuity before 1998)</span>
+					<span id="SPX">(N/A for annuity before 1998)
+						<span id="SPXQ"
+									onmouseover="SPXQtitleBox.style.display='inline-block';"
+									onmouseout="SPXQtitleBox.style.display='none';"
+									>?</span>
+					</span>
+					<div id="SPXQtitleBox"></div>
 					<!-- Preserve title formatting below -->
 					<input id="SP" class="hidden" tabindex="10"
 						title="Enter ONLY if this is a joint survivor annuity.
@@ -2341,7 +2362,7 @@
 										<td>Starting date of annuity</td>
 										<td id="SGRW_START" class="white">0</td></tr>
 									<tr>
-										<td><input id="SGRW_JOINT" type="checkbox" disabled />
+										<td><span id="SGRW_JOINT"></span>
 											Check here if this is a Joint or Survivor Annuity</td>
 										<td></td></tr>
 									<tr>	
