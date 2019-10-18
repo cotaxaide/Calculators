@@ -41,6 +41,10 @@
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";
 	        _LineNo[_TY+":F2555"] = "45 & 50"; //Form 2555
+	        _LineNo[_TY+":Property"] = "5b"; // Sched A
+	        _LineNo[_TY+":StateWH"] = "5a"; // Sched A
+                _LineNo[_TY+":SEP"] = "S1-28";
+                _LineNo[_TY+":QualDiv"] = "3a";
 
         // var EdExpenseLimits = [];
 		// Source: Pub 970 or Form 8863 (AOC & LLC)
@@ -93,11 +97,11 @@
         // var TaxRates = [];			// New tax law
                 _TaxRates[_TY+":PCT"] = " 0.10,  0.12,   0.22,   0.24,   0.32,   0.35,   0.37";
                 _TaxRates[_TY+":SNG"] = " 9525, 38700,  82500, 157500, 200000, 500000";
-                _TaxRates[_TY+":MFJ"] = "19051, 77400, 165000, 315000, 400000, 600000";
-                _TaxRates[_TY+":WID"] = "19051, 77400, 165000, 315000, 400000, 600000";
-                _TaxRates[_TY+":MFS"] = " 9526, 38700,  82500, 157500, 200000, 300000";
-                _TaxRates[_TY+":HOH"] = "13601, 51800,  82500, 157500, 200000, 500000";
-                _TaxRates[_TY+":TRUST"]=" 2550,  2550,   2550,   9150,   9150,  12500";
+                _TaxRates[_TY+":MFJ"] = "19050, 77400, 165000, 315000, 400000, 600000";
+                _TaxRates[_TY+":WID"] = "19050, 77400, 165000, 315000, 400000, 600000";
+                _TaxRates[_TY+":MFS"] = " 9525, 38700,  82500, 157500, 200000, 300000";
+		_TaxRates[_TY+":HOH"] = "13600, 51800,  82500, 157500, 200000, 500000";
+		_TaxRates[_TY+":TRUST"]=" 2550,  2550,   2550,   9150,   9150,  12500";
 
 	// CGRates // 
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";

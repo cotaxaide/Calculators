@@ -39,7 +39,11 @@
 	        _LineNo[_TY+":F8962A"] = "11a";
 	        _LineNo[_TY+":F8962B"] = "11b";
 	        _LineNo[_TY+":F8962F"] = "11f";
-	        _LineNo[_TY+":F2555"] = "45 & 50";
+	        _LineNo[_TY+":F2555"] = "45 & 50"	        
+		_LineNo[_TY+":Property"] = "6"; // Sched A
+	        _LineNo[_TY+":StateWH"] = "5a"; // Sched A
+                _LineNo[_TY+":SEP"] = "28";
+                _LineNo[_TY+":QualDiv"] = "9b";
 
         // var EdExpenseLimits = [];
 		// For TNF:
