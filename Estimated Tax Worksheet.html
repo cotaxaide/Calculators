@@ -59,11 +59,11 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2015.js"></script>
 <script src="Tax_Data/IRS_2016.js"></script>
 <script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
+<script src="Tax_Data/IRS_2020.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
@@ -87,7 +87,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.22, 4/1/2019)";
+	var VERSION = "(Version 2.24, 10/29/2019)";
+	//	Changed beginning year in year list to StartYear
+	//var VERSION = "(Version 2.23, 9/29/2019)";
+	//	Swapped EIC and ACTC lines to match new 1040
+	//var VERSION = "(Version 2.22, 4/1/2019)";
 	//	Added a QCD subtraction from pension line
 	//var VERSION = "(Version 2.21, 3/29/2019)";
 	//	Added detection and calculation of NIIT
@@ -189,7 +193,7 @@
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
 		var tyOptIndex = 0;
-		for (var ty = _DefaultYear - 3; ty <= _StopYear; ty++) {
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
 			var tyopti = document.createElement("option");
 			tyopti.text = tyopti.value = ty;
 			TaxYear.add(tyopti,tyOptIndex++);
@@ -812,12 +816,12 @@
 			<td colspan="3">Total after other taxes</td>
 			<td class="calculated"><span id="TotalTax">0</span></td></tr>
 		<tr><td colspan="5">Refundable Credits:</td>
-		<tr><td>  </td>
-			<td>Additional Child Tax Credit</td>
-			<td id="ACTCredit"><!--input id="ACTCredit" type="number" /--></td></tr>
 		<tr><td></td>
 			<td>Earned income tax credit</td>
 			<td id="EICCredit"><!--input id="EICCredit" type="number" /--></td></tr>
+		<tr><td>  </td>
+			<td>Additional Child Tax Credit</td>
+			<td id="ACTCredit"><!--input id="ACTCredit" type="number" /--></td></tr>
 		<tr><td></td>
 			<td>Other refundable credits (AOC, etc)</td>
 			<td><input id="Refundable" type="number" /></td></tr>
