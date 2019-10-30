@@ -219,7 +219,9 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.05, 8/31/2019)";
+	VERSION = "(Version 2.06, 10/30/2019)";
+	//	Fixed problem where Current QBI was not turning yellow
+	//VERSION = "(Version 2.05, 8/31/2019)";
 	//	Added QBI test section and revised negative taxable income tests
 	//VERSION = "(Version 2.04a, 8/25/2019)";
 	//	Changed Refundable to NonRefundable throughout
@@ -916,7 +918,7 @@
 				// Current taxable income must be positive for a QBI deduction
 				var TaxableIncome = +QBIAGI.value - +Itemized.value;
 				if (TaxableIncome <= 0) {
-					QBIDCurrent.value = 0;
+					QBIDCurrent.value = "";
 					QBIDCurrentLineNo.innerHTML = "(Calculated)";
 					QBIDCurrent.disabled = true;
 					QBIDAdditional.value = 0;
@@ -1939,7 +1941,10 @@
 
 </div> <!-- CurrentYear -->
 
-<div class="noPrint">
-	  Please send corrections and suggestions to	<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
-	  <span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+<div class="noPrint new_block">
+	  Please send corrections and suggestions to
+	  <a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	  <span id="printbutton2" style="float: right;">
+		  <button onclick="window.print()">Print a taxpayer copy</button>
+	  </span>
 </div>
