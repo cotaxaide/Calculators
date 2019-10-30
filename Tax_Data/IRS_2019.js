@@ -216,7 +216,21 @@
 	// Alternative Minimum Tax
 		//                  Exempt  Phaseout
 		_AMT[_TY+":MFJ"] = "111700, 1020600";
-		_AMT[_TY+":SNG"] = "71700,   510300";
-		_AMT[_TY+":MFS"] = "55850,   510300";
+		_AMT[_TY+":SNG"] = 
+		_AMT[_TY+":WID"] = 
 		_AMT[_TY+":HOH"] = "71700,   510300";
-		_AMT[_TY+":WID"] = "71700,   510300";
+		_AMT[_TY+":MFS"] = "55850,   510300";
+		_AMT[_TY+":TRUST"]="25000,    83500";
+		_AMT[_TY+":KIDDIE"]="7750,   510300";
+
+	// Health Savings Account (HSA)
+		_HSA[_TY+":IND"] = 3500;
+		_HSA[_TY+":FAM"] = 7000;
+
+	// Retirement Savings Contribution (Form 8880)
+		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";
+		_RETIRE[_TY+":MFJ"] = "38500,	41500,	64000";
+		_RETIRE[_TY+":HOH"] = "28875,	31125,	48000";
+		_RETIRE[_TY+":SNG"] = 
+		_RETIRE[_TY+":WID"] = 
+		_RETIRE[_TY+":MFS"] = "19250,	20750,	32000";

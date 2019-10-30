@@ -210,3 +210,16 @@
 		_AMT[_TY+":MFS"] = "41900,  510300";
 		_AMT[_TY+":HOH"] = "53900,  510300";
 		_AMT[_TY+":WID"] = "53900,  510300";
+		
+	// Health Savings Account (HSA)
+		_HSA[_TY+":IND"] = 3350;
+		_HSA[_TY+":FAM"] = 6750;
+
+	// Retirement Savings Contribution (Form 8880)
+		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";
+		_RETIRE[_TY+":MFJ"] = "37000,	40000,	61500";
+		_RETIRE[_TY+":HOH"] = "27750,	30000,	46125";
+		_RETIRE[_TY+":SNG"] = 
+		_RETIRE[_TY+":WID"] = 
+		_RETIRE[_TY+":MFS"] = "18500,	20000,	30750";
+

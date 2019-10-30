@@ -6,10 +6,15 @@
 //	_TaxLookup		Tax table lookup
 //	_CTCLookup		Child and Dependent Tax Credit
 //	_EICLookup		Earned Income Credit table lookup
-//	_QBICalc		Qualified Business Income deduction calculation
-//	_NIITCalc		Net Investment Income Tax calculation
+//	_QBICalc		Qualified Business Income deduction
+//	_NIITCalc		Net Investment Income Tax
+//	_ChildCare		Child Care Credit
+//	_Retirement		Retirement Savings Contributions deduction
+//	_EdCredit		AOC or LLC Credit
 //----------------------------------------------------------------------------------------
 //
+// Version 1.04 3/29/2019
+// 	Added ChildCare, Retirement and EdCredit
 // Version 1.03 3/29/2019
 // 	Added NIITCalc
 // Version 1.02 2/3/2019
@@ -369,4 +374,95 @@ function _NIITCalc (	// Net Investment Income Tax calculation
 	var NIIT_rate = +_NIITLimits[taxYear + ":Rate"];
 	var NIIT_tax = Math.round(NIIT_amount * NIIT_rate); // line 17
 	return NIIT_tax;
+}
+
+//----------------------------------------------------------------------------------------
+function _ChildCare (	// Form 2441
+	taxYear,	// tax year tables to use
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	AGI,		// AGI
+	amountPaid,	// max $3000 for 1, $6000 for 2 or more
+	TPEarnedIncome,	// 
+	SPEarnedIncome	// 
+		) {
+// Form 2441 line numbers
+//----------------------------------------------------------------------------------------
+	
+	if (filingStatus === "MFJ") SPEarnedIncome = TPEarnedIncome;
+	var line6 = Math.min(+amountPaid, +TPEarnedIncome, +SPEarnedIncome);
+	var line8 = (35 - (Math.ceil(Math.min(Math.max(0, (AGI - 15000)/2000), 15)/100), 0)) / 100;
+	return (line6 * line8);
+}
+
+//----------------------------------------------------------------------------------------
+function _Retirement (	// Form 8880
+	taxYear,	// tax year tables to use
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	AGI,		// AGI
+	TPcontribution,	// Voluntary to traditional IRA/Roth IRA/ABLE/401K
+	SPcontribution	// Voluntary to traditional IRA/Roth IRA/ABLE/401K
+		) {
+// Form 8880 line numbers
+// No test for age<16, dependent or student
+// No test for distributions from 4 prior years
+//----------------------------------------------------------------------------------------
+	var rates = _RETIRE[taxYear + ":Rate"].split(",");
+	var ratelimits = _RETIRE[taxYear + ":" + filingStatus].split(",");
+	var line6a = Math.min(2000, +TPcontribution);
+	var line6b = Math.min(2000, +SPcontribution);
+	var line7 = Math.max(0, (line6a + line6b));
+	var i = 0; 
+	while ((+rates[i] > 0) && (+AGI > +ratelimits[i])) i++;
+	return (line7 * rates[i]);
+}
+
+//----------------------------------------------------------------------------------------
+function _EdCredit (	// Form 8863
+	taxYear,	// tax year tables to use
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	AGI,		// AGI
+	etype,		// AOC, LLC
+	expenses	// Education expenses
+		) {
+// does not test for eligibility (dependent, claimed, kiddie tax, etc)
+// returns array	[0] = nonrefundable credit
+// 			[1] = refundable credit
+//----------------------------------------------------------------------------------------
+	var result = [];
+	var limits = _EdExpenseLimits[taxYear + ":" + etype].split(",");
+	expenses = Math.min(limits[0], expenses);
+	switch (etype) {
+		case "AOC":
+			limit = expenses;
+			if (limit > 2000) limit = 2000 + ((limit - 2000) * 0.25);
+			break;
+		case "LLC":
+			limit = 0.2 * expenses;
+			break;
+		default:
+			limit = 0;
 	}
+	var AGIfactor = 1;
+
+	// Modify amount if limited by AGI
+	switch (filingStatus) {
+		case "MFJ":
+			if (+AGI >= +limits[3]) AGIfactor = Math.max(0, (+limits[4] - +AGI) / (+limits[4] - +limits[3]));
+			break;
+		case "MFS":
+			AGIfactor = 0;
+			break;
+		default:
+			if (+AGI >= +limits[1]) AGIfactor = Math.max(0, (+limits[2] - +AGI) / (+limits[2] - +limits[1]));
+	}
+
+	// Determine refundable vs nonrefundable amounts
+	result[1] = 0; // refundable part
+	result[0] = Math.round(AGIfactor * limit); // nonrefundable part
+	if (etype === "LLC") return(result);
+
+	// AOC:
+	result[1] = Math.round(0.4 * result[0]); // refundable part
+	result[0] -= result[1]; // nonrefundable part
+	return(result);
+}

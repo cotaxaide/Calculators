@@ -1,6 +1,7 @@
 //------------------------------------------------------------
 // GLOBAL PARAMETERS FOR TAX PARAMETER FILES
 //------------------------------------------------------------
+var _Preliminary = []; // Preliminary data flag (true/false)
 var _LineNo = []; // Form line numbers
 var _EdExpenseLimits = [];
 var _Standard = []; // Exemption and standard deductions
@@ -22,6 +23,8 @@ var _QBILimits = [];
 var _NIITLimits = [];
 var _AMT = [];
 var _SALT = [];
+var _HSA = [];
+var _RETIRE = [];
 
 //------------------------------------------------------------
 // DATE VARIABLES
