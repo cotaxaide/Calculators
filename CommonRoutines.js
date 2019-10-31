@@ -388,9 +388,9 @@ function _ChildCare (	// Form 2441
 // Form 2441 line numbers
 //----------------------------------------------------------------------------------------
 	
-	if (filingStatus === "MFJ") SPEarnedIncome = TPEarnedIncome;
-	var line6 = Math.min(+amountPaid, +TPEarnedIncome, +SPEarnedIncome);
-	var line8 = (35 - (Math.ceil(Math.min(Math.max(0, (AGI - 15000)/2000), 15)/100), 0)) / 100;
+	if (filingStatus === "MFJ") line6 = Math.min(+amountPaid, +TPEarnedIncome, +SPEarnedIncome);
+	else line6 = Math.min(+amountPaid, +TPEarnedIncome);
+	var line8 = (35 - (Math.ceil(Math.min(Math.max(0, (AGI - 15000)/2000), 15)))) / 100;
 	return (line6 * line8);
 }
 
