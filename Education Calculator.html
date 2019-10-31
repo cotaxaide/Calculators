@@ -179,7 +179,10 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.16, 9/14/2019";
+	var VERSION = "Version 3.17, 10/31/2019";
+	//	Corrected case where dependent student was not subject to kiddie tax
+	//	Removed AllowKiddie option when dependent student was not subject to kiddie tax
+	//var VERSION = "Version 3.16, 9/14/2019";
 	//	More expense granularity
 	//	Added checkboxes if scholarship can be used for an expense group
 	//	Some code changes, variable name changes for consistency, etc
@@ -643,6 +646,7 @@
 			KTui.innerHTML = 
 			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 		}
+		KiddieAllowOption.style.display =
 		KTdiv.style.display = (KiddieTaxApplies) ? "inline" : "none";
 
 		// Hide tax return results line if student not a dependent
@@ -1599,7 +1603,7 @@
 		}
 
 		// adjust for kiddie tax avoidance
-		if ((+TaxYear.value < 2018) || (! KiddieAllow.checked)) {
+		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -1974,7 +1978,7 @@
 		// Look up the tax
 
 		// Kiddie tax in scope beginning in 2018 when rules changed
-		if ((TaxYear.value > 2017) && isStudent && KiddieTaxApplies) {
+		if ((TaxYear.value > 2017) && isStudent) {
 			// Definition of earned/unearned is different if kiddie tax applies
 			ctEarned = Math.max(0, ctEarned - ctScholar);
 			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
@@ -1988,12 +1992,21 @@
 				var standardTax = 0;
 				var trustTax = 0;
 				var kiddieStandard = Math.min(KiddieTaxThreshold, unearnedIncome);
-				var trustTaxable = Math.max(0, unearnedIncome - kiddieStandard);
-				var standardTaxable = ctEarned + kiddieStandard - result.deduction;
+				if (KiddieTaxApplies) {
+					var trustTaxable = Math.max(0, unearnedIncome - kiddieStandard);
+					var standardTaxable = ctEarned + kiddieStandard - result.deduction;
+				}
+				else {
+					result.tax = _TaxLookup(TaxYear.value, StudentFilingStatus.value, taxable, ctCG, true);
+					result.kiddieResultStandard =
+					result.kiddieIncomeStandard =
+					result.kiddieIncomeTrust =
+					result.kiddieResultTrust = 0;
+					return(result);
+				}
 
 				if (standardTaxable > 0) { // get the tax amount at the standard rate
 					stdCG.style.display = "none";
-					//standardTax = _TaxLookup(TaxYear.value, fsv, standardTaxable, 0, false);
 					standardTax = standardTaxable * _TaxRates[TaxYear.value + ":PCT"].split(",")[0];
 				}
 				else { // Unused deductions go to reduce the trustTaxable
@@ -2018,7 +2031,7 @@
 				result.kiddieIncomeTrust = trustTaxable;
 				result.kiddieResultTrust = trustTax;
 				result.tax = standardTax + trustTax;
-				if (standardTaxable + trustTaxable) {
+				if (KiddieTaxApplies && KiddieAllow.checked && (standardTaxable + trustTaxable)) {
 					KiddieResults.style.display = "block";
 				}
 				else {
@@ -3917,10 +3930,11 @@
 	<div id="StudentTaxFormDiv">
 		<p style="page-break-before: always;"></p>
 		<hr /><div class="TaxReturnHeader">Student&apos;s return:
-			<span id="KiddieAllowOption"> (<input id="KiddieAllow" type="checkbox"
+			<span id="KiddieAllowOption"> 
+				(<input id="KiddieAllow" type="checkbox"
 				checked="true"
 				onchange="BudgetChange();"
-				title="check to allow kiddie tax calculation" /> Allow kiddie tax)
+				title="check to allow kiddie tax calculation" /> Check to optimize using kiddie tax)
 			</span>
 		</div>
 	<table id="StudentTaxForm" onchange="BudgetChange()">
