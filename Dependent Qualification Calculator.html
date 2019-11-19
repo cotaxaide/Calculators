@@ -63,12 +63,17 @@
 //	Sue Stavio
 //	Patricia Palanker
 //	Paul Renard
+//	David Herman
+//	George Shevchuk
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.19 8/7/2019";
+var VERSION = "6.20 11/11/2019";
+//	Added a DOB to calculate age option
+//	Changed default dependent ITIN checkbox to checked
+//var VERSION = "6.19 8/7/2019";
 //	Added FT to student aged 19-23
 //	Changed cursor to pointer on input and select boxes
 //var VERSION = "6.18 11/12/2018";
@@ -430,6 +435,8 @@ function Initialize() {
 	LivedWith.checked = false;
 	JointSupport.checked = false;
 	WaiverList[2].checked = true; // none
+	BirthYear.value = "";
+	FTStudent.checked = false;
 	AgeList[1].checked = true; // 12
 	Older.checked = false;
 	Disabled.checked = false;
@@ -437,6 +444,7 @@ function Initialize() {
 	DependentMarriedNo.checked = true; // Unmarried
 	RelationList[0].checked = true; // Child of TP
 	ResidencyList[ResidencyList.length-1].checked = true; // 12
+	DependentITIN.checked = true;
 	Felony.checked = false;
 	SupportList[SupportList.length-1].checked = true; // 100%
 	QualChildOfAnother.checked = false;
@@ -471,7 +479,36 @@ function Resize() {
 
 	// Change font size to fit window width
 	zzz.style.fontSize = (WinWidth * BaseFont/BasePix) + "pt";
+}
+
+//***************************************************************************************************
+function Calculate_Age () {
+//***************************************************************************************************
+	if (BirthYear.value === "") {
+		AgeButtonText.innerHTML = "Calculate age using DOB";
+		AgeBox.style.display = "none";
+		return;
 	}
+
+	if (BirthYear.value.length != 4) {
+		alert("Please enter a 4-digit year.");
+		return;
+	}
+	var age = +TaxYear.value - BirthYear.value;
+	if (age < 0 ) {
+		alert("Birth year cannot be later than the tax year.");
+		return;
+	}
+	for (j=0; j < AgeList.length; j++) {
+		if (age > AgeList[j].value) continue;
+		if ((j == 5) && (! FTStudent.checked)) continue;
+		AgeList[j].checked = true;
+		AgeButtonText.innerHTML = "Age calculated using DOB";
+		AgeBox.style.display = "none";
+		CalcStatus(true);
+		return;
+	}
+}
 
 //***************************************************************************************************
 function PreCalc(Source) {
@@ -533,7 +570,8 @@ function PreCalc(Source) {
 } // End of PreCalc
 
 //***************************************************************************************************
-function CalcStatus() {
+function CalcStatus(from_age_calc) {
+//	noage	true = do not calculate age again
 // Calculates the benefits based on the input options set
 //***************************************************************************************************
 	// Add text on header line for debugging
@@ -542,6 +580,9 @@ function CalcStatus() {
 	// An option change resulted in a subsequent option change
 
 	// Set default values before examining checked options
+
+	// Redetermine dependent age if a birthdate was entered
+	if (! from_age_calc) Calculate_Age();
 
 	// list the standard deduction amounts for the selected year
 	var iamount = _Standard[TaxYear.value].split(",")[_Standard["DepAsRel"]].replace(/(.)(?=(\d{3})+$)/g,'$1,');
@@ -667,7 +708,7 @@ function CalcStatus() {
 		ShowResBox("Clear"); // Not alien status
 	}
 	DepITIN.style.visibility = (DEP_Citizenship == "USA") ? "hidden" : "visible";
-	if (DepITIN.style.visibility == "hidden") DependentITIN.checked = false;
+	//if (DepITIN.style.visibility == "hidden") DependentITIN.checked = false; removed v6.20
 
 	CheckMultiUseBoxes(); // Update settings based on inputs
 	ShowQCA();
@@ -892,7 +933,7 @@ function CalcStatus() {
 		if (TPisQC.checked) SetMessage(CTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(CTC,"- TP or SP cannot be a qualified relative");
 		if (QualChild.value == NO) SetMessage(CTC,"- Not a qualified child");
-		if ((TaxYear.value > 2017) && (DependentITIN.checked)) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
+		if ((TaxYear.value > 2017) && (! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
 
 	// ==============================================================
 	
@@ -921,7 +962,7 @@ function CalcStatus() {
 			if (TPisMarried.checked) SetMessage(EITC,"- Both TP and SP must have an SSN"); // add V6.12
 		 	else SetMessage(EITC,"- TP must have an SSN"); // add V6.12
 		}
-		if (DependentITIN.checked) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
+		if ((! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
 		if (TP_Filing == "MFS") SetMessage(EITC,"- TP failed joint return test");
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		// if (TPisQR.checked) SetMessage(EITC,"- TP or SP cannot be a qualified relative of another taxpayer"); // rm V6.04
@@ -1864,9 +1905,12 @@ function TestResults() {
 				<br /><input id="AgeOther" name="Age" type="radio" onclick="CalcStatus()" value="24"
 				title="A non-student older than 18 or a student older than 23 on 12/31" />
 				<span class="Label">other</span>
+				<br /><button id="AgeButton" style="font-size:75%" onclick="AgeBox.style.display='block'; BirthYear.focus();">
+					<span id="AgeButtonText">Calculate age using DOB</span>
+				</button>
 				<hr /><input id="Older" name="Older" type="checkbox" onclick="CalcStatus()"
 				title="The dependent is older than the taxpayer (and also the taxpayer's spouse if filing jointly). Do not check if older than only one of the TP or SP." />
-				<span class="Label">Older than TP & SP</span>
+				<span class="Label">Older&nbsp;than&nbsp;TP&nbsp;&amp;&nbsp;SP</span>
 				<hr /><input id="Disabled" name="Disabled" type="checkbox" onclick="CalcStatus()"
 				title="The dependent was permanently and totally disabled at any time during the year and the disability is expected to last more than a year" />
 				<span class="Label">Disabled</span>
@@ -1978,6 +2022,7 @@ function TestResults() {
 				<span class="Label"></span> <!-- to keep label and inputs in sync -->
 				<span id="DepITIN">
 				<br /><input id="DependentITIN" type="checkbox" onchange="PreCalc(2)"
+				checked="checked"
 				title="Dependent has an ITIN instead of an SSN" />
 				<span class="Label">Dep. has ITIN</span>
 				<br />&nbsp;</span>
@@ -2237,6 +2282,21 @@ function TestResults() {
 		<tr><td class="RESOptions" colspan="2"> <div id="AlienBoxContents"> </div> </td></tr>
 	</table>
   </div> <!-- end of AlienBox -->
+
+  <div id="AgeBox" style="display:none; position:absolute; left:6em; top:8em; width:12em; z-index:1; font-size:100%; background-color:white;">
+	<table style="border:5px solid; width:100%">
+		<tr class="centerbold">
+			<td class="RESHeader" style="width:100%">Age calculator</td>
+			<td class="RESHeader" style="cursor:default;" onclick="AgeBox.style.display='none';">&nbsp;X&nbsp;</td></tr>
+		<tr><td class="RESOptions" colspan="2">
+			<center><span class="Label">Enter year of birth:</span>
+			<br /><input id="BirthYear" />
+			<br /><input id="FTStudent" type="checkbox" />
+			<span class="Label">Check if FT Student</span>
+			<br /><br /><button onclick="Calculate_Age();">OK</button>
+			</center></td></tr>
+	</table>
+  </div> <!-- end of AgeBox -->
 
   <div id="debugbox"></div>
 
