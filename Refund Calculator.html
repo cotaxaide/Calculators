@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
-	<title>Refund Calculator</title>
+	<title>Refund and Recovery Calculator</title>
 
 <style type="text/css">
 	html {
@@ -219,7 +219,14 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.06, 10/30/2019)";
+	VERSION = "(Version 2.09, 11/18/2019)";
+	//	Corrected for MFS required to itemize not calculating correctly
+	//VERSION = "(Version 2.08, 11/15/2019)";
+	//	Reversed the default for the real estate tax refund
+	//VERSION = "(Version 2.07, 11/6/2019)";
+	//	Negative income set QBICurrent to blank, should be 0
+	//	Changed QBI default to unchecked
+	//VERSION = "(Version 2.06, 10/30/2019)";
 	//	Fixed problem where Current QBI was not turning yellow
 	//VERSION = "(Version 2.05, 8/31/2019)";
 	//	Added QBI test section and revised negative taxable income tests
@@ -263,6 +270,9 @@
 	//	Peter Steefel
 	//	Deb Fisher
 	//	Lance Lauerhass
+	//	Dave Butner
+	//	Paul Peyser
+	//	Maria Maggio
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -424,7 +434,7 @@
 			PostCreditLineNo.innerHTML = "1040 line 56";
 			SalesTaxText.style.display = "inline";
 			Exemption.disabled = false;
-			QBITestSkip.checked = true;
+			//QBITestSkip.checked = true; // v 2.07
 			ODC.style.display = "none";
 			ODCCount.value = 0;
 			EnergyRow.style.display = "table-row";
@@ -845,7 +855,10 @@
 			SchedAButton.style.display = "inline";
 			ItemizedRow.style.display = "table-row";
 
-			if (! UseSchedA.checked) {
+			if (MustItemize.checked || UseSchedA.checked) {
+				StandardDeduction.value = Itemized.value;
+			}
+			else {
 				// Check the input data
 				if (Itemized.value == "") {
 					NeedData++;
@@ -882,13 +895,20 @@
 		SchedAButton.style.display = "none";
 		
 		// Determine a revised deduction amount for future calculations
-		RevisedItemized.value = 
-		RevisedDeduction = Math.max((+Itemized.value - TotalTaxable), StandardDeduction.value);
+		if (MustItemize.checked || UseSchedA.checked) {
+			RevisedItemized.value = 
+			RevisedDeduction = Itemized.value;
+		}
+		else {
+			RevisedItemized.value = 
+			RevisedDeduction = Math.max((+Itemized.value - TotalTaxable), +StandardDeduction.value);
+		}
 		
 		Status_Test("SchedAResult");
 
 	//----------------------------------------------------------------------------------------
 		// Test for QBI adjustment
+		QBIRate = 0;
 		if ((TotalTaxable) && (CY >= 2018)) {
 
 			QBIDiv.style.display = "block";
@@ -915,10 +935,12 @@
 					QBIAGI.focus();
 				}
 
+				if (NeedData) return
+
 				// Current taxable income must be positive for a QBI deduction
 				var TaxableIncome = +QBIAGI.value - +Itemized.value;
 				if (TaxableIncome <= 0) {
-					QBIDCurrent.value = "";
+					QBIDCurrent.value = 0; // v 2.07
 					QBIDCurrentLineNo.innerHTML = "(Calculated)";
 					QBIDCurrent.disabled = true;
 					QBIDAdditional.value = 0;
@@ -1624,8 +1646,8 @@
 			<tr>	<td>Real estate tax refund amount:</td>
 				<td><input id="PropertyTaxRefund" type="myinput" /></td>
 				<td>Refund or rebate of state real estate taxes used as a deduction on Schedule A
-				<br /><input id="PropertyTaxRefundBox" type="checkbox">
-				Check if this refund IS taxable to the state.</td></tr>
+				<br /><input id="PropertyTaxRefundBox" type="checkbox" checked="checked">
+				Check if this refund IS taxable to the state or will be deducted on the state return.</td></tr>
 			<tr>	<td>Medical refund amount:
 				<td><input id="MedicalRefund" type="myinput" /></td>
 				<td>Repayment of expenses by insurance or other reimbursement for medical expenses used as a deduction on Schedule A</td></tr>
