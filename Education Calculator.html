@@ -61,7 +61,7 @@
 	#TPName { width: 20em; }
 	#Dependents,
 	#EICDependents,
-	#CTCDependents { width: 2em; }
+	#CTCDependents { width: 3em; }
 	#SItable tr td:first-child { width: 50%; }
 	#SItable tr td:nth-child(2) { width:50%; }
 	.SQindent { text-indent: 5em; }
@@ -179,7 +179,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.17, 10/31/2019";
+	var VERSION = "Version 3.18, 11/10/2019";
+	//	Checked options should not be taxable income
+	//var VERSION = "Version 3.17, 10/31/2019";
 	//	Corrected case where dependent student was not subject to kiddie tax
 	//	Removed AllowKiddie option when dependent student was not subject to kiddie tax
 	//var VERSION = "Version 3.16, 9/14/2019";
@@ -331,6 +333,8 @@
 	var StudKiddieAOC = [];
 	var StudKiddieLLC = [];
 	var StudKiddieTNF = [];
+	var ScholarReduction = 0;
+	var ScholarReductionMax = 0;
 
 	//----------------------------------------------------------------------------------------
 	// This function initializes options when the application is first loaded
@@ -861,17 +865,7 @@
 
 		// Calculate the amount of the scholarship that can be made taxable
 
-		// Determine unqualified expenses that may be paid from any scholarship
-		var uqexp = 0;
-		if (LivingOption.checked) uqexp += +Living.value; // only checked if no unrestricted scholarships
-		if (ServicesOption.checked) uqexp += +Services.value;
-		if (SportsOption.checked) uqexp += +Sports.value;
-		if (NonCreditOption.checked) uqexp += +NonCredit.value;
-		if (InsuranceOption.checked) uqexp += +Insurance.value;
-		if (TransportOption.checked) uqexp += +Transport.value;
-		if (ClericalOption.checked) uqexp += +Clerical.value;
-		var nruqexp = Math.min(Scholarship.value, uqexp); // amount of restricted scholarships that can be used
-		var taxableLimit = Math.min((+Nonrestricted.value + nruqexp), ScholarAvailable);
+		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
 		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
@@ -972,13 +966,13 @@
 		ScholarSupplemental = +ScholarESA.value + +ScholarQTP.value;
 		SupplementalTaxable.style.display = (DegreeNo.checked & (ScholarSupplemental > 0)) ? "inline" : "none";
 		//ScholarSupplemental += +ScholarIRA.value;
-		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value + nruqexp;
+		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value;
 
 		ScholarAvailableTotal.innerHTML = ScholarAvailable = +ScholarTaxFree.innerHTML + ScholarSupplemental;
 		var scholarAvailableAOC = ScholarAvailable;
 		var scholarAvailableLLC = ScholarAvailable;
 		var scholarAvailableTNF = ScholarAvailable;
-		ExpenseAllowedFlag.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
+		//ExpenseAllowedFlag.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
 
 		//-----------------------Expense calculations --------------------------------
 
@@ -990,19 +984,10 @@
 		// Must be at least half time to apply funds to living expenses
 		var livingAvailable = (! TimePart.checked) ? (+ScholarNQMax + +ScholarIRA.value) : 0;
 		var servicesAvailable = +ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value;
-		if (ServicesOption.checked) servicesAvailable += ScholarNQMax;
-		var sportsAvailable = 0;
-		if (SportsOption.checked) sportsAvailable += ScholarNQMax;
-		var noncreditAvailable = 0;
-		if (NonCreditOption.checked) noncreditAvailable += ScholarNQMax;
-		var insuranceAvailable = 0;
-		if (InsuranceOption.checked) insuranceAvailable += ScholarNQMax;
-		var transportAvailable = 0;
-		if (TransportOption.checked) transportAvailable += ScholarNQMax;
-		var clericalAvailable = 0;
-		if (ClericalOption.checked) clericalAvailable += ScholarNQMax;
+		ScholarReduction = 0;
+		ScholarReductionMax = ScholarAvailable;
 
-		// VerifyExpense(Category,   AOC,   LLC,   TNF,   LIMIT)
+		// VerifyExpense(Category,   AOC,   LLC,   TNF,   LIMIT
 		VerifyExpense("Tuition",     true,  true,  true,  ScholarAvailable);
 		VerifyExpense("Fees",	     true,  true,  true,  ScholarAvailable);
 		VerifyExpense("InstBooks",   true,  true,  true,  ScholarAvailable);
@@ -1010,12 +995,12 @@
 		VerifyExpense("Supplies",    true,  true,  true , ScholarAvailable);
 		VerifyExpense("OtherStuff",  true,  false, false, ScholarAvailable);
 		VerifyExpense("Living",      false, false, false, livingAvailable);
-		VerifyExpense("Insurance",   false, false, false, insuranceAvailable);
+		VerifyExpense("Insurance",   false, false, false, 0);
 		VerifyExpense("Services",    false, false, false, servicesAvailable);
-		VerifyExpense("Transport",   false, false, false, transportAvailable);
-		VerifyExpense("Sports",      false, false, false, sportsAvailable);
-		VerifyExpense("NonCredit",   false, false, false, noncreditAvailable);
-		VerifyExpense("Clerical",    false, false, false, clericalAvailable);
+		VerifyExpense("Transport",   false, false, false, 0);
+		VerifyExpense("Sports",      false, false, false, 0);
+		VerifyExpense("NonCredit",   false, false, false, 0);
+		VerifyExpense("Clerical",    false, false, false, 0);
 
 		// show the expense totals
 		NQTotalAOC.innerHTML = NonqualExpenses["AOC"];
@@ -1033,6 +1018,9 @@
 		WarningMessage = "";
 
 		// Use as much as possible to pay nonqualified expenses
+
+		// Adjust scholarship total for "manually checked" expenses
+		ScholarAvailable -= ScholarReduction;
 
 		NQExpenses["AOC"] = NQExpenses["LLC"] = NQExpenses["TNF"] = 0;
 		NQExpense("Tuition");
@@ -1618,7 +1606,8 @@
 		// Save the results
 		switch (type) {
 			case "AOC":
-				NQUsedAOC.innerHTML = nqAmount;
+				NQAvailAOC.innerHTML = +NQAvailAOC.innerHTML + ScholarReduction; // v3.1
+				NQUsedAOC.innerHTML = Math.min(+NQAvailAOC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedAOC.innerHTML = qAmount;
 				QualExpensesAOC.innerHTML =
 				QualExpensesAOC2.innerHTML = Math.min(+MaxAOC.innerHTML, QualExpenses[type] - qAmount);
@@ -1626,7 +1615,8 @@
 				break;
 
 			case "LLC":
-				NQUsedLLC.innerHTML = nqAmount;
+				NQAvailLLC.innerHTML = +NQAvailLLC.innerHTML + ScholarReduction; // v3.1
+				NQUsedLLC.innerHTML = Math.min(+NQAvailLLC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedLLC.innerHTML = qAmount;
 				QualExpensesLLC.innerHTML =
 				QualExpensesLLC2.innerHTML = Math.min(+MaxLLC.innerHTML, QualExpenses[type] - qAmount);
@@ -1634,7 +1624,8 @@
 				break;
 
 			case "TNF":
-				NQUsedTNF.innerHTML = nqAmount;
+				NQAvailTNF.innerHTML = +NQAvailTNF.innerHTML + ScholarReduction; // v3.1
+				NQUsedTNF.innerHTML = Math.min(+NQAvailTNF.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedTNF.innerHTML = qAmount;
 				QualExpensesTNF.innerHTML =
 				QualExpensesTNF2.innerHTML = Math.min(+MaxTNF.innerHTML, QualExpenses[type] - qAmount);
@@ -1710,26 +1701,35 @@
 
 		// Add a check mark if funds are available for the category
 		ExpenseAmount = 0;
+		var LivingExpenseFlagged = false;
+		var ReductionFlag = false;
 		if (qualifiedScholarshipExpense) { // show fixed checkmark
-			ExpenseAllowedColumn.innerHTML = (+limit > 0) ? "&#x2714;" : "";
+			ExpenseAllowedColumn.innerHTML = "&#x2714;";
 			ExpenseAmount = Math.round(Math.max(0,+(ExpenseCategoryAmount.value)));
 		}
 		else { // show optional checkbox on non-qualified funds
-			var LivingExpenseFlagged = false;
 			if (category === "Living") {
 				// show fixed checkmark if there is an unrestricted scholarship
 				if (+Nonrestricted.value > 0) {
 					LivingAllowed.innerHTML = "&#x2714;";
 					ExpenseOption.style.display = "none";
-					LivingExpenseFlagged = true;
+					ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit));
 				}
 				else {
 					LivingAllowed.innerHTML = "";
 					ExpenseOption.style.display = "inline";
 				}
 			}
-			ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit));
+			if (ExpenseOption.checked) {
+				// Checked options only reduce the scholarship amount
+				// We keep track of the amount and correct the display later by showing it available and used
+				ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, ScholarReductionMax));
+				ScholarReduction += Math.min(ExpenseAmount, ScholarReductionMax);
+				ScholarReductionMax -= ExpenseAmount;
+				ReductionFlag = ExpenseOption.checked;
+			}
 		}
+
 
 		// For each category column, include as qualified or non-qualified expense
 		for (var eni=1; eni < arguments.length-1; eni++) {
@@ -3185,7 +3185,7 @@
 	<span id="ExpenseAllowedFlag">&nbsp;&#x2714;&nbsp;<i>Check marks indicate expenses allowed for scholarships or other funds.</i></span>
 	<table id="EItable" onchange="BudgetChange()">
 		<tr>	<td><center><b>&darr;</b></center></td>
-			<td><i>Check the box if the scholarship can be used to pay for the expenses:</i></td></tr>
+			<td><i>Check the box if the <u>scholarship</u> can be used to pay for the expenses without being taxed:</i></td></tr>
 		<tr>
 			<th></th>
 			<th>Expense category</th>
