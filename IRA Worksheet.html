@@ -122,11 +122,14 @@
 	//	Bob Crews
 	//	Greg Wendling
 	//	John Haim
+	//	Jheroen Dorenbosch
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.04, 1/15/2019)";
+	var VERSION = "(Version 1.04a, 11/18/2019)";
+	//	Removed "onchange" and "onclick" actions from output table 
+	//var VERSION = "(Version 1.04, 1/15/2019)";
 	//	Corrected year list due to non-numeric line number
 	//var VERSION = "(Version 1.03, 6/20/2018)";
 	//	Changed year list creation
@@ -414,7 +417,7 @@
 	<b>NOTE:</b> You <i>must</i> create a Form 8606 in TaxSlayer so that it&apos;s included in the tax return!
 	<br />(Federal Section > Deductions > Adjustments > Nondeductible IRAs)
 	<hr />
-	<table id="IRA8606" class="datatable" onchange="FileChange();" onclick="FileChange();">
+	<table id="IRA8606" class="datatable">
 		<tr><td></td><td></td><td></td><td></td></tr>
 		<tr>
 			<td colspan="3">Total basis in traditional IRAs</td>
