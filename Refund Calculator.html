@@ -126,6 +126,10 @@
 		padding-right: 5px;
 		font-style: italic;
 	}
+	#Dependents {
+		width: 6em;
+		text-align: right;
+	}
 	#instructions {
 		display: none;
 	}
@@ -219,7 +223,14 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.09, 11/18/2019)";
+	VERSION = "(Version 2.11, 11/26/2019)";
+	//	Reversed 2.10 SALT calculation change - it was OK after all
+	//VERSION = "(Version 2.10, 11/25/2019)";
+	//	Correction to SALT calculation when new SALT falls below SALT limit
+	//	Changes to make sections display better when trying alternate figures
+	//	Added dependent count for years prior to 2018 to calculate exemption amount
+	//	Changed results display for nonrefundable credits used
+	//VERSION = "(Version 2.09, 11/18/2019)";
 	//	Corrected for MFS required to itemize not calculating correctly
 	//VERSION = "(Version 2.08, 11/15/2019)";
 	//	Reversed the default for the real estate tax refund
@@ -273,6 +284,7 @@
 	//	Dave Butner
 	//	Paul Peyser
 	//	Maria Maggio
+	//	Frank Krider
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -282,6 +294,7 @@
 	var PropertyTaxRefundTaxable = 0;
 	var MedicalRefundTaxable = 0;
 	var TotalTaxable = 0;
+	var Exemptions = 0;
 	var StateTaxRefundAlert = false;
 	var SalesTaxRefundAlert = false;
 	var PropertyTaxRefundAlert = false;
@@ -362,18 +375,21 @@
 				SPBlind.disabled = SP65.disabled = false;
 				MustItemize.checked = false;
 				Dependent.checked = false;
+				Exemptions = 2;
 				break;
 			case "MFS":
 				SPBlind.disabled = SP65.disabled = true;
 				SPBlind.checked = SP65.checked = false;
 				MFSItemize.style.display = "table-row";
 				Dependent.checked = false;
+				Exemptions = 1;
 				break;
 			case "SNG":
 				SPBlind.disabled = SP65.disabled = true;
 				SPBlind.checked = SP65.checked = false;
 				SNGDependent.style.display = "table-row";
 				MustItemize.checked = false;
+				Exemptions = (Dependent.checked) ? 0 : 1;
 				break;
 			case "HOH":
 			case "WID":
@@ -381,12 +397,16 @@
 				SPBlind.checked = SP65.checked = false;
 				MustItemize.checked = false;
 				Dependent.checked = false;
+				Exemptions = 1;
 			}
 
 		// Set year values, used a lot
 		NY = +TaxYear.value;
 		CY = NY - 1;
 		PY = NY - 2;
+
+		// Determine exemption amount
+		Exemption.value = (Exemptions + +Dependents.value) * _Standard[CY].split(",")[0];
 
 		// Show standard deduction amount if not a student. That will be determined later
 		if (MustItemize.checked || UseSchedA.checked) {
@@ -397,20 +417,30 @@
 			StandardDeduction.value = _StandardDeduction(CY, FilingStatus.value,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked,
 				Dependent.checked, 0);
-			CYStandard.innerHTML = "(Standard deduction = " + StandardDeduction.value + ")";
+			CYStandard.innerHTML = StandardDeduction.value;
 		}
 		else CYStandard.innerHTML = "TBD";
 	
 
 		if (NY >= 2019) {
+			DependentsRow.style.display =
+			DependentsNumber.style.display =
+			ODCCountRow.style.display = "inline";
+			Dependents.value = "";
 			TaxableStateLabel.innerHTML = "Schedule 1 line 1";
 			TaxableSalesLabel.innerHTML = "Schedule 1 line 8";
 		}
 		else if (NY == 2018) {
+			DependentsRow.style.display =
+			DependentsNumber.style.display =
+			ODCCountRow.style.display = "none";
 			TaxableStateLabel.innerHTML = "Schedule 1 line 10";
 			TaxableSalesLabel.innerHTML = "Schedule 1 line 21";
 		}
 		else {
+			DependentsRow.style.display =
+			DependentsNumber.style.display =
+			ODCCountRow.style.display = "none";
 			TaxableStateLabel.innerHTML = "1040 line 10";
 			TaxableSalesLabel.innerHTML = "1040 line 21";
 		}
@@ -419,7 +449,6 @@
 		if (CY >= 2018) {
 			PostCreditLineNo.innerHTML = "1040 line 13";
 			SalesTaxText.style.display = "none";
-			Exemption.disabled = true;
 			ODC.style.display = "inline";
 			EnergyRow.style.display = "none";
 			StateWHBox.style.display = "none";
@@ -429,11 +458,11 @@
 			PersonalRow.style.display = "table-row";
 			PropertyRow.style.display = "table-row";
 			SALTRow.style.display = "table-row";
+			NonTaxableQBIDRow.style.display = "table-row";
 		}
 		else {
 			PostCreditLineNo.innerHTML = "1040 line 56";
 			SalesTaxText.style.display = "inline";
-			Exemption.disabled = false;
 			//QBITestSkip.checked = true; // v 2.07
 			ODC.style.display = "none";
 			ODCCount.value = 0;
@@ -446,6 +475,7 @@
 			SALTRow.style.display = "none";
 			SalesTaxUsedBox.style.display = "none";
 			StateWHText.innerHTML = "";
+			NonTaxableQBIDRow.style.display = "none";
 		}
 
 		// Update lines containing dates
@@ -583,8 +613,6 @@
 		//QBIDCurrent.style.backgroundColor = ""; // software controlled by options
 		if (isNaN(AGI.value) || (+AGI.value < 0)) AGI.value = "";
 		AGI.style.backgroundColor = "";
-		if (isNaN(Exemption.value) || (+Exemption.value < 0)) Exemption.value = "";
-		Exemption.style.backgroundColor = (Exemption.disabled) ? "lightgrey" : "" ;
 		if (isNaN(EstPY4Q.value) || (+EstPY4Q.value < 0)) EstPY4Q.value = "";
 		EstPY4Q.style.backgroundColor = "";
 		if (isNaN(DuePY4Q.value) || (+DuePY4Q.value < 0)) DuePY4Q.value = "";
@@ -787,9 +815,9 @@
 			StateWHPct = StateTaxRefundTaxable / SALTRefund;
 			SalesTaxPct = SalesTaxRefundTaxable / SALTRefund;
 			PropertyPct = PropertyTaxRefundTaxable / SALTRefund;
-			SalesTaxRefundTaxable = Math.min(SalesTaxRefundTaxable, SALTdiff * SalesTaxPct);
-			StateTaxRefundTaxable = Math.min(StateTaxRefundTaxable, SALTdiff * StateWHPct);
-			PropertyTaxRefundTaxable = Math.min(PropertyTaxRefundTaxable, SALTdiff * PropertyPct);
+			SalesTaxRefundTaxable = Math.min(SalesTaxRefundTaxable, (SALTdiff * SalesTaxPct));
+			StateTaxRefundTaxable = Math.min(StateTaxRefundTaxable, (SALTdiff * StateWHPct));
+			PropertyTaxRefundTaxable = Math.min(PropertyTaxRefundTaxable, (SALTdiff * PropertyPct));
 
 		}
 		else {
@@ -797,6 +825,7 @@
 			}
 		TestingSchedAFor.innerHTML = "";
 		SchedAButton.style.display = "none";
+		RevisedItemizedRow.style.display = ItemizedRow.style.display = "none";
 
 		if (Status_Test("SchedAResult")) return;
 
@@ -839,7 +868,7 @@
 			StandardDeduction.value = _StandardDeduction(CY, FilingStatus.value,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked,
 				Dependent.checked, EarnedIncome);
-			CYStandard.innerHTML = "(Standard deduction = " + StandardDeduction.value + ")";
+			CYStandard.innerHTML = StandardDeduction.value;
 		}
 		TestingStandardFor.innerHTML = "";
 		StandardButton.style.display = "none";
@@ -853,7 +882,8 @@
 			TestingSchedAFor.innerHTML = "Comparing itemized and standard deductions";
 			RefundsButton.style.display = "none";
 			SchedAButton.style.display = "inline";
-			ItemizedRow.style.display = "table-row";
+			RevisedItemizedRow.style.display = ItemizedRow.style.display = "table-row";
+			RevisedItemized.value = "";
 
 			if (MustItemize.checked || UseSchedA.checked) {
 				StandardDeduction.value = Itemized.value;
@@ -887,7 +917,7 @@
 			}
 		}
 		else {
-			ItemizedRow.style.display = "none";
+			RevisedItemizedRow.style.display = ItemizedRow.style.display = "none";
 			Itemized.value = "";
 		}
 
@@ -904,7 +934,7 @@
 			RevisedDeduction = Math.max((+Itemized.value - TotalTaxable), +StandardDeduction.value);
 		}
 		
-		Status_Test("SchedAResult");
+		if (Status_Test("SchedAResult")) return;
 
 	//----------------------------------------------------------------------------------------
 		// Test for QBI adjustment
@@ -963,8 +993,9 @@
 					QBIDCurrent.value = "";
 					QBIDCurrentLineNo.innerHTML = "(Calculated)";
 					QBIDCurrent.style.backgroundColor = "";
-					if (+QBIBusiness.value > 0) QBISETax.value = _SETax(PY, QBIBusiness.value)[1];
 
+					if (Dependent.checked) QBIBusiness.value = Math.round(+Business.value);
+					if (+QBIBusiness.value > 0) QBISETax.value = _SETax(PY, QBIBusiness.value)[1];
 					if (QBIBusiness.value == "") {
 						NeedData++;
 						QBISETax.value = "";
@@ -1052,7 +1083,7 @@
 					PreQBIRevised = PreQBICurrent + TotalTaxable - +QBINetCG.value;
 					QBIIncomeLimit = PreQBIRevised * QBIRate;
 					QBIDRevised = Math.min(QBIDMaximum.value, QBIIncomeLimit);
-					QBIDAdditional.value = Math.max(0, (QBIDRevised - +QBIDCurrent.value));
+					QBIDAdditional.value = Math.round(Math.max(0, (QBIDRevised - +QBIDCurrent.value)));
 					QBIDAdditionalText.innerHTML = "(Calculated additional amount the refund would have allowed)";
 				
 					NewTotalTaxable = TotalTaxable - +QBIDAdditional.value;
@@ -1086,12 +1117,13 @@
 			ExemptionRow.style.display = "none";
 			Exemption.value = 0;
 
+			if (Status_Test("QBIResult")) return;
+
 			// Set up for the negative taxable income test
 			NonTaxableSkip.checked = (TaxableIncome >= 0) ? true : false;
 			NonTaxableOption.style.display = (NonTaxableSkip.checked) ? "inline" : "none";
 			NonTaxableDiv.style.display = (NonTaxableSkip.checked) ? "none" : "block";
-
-			Status_Test("QBIResult");
+			NonTaxableTable.style.display = (NonTaxableSkip.checked) ? "none" : "block";
 		}
 
 		if (CY < 2018) {
@@ -1108,6 +1140,7 @@
 				NonTaxableDiv.style.display = "block";
 				AGI.disabled = false;
 			}
+
 			if (! NonTaxableSkip.checked) {
 				TestingNonTaxableFor.innerHTML = "Testing for negative taxable income";
 				NonTaxableButton.style.display = "inline";
@@ -1127,7 +1160,7 @@
 					// Figure QBID amount that would have been available
 					CurrentNegative = Math.max(0, (+Itemized.value - +QBIAGI.value));
 					PositiveIncrease = Math.max(0, (TotalTaxable - CurrentNegative));
-					QBIDLimit = PositiveIncrease * QBIRate;
+					QBIDLimit = Math.round(PositiveIncrease * QBIRate);
 					QBIDAvailable = QBIDMaximum.value - QBIDCurrent.value;
 					NonTaxableQBID.value = Math.min(QBIDAvailable, QBIDLimit);
 				} 
@@ -1137,27 +1170,22 @@
 					AGI.style.backgroundColor = "yellow";
 					AGI.focus();
 				}
-				else if (Exemption.value == "") {
-					NeedData++;
-					Exemption.style.backgroundColor = "yellow";
-					Exemption.focus();
-				}
 				
 				if (NeedData) return;
 
 				// OK to calculate
 
-				TestDifference = Math.max(0, +AGI.value - RevisedDeduction);
+				TestDifference = Math.max(0, +AGI.value - RevisedDeduction + +Exemption.value);
 				// Test for inconsistant manual entry amounts
 				if (+Exemption.value > TestDifference) {
 					Message = "Check your entries.";
-					Message += " The taxable amount will be positive if these numbers are used!";
+					Message += " The taxable amount will be positive if this AGI is used!";
 					Message += "\n\nIf your entries are correct,";
 					Message += " check the box on this section to skip this test.";
 					alert(Message);
 					AGI.style.backgroundColor = "hotpink";
-					Exemption.style.backgroundColor = "hotpink";
 					TaxablePositive.style.display = "inline";
+					NonTaxableDiv.style.display = "block"; // may be leftover data causing this
 					return;
 				}
 
@@ -1179,20 +1207,17 @@
 				NonTaxableTable.style.display = "none";
 				TaxablePositive.style.display = "none";
 				AGI.value = "";
-				Exemption.value = "";
 				RevisedTaxable = "";
 			}
 		}
 		else {
-			NonTaxableDiv.style.display = "none";
 			AGI.value = "";
-			Exemption.value = "";
 			RevisedTaxable = "";
 		}
 		TestingNonTaxableFor.innerHTML = "";
 		NonTaxableButton.style.display = "none";
 
-		Status_Test("TaxableResult");
+		if (Status_Test("NonTaxableResult")) return;
 
 	//----------------------------------------------------------------------------------------
 		// Test for non-refundable credits
@@ -1222,6 +1247,10 @@
 				TestingNonRefundableFor.innerHTML = "Testing for reduction due to unused non-refundable credits";
 				NonRefundableButton.style.display = "inline";
 
+				// Copy AGI value from earlier entries
+				if (AGI.value != "") CTCAGI.value = AGI.value;
+				else if (QBIAGI.value != "") CTCAGI.value = QBIAGI.value;
+
 				// Calculate the CTC if the data is available
 				CTCCalc = (CTCAGI.value != "") && (CTCCount.value != "") && (ODCCount.value != "");
 				if (CTCCalc) {
@@ -1234,9 +1263,6 @@
 
 				if (CTC.value == "") {
 					CTCTable.style.display = "inline";
-					if (AGI.value != "") CTCAGI.value = AGI.value;
-					else if (QBIAGI.value != "") CTCAGI.value = QBIAGI.value;
-
 					if (CTCAGI.value == "") {
 						CTC.value = "";
 						NeedData++;
@@ -1290,8 +1316,13 @@
 					Energy.focus();
 					}
 
+				// Adjust CTC amount
 				NewCredits.value = +ForeignTax.value + +ChildCare.value + +Education.value
-					+ +Retirement.value + +CTC.value + +Energy.value + +Elderly.value;
+					+ +Retirement.value + +Energy.value + +Elderly.value;
+				RecoveryTax = Math.round(TotalTaxable * _TaxRates[CY + ":PCT"].split(",")[0]);
+				CTCAmount = Math.min(CTC.value, (+OldCredits.value - +NewCredits.value + RecoveryTax));
+				CTC.value = Math.max(0, CTCAmount); // Only display if positive
+				NewCredits.value = +NewCredits.value + +CTCAmount;
 
 				// Is at least the old data entered
 				if ((NeedData == 0) && (+NewCredits.value < +OldCredits.value)) {
@@ -1308,7 +1339,7 @@
 				// OldCredits bring the tax to 0, so NewCredits will determine the deduction
 				// Figure the tax bracket and taxable amount increase allowed
 				var additionalForCredits = +Brackets(OldCredits.value, NewCredits.value);
-				TaxBracketGain.value = additionalForCredits;
+				TaxBracketGain.value = Math.min(additionalForCredits, TotalTaxable);
 
 				NewTotalTaxable = Math.max(0, +TotalTaxable - +additionalForCredits);
 				NewTotalPct = +NewTotalTaxable / +TotalTaxable;
@@ -1342,9 +1373,6 @@
 				TestingNonRefundableFor.innerHTML = "";
 				NonRefundableButton.style.display = "none";
 			}
-		}
-		else {
-			NonRefundableDiv.style.display = "none";
 		}
 
 		if (NeedData == 0) {
@@ -1447,7 +1475,7 @@
 		var cE1b = Math.round(tax1b / rateList[taxBracket+1]);
 
 		creditExclusion = cE1a + cE1b;
-		var tbmsg = "At " + (100 * rateList[taxBracket]) + "% tax rate, exclusion = " + cE1a;
+		var tbmsg = "At " + (100 * rateList[taxBracket]) + "% tax rate, exclusion = " + Math.min(cE1a, TotalTaxable);
 		if (cE1b > 0) tbmsg += "<br />At " + (100 * rateList[taxBracket+1]) + "% tax rate, exclusion = " + cE1b;
 		TaxBracket.innerHTML = tbmsg;
 		return creditExclusion;
@@ -1542,6 +1570,12 @@
 			}
 		}
 
+		switch (result_line) {
+			case "SchedAResult": QBIDiv.style.display = "none";
+			case "QBIResult": NonTaxableDiv.style.display = "none";
+			case "NonTaxableResult": NonRefundableDiv.style.display = "none";
+		}
+
 		if (result_line) document.getElementById(result_line).innerHTML = TotalTaxable;
 		if (Message) alert(Message);
 		return (TotalTaxable == 0);
@@ -1577,13 +1611,15 @@
 				<td class="inputTitle">Taxpayer&apos;s Name: </td>
 				<td colspan="3"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td></tr>
 			<tr>	<td></td>
-				<td class="inputTitle">Filing Status:</td>
+				<td class="inputTitle">Filing Status:
+					<br /><span id="DependentsRow">Dependents:</span></td>
 				<td><select id="FilingStatus" title="Select the taxpayer's filing status.">
 					<option value="SNG">Single</option>
 					<option value="MFJ">MFJ</option>
 					<option value="MFS">MFS</option>
 					<option value="HOH">HOH</option>
-					<option value="WID">Widow(er)</option></select></td>
+					<option value="WID">Widow(er)</option></select>
+				<br /><span id="DependentsNumber"><input id="Dependents" type="myinput" /></span></td>
 				<td><input id="TP65" type="checkbox" title="Taxpayer was 65 or older" /> TP was 65 or older,
 				<input id="TPBlind" type="checkbox" title="Taxpayer was blind" /> TP was blind
 				<br /><input id="SP65" type="checkbox" title="Spouse was 65 or older" /> SP was 65 or older,
@@ -1706,12 +1742,12 @@
 				<td><input id="Itemized" type="myinput" /></td>
 				<td><input id="UseSchedA" type="checkbox" />
 					Check if the line <span id="UseSchedALineNo">TBD</span> box was checked.
-					<span id="CYStandard"></span></td></tr>
-			<tr id="RevisedItemizedRow"><td>Revised itemized deductions:</td>
+					(Standard deduction = <span id="CYStandard"></span>)</td></tr>
+			<tr id="RevisedItemizedRow"><td>Revised deductions:</td>
 				<td><input id="RevisedItemized" type="myinput" disabled="true" /></td>
 				<td>(Calculated)</tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after this test: 
+				<td class="test_results">Taxable amount of the refund after last test: 
 					<span id="SchedAResult">TBD</span></td></tr>
 		</table>
 		<button id="SchedAButton" class="hidden">Next</button>
@@ -1784,10 +1820,10 @@
 				<td><input id="QBIDAdditional" type="myinput" disabled="true" /></td>
 				<td id="QBIDAdditionalText"></td></tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after this test: 
+				<td class="test_results">Taxable amount of the refund after last test: 
 					<span id="QBIResult">TBD</span></td></tr>
 		</table>
-	</div>
+	</div> <!-- QBIDiv -->
 
 	<div id="NonTaxableDiv" class="hidden">
 		<h1 id="NonTaxableHeader"></h1>
@@ -1801,7 +1837,7 @@
 				<td><input id="AGI" type="myinput" /></td>
 				<td>From <span id="AGILineNo">TBD</span></td></tr>
 			<tr id="ExemptionRow"><td>Exemption amount:</td>
-				<td><input id="Exemption" type="myinput" /></td>
+				<td><input id="Exemption" type="myinput" disabled="true" /></td>
 				<td><span id="ExemptionText"></span></td></tr>
 			<tr id="NonTaxableRecoveredRow"><td>Negative income recovered:</td>
 				<td><input id="NonTaxableRecovered" type="myinput" disabled="true" /></td>
@@ -1810,8 +1846,8 @@
 				<td><input id="NonTaxableQBID" type="myinput" disabled="true" /></td>
 				<td>(Calculated from business and 199A dividend income)</tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after this test: 
-					<span id="TaxableResult">TBD</span></td></tr>
+				<td class="test_results">Taxable amount of the refund after last test: 
+					<span id="NonTaxableResult">TBD</span></td></tr>
 		</table>
 		<button id="NonTaxableButton" class="hidden">Next</button>
 		<span id="TaxablePositive">Taxable income is positive. Please check the box above to skip this test.</span>
@@ -1873,19 +1909,20 @@
 					<input id="CTCCount" type="myinput" />
 					Number of dependents aged 16 or less, or disabled
 					<span id="ODC">
+					<span id="ODCCountRow">
 					<br />Dep &gt; 16:
 					<input id="ODCCount" type="myinput" />
-					Number of other dependents</span></span>
+					Number of other dependents</span></span></span>
 			<tr>	<td style="border-top:2px solid black;">
 					New total non-refundable credits:</td>
 				<td style="border-top:2px solid black;">
 					<input id="NewCredits" type="myinput" disabled="true" /></td>
 				<td>(Calculated)</td></tr>
-			<tr>	<td>Tax amount gained:</td>
+			<tr>	<td>Pre-tax amount gained:</td>
 				<td><input id="TaxBracketGain" type="myinput" disabled="true" /></td>
 				<td id="TaxBracket"></td></tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after this test: 
+				<td class="test_results">Taxable amount of the refund after last test: 
 					<span id="NonRefundableResult">TBD</span></td></tr>
 		</table>
 		<button id="NonRefundableButton" class="hidden">Next</button>
