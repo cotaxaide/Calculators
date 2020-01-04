@@ -223,7 +223,12 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.11, 11/26/2019)";
+	VERSION = "(Version 2.12, 12/30/2019)";
+	//	Added Non-refundable amount gained line
+	//	4th estimated payment month comment changed from March to January
+	//VERSION = "(Version 2.11a, 11/29/2019)";
+	//	Dependents entry display changed to correct year(s)
+	//VERSION = "(Version 2.11, 11/26/2019)";
 	//	Reversed 2.10 SALT calculation change - it was OK after all
 	//VERSION = "(Version 2.10, 11/25/2019)";
 	//	Correction to SALT calculation when new SALT falls below SALT limit
@@ -285,6 +290,7 @@
 	//	Paul Peyser
 	//	Maria Maggio
 	//	Frank Krider
+	//	Vern Chartrand
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -424,7 +430,7 @@
 
 		if (NY >= 2019) {
 			DependentsRow.style.display =
-			DependentsNumber.style.display =
+			DependentsNumber.style.display = "none";
 			ODCCountRow.style.display = "inline";
 			Dependents.value = "";
 			TaxableStateLabel.innerHTML = "Schedule 1 line 1";
@@ -432,7 +438,7 @@
 		}
 		else if (NY == 2018) {
 			DependentsRow.style.display =
-			DependentsNumber.style.display =
+			DependentsNumber.style.display = "inline"
 			ODCCountRow.style.display = "none";
 			TaxableStateLabel.innerHTML = "Schedule 1 line 10";
 			TaxableSalesLabel.innerHTML = "Schedule 1 line 21";
@@ -495,7 +501,7 @@
 		CYEstimatesQ.innerHTML = "State tax payments for " + CY;
 		PaidCYLabel.innerHTML = "&nbsp;&nbsp;" + CY + " withholding and Q1-3 estimated payments total:";
 		PaidCYText.innerHTML = "(Calculated) Should include Q4 estimated payment if paid prior to 12/31/" + CY + " and a payment with an extension to file";
-		EstPY4QText.innerHTML = "Typically paid in March. Also, include any other payments for " + CY + " or earlier";
+		EstPY4QText.innerHTML = "Typically paid in January. Also, include any other payments for " + CY + " or earlier";
 		NYEstimatesQ.innerHTML = "State tax payment for " + CY + ", made in " + NY;
 		EstNY4QLabel.innerHTML = "&nbsp;&nbsp;" + CY + " 4Q estimated payment:";
 		Est4Q.innerHTML = "Check if there were ANY state income tax payments made in " + CY + " other than withholding";
@@ -1339,6 +1345,7 @@
 				// OldCredits bring the tax to 0, so NewCredits will determine the deduction
 				// Figure the tax bracket and taxable amount increase allowed
 				var additionalForCredits = +Brackets(OldCredits.value, NewCredits.value);
+				NRCGain.value = Math.max(0, +NewCredits.value - +OldCredits.value);
 				TaxBracketGain.value = Math.min(additionalForCredits, TotalTaxable);
 
 				NewTotalTaxable = Math.max(0, +TotalTaxable - +additionalForCredits);
@@ -1649,14 +1656,15 @@
 
 		<br /><br />Taxability on refund amounts are determined by entries on the previous year return which include:
 		<ul>
-			<li>The amount of the refund or the pro-rated amount of the refund if estimated taxes were paid after December 31st.</li>
 			<li>The difference between Sales Tax and State Withholding used in Schedule A.</li>
 			<li>The effect of the state and local tax (&quot;SALT&quot;) deduction limitation in tax years 2018 and later.</li>
-			<li>The total itemized deductions which exceed the standard deduction.</li>
-			<li>The extent to which itemized deductions are limited (Not considered due to high income required)</li>
+			<li>The total itemized deductions which exceeded the standard deduction.</li>
+			<li>The extent to which itemized deductions were limited (Not considered due to high income required)</li>
 			<li>The amount of additional QBI deduction available due to potential reduced itemized deductions
-			<li>The amount of a taxable amount that is negative (TaxSlayer does not consider this).</li>
+			<li>The amount of a taxable amount that was negative (TaxSlayer does not consider this).</li>
 			<li>Tax Credits that were available but not fully used to reduce tax (TaxSlayer does not consider this).</li>
+			<li>The amount of the refund or the pro-rated amount of the refund if estimated taxes were paid after December 31st.</li>
+			<li>Apportionment of refund to taxable or non-taxable to the state based on refund types</li>
 			<li>Refunds for any but the one preceding year are not considered because they are out of scope.</li>
 		</ul>
 		Resulting taxable amounts are shown for the current year.
@@ -1857,10 +1865,10 @@
 		<h1 id="NonRefundableHeader"></h1>
 		<h2 id="TestingNonRefundableFor"></h2>
 		<br /><input id="NoNonRefundables" type="checkbox" />
-		Check this box to skip this test if:
+		Check this box to skip this test if either:
 		<ul>
 			<li>all credits were used &mdash; the tax amount <u>after</u> non-refundable credits
-			(<span id="PostCreditLineNo">1040 line 13</span>) is not zero</li>
+			(<span id="PostCreditLineNo">1040 line 13</span>) is not zero, or</li>
 			<li>you know that the taxpayer has no eligible non-refundable credits</li>
 		</ul>
 		<table id="NonRefundableTable" class="data_entry">
@@ -1917,6 +1925,9 @@
 					New total non-refundable credits:</td>
 				<td style="border-top:2px solid black;">
 					<input id="NewCredits" type="myinput" disabled="true" /></td>
+				<td>(Calculated)</td></tr>
+			<tr>	<td>Non-refundable amount gained:</td>
+				<td><input id="NRCGain" type="myinput" disabled="true" /></td>
 				<td>(Calculated)</td></tr>
 			<tr>	<td>Pre-tax amount gained:</td>
 				<td><input id="TaxBracketGain" type="myinput" disabled="true" /></td>
