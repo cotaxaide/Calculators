@@ -143,7 +143,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.00, 10/29/2019)";
+	var VERSION = "(Version 3.01, 11/9/2019)";
+	//	Corrected overly limiting HSA contribution
+	//var VERSION = "(Version 3.00, 10/29/2019)";
 	// --------------------------------------------------------------------------------
 
 	var IncomeExpanded = false;
@@ -298,7 +300,7 @@
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
 		if ((FilingStatus.value != "MFS") && (! MFJMFS.checked)) ItemizeRequired.checked = false;
 		SP65Option.style.display = SPBlindOption.style.display = (FilingStatus.value === "MFJ") ? "inline" : "none";
-		HSAText.innerHTML = "("+ _HSA[TaxYear.value + ":IND"] + " personal, " + _HSA[TaxYear.value + ":FAM"] + " family policy, per TP/SP)";
+		HSAText.innerHTML = "("+ _HSA[TaxYear.value + ":IND"] + " personal, " + _HSA[TaxYear.value + ":FAM"] + " family)";
 
 		// IsDependent.style.display = ((FilingStatus.value === "SNG") && (! TP65.checked)) ? "inline" : "none";
 		
@@ -545,8 +547,8 @@
 		var edlimit = (FilingStatusValue === "MFJ") ? 500 : 250;
 		CalcIn["EdExpenses"] = Math.min(CalcIn["EdExpenses"], edlimit);
 
-		// Limit HSA Deduction
-		var edlimit = (FilingStatusValue === "MFJ") ? _HSA[TaxYear.value + ":FAM"] : _HSA[TaxYear.value + ":IND"];
+		// Limit HSA Deduction = can't test for age 55
+		var edlimit = +_HSA[TaxYear.value + ":FAM"] + 2000;
 		CalcIn["HSADeduction"] = Math.min(CalcIn["HSADeduction"], edlimit);
 		
 		// Limit IRA Contribution Deduction - can't test for age 55 or over 72-1/2
@@ -776,7 +778,7 @@
 		retlimit = (FilingStatusValue === "MFS") ? 2000 : 4000;
 		CalcOut["Retirement"] = _Retirement(TaxYear.value, FilingStatusValue, CalcOut["AGI"],
 				Math.min(CalcIn["RetirementCost"], retlimit), 0);
-		CalcOut["RetirementUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["Retirement"]);
+		CalcOut["RetirementUsed"] = NRUsedTemp = Math.round(Math.min(WorkingTax, +CalcOut["Retirement"]));
 		WorkingTax -= NRUsedTemp;
 		NRUsed += NRUsedTemp;
 
