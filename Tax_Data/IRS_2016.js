@@ -17,6 +17,7 @@
 		_LineNo[_TY+":SEHI"] = "29";
                 _LineNo[_TY+":Adjustments"] = "36";
                 _LineNo[_TY+":Deductions"] = "40";
+                _LineNo[_TY+":Taxable"] = "43";
                 _LineNo[_TY+":TaxAmount"] = "44";
                 _LineNo[_TY+":QBI"] = "";
                 _LineNo[_TY+":AGI"] = "37";

@@ -179,9 +179,7 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.21, 1/12/2020";
-	//	Kiddie tax reversion to prior method
-	//var VERSION = "Version 3.20, 12/15/2019";
+	var VERSION = "Version 3.20, 12/15/2019";
 	//	Corrected calc of dependent standard deduction
 	//var VERSION = "Version 3.19, 12/5/2019";
 	//	Corrected calc of Kiddie tax when unearned income is from capital gains
@@ -542,8 +540,8 @@
 		// Child (and Family) Tax Credit name change in 2018
 		OTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
 
-		// Kiddie tax method change in 2018 but rescinded in 2019
-		KiddieAllow.disabled = (+TaxYear.value == 2018) ? true : true;
+		// Kiddie tax method change in 2018 but rescinded in 2020
+		KiddieAllow.disabled = ((+TaxYear.value == 2018) || (+TaxYear.value == 2019)) ? false : true;
 		if (KiddieAllow.disabled) KiddieAllow.checked = false;
 
 		// Calculate Fed Poverty Line for the given year
@@ -659,9 +657,9 @@
 			KTui.innerHTML = 
 			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 		}
-		//Following disabled due to 2019 tax law changes
-		//KiddieAllowOption.style.display =
-		//KTdiv.style.display = (KiddieTaxApplies) ? "inline" : "none";
+		
+		KiddieAllowOption.style.display =
+		KTdiv.style.display = (KiddieTaxApplies) ? "inline" : "none";
 
 		// Hide tax return results line if student not a dependent
 		StudentInput.style.display = (DependentNo.checked) ? "none" : "inline";
@@ -878,7 +876,7 @@
 		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
-		if (KiddieTaxApplies && ((+TaxYear.value != 2018) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
 			// Get the student's current unearned income amount and determine if must file
 
 			// Taxable scholarship is earned income for this test
@@ -1057,7 +1055,7 @@
 		Distribute("AOC");
 		Distribute("LLC");
 		if (Distribute("TNF")) {
-			if (TaxYear.value != 2018) {
+			if (TaxYear.value < 2018) {
 				WarningMessage += "<br />Kiddie tax cannot be avoided. Results may not be correct.";
 			}
 			KiddieTaxFlag = true;
@@ -1601,7 +1599,7 @@
 		}
 
 		// adjust for kiddie tax avoidance
-		if (KiddieTaxApplies && ((+TaxYear.value != 2018) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -1990,7 +1988,7 @@
 		// Look up the tax
 
 		// Kiddie tax in scope in 2018 when rules changed
-		if ((TaxYear.value == 2018) && isStudent) {
+		if ((TaxYear.value >= 2018) && isStudent) {
 			// Definition of earned/unearned is different if kiddie tax applies
 			ctEarned = Math.max(0, ctEarned - ctScholar);
 			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
@@ -2832,10 +2830,11 @@
 	columns because the fields used rely on certain TaxSlayer calculations.
 	The results are the estimated amount of change to the taxpayer&apos;s refund (or tax owed) for each option
 	based on the original return figures.
-	<br />For years other than 2018, the optimizer prevents activating the &quot;Kiddie Tax&quot;
+	<br />For years other than 2018 and 2019, the optimizer prevents activating the &quot;Kiddie Tax&quot;
 	due to the complexity and interactions with the parent&apos;s tax return. In 2018, that complexity was
 	alleviated by using the Trust tax rates when the Kiddie Tax threshhold was crossed, making the calculation more
-	straight-forward but the change was rescinded in 2019. 2018 may be amended to use the original method (but is OUT OF SCOPE).
+	straight-forward but the change was rescinded for tax year 2020.
+	2018 and 2019 may be amended to use the original method (but is OUT OF SCOPE).
 	<br />
 	<br />Clicking the optimize button below the results modifies the amount of scholarship amount to be made taxable,
 	seeking a better result.
@@ -3949,7 +3948,7 @@
 	<div id="StudentTaxFormDiv">
 		<p style="page-break-before: always;"></p>
 		<hr /><div class="TaxReturnHeader">Student&apos;s return:
-			<span id="KiddieAllowOption" style="display:none;"> 
+			<span id="KiddieAllowOption"> 
 				(<input id="KiddieAllow" type="checkbox"
 				checked="true"
 				onchange="BudgetChange();"

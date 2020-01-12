@@ -16,7 +16,7 @@
                 _LineNo[_TY+":AGI"] = "7";
                 _LineNo[_TY+":QBI"] = "9";
                 _LineNo[_TY+":Taxable"] = "10";
-                _LineNo[_TY+":TNF"] = "";
+                _LineNo[_TY+":TNF"] = "S1-34";
                 _LineNo[_TY+":SEHI"] = "S1-29";
                 _LineNo[_TY+":Adjustments"] = "S1-36";
                 _LineNo[_TY+":Deductions"] = "8";
@@ -67,10 +67,10 @@
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, WID)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
 	
-                _EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";
-                //_EdExpenseLimits[_TY+":TNF"] = "4000,65000,2000,80000,0";	// Need update!
-                _EdExpenseLimits[_TY+":LLC"] = "10000,56000,66000,112000,132000";	// Need update!
-                _EdExpenseLimits[_TY+":AOC"] = "4000,80000,90000,160000,180000";	// Need update!
+                _EdExpenseLimits[_TY+":TNF"] = "4000,65000,2000,80000,0";	// Need update!
+                //_EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";
+                _EdExpenseLimits[_TY+":LLC"] = "10000,57000,67000,114000,134000";
+                _EdExpenseLimits[_TY+":AOC"] = "4000,80000,90000,160000,180000";
 		_EdExpenseLimits[_TY+":SAV"] = "N/A,77550,92550,116300,146300";	//Needs update	// Need update!
 
         // var Standard = [];	// Exemption and standard deductions

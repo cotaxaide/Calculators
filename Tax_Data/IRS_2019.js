@@ -16,7 +16,7 @@
                 _LineNo[_TY+":AGI"] = "8b";
                 _LineNo[_TY+":QBI"] = "10";
                 _LineNo[_TY+":Taxable"] = "11b";
-                _LineNo[_TY+":TNF"] = "";
+                _LineNo[_TY+":TNF"] = "S1-21";
                 _LineNo[_TY+":SEHI"] = "S1-16";
                 _LineNo[_TY+":Adjustments"] = "S1-22";
                 _LineNo[_TY+":Deductions"] = "9";
@@ -68,9 +68,8 @@
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
 	
                 _EdExpenseLimits[_TY+":TNF"] = " 4000, 66000, 2000,  80000,       0";
-                _EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";
-                _EdExpenseLimits[_TY+":LLC"] = "10000, 58000, 66000, 116000, 132000";	// Need update!
-                _EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";	// Need update!
+                _EdExpenseLimits[_TY+":LLC"] = "10000, 58000, 68000, 116000, 136000";
+                _EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";
 		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 81100, 96100, 121600, 151600";
 
         // var Standard = [];	// Exemption and standard deductions
@@ -118,7 +117,7 @@
 		_SEMaxWages[_TY] = 132900;
 
 	// var MedicalExclusion = [];
-		_MedicalExclusion[_TY] = "0.10, 0.10";
+		_MedicalExclusion[_TY] = "0.075, 0.075";
 
 	// StateTaxCap
 		_SALT[_TY] = 10000;			// New tax law		
@@ -132,6 +131,7 @@
                 _RetireLimits["HOH"] = 1;
                 _RetireLimits["MFJ"] = 2;
                 _RetireLimits[_TY] = "31500, 47250, 63000"; 	// Need update
+	//
 
         // var CTCLimits = [];
                 // Source: 1040 instructions for line 52 and Form 8812
@@ -173,16 +173,16 @@
 		_FPL[_TY+":Alaska"] = "15180, 5400";
 		_FPL[_TY+":Hawaii"] = "13960, 4970";
 
-	// var PTCFactorVal = [];	// Need update!
-		// A,B are FPL% ranges, C-D are PTC multipliers * 100		// Need update!
-		// A-B = C-D : (C+(%%%-A)*(D-C)/(B-A))/100		// Need update!
-		// 0-133 = 2-2		// Need update!
-		// 133-150 = 3-4		// Need update!
-		// 150-200 = 4-6.3		// Need update!
-		// 200-250 = 6.3-8.05		// Need update!
-		// 250-300 = 8.05-9.5		// Need update!
-		// 300-400 = 9.5-9.5		// Need update!
-		// col 4 = SNG APTC repayment limit	// Need update!
+	// var PTCFactorVal = [];	
+		// A,B are FPL% ranges, C-D are PTC multipliers * 100
+		// A-B = C-D : (C+(%%%-A)*(D-C)/(B-A))/100	
+		// 0-133 = 2-2				
+		// 133-150 = 3-4			
+		// 150-200 = 4-6.3			
+		// 200-250 = 6.3-8.05			
+		// 250-300 = 8.05-9.5			
+		// 300-400 = 9.5-9.5			
+		// col 4 = SNG APTC repayment limit	
 
 		_PTCFactorVal[_TY+":0"] =   "133, 2.08, 2.08,  300";
 		_PTCFactorVal[_TY+":133"] = "150, 3.11, 4.15,  300";
