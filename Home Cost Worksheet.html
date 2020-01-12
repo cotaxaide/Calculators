@@ -65,7 +65,9 @@
 	//
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.00, 10/17/2019)";
+	VERSION = "(Version 1.01, 12/9/2019)";
+	//	Default year not showing
+	//VERSION = "(Version 1.00, 10/17/2019)";
 
 	var Error = false;
 	var ErrorColor = "hotpink";
@@ -83,7 +85,7 @@
 		}
 
 		// Set the default to the tax year
-		TaxYear.value = _DefaultYear + 1;
+		TaxYear.value = _DefaultYear;
 		Cost_Calc(false);
 	}
 

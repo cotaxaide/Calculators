@@ -70,7 +70,12 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.20 11/11/2019";
+var VERSION = "6.21a 12/10/2019";
+//	Minor text changes for HOH and Wid results to Qual Person
+//var VERSION = "6.21 12/9/2019";
+//	Age over 24 did not set "Other" and close window
+//	Added year to age 0 text
+//var VERSION = "6.20 11/11/2019";
 //	Added a DOB to calculate age option
 //	Changed default dependent ITIN checkbox to checked
 //var VERSION = "6.19 8/7/2019";
@@ -485,7 +490,6 @@ function Resize() {
 function Calculate_Age () {
 //***************************************************************************************************
 	if (BirthYear.value === "") {
-		AgeButtonText.innerHTML = "Calculate age using DOB";
 		AgeBox.style.display = "none";
 		return;
 	}
@@ -503,11 +507,16 @@ function Calculate_Age () {
 		if (age > AgeList[j].value) continue;
 		if ((j == 5) && (! FTStudent.checked)) continue;
 		AgeList[j].checked = true;
-		AgeButtonText.innerHTML = "Age calculated using DOB";
 		AgeBox.style.display = "none";
+		BirthYear.value = "";
 		CalcStatus(true);
 		return;
 	}
+	AgeList[j-1].checked = true;
+	AgeBox.style.display = "none";
+	BirthYear.value = "";
+	CalcStatus(true);
+	return;
 }
 
 //***************************************************************************************************
@@ -571,7 +580,7 @@ function PreCalc(Source) {
 
 //***************************************************************************************************
 function CalcStatus(from_age_calc) {
-//	noage	true = do not calculate age again
+//	from_age_calc	true = do not calculate age again
 // Calculates the benefits based on the input options set
 //***************************************************************************************************
 	// Add text on header line for debugging
@@ -582,6 +591,7 @@ function CalcStatus(from_age_calc) {
 	// Set default values before examining checked options
 
 	// Redetermine dependent age if a birthdate was entered
+	Age0.innerHTML = "Born in " + TaxYear.value;
 	if (! from_age_calc) Calculate_Age();
 
 	// list the standard deduction amounts for the selected year
@@ -1800,7 +1810,7 @@ function TestResults() {
 		<td class="DEPHeader">Relationship<br />to TP</td>
 		<td class="DEPHeader">Residency<br />with TP</td>
 		<td class="DEPHeader">Dependent Support</td>
-		<td class="RESHeader">DEPENDENT ELIGIBLE FOR ...</td>
+		<td class="RESHeader">ELIGIBLE FOR ...</td>
 	</tr>
 	<tr>
 		<td class="TPOptions">
@@ -1886,7 +1896,7 @@ function TestResults() {
 		<table style="width:100%">
 			<tr><td><input name="Age" type="radio" onclick="CalcStatus()" value="0"
 				title="A dependent born this tax year" />
-				<span class="Label">Born this year</span>
+				<span id="Age0" class="Label">Born this year</span>
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="12" checked="checked"
 				title="A dependent aged twelve or less on 12/31" />
 				<span class="Label">1-12</span>
@@ -2080,11 +2090,11 @@ function TestResults() {
 				<td id="QualRelative" style="text-align:center;" onclick="ShowReason(this.id,BQR.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BHOH">Dependent for HOH filing</td>
+				<td id="BHOH">Qual person for HOH filing</td>
 				<td id="HOH" style="text-align:center;" onclick="ShowReason(this.id,BHOH.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BWID">Dependent for Widow(er) filing</td>
+				<td id="BWID">Qual person for Widow(er) filing</td>
 				<td id="Widow" style="text-align:center;" onclick="ShowReason(this.id,BWID.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
@@ -2292,7 +2302,7 @@ function TestResults() {
 			<center><span class="Label">Enter year of birth:</span>
 			<br /><input id="BirthYear" />
 			<br /><input id="FTStudent" type="checkbox" />
-			<span class="Label">Check if FT Student</span>
+			<span class="Label">Full-time student for 5+ mo</span>
 			<br /><br /><button onclick="Calculate_Age();">OK</button>
 			</center></td></tr>
 	</table>
