@@ -13,6 +13,9 @@
 //	_EdCredit		AOC or LLC Credit
 //----------------------------------------------------------------------------------------
 //
+// Version 1.05 12/5/2019
+// 	Realigned line numbers an calc in Sched D CG worksheet
+// 	Corrected Trust calculation for Kiddie tax
 // Version 1.04 3/29/2019
 // 	Added ChildCare, Retirement and EdCredit
 // Version 1.03 3/29/2019
@@ -143,45 +146,50 @@ function _TaxLookup(	// Tax table lookup
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH, or TRUST (for kiddie tax starting in 2018)
 	taxableAmount,	// the amount to look up
 	capitalGains,	// Sched D long term cap gains less cap losses (but not < 0) plus qual dividends
-	useSchedD	// true/false (used for recursion to allow Sched D worksheet to be skipped)
+	useSchedD,	// true/false (used for recursion to allow Sched D worksheet to be skipped)
+			// on initial call, always use true for useSchedD
+	L06F8615	// Line 6 Form 8615 (Kiddie tax form)
 	) {
 // returns the tax amount
 //----------------------------------------------------------------------------------------
 	if (taxableAmount <= 0) return(0);
+	if (L06F8615 == undefined) L06F8615 = 0;
 	var rateList = _TaxRates[taxYear + ":PCT"].split(",");
-	var bracketMax = _TaxRates[taxYear + ":" + filingStatus].split(","); // maximum for the rate
+	fs = (filingStatus == "TRUST_SNG") ? "SNG" : filingStatus; // Kiddie tax recursion call
+	var bracketMax = _TaxRates[taxYear + ":" + fs].split(","); // maximum for the rate
 	var CG_rateList = _CGRates[taxYear + ":PCT"].split(",");
-	var CG_bracketMax = _CGRates[taxYear + ":" + filingStatus].split(","); // maximum for the rate
+	var CG_bracketMax = _CGRates[taxYear + ":" + fs].split(","); // maximum for the rate
 
-	// Schedule D worksheet:
+	// Qualified Dividends and Capital Gains Tax Worksheet:
 	if (capitalGains && useSchedD) {
-		var D13 = capitalGains;
-		var D14 = Math.max(0, taxableAmount - D13);
-		var D16 = Math.min(taxableAmount, CG_bracketMax[0]);
-		var D17 = Math.min(D16, D14);
-		var D19 = Math.max(D17, D14);
-		var D20 = D16 - D17;
-		var D21 = Math.min(taxableAmount, D13);
-		var D23 = D21 - D20;
-		var D25 = Math.min(taxableAmount, CG_bracketMax[1]);
-		var D26 = D19 + D20;
-		var D27 = Math.max(0, D25 - D26);
-		var D28 = Math.min(D23, D27);
-		var D29PCT15 = CG_rateList[1] * D28;
-		var D30 = D20 + D28;
-		var D31 = D21 - D30;
-		var D32PCT20 = CG_rateList[2] * D31;
-		// skipping D33 - D38
-		var D39 = D19 + D20 + D28 + D31;
-		var D40 = taxableAmount - D39;
-		var D41PCT28 = 0.28 * D40;
-		var D42 = _TaxLookup(taxYear, filingStatus, D19, 0, false);
-		var D43 = Math.round(D29PCT15 + D32PCT20 + D41PCT28 + D42);
-		var D44 = _TaxLookup(taxYear, filingStatus, taxableAmount, 0, false);
-		return (Math.min(D43, D44));
+		var D01 = +taxableAmount;
+		var D06 = +capitalGains;
+		var D07 = Math.max(0, D01 - D06);
+		var D08 = +CG_bracketMax[0] + +L06F8615;
+		var D09 = Math.min(D01, D08);
+		var D10 = Math.min(D07, D09);
+		var D11PCT0 = Math.round(Math.max(0, D09 - D10));
+		var D12 = Math.min(D01, D06);
+		var D13 = D11PCT0;
+		var D14 = Math.max(0, D12 - D13);
+		var D15 = +CG_bracketMax[1] + +L06F8615;
+		var D16 = Math.min(D01, D15);
+		var D17 = D07 + D11PCT0;
+		var D18 = Math.max(0, D16 - D17);
+		var D19 = Math.min(D14, D18);
+		var D20PCT15 = Math.round(D19 * +CG_rateList[1]);
+		var D21 = D11PCT0 + D19;
+		var D22 = Math.max(0, D12 - D21);
+		var D23PCT20 = Math.round(D22 * +CG_rateList[2]);
+		var fs = (filingStatus == "TRUST") ? "TRUST_SNG" : filingStatus;
+		var D24 = +_TaxLookup(taxYear, fs, D07, 0, false);
+		var D25 = D20PCT15 + D23PCT20 + D24;
+		var D26 = +_TaxLookup(taxYear, fs, D01, 0, false);
+		var D27 = Math.min(D25, D26);
+		return (D27);
 	}
 
-	if (filingStatus != "TRUST") {
+	if ((filingStatus != "TRUST") && (filingStatus != "TRUST_SNG")) {
 		var stepSize = 50;
 		if (taxableAmount < 5) return(0);
 		if (taxableAmount < 25) stepsize = 10;
