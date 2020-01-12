@@ -168,6 +168,7 @@ function ShowList() {
 	for (countyIdx in See_County) {
 		if (See_County[countyIdx] == 1) AddCounty(countyIdx);
 	}
+	AddState();
 }
 
 function AddCity(cityIdx2) {
@@ -286,6 +287,18 @@ function AddCounty(countyIdx2) {
 	}
 }
 
+function AddState() {
+	trElem = document.createElement("tr");
+	cityListBodyElem.appendChild(trElem);
+	countyElem = AddData(trElem,"COLORADO STATE");
+	countyElem.style.textAlign = "left";
+	countyElem.style.fontWeight = "bold";
+	for (yr in Tax_Year) {
+		AddData(trElem,"");
+		AddData(trElem,State_Tax[yr],"");
+	}
+}
+
 function AddData(trElem,text,title) {
 	tdElem = document.createElement("td");
 	tdElem.innerHTML = text;
@@ -385,7 +398,6 @@ function AddData(trElem,text,title) {
 <div class="citylist" id="citylist">
 	<center>
 	<h1>Local Sales Tax Table</h1>
-	(Colorado Sales Tax Rate = 2.9%)
 	<br /><br />Click the county on the map above to add or remove cities in that county.
 	<table style="border:0;">
 		<tr><td style="width:20%; vertical-align:top;">
