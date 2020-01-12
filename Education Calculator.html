@@ -179,7 +179,14 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.18, 11/10/2019";
+	var VERSION = "Version 3.21, 1/12/2020";
+	//	Kiddie tax reversion to prior method
+	//var VERSION = "Version 3.20, 12/15/2019";
+	//	Corrected calc of dependent standard deduction
+	//var VERSION = "Version 3.19, 12/5/2019";
+	//	Corrected calc of Kiddie tax when unearned income is from capital gains
+	//	Fixed checkmark not showing on Special Needs box for IRAs etc.
+	//var VERSION = "Version 3.18, 11/10/2019";
 	//	Checked options should not be taxable income
 	//var VERSION = "Version 3.17, 10/31/2019";
 	//	Corrected case where dependent student was not subject to kiddie tax
@@ -534,7 +541,9 @@
 
 		// Child (and Family) Tax Credit name change in 2018
 		OTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
-		KiddieAllow.disabled = (+TaxYear.value > 2017) ? false : true;
+
+		// Kiddie tax method change in 2018 but rescinded in 2019
+		KiddieAllow.disabled = (+TaxYear.value == 2018) ? true : true;
 		if (KiddieAllow.disabled) KiddieAllow.checked = false;
 
 		// Calculate Fed Poverty Line for the given year
@@ -650,8 +659,9 @@
 			KTui.innerHTML = 
 			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 		}
-		KiddieAllowOption.style.display =
-		KTdiv.style.display = (KiddieTaxApplies) ? "inline" : "none";
+		//Following disabled due to 2019 tax law changes
+		//KiddieAllowOption.style.display =
+		//KTdiv.style.display = (KiddieTaxApplies) ? "inline" : "none";
 
 		// Hide tax return results line if student not a dependent
 		StudentInput.style.display = (DependentNo.checked) ? "none" : "inline";
@@ -868,7 +878,7 @@
 		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
-		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies && ((+TaxYear.value != 2018) || (! KiddieAllow.checked))) {
 			// Get the student's current unearned income amount and determine if must file
 
 			// Taxable scholarship is earned income for this test
@@ -1047,7 +1057,7 @@
 		Distribute("AOC");
 		Distribute("LLC");
 		if (Distribute("TNF")) {
-			if (TaxYear < 2018) {
+			if (TaxYear.value != 2018) {
 				WarningMessage += "<br />Kiddie tax cannot be avoided. Results may not be correct.";
 			}
 			KiddieTaxFlag = true;
@@ -1591,7 +1601,7 @@
 		}
 
 		// adjust for kiddie tax avoidance
-		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies && ((+TaxYear.value != 2018) || (! KiddieAllow.checked))) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -1708,15 +1718,16 @@
 			ExpenseAmount = Math.round(Math.max(0,+(ExpenseCategoryAmount.value)));
 		}
 		else { // show optional checkbox on non-qualified funds
-			if (category === "Living") {
-				// show fixed checkmark if there is an unrestricted scholarship
-				if (+Nonrestricted.value > 0) {
-					LivingAllowed.innerHTML = "&#x2714;";
+			// show fixed checkmark if there is an unrestricted scholarship
+			AllowedElement = document.getElementById(category + "Allowed");
+			if (AllowedElement != undefined) {
+				if (+limit > 0) {
+					AllowedElement.innerHTML = "&#x2714;";
 					ExpenseOption.style.display = "none";
 					ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit));
 				}
 				else {
-					LivingAllowed.innerHTML = "";
+					AllowedElement.innerHTML = "";
 					ExpenseOption.style.display = "inline";
 				}
 			}
@@ -1937,6 +1948,7 @@
 
 		// Get the standard deduction amount
 		var fsv = (isStudent) ? StudentFilingStatus.value : FilingStatus.value;
+		//var cte = (isStudent) ? (+ctEarned - +ctScholar) : ctEarned; // removed 3.20
 		result.deduction = _StandardDeduction(TaxYear.value, fsv,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, isStudent, ctEarned);
 
@@ -1977,24 +1989,31 @@
 
 		// Look up the tax
 
-		// Kiddie tax in scope beginning in 2018 when rules changed
-		if ((TaxYear.value > 2017) && isStudent) {
+		// Kiddie tax in scope in 2018 when rules changed
+		if ((TaxYear.value == 2018) && isStudent) {
 			// Definition of earned/unearned is different if kiddie tax applies
 			ctEarned = Math.max(0, ctEarned - ctScholar);
 			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
 
 			// Is student subject to kiddie tax
 			Form8615P1L3 = Math.max( 0 , unearnedIncome - KiddieTaxThreshold);
-			Form8615P1L5 = Math.max( 0 , ctAGI - result.deduction);
+			Form8615P1L5 = Math.min( taxable , Form8615P1L3);
 			if ((Form8615P1L3 > 0) && (Form8615P1L5 > 0)) { // Yes
+				Form8615P1L6 = Math.max( 0 , taxable - Form8615P1L5);
 
 				// Use normal rate for taxable earned income and Kiddie Tax threshold amount
 				var standardTax = 0;
 				var trustTax = 0;
 				var kiddieStandard = Math.min(KiddieTaxThreshold, unearnedIncome);
 				if (KiddieTaxApplies) {
-					var trustTaxable = Math.max(0, unearnedIncome - kiddieStandard);
-					var standardTaxable = ctEarned + kiddieStandard - result.deduction;
+					if (StudCapGainsTax.value) {
+						trustTaxable = Math.max(0, taxable);
+						standardTaxable = 0;
+					}
+					else {
+						trustTaxable = Math.max(0, unearnedIncome - kiddieStandard);
+						standardTaxable = Math.max(0, ctEarned + kiddieStandard - result.deduction);
+					}
 				}
 				else {
 					result.tax = _TaxLookup(TaxYear.value, StudentFilingStatus.value, taxable, ctCG, true);
@@ -2018,7 +2037,7 @@
 				// Use TRUST rate for unearned over the kiddie tax threshhold
 				if (trustTaxable > 0) { // get the tax amount
 					truCG.style.display = (+ctCG > 0) ? "inline" : "none";
-					trustTax = _TaxLookup(TaxYear.value, "TRUST", trustTaxable, +ctCG, true);
+					trustTax = _TaxLookup(TaxYear.value, "TRUST", trustTaxable, +ctCG, true, Form8615P1L6);
 				}
 				else {
 					trustTaxable = 0;
@@ -2813,10 +2832,10 @@
 	columns because the fields used rely on certain TaxSlayer calculations.
 	The results are the estimated amount of change to the taxpayer&apos;s refund (or tax owed) for each option
 	based on the original return figures.
-	<br />For years prior to 2018, the optimizer prevents activating the &quot;Kiddie Tax&quot;
+	<br />For years other than 2018, the optimizer prevents activating the &quot;Kiddie Tax&quot;
 	due to the complexity and interactions with the parent&apos;s tax return. In 2018, that complexity was
 	alleviated by using the Trust tax rates when the Kiddie Tax threshhold was crossed, making the calculation more
-	straight-forward.
+	straight-forward but the change was rescinded in 2019. 2018 may be amended to use the original method (but is OUT OF SCOPE).
 	<br />
 	<br />Clicking the optimize button below the results modifies the amount of scholarship amount to be made taxable,
 	seeking a better result.
@@ -3107,7 +3126,7 @@
 			<td></td>
 			<td></td></tr>
 		<tr title="Amount that you were required under the conditions of the scholarship to use for other than qualified education expenses. The expenese covered by this should not be included in the education expenses in the Expense Information tab.">
-			<td class="FSindent">- Amount restricted (required to be spent on anything other than qualified education expenses):
+			<td class="FSindent">- Amount restricted (<u>required</u> to be spent on anything other than qualified education expenses):
 			<td><input id="ScholarRestricted" type="number" onchange="BudgetChange(this.id)" /> </td>
 			<td></td>
 			<td></td></tr>
@@ -3930,11 +3949,11 @@
 	<div id="StudentTaxFormDiv">
 		<p style="page-break-before: always;"></p>
 		<hr /><div class="TaxReturnHeader">Student&apos;s return:
-			<span id="KiddieAllowOption"> 
+			<span id="KiddieAllowOption" style="display:none;"> 
 				(<input id="KiddieAllow" type="checkbox"
 				checked="true"
 				onchange="BudgetChange();"
-				title="check to allow kiddie tax calculation" /> Check to optimize using kiddie tax)
+				title="check to allow kiddie tax calculation" /> 				Check to optimize using kiddie tax)
 			</span>
 		</div>
 	<table id="StudentTaxForm" onchange="BudgetChange()">
