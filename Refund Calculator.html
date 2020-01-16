@@ -134,15 +134,19 @@
 		display: none;
 	}
 	#taxpayer_table {
-		max-width: 55em;
+		max-width: 60em;
 	}
 	#taxpayer_table td:first-child {
 		width: 15em;
+		border-right: 1px solid black;
 	}
 	#taxpayer_table td:nth-child(2) {
-		width: 9em;
+		width: 2em;
 	}
 	#taxpayer_table td:nth-child(3) {
+		width; 9em;
+	}
+	#taxpayer_table td:nth-child(4) {
 		width: 7em;
 	}
 	#instruction_label {
@@ -222,8 +226,17 @@
 <script type="text/javascript">
 	var VERSION;
 	// --------------------------------------------------------------------------------
+	// To Do:
+	//	Provide for use of Schedule D
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.12, 12/30/2019)";
+	VERSION = "(Version 2.13b, 1/13/2020)";
+	//	AGI variable error at CTCAGA
+	//VERSION = "(Version 2.13a, 1/12/2020)";
+	//	TaxSlayer change to where to enter Schedule 1 Line 1 bypass calculation
+	//VERSION = "(Version 2.13, 1/4/2020)";
+	//	Corrected nonrefundable calc - was assuming 10% bracket, not always true
+	//	Added vertical line separating 2019 and 2018 information in TP box
+	//VERSION = "(Version 2.12, 12/30/2019)";
 	//	Added Non-refundable amount gained line
 	//	4th estimated payment month comment changed from March to January
 	//VERSION = "(Version 2.11a, 11/29/2019)";
@@ -291,6 +304,7 @@
 	//	Maria Maggio
 	//	Frank Krider
 	//	Vern Chartrand
+	//	Brad Kirby
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -1322,15 +1336,9 @@
 					Energy.focus();
 					}
 
-				// Adjust CTC amount
-				NewCredits.value = +ForeignTax.value + +ChildCare.value + +Education.value
-					+ +Retirement.value + +Energy.value + +Elderly.value;
-				RecoveryTax = Math.round(TotalTaxable * _TaxRates[CY + ":PCT"].split(",")[0]);
-				CTCAmount = Math.min(CTC.value, (+OldCredits.value - +NewCredits.value + RecoveryTax));
-				CTC.value = Math.max(0, CTCAmount); // Only display if positive
-				NewCredits.value = +NewCredits.value + +CTCAmount;
-
 				// Is at least the old data entered
+				NewCredits.value = +ForeignTax.value + +ChildCare.value + +Education.value
+					+ +Retirement.value + +Energy.value + +Elderly.value + +CTC.value;
 				if ((NeedData == 0) && (+NewCredits.value < +OldCredits.value)) {
 					Message = "The maximum values do not, but should, total";
 					Message += " to at least the current total credits.";
@@ -1339,11 +1347,13 @@
 					return;
 				}
 
-
 				// OK to calculate
 
 				// OldCredits bring the tax to 0, so NewCredits will determine the deduction
 				// Figure the tax bracket and taxable amount increase allowed
+				var NewTaxable = Math.max(0, +CTCAGI.value - RevisedDeduction + +Exemption.value);
+				NewTax = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, NewTaxable, 0, true);
+				NewCredits.value = Math.min(NewTax, +NewCredits.value);
 				var additionalForCredits = +Brackets(OldCredits.value, NewCredits.value);
 				NRCGain.value = Math.max(0, +NewCredits.value - +OldCredits.value);
 				TaxBracketGain.value = Math.min(additionalForCredits, TotalTaxable);
@@ -1610,14 +1620,16 @@
 	</div>
 
 	<div class="new_block" id="TPNameDiv" onchange="Recalculate();">
-		<h1 id="TPNameHeader"></h1>
 		<center>
 		<table id="taxpayer_table">
+			<tr><td></td><td></td><td></td><td></td><td></td></tr>
+			<tr><td></td><td></td><td colspan="3"><h1 id="TPNameHeader"></h1><td/>
 			<tr>	<td><span class="inputTitle">This Tax Year: </span>
 					<select style="width:6em;" id="TaxYear" title="Select the tax year being prepared."></select></td>
+				<td></td>
 				<td class="inputTitle">Taxpayer&apos;s Name: </td>
-				<td colspan="3"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td></tr>
-			<tr>	<td></td>
+				<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td></tr>
+			<tr>	<td></td><td></td>
 				<td class="inputTitle">Filing Status:
 					<br /><span id="DependentsRow">Dependents:</span></td>
 				<td><select id="FilingStatus" title="Select the taxpayer's filing status.">
@@ -1632,9 +1644,9 @@
 				<br /><input id="SP65" type="checkbox" title="Spouse was 65 or older" /> SP was 65 or older,
 				<input id="SPBlind" type="checkbox" title="Spouse was blind" /> SP was blind
 				</td></tr>
-			<tr>	<td colspan="3"></td>
+				<tr>	<td></td><td colspan="3"></td>
 				<td id="SNGDependent"><input id="Dependent" type="checkbox"> Dependent on another taxpayer&apos;s return</td></tr>
-			<tr>	<td colspan="3"></td>
+			<tr>	<td></td><td colspan="3"></td>
 				<td id="MFSItemize"><input id="MustItemize" type="checkbox"> Must itemize because spouse itemized</td></tr>
 		</table>
 	</center>
@@ -1660,14 +1672,15 @@
 			<li>The effect of the state and local tax (&quot;SALT&quot;) deduction limitation in tax years 2018 and later.</li>
 			<li>The total itemized deductions which exceeded the standard deduction.</li>
 			<li>The extent to which itemized deductions were limited (Not considered due to high income required)</li>
-			<li>The amount of additional QBI deduction available due to potential reduced itemized deductions
+			<li>The amount of additional QBI deduction available due to potential reduced itemized deductions (TaxSlayer does not consider this).</li>
 			<li>The amount of a taxable amount that was negative (TaxSlayer does not consider this).</li>
-			<li>Tax Credits that were available but not fully used to reduce tax (TaxSlayer does not consider this).</li>
+			<li>Nonrefundable tax credits that were available but not fully used to reduce tax (TaxSlayer does not consider this).</li>
 			<li>The amount of the refund or the pro-rated amount of the refund if estimated taxes were paid after December 31st.</li>
 			<li>Apportionment of refund to taxable or non-taxable to the state based on refund types</li>
 			<li>Refunds for any but the one preceding year are not considered because they are out of scope.</li>
 		</ul>
 		Resulting taxable amounts are shown for the current year.
+		<br />Note: Effect of using taxability of Schedule D (unlikely condition) is not considered in nonrefundable credit section.
 	</div>
 </div>
 
@@ -1992,7 +2005,7 @@
 		<tr id="TaxableStateRow">
 			<td><span id="TaxableStateLabel">1040 line 10</span></td>
 			<td><input id="TaxableState" type="myinput" disabled="true"/></td>
-			<td class="comment">(TS Income &gt; State and Local Refunds &gt;
+			<td class="comment">(TS Income &gt; Form 1099-G Box 2 &gt;
 				Bypass worksheet line)<span id="SummaryA"></span><br /> </td></tr>
 		<tr id="TaxableSalesHeader">
 			<td colspan="3" class="underline">Federal taxable amount of refunds taxable to the state:</td></tr>
