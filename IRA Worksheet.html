@@ -123,11 +123,14 @@
 	//	Greg Wendling
 	//	John Haim
 	//	Jheroen Dorenbosch
+	//	John Arenberg
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.04a, 11/18/2019)";
+	var VERSION = "(Version 1.04b, 12/31/2019)";
+	//	Added a reminder to return to 1099-R to change taxable amount
+	//var VERSION = "(Version 1.04a, 11/18/2019)";
 	//	Removed "onchange" and "onclick" actions from output table 
 	//var VERSION = "(Version 1.04, 1/15/2019)";
 	//	Corrected year list due to non-numeric line number
@@ -439,6 +442,15 @@
 			<td class="calculated"><span id="TSConverted"></span></td></tr>
 	</table>
 </div> <!-- IncomeInfo -->
+
+<br />
+
+<div id="TaxableInfo">
+	<h1>Form 1099-R input for TaxSlayer:</h1>
+	Return to the IRA distribution 1099-R forms and change the TAXABLE AMOUNT to that shown in the table above.
+	<br />(You can actually distribute the total taxable amount to one (or more) of the 1099-R forms in any way you wish.)
+</div> <!-- TaxableInfo -->
+
 <br />
 
 <div class="noPrint">
