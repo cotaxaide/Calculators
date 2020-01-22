@@ -179,7 +179,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.20a, 1/16/2020";
+	var VERSION = "Version 3.20b, 1/20/2020";
+	//	Added pink to AGI if income but AGI is blank
+	//var VERSION = "Version 3.20a, 1/16/2020";
 	//	Added kiddie tax option wording due to trust method reversion
 	//var VERSION = "Version 3.20, 12/15/2019";
 	//	Corrected calc of dependent standard deduction
@@ -829,6 +831,11 @@
 			QBITax.innerHTML = StudQBITax.innerHTML = 0;
 			SEHITax.value = StudSEHITax.value = 0;
 		}
+
+		needAGI = (((SalaryTax.value > 0) || (BusinessTax.value > 0)) && (AGITax.value == ""))
+		AGITax.style.backgroundColor = (needAGI) ? "pink" : "";
+		needAGI = (((StudSalaryTax.value > 0) || (StudBusinessTax.value > 0)) && (StudAGITax.value == ""))
+		StudAGITax.style.backgroundColor = (needAGI) ? "pink" : "";
 
 
 		//-----------------------Scholarship calculations --------------------------------
