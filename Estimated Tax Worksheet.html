@@ -91,7 +91,7 @@
 	}
 	#EdInputBox { width: 18em; }
 	#EdInputTitle,
-	#MFSInputTitle { font-weight: bold; text-decoration: underline; }
+	#MFSInputTitle { font-weight: bold; text-decoration: underline; }https://www.irs.gov/individuals/site-coordinator-corner
 	#MFJMFSResults { border: 2px solid green; margin: 5px; font-size: 110%; }
 	#MFJMFSResultsTable { width: auto; margin: auto; }
 	#MFJMFSResultsTable tr:last-child { border-top: 1px solid black; }
@@ -139,11 +139,14 @@
 	//	Larry Raffery
 	//	Kathleen Quinn
 	//	John Arenberg
+	//	Bob Goings
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.01, 11/9/2019)";
+	var VERSION = "(Version 3.02, 1/16/2020)";
+	//	Corrected calculation of SEHI
+	//var VERSION = "(Version 3.01, 11/9/2019)";
 	//	Corrected overly limiting HSA contribution
 	//var VERSION = "(Version 3.00, 10/29/2019)";
 	// --------------------------------------------------------------------------------
@@ -526,7 +529,7 @@
 		}
 
 		// Total the adjustments
-		CalcOut["SEHI"] = Math.max(0,Math.min(+CalcIn["SEIncome"], +CalcIn["SEInsurance"]));
+		CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - CalcIn["SETaxCredit"] - CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
 		var SEHIRemainder = Math.max(0, +CalcIn["SEInsurance"] - +CalcOut["SEHI"]);
 		if (CalcType === "J") {
 			if (SEHIRemainder) {
