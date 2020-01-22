@@ -70,7 +70,11 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.21a 12/10/2019";
+var VERSION = "6.21b 1/22/2020";
+//	Change COD message for citizenship test to residency test
+//	Added actual year numbers to residency test window
+//	Changed dependent income comment from title to pop-up box
+//var VERSION = "6.21a 12/10/2019";
 //	Minor text changes for HOH and Wid results to Qual Person
 //var VERSION = "6.21 12/9/2019";
 //	Age over 24 did not set "Other" and close window
@@ -291,15 +295,6 @@ var ColorNo = "hotpink";
 var ColorWarn = "yellow";
 var BenefitColor = {}; //local array to hold color values (querying browser gives unexpected results)
 
-// Low income test title
-var lititle = "Check if the dependent's gross income is less than the year's exemption amount.";
-lititle += "\n\nGross income means all income the person received in the form of money, goods, property and services,";
-lititle += " that isn't exempt from tax.";
-lititle += "\n\nDon't include social security benefits unless either:";
-lititle += "\n   - the person is married filing a separate return and lived with their spouse at any time during the tax year or";
-lititle += "\n   - 1/2 the social security benefits plus their other gross income and tax exempt interest";
-lititle += " is more than $25,000 ($32,000 if MFJ).";
-
 // Caution alert for other TP giving permission to this TP
 var PermissionAlert = "CAUTION\n";
 PermissionAlert += "\n- Test the other taxpayer's elegibility before setting this option. ";
@@ -377,15 +372,26 @@ HelpMsg += " to be sure you didn't leave a wrong option set due to the previous 
 HelpMsg += "<li>A change history is imbedded in the source code.";
 HelpMsg += " You can view the source from your browser menu to see what changes were made and in what version.</li>";
 
+// Income box message
+var IncomeMsg = "Check if the dependent&apos;s gross income is less than the year&apos;s exemption amount.";
+IncomeMsg += "<br /><br />";
+IncomeMsg += "Gross income means all income the person received in the form of money, goods, property and services,";
+IncomeMsg += " that isn't exempt from tax.";
+IncomeMsg += "<br /><br />";
+IncomeMsg += "Don&apos;t include social security benefits unless either:";
+IncomeMsg += "<ul><li>the person is married filing a separate return and lived with their spouse at any time during the tax year or</li>";
+IncomeMsg += "<li>1/2 the social security benefits plus their other gross income and tax exempt interest";
+IncomeMsg += " is more than $25,000 ($32,000 if MFJ).</li></ol>";
+
 // Married box message
 var MarriedMsg = "You are considered married for the whole year if, on the last day of the year,";
 MarriedMsg += " you and your spouse meet any one of the following tests:";
-MarriedMsg += "<ol><li>You are married and living together.</li>";
+MarriedMsg += "<ul><li>You are married and living together.</li>";
 MarriedMsg += "<li>You are living together in a common law marriage recognized in the state where you now live";
 MarriedMsg += " or in the state where the common law marriage began.</li>";
-MarriedMsg += "<li>Your are married and living apart, but not legally separated under a decree";
+MarriedMsg += "<li>You are married and living apart, but not legally separated under a decree";
 MarriedMsg += " of divorce or separate maintenance.</li>";
-MarriedMsg += "<li>You are separated under an interlocutory (not final) decree of divorce.</li></ol>";
+MarriedMsg += "<li>You are separated under an interlocutory (not final) decree of divorce.</li></ul>";
 
 // Alien box message
 var AlienMsg = "<b>US Cit/US Nat</b>:";
@@ -422,9 +428,6 @@ function Initialize() {
 			}
 		}
 		TaxYear.value = _DefaultYear;
-
-		// Had to do this to get formatting to work properly...
-		LowIncomeTitle.title = lititle;
 	}
 
 
@@ -470,6 +473,7 @@ function Initialize() {
 	CitizenList[0].click(); // USA
 	HelpMessage.innerHTML = HelpMsg; 
 	MarriedBoxContents.innerHTML = MarriedMsg;
+	IncomeBoxContents.innerHTML = IncomeMsg;
 	AlienBoxContents.innerHTML = AlienMsg;
 	}
 
@@ -590,6 +594,11 @@ function CalcStatus(from_age_calc) {
 
 	// Set default values before examining checked options
 
+	// Update residency year value line labels
+	ResYear0Year.innerHTML = TaxYear.value;
+	ResYear1Year.innerHTML = +TaxYear.value - 1;
+	ResYear2Year.innerHTML = +TaxYear.value - 2;
+
 	// Redetermine dependent age if a birthdate was entered
 	Age0.innerHTML = "Born in " + TaxYear.value;
 	if (! from_age_calc) Calculate_Age();
@@ -601,7 +610,9 @@ function CalcStatus(from_age_calc) {
 		imessage = "including Social Security if filing MFS and lived with spouse any time during the year.";
 	}
 	else {
-		imessage = "excluding Social Security (usually <span class='MBQ'>?</span>).";
+		imessage = "excluding Social Security (usually <span class=\"MBQ\"";
+		imessage += "onmouseover=\"IncomeBox.style.display=\'inline-block\';\"";
+		imessage += "onmouseout=\"IncomeBox.style.display=\'none\';\">?</span>).";
 	}
 	incomeLimit.innerHTML = ilimit + "<br />" + imessage;
 
@@ -952,7 +963,7 @@ function CalcStatus(from_age_calc) {
 
 		if (BENE_Relation.indexOf("|OTC|") == NOT_A_BENEFIT) SetMessage(OTC,"- Failed relationship test");
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
-			SetMessage(OTC,"- Dependent failed citizenship test");
+			SetMessage(OTC,"- Dependent failed residency test"); // 
 		if (TPisQC.checked) SetMessage(OTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(OTC,"- TP or SP cannot be a qualified relative");
 		if ((QualChild.value == NO) && (QualRelative.value == NO)) SetMessage(OTC,"- Not a qualified dependent");
@@ -2251,13 +2262,13 @@ function TestResults() {
 		<span class="Label">Check if dependant has a "green card"</span>
 		<hr /><input id="ResYear0" name="ResYear0" type="text" size="3" onchange="ShowResBox('Calc')"
 		title="Number of days physically present, not a commuter, and not exempt" />
-		<span class="Label">Number of days resident in this tax year</span>
+		<span class="Label">Number of days resident in <span id="ResYear0Year"></span></span>
 		<br /><input id="ResYear1" name="ResYear1" type="text" size="3" onchange="ShowResBox('Calc')"
 		title="Number of days physically present, not a commuter, and not exempt" />
-		<span class="Label">Number of days resident in prior tax year</span>
+		<span class="Label">Number of days resident in <span id="ResYear1Year"></span></span>
 		<br /><input id="ResYear2" name="ResYear2" type="text" size="3" onchange="ShowResBox('Calc')"
 		title="Number of days physically present, not a commuter, and not exempt" />
-		<span class="Label">Number of days resident in second prior tax year</span>
+		<span class="Label">Number of days resident in <span id="ResYear2Year"></span></span>
 		</td></tr>
 		<tr><td class="center" colspan="2"><hr /><button onclick="ShowResBox('Reset')">Clear this window</button>
 								<button  onclick="ShowResBox('Close')">Close this window</button><br />
@@ -2274,6 +2285,15 @@ function TestResults() {
 		<tr class="center"><td colspan="2"><button style="font-size:100%" onclick="ShowBenefitBox(false);">Close this window</button></td></tr>
 	</table>
   </div> <!-- end of BenefitBox -->
+
+  <div id="IncomeBox" style="display:none; position:absolute; left:15em; top:12em; width:40%; z-index:1; font-size:100%; background-color:white;">
+	<table style="border:5px solid; width:100%">
+		<tr class="centerbold">
+			<td class="RESHeader" style="width:100%">Dependent income</td>
+			<td class="RESHeader" style="cursor:default;" onclick="IncomeBox.style.display='none';">&nbsp;X&nbsp;</td></tr>
+		<tr><td class="RESOptions" colspan="2"> <div id="IncomeBoxContents"> </div> </td></tr>
+	</table>
+  </div> <!-- end of IncomeBox -->
 
   <div id="MarriedBox" style="display:none; position:absolute; left:16em; top:12em; width:40%; z-index:1; font-size:100%; background-color:white;">
 	<table style="border:5px solid; width:100%">
