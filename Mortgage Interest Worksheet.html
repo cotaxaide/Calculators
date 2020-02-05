@@ -1,0 +1,661 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Mortgage Interest Worksheet</title>
+
+<style type="text/css">
+	html { background-color: #ccccdc; }
+	body { background-color: #ccccdc; font-family: sans-serif; padding: 0 2.5% 0 2.5%; }
+	button { cursor: pointer; background-color: lightgreen; }
+	table { background-color: #eeeeee; border-collapse:collapse; width: 100% }
+	div {
+		background-color: #eeeeee;
+		padding: 1em;
+		border: 1px solid black;
+		margin-top: 10px;
+		width: 99%;
+	}
+	tr { vertical-align: top; }
+	th { background-color: #c7c7d7; }
+	input { text-align: left; }
+	input, select { background-color: white; }
+	input[type="number"] { width: 6em; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.bold { font-weight: bold; }
+	.center { text-align: center; }
+	.tblHeader { font-size:110%; font-weight:bold; text-decoration:underline; }
+	.title { font-size:125%; font-weight:bold; }
+	.tdul { border-bottom: 1px solid black; }
+	.instruction { font-style: italic; float: right; }
+	.comment { font-style:italic; }
+	.noteflag { background-color:yellow; }
+	.noPrint { float:left; }
+	#TPNameTable tr td { text-align: center; }
+	#ClearAndPrint {
+		text-align: center;
+		float: right;
+		z-level: 2;
+		position: absolute;
+		top: 0.6em;
+		right: 1em;
+	}
+	#Deductible { font-size:110%; font-weight:bold }
+	#Name, #Bank { width: 25em; }
+	#TaxYear { min-width: 6em; }
+	#BankInfoTable1 tr td:first-child { width: 8em; }
+	#BankInfoTable2 tr td:first-child { width: 8em; }
+	#OutOfScope {
+		display: block;
+		margins: auto;
+		border: 3px solid yellow;
+		background: lightyellow;
+		text-align: center;
+	}
+	#FullyDeductible {
+		display: block;
+		margins: auto;
+		border: 3px solid green;
+		background: lightgreen;
+		text-align: center;
+	}
+	#NotDeductible {
+		display: block;
+		margins: auto;
+		border: 3px solid red;
+		background: lightpink;
+		text-align: center;
+	}
+	#MortWorkTable,
+	#MortInfoTable { border: 1px solid black }
+	#MortWorkTable td, th { text-align: right; padding-right: 1em; }
+	#MortInfoTable td, th { text-align: right; padding-right: 1em; }
+	#MortWorkTable td input { width: 100%; }
+	#MortInfoTable td input { width: 100%; }
+	#MortDate input { width: 100%; }
+	#MortWorkTable tr td:first-child { min-width: 13em; }
+	#MortInfoTable tr td:nth-child(2) input { width: 10em; }
+	#MortInfoTable tr td:first-child { min-width: 13em; }
+	#MortWorkTable tr:nth-child(2) { border-bottom: 2px solid black; }
+	#MortWorkTable tr:nth-child(even) { background-color: #fefefe }
+	#MortWorkTable tr:last-child { border-top: 1px solid black; text-align: left; }
+	#MortWorkTable tr td:nth-child(2) { min-width: 10em; }
+	#MortInfoTable tr td:nth-child(2) { min-width: 10em; }
+	#MortWorkTable tr td:nth-child(3) { width: 30%; }
+	#MortInfoTable tr td:nth-child(3) { width: 30%; }
+	#MortWorkTable tr td:nth-child(4) { width: 30%; }
+	#MortInfoTable tr td:nth-child(4) { width: 30%; }
+	#MortWorkTable tr td:nth-child(5) { width: 30%; }
+	#MortInfoTable tr td:nth-child(5) { width: 30%; }
+	#MortWorkTable input { text-align: right; }
+	#MortInfoTable input { text-align: right; }
+	#ShowError { text-decoration: italic; text-align: right; display: none; }
+	
+	@media print {
+		.doPrint { display:inline; }
+		.noPrint { display:none; }
+		html { background-color: white; font-size: 0.85em; }
+		body { font-size: 0.85em; background-color: white; padding:0; margin:0; }
+		input, select, option { font-size: 0.85em; }
+		table { width: 100%; background-color: white; }
+	}
+</style>
+
+<script src="Tax_Data/IRS_2000.js"></script>
+<script type="text/javascript">
+	var VERSION;
+	// --------------------------------------------------------------------------------
+	// Contributors:
+	//	Debbie Carroll
+	// --------------------------------------------------------------------------------
+	VERSION = "(Version 1.00, 2/2/2020)";
+	ColorYes = "lightgreen";
+	ColorNo = "hotpink";
+	ColorMaybe = "yellow";
+	ColorNone = "";
+
+	//----------------------------------------------------------------------------------------
+	function Initialize() {
+	// This function adds tax year options to the Filing Information section
+	// and establishes initial settings and arrays
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+		TaxYear.value = _DefaultYear;
+		Input_Check(false, "");
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Input_Check(date_changed, button){
+	//----------------------------------------------------------------------------------------
+		// Is button defined?
+		if (button === undefined) button = "";
+
+		// Refresh month column dates
+		var EndOfPriorYear = (+TaxYear.value - 1) + "-12-31";
+		if (MortDate.value === "") MortDate.value = EndOfPriorYear;
+		var StartOfYear = (+TaxYear.value) + "-01-01";
+		var EndOfYear = (+TaxYear.value) + "-12-31";
+		MortDate.style.backgroundColor = ColorNone;
+		if (MortDate.value > EndOfYear) {
+			message = "The mortgage must have begun in, or prior to, the current tax year,";
+			alert(message);
+			MortDate.style.backgroundColor = ColorNo;
+		}
+		var MortDateParts = MortDate.value.split("-");
+		var StartMonth = (MortDate.value < StartOfYear) ? 0 : +MortDateParts[1];
+		var MortDateStart = +MortDateParts[1] + "/" + MortDateParts[2] + "/" + MortDateParts[0];
+		var LeapYear = ((+TaxYear.value % 4) == 0) ? 1 : 0 ;
+		Date00.innerHTML = "12/31/" + (+TaxYear.value - 1);
+		Date01.innerHTML = "1/31/" + TaxYear.value;
+		Date02.innerHTML = "2/" + (28 + LeapYear) + "/" + TaxYear.value;
+		Date03.innerHTML = "3/31/" + TaxYear.value;
+		Date04.innerHTML = "4/30/" + TaxYear.value;
+		Date05.innerHTML = "5/31/" + TaxYear.value;
+		Date06.innerHTML = "6/30/" + TaxYear.value;
+		Date07.innerHTML = "7/31/" + TaxYear.value;
+		Date08.innerHTML = "8/31/" + TaxYear.value;
+		Date09.innerHTML = "9/30/" + TaxYear.value;
+		Date10.innerHTML = "10/31/" + TaxYear.value;
+		Date11.innerHTML = "11/30/" + TaxYear.value;
+		Date12.innerHTML = "12/31/" + TaxYear.value;
+		Question.style.display = "none";
+
+		// Examine mortgage questions
+		Stop_Message("");
+		if (SecuredN.checked) { Stop_Message("OOS"); return; }
+		if (OwnershipN.checked) { Stop_Message("OOS"); return; }
+		if (MaximumN.checked) { Stop_Message("OOS"); return; }
+		if (ValueN.checked) { Stop_Message("OOS"); return; }
+		if (OriginalY.checked) { Stop_Message("All"); return; }
+		if (FirstN.checked) { Stop_Message("OOS"); return; }
+		// Next 2 radio button pairs need to toggle
+		switch (button) {
+			case "B":
+				if (BuildY.checked) OtherN.checked = true;
+				break;
+			case "O":
+				if (OtherY.checked) BuildN.checked = true;
+				break;
+		}
+		if (BuildY.checked) { Stop_Message("All"); return; }
+		if (OtherY.checked) { Stop_Message("None"); return; }
+
+		// Initialize counts
+		var MonthCount = 0;
+		var MortTotal = 0;
+		var AcquiTotal = 0;
+		var ma = [];
+		var opa = [];
+		MortAvg.innerHTML = "";
+		AcquiAvg.innerHTML = "";
+		Other13.innerHTML = "";
+
+		// Check beginning debt amounts
+		ma[13] = MortAmount13.value.trim().replace(/\$/,"").replace(/\,/,"").replace(/\,/,"");
+		if ( isNaN(ma[13]) || (+ma[13] < 0) || (ma[13] === "0") ) {
+			message = "Mortgage amount must be a positive number.";
+			MortAmount13.style.backgroundColor = ColorNo;
+			alert(message);
+			return;
+		}
+		MortAmount13.style.backgroundColor = (ma[13] === "") ? ColorMaybe : ColorNone ;
+
+		var aa13 = AcquiAmount13.value.trim().replace(/\$/,"").replace(/\,/,"").replace(/\,/,"");
+		if ( isNaN(aa13) || (+aa13 < 0) ) {
+			message = "Acquisition amount must be a positive number.";
+			AcquiAmount13.style.backgroundColor = ColorNo;
+			alert(message);
+			return;
+		}
+		AcquiAmount13.style.backgroundColor = (aa13 === "") ? ColorMaybe : ColorNone ;
+
+		if ( (+ma[13] > 0) && (aa13 === "0") ) {
+			message = "You have indicated above that a portion of the mortgage applies to the purchase of, or improvments to your home.\n\nPlease enter that amount.";
+			AcquiAmount13.value = "";
+			alert(message);
+			return;
+		}
+		if (+aa13 > +ma[13]) {
+			AcquiAmount13.style.backgroundColor = ColorNo;
+			message = "The acquisition debt cannot be greater than the mortgage.";
+			alert(message);
+			return;
+		}
+		else {
+			opa[13] = +ma[13] - +aa13;
+			Other13.innerHTML = Display(opa[13]);
+		}
+
+		// Check interest paid
+		var IntPd = InterestPaid.value.trim().replace(/\$/,"").replace(/\,/,"").replace(/\,/,"");
+		InterestPaid.style.backgroundColor = (IntPd === "") ? ColorMaybe : ColorNone ;
+		if ( isNaN(IntPd) || (+IntPd < 0) || (IntPd === "0") ) {
+			message = "Interest amount must be a positive number.";
+			alert(message);
+			InterestPaid.style.backgroundColor = ColorNo;
+			return;
+		}
+
+		// Check worksheet entries
+		OKtoCalc = true;
+		for (j = 0; j <= 12; j++) {
+
+			// Get element id pointers
+			suffix = ((j < 10) ? "0" : "" ) + j;
+			dateid =document.getElementById("Date" + suffix);
+			cellid = document.getElementById("MortAmount" + suffix);
+			cellida = document.getElementById("Acqui" + suffix);
+			cellido = document.getElementById("Other" + suffix);
+
+			// Handle mortgages starting during the tax year
+			if ( (StartMonth > 0) && (j < StartMonth) ) {
+				cellid.style.backgroundColor = ColorNone
+				cellida.innerHTML =
+				cellido.innerHTML =
+				cellid.value = "N/A";
+				ma[j] = ma[13];
+			}
+			else {
+				lastval = ma[j-1];
+				ma[j] = cellid.value.trim().replace(/\$/,"").replace(/\,/,"").replace(/\,/,"");
+				if ((date_changed || (StartMonth == 0)) && (ma[j] == "N/A")) {
+					lastval = "";
+				}
+				if ((lastval === "0") || (lastval === "")) {
+					ma[j] = lastval;
+					cellid.value = lastval;
+				}
+			}
+
+			// Autofill amounts if starting date matches one of the months.
+			// Disabled (forces user to enter starting date which isn`t really necessary)
+			//if (MortDateStart == dateid.innerHTML) {
+			//	cellid.value = ma[13];
+			//	cellida.innerHTML = aa13;
+			//}
+
+			// Test for a valid data entry
+			if ( isNaN(ma[j]) || (+ma[j] < 0) ) {
+				cellid.style.backgroundColor = ColorNo;
+				message = "Mortgage amounts must be a positive number or 0.";
+				alert(message);
+				return;
+			}
+
+			// Test for an increase in mortgage
+			var valtest = (j == 0) ? +ma[13] : +ma[j-1];
+			if (+ma[j] > valtest) {
+				cellid.style.backgroundColor = ColorNo;
+				message = "The mortgage interest entered is more than the ";
+				message += (j == 0) ? "original" : "previous month's";
+				message += " mortgage amount.";
+				message += "\n\nIf the mortgage has increased, this calculator cannot determine the";
+				message += " deductible amount of interest.";
+				alert(message);
+				return;
+			}
+
+			if ((j > 0) && (Other00.innerHTML === "0")) {
+				ma[j] = aa13;
+				cellid.value = "N/A";
+			}
+				
+			// Distribute mortgage amounts
+			if (j == 0) {
+				if (ma[0] === "0") {
+					MortAmount00.style.backgroundColor = ColorNo;
+					message = "End of previous year mortgage amount must be a positive number.";
+					alert(message);
+					return;
+				}
+				MortAmount00.style.backgroundColor = ColorNone
+				cellida.innerHTML = (+ma[0] < +aa13) ? ma[0] : aa13;
+				opa[0] = Math.max(0, (+ma[0] - +aa13));
+				cellido.innerHTML = Display(opa[0]);
+			}
+			else if (ma[j] != "N/A") {
+				opa[j] = 0;
+				//if (+ma[j] == 0) {
+				//	cellida.innerHTML = 0;
+				//	cellido.innerHTML = 0;
+				//}
+				//else {
+				if ((j >= StartMonth)&& (+ma[j] > 0)) {
+						MortTotal += +ma[j];
+						MonthCount++;
+					}
+					paid = Math.max(0, (+ma[j-1] - +ma[j]));
+					opa[j] = opa[j-1] - Math.min(paid, opa[j-1]);
+					if (j >= StartMonth) cellido.innerHTML = Display(opa[j]);
+					ada = Math.max(0, (+ma[j] - +opa[j]));
+					if (j >= StartMonth) {
+						cellida.innerHTML = Display(ada);
+						AcquiTotal += ada;
+					}
+				//}
+			}
+
+			// Fill cells that are not positive mortgage amounts
+			switch (cellid.value.trim()) {
+				case "":
+				// no break
+				case "0":
+				case "N/A":
+				cellida.innerHTML = cellid.value
+				cellido.innerHTML = cellid.value
+			}
+			cellid.style.backgroundColor = (ma[j] === "") ? ColorMaybe : ColorNone ;
+
+			// Are we done yet?
+			if (ma[j] === "") OKtoCalc = false;
+
+			// Save the previous cell ids in case no payment is made next month
+			last_cellida = cellida;
+			last_cellido = cellido;
+		}
+
+		// Ready to go?
+		if ( OKtoCalc ) {
+			// Paid off in the first month
+			if (MonthCount == 0) {
+				MortTotal = +ma[0];
+				AcquiTotal = +aa13;
+				MonthCount = 1;
+			}
+
+			// Get averages
+			maa = (MortTotal / MonthCount);
+			aqa = (AcquiTotal / MonthCount);
+
+			// If there was other mortgage amount, display averages
+			if (+opa[0] > 0) {
+				MortAvg.innerHTML = Display(maa);
+				AcquiAvg.innerHTML = Display(aqa);
+			}
+
+			// Figure the percent and deductible amount
+			pv = aqa / maa;
+			Percent.innerHTML = (pv * 100).toFixed(1);
+			Deductible.innerHTML = Math.round(IntPd * pv);
+			ResultTable.style.display = "block";
+			Results.style.backgroundColor = ColorYes;
+
+			if (maa == ma[0]) Question.style.display = "inline";
+		}
+		else {
+			Results.style.backgroundColor = ColorNone
+		}
+
+		date_changed = false;
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Display(amount){
+	//----------------------------------------------------------------------------------------
+		if (Math.round(amount) == amount) return amount;
+		else return amount.toFixed(2);
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Stop_Message(messageType){
+	//----------------------------------------------------------------------------------------
+		MortInfoTable.style.display = "none";
+		MortWorksheet.style.display = "none";
+		InterestInput.style.display = "none";
+		switch (messageType) {
+			case "OOS":
+				OutOfScope.style.display = "block";
+				Results.style.background = ColorMaybe;
+				return;
+			case "All":
+				FullyDeductible.style.display = "block";
+				Results.style.background = ColorYes;
+				return;
+			case "None":
+				NotDeductible.style.display = "block";
+				Results.style.background = ColorNo;
+				return;
+			default:
+				OutOfScope.style.display = "none";
+				FullyDeductible.style.display = "none";
+				NotDeductible.style.display = "none";
+				MortInfoTable.style.display = "block";
+				MortWorksheet.style.display = "block";
+				InterestInput.style.display = "block";
+				ResultTable.style.display = "none";
+				Results.style.background = ColorNone;
+		}
+
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize();">
+
+<center>
+	<span class="title">Mortgage Interest Worksheet</span>
+	<br /><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+</center>
+
+	<span id="ClearAndPrint" class="noPrint">
+	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</span>
+	<div id="TPInfo">
+		<span class="tblHeader">Taxpayer Information:</span>
+		<br />
+		<br />
+		<table id="TPNameTable">
+			<tr><td>Tax Year: <select id="TaxYear" onchange="Input_Check(true, '');" /></select></td>
+			<td>Taxpayer&apos;s Name: <input id="Name" /></td></tr>
+		</table>
+	</div>
+
+	<div id="MortInfo">
+		<span class="tblHeader">Mortgage Information:</span>
+		<br />Mortgage provider: <input id="Bank" />
+		<table id="BankInfoTable1" onchange="Input_Check(false, '');">
+			<tr>	<td>
+				<input type="radio" id="SecuredY" name="Secured" checked="checked"> Yes
+				<input type="radio" id="SecuredN" name="Secured"> No
+				</td>
+				<td>This mortgage a secured debt on your main or 2nd home.</td></tr>
+			<tr>	<td>
+				<input type="radio" id="OwnershipY" name="Ownership" checked="checked"> Yes
+				<input type="radio" id="OwnershipN" name="Ownership"> No
+				</td>
+				<td>The taxpayer is an owner of the home.</td></tr>
+			<tr>	<td>
+				<input type="radio" id="MaximumY" name="Maximum" checked="checked"> Yes
+				<input type="radio" id="MaximumN" name="Maximum"> No
+				</td>
+				<td>This mortgage is below the maximum allowable debt.</td></tr>
+			<tr>	<td>
+				<input type="radio" id="ValueY" name="Value" checked="checked"> Yes
+				<input type="radio" id="ValueN" name="Value"> No
+				</td>
+				<td>This mortgage is less than the value of the property.</td></tr>
+			<tr>	<td>
+				<input type="radio" id="OriginalY" name="Original"> Yes
+				<input type="radio" id="OriginalN" name="Original" checked="checked"> No
+				</td>
+				<td>This mortgage is the original mortgage used to purchase the home.</td></tr>
+			<tr>	<td>
+				<input type="radio" id="FirstY" name="First" checked="checked"> Yes
+				<input type="radio" id="FirstN" name="First"> No
+				</td>
+				<td>This is the first time you refinanced this home.</td></tr>
+		</table>
+		<table id="BankInfoTable2">
+			<tr id="B" onchange="Input_Check(false, this.id);">	<td>
+				<input type="radio" id="BuildY" name="Build"> Yes
+				<input type="radio" id="BuildN" name="Build" checked="checked"> No
+				</td>
+				<td>This mortgage was <i><b>only </b></i>used to buy, build, or substantially improve the home.</td></tr>
+			<tr id="O" onchange="Input_Check(false, this.id)";">	<td>
+				<input type="radio" id="OtherY" name="Other"> Yes
+				<input type="radio" id="OtherN" name="Other" checked="checked"> No
+				</td>
+				<td>This mortgage was <i><b>only</b></i> used for other reasons other than to buy, build, or substantially improve the home.</td></tr>
+		</table>
+		<hr />
+		<span class="comment">
+			In the following table, enter the starting date of of that mortgage.
+	       		Also enter the amount of the mortgage and the portion attributable
+			to the purchase of or improvement of the home as of the end of the
+			prior year (acquisition debt). The remainder will be "other debt"
+			(to pay off credit cards, medical expenses, vacations, etc).
+			You may include "$" and commas for clarity if you wish.
+		</span>
+
+		<table id="MortInfoTable" onchange="Input_Check(false, '')";>
+			<tr>	<th></th>
+				<th>Mortgage date</th>
+				<th>Total mortgage amount</th>
+				<th>Acquisition debt amount</th>
+				<th>Other purpose debt amount</th></tr>
+			<tr><td>Mortgage began on</td>
+				<td id="Date13"><input id="MortDate" type="date" onchange="Input_Check(true, '');" /></td>
+				<td id="Mort13"><input id="MortAmount13" /></td>
+				<td id="Acqui13"><input id="AcquiAmount13" />
+				<title="Acquisition debt is the amount that applies to your home purchase or improvements.</td>
+				<td id="Other13">0</td></tr>
+		</table>
+	</div>
+	<div id="InterestInput">
+		<span class="tblHeader">Interest paid:</span>
+		<br />Interest paid in this tax year: <input id="InterestPaid" onchange="Input_Check(false, '');"/>
+	</div>
+
+	<div id="MortWorksheet">
+		<span class="tblHeader">Mortgage Worksheet:</span>
+		<br />
+		<span class="comment">
+			In the table below, enter each end-of-month mortgage balance.
+			The "other purpose" debt is reduced first.
+			If the full mortgage is paid off (mortgage balance = 0) during the year,
+			enter 0 for the month it was paid off.
+			When all yellow boxes have been filled,
+			the result will be shown in the next section.
+		</span>
+
+		<table id="MortWorkTable" onchange="Input_Check(false, '');">
+			<tr><th></th>
+				<th>Mortgage date</th>
+				<th>Total mortgage amount</th>
+				<th>Acquisition debt amount</th>
+				<th>Other purpose debt amount</th></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date00">1/1</td>
+				<td id="Mort00"><input id="MortAmount00" /></td>
+				<td id="Acqui00">0</td>
+				<td id="Other00">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date01">1/1</td>
+				<td id="Mort01"><input id="MortAmount01" /></td>
+				<td id="Acqui01">0</td>
+				<td id="Other01">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date02">1/1</td>
+				<td id="Mort02"><input id="MortAmount02" /></td>
+				<td id="Acqui02">0</td>
+				<td id="Other02">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date03">1/1</td>
+				<td id="Mort03"><input id="MortAmount03" /></td>
+				<td id="Acqui03">0</td>
+				<td id="Other03">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date04">1/1</td>
+				<td id="Mort04"><input id="MortAmount04" /></td>
+				<td id="Acqui04">0</td>
+				<td id="Other04">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date05">1/1</td>
+				<td id="Mort05"><input id="MortAmount05" /></td>
+				<td id="Acqui05">0</td>
+				<td id="Other05">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date06">1/1</td>
+				<td id="Mort06"><input id="MortAmount06" /></td>
+				<td id="Acqui06">0</td>
+				<td id="Other06">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date07">1/1</td>
+				<td id="Mort07"><input id="MortAmount07" /></td>
+				<td id="Acqui07">0</td>
+				<td id="Other07">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date08">1/1</td>
+				<td id="Mort08"><input id="MortAmount08" /></td>
+				<td id="Acqui08">0</td>
+				<td id="Other08">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date09">1/1</td>
+				<td id="Mort09"><input id="MortAmount09" /></td>
+				<td id="Acqui09">0</td>
+				<td id="Other09">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date10">1/1</td>
+				<td id="Mort10"><input id="MortAmount10" /></td>
+				<td id="Acqui10">0</td>
+				<td id="Other10">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date11">1/1</td>
+				<td id="Mort11"><input id="MortAmount11" /></td>
+				<td id="Acqui11">0</td>
+				<td id="Other11">0</td></tr>
+			<tr><td>Mortgage balance on</td>
+				<td id="Date12">1/1</td>
+				<td id="Mort12"><input id="MortAmount12" /></td>
+				<td id="Acqui12">0</td>
+				<td id="Other12">0</td></tr>
+			<tr><td>Average mortgage balance:</td>
+				<td></td><td id="MortAvg"> </td>
+				<td id="AcquiAvg"> </td><td></td></tr>
+		</table>
+	</div>
+
+	<div id="Results">
+		<span class="tblHeader">Worksheet results:</span>
+		<br />
+		<span id="FullyDeductible">
+			The interest on this mortgage is fully deductible.
+		</span>
+		<span id="NotDeductible">
+			The interest on this mortgage is not deductible.
+		</span>
+		<span id="OutOfScope">
+			OUT OF SCOPE &mdash; This interest may be partially deductible but cannot be determined by this calculator.
+		</span>
+		<span id="ResultTable">
+			<ul>
+				<li><span id="Percent"></span>% is applied to the Acquisition debt.</li>
+				<li><b>$ <span id="Deductible"></span> is deductible.</b></li>
+				</span>
+				<span id="Question">
+					<li><b>Question for the taxpayer:</b>
+					Are you only paying the interest on this mortgage?</li>
+				</span>
+			</ul>
+	</div>
+
+	<div class="noPrint">
+	  Please send corrections and suggestions to	<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	  <span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+</div>
+
+</body>
