@@ -102,13 +102,14 @@
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
 	// Contributors:
+	// 	Kirk Coonley
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	// to do:
-	//	Add links to CO forms when manual entries are needed
-	var VERSION = "(Version 1.07, 1/1/2020)";
+	var VERSION = "(Version 1.08, 2/4/2020)";
+	//	Entry checking when negative amounts (cap gains) caused problems - removed
+	//var VERSION = "(Version 1.07, 1/1/2020)";
 	//	Added SE SEP/SIMPLE, SE health, Bus. exp. of reservist
 	//var VERSION = "(Version 1.06, 12/6/2019)";
 	//	Added Military pension exclusions under age 55
@@ -302,6 +303,7 @@
 		Ownerptr =  document.getElementById("Own" + row);
 		Fromptr =   document.getElementById("From" + row);
 		Toptr =     document.getElementById("To" + row);
+		Calcptr =   document.getElementById("Calc" + row);
 
 		
 		// Set default owner
@@ -446,20 +448,44 @@
 				break;
 
 			case "State": // Adjust Other for manual change in Colorado amount
-				if (+Stateptr.value > +Amountptr.value) {
-					alert("You cannot enter more than what's in the amount column.");
-					return;
+				/*
+				if (Amountptr.value >= 0) {
+					if (+Stateptr.value >= +Amountptr.value) {
+						alert("You cannot enter more than what's in the amount column.");
+						Data_Change("Calc" + row);
+						return;
+					}
 				}
+				else {
+					if (+Stateptr.value < +Amountptr.value) {
+						alert("You cannot enter less than what's in the amount column.");
+						Data_Change("Calc" + row);
+						return;
+					}
+				}
+				*/
 				Stateptr.value = Math.round(+Stateptr.value);
 				Otherptr.value = +Amountptr.value - Stateptr.value;
 				Adjustptr.innerHTML = "Manually<br />Adjusted";
 				break;
 
 			case "Other": // Adjust Colorado for manual change in Other amount
-				if (+Otherptr.value > +Amountptr.value) {
-					alert("You cannot enter more than what's in the amount column.");
-					return;
+				/*
+				if (Amountptr.value >= 0) {
+					if (+Otherptr.value >= +Amountptr.value) {
+						alert("You cannot enter more than what's in the amount column.");
+						Data_Change("Calc" + row);
+						return;
+					}
 				}
+				else {
+					if (+Otherptr.value < +Amountptr.value) {
+						alert("You cannot enter less than what's in the amount column.");
+						Data_Change("Calc" + row);
+						return;
+					}
+				}
+				*/
 				Otherptr.value = Math.round(+Otherptr.value);
 				Stateptr.value = +Amountptr.value - Otherptr.value;
 				Adjustptr.innerHTML = "Manually<br />Adjusted";
