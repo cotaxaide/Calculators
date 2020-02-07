@@ -5,6 +5,7 @@
 var City_County = [];
 var County_Tax = [];
 var City_Tax = [];
+var State_Tax = [];
 
 //***************************************************************************************************
 //                                City and County Relationships

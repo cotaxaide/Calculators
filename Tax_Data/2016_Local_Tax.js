@@ -2,6 +2,7 @@
 //City+Tax[INDEX] = DATA;
 //	INDEX = City ":" Year
 //	DATA = County tax rate ":" IRS Code ":" Other taxes
+State_Tax['2016'] = '2.9';
 County_Tax['Adams:2016'] = '0.75::RTD=1:SCFD=0.1';
 County_Tax['Alamosa:2016'] = '3:';
 County_Tax['Arapahoe:2016'] = '0.25::RTD=1:SCFD=0.1';

@@ -2,7 +2,8 @@
 //City+Tax[INDEX] = DATA;
 //	INDEX = City ":" Year
 //	DATA = County tax rate ":" IRS Code ":" Other taxes
-//	Updated DR 0100 12/21/18
+//	Updated DR 1002 6/19/19
+State_Tax['2019'] = '2.9';
 County_Tax['Adams:2019'] = '0.75::RTD=1:CD=0.1';
 County_Tax['Alamosa:2019'] = '3:';
 County_Tax['Arapahoe:2019'] = '0.25::RTD=1:CD=0.1';
@@ -10,7 +11,7 @@ County_Tax['Archuleta:2019'] = '4:';
 County_Tax['Baca:2019'] = '0:';
 County_Tax['Bent:2019'] = '1:';
 County_Tax['Boulder:2019'] = '0.985::RTD=1:CD=0.1';
-County_Tax['Broomfield:2019'] = '0::';
+County_Tax['Broomfield:2019'] = '0::CD=0.1'; // 2019 change
 County_Tax['Chaffee:2019'] = '2.75:'; // 2019 change
 County_Tax['Cheyenne:2019'] = '0:';
 County_Tax['Clear Creek:2019'] = '1.65:'; // 2018 change
@@ -19,10 +20,10 @@ County_Tax['Costilla:2019'] = '1:';
 County_Tax['Crowley:2019'] = '2:';
 County_Tax['Custer:2019'] = '2:';
 County_Tax['Delta:2019'] = '2:';
-County_Tax['Denver:2019'] = '0::';
+County_Tax['Denver:2019'] = '0::RTD=1:'; // 2019 change
 County_Tax['Dolores:2019'] = '0:';
 County_Tax['Douglas:2019'] = '1::RTD=1:CD=0.1:';
-County_Tax['Eagle:2019'] = '1::MTS=0.5';
+County_Tax['Eagle:2019'] = '1::MTS=0.6'; // 2019 change
 County_Tax['El Paso:2019'] = '1.23::RTA:1';
 County_Tax['Elbert:2019'] = '1::';
 County_Tax['Fremont:2019'] = '2.5:';
@@ -60,7 +61,7 @@ County_Tax['Rio Grande:2019'] = '2.6:';
 County_Tax['Routt:2019'] = '1:';
 County_Tax['Saguache:2019'] = '2.5:'; // 2019 change
 County_Tax['San Juan:2019'] = '6.5:'; // 2018 change
-County_Tax['San Miguel:2019'] = '1:';
+County_Tax['San Miguel:2019'] = '1::RTA=0.25:'; // 2019 change
 County_Tax['Sedgwick:2019'] = '2:';
 County_Tax['Summit:2019'] = '2::MHA=0.725:MTS=0.75';
 County_Tax['Teller:2019'] = '1:';
@@ -75,8 +76,8 @@ City_Tax['Alma:2019'] = '3::::';
 City_Tax['Antonito:2019'] = '4::::';
 City_Tax['Arvada/Adams:2019'] = '3.46:B::';
 City_Tax['Arvada/Jefferson:2019'] = '3.46:B::';
-City_Tax['Aspen:2019'] = '2.4::::';
-City_Tax['Aspen Park:2019'] = '0::SE=0.5:AP=0.25:'; // SE?, AP?
+City_Tax['Aspen:2019'] = '2.4::RTA=0.4::'; // 2019 change
+City_Tax['Aspen Park:2019'] = '0::MDT=0.5:AP=0.25:'; // AP?
 City_Tax['Ault:2019'] = '3::::';
 City_Tax['Aurora/Adams:2019'] = '3.75:::';
 City_Tax['Aurora/Arapahoe:2019'] = '3.75:::';
@@ -133,12 +134,12 @@ City_Tax['Dillon:2019'] = '2.5::MTS=0.75::';
 City_Tax['Dinosaur:2019'] = '2.1::::';
 City_Tax['Dolores:2019'] = '3.5::::';
 City_Tax['Dove Creek:2019'] = '2::::';
-City_Tax['Durango:2019'] = '3::::';
+City_Tax['Durango:2019'] = '3.5::::'; // 2019 change
 City_Tax['Eads:2019'] = '2::::';
 City_Tax['Eagle:2019'] = '4.5::::';
 City_Tax['Eaton:2019'] = '3::::';
 City_Tax['Edgewater:2019'] = '3.5::::';
-City_Tax['Edwards:2019'] = '0::MDT-1::';
+City_Tax['Edwards:2019'] = '0::MDT=1::';
 City_Tax['Elizabeth:2019'] = '4::::';
 City_Tax['Empire:2019'] = '5::::';
 City_Tax['Englewood:2019'] = '3.5::::';
@@ -238,7 +239,7 @@ City_Tax['Monument:2019'] = '3::RTA=0::';
 City_Tax['Monument-Baptist Rd:2019'] = '3::RTA=1::';
 City_Tax['Morrison:2019'] = '3.75::::';
 City_Tax['Mountain View:2019'] = '4::::';
-City_Tax['Mountain Village:2019'] = '4.5::::';
+City_Tax['Mountain Village:2019'] = '4.5::RTA=0.25::'; // 2019 change
 City_Tax['Mt. Crested Butte:2019'] = '5::::';
 City_Tax['Mt. Vernon CC:2019'] = '0::MDT=2::'; // Added 2018
 City_Tax['Naturita:2019'] = '4::::';
@@ -298,7 +299,7 @@ City_Tax['Sterling:2019'] = '3::RTA=0.1::';
 City_Tax['Stratton:2019'] = '2::::';
 City_Tax['Superior/Boulder:2019'] = '3.46::::';
 City_Tax['Superior/Jefferson:2019'] = '3.46::::';
-City_Tax['Telluride:2019'] = '4.5::::';
+City_Tax['Telluride:2019'] = '4.5::RTA=0.25::'; // 2019 change
 City_Tax['Thornton:2019'] = '3.75:B::';
 City_Tax['Timnath:2019'] = '3::::';
 City_Tax['Trinidad:2019'] = '4::::';
