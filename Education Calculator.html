@@ -179,7 +179,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.20b, 1/20/2020";
+	var VERSION = "Version 3.3, 2/7/2020";
+	//	Fixed retirement credit not carrying to LLC column
+	//var VERSION = "Version 3.20b, 1/20/2020";
 	//	Added pink to AGI if income but AGI is blank
 	//var VERSION = "Version 3.20a, 1/16/2020";
 	//	Added kiddie tax option wording due to trust method reversion
@@ -255,22 +257,12 @@
 
 	//----------------------------------------------------------------------------------------
 	// Contributors:
-	//	Sue Alza
-	//	Dana Bell
-	//	Bob Brooks
-	//	Steve Conary
-	//	Deb Fisher
-	//	Kenny Hayes
-	//	Gina Kritchevsky
-	//	Hans Jahns
-	//	Betsy Robertson
-	//	Dick Sramek
-	//	Bob Wells
-	//	Jay Wiedwald
-	//	Edie Loughmiller
-	//	Harold Rowe
-	//	Brad Kirby
-	//	Stephen Enk
+	//	Sue Alza		Dana Bell		Bob Brooks		
+	//	Steve Conary		Deb Fisher		Kenny Hayes
+	//	Gina Kritchevsky	Hans Jahns		Betsy Robertson
+	//	Dick Sramek		Bob Wells		Jay Wiedwald
+	//	Edie Loughmiller	Harold Rowe		Brad Kirby
+	//	Stephen Enk		Roger Metzler
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -2211,7 +2203,7 @@
 		// Calculated retirement savings credits
 		var rsv = +MaxRetireTax.value;
 		// See if increased AGI eliminated the credit
-		if (testAGI > _RetireLimits[TaxYear.value].split(',')[+_RetireLimits[FilingStatus.value]]) rsv = 0;
+		if (+testAGI > +(_RetireLimits[TaxYear.value].split(',')[+_RetireLimits[FilingStatus.value]])) rsv = 0;
 
 		// Space for retirement savings credit
 		result.Retire = Math.min(rsv, availableNRC);
