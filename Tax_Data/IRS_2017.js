@@ -235,3 +235,7 @@
 		_RETIRE[_TY+":WID"] = 
 		_RETIRE[_TY+":MFS"] = "18500,	20000,	31000";
 
+	// IRA Adjustment limits
+		_IRALimits[_TY+":AGE"] = 50;
+		_IRALimits[_TY+":MAX"] = 5500;
+		_IRALimits[_TY+":SRMAX"] = 6500;

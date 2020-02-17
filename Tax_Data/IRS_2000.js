@@ -25,6 +25,7 @@ var _AMT = [];
 var _SALT = [];
 var _HSA = [];
 var _RETIRE = [];
+var _IRALimits = [];
 
 //------------------------------------------------------------
 // DATE VARIABLES

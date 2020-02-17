@@ -140,11 +140,16 @@
 	//	Kathleen Quinn
 	//	John Arenberg
 	//	Bob Goings
+	//	Emily Lin
+	//	Pete Burgner
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.02, 1/16/2020)";
+	var VERSION = "(Version 3.03, 2/12/2020)";
+	//	Corrected IRA adjustment comment
+	//	Added TY variable
+	//var VERSION = "(Version 3.02, 1/16/2020)";
 	//	Corrected calculation of SEHI
 	//var VERSION = "(Version 3.01, 11/9/2019)";
 	//	Corrected overly limiting HSA contribution
@@ -153,6 +158,7 @@
 
 	var IncomeExpanded = false;
 	var IncomeWasExpanded = false;
+	var TY = 0;
 	var IncomeNoSS = 0;
 	var Deductions = 0;
 	var TPMFJ = [];
@@ -221,7 +227,7 @@
 		}
 
 		// Set the default to the tax year
-		TaxYear.value = _DefaultYear + 1;
+		TY = TaxYear.value = _DefaultYear + 1;
 		MFJMFS_Change();
 		File_Change();
 
@@ -278,9 +284,9 @@
 	//----------------------------------------------------------------------------------------
 
 		// Change tax year?
-		TaxYear3.innerHTML = TaxYear2.innerHTML = TaxYear.value;
-		Preliminary.style.display = (_Preliminary[TaxYear.value]) ? "inline" : "none";
-		MFSoptionText.innerHTML = (TaxYear.value == _StopYear) ? "will be living" : "lived with" ;
+		TaxYear3.innerHTML = TaxYear2.innerHTML = TY = TaxYear.value;
+		Preliminary.style.display = (_Preliminary[TY]) ? "inline" : "none";
+		MFSoptionText.innerHTML = (TY == _StopYear) ? "will be living" : "lived with" ;
 
 		// Check dependent consistency
 		var dep = Math.max(CTCDependents.value, EICDependents.value);
@@ -303,7 +309,7 @@
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
 		if ((FilingStatus.value != "MFS") && (! MFJMFS.checked)) ItemizeRequired.checked = false;
 		SP65Option.style.display = SPBlindOption.style.display = (FilingStatus.value === "MFJ") ? "inline" : "none";
-		HSAText.innerHTML = "("+ _HSA[TaxYear.value + ":IND"] + " personal, " + _HSA[TaxYear.value + ":FAM"] + " family)";
+		HSAText.innerHTML = "("+ _HSA[TY + ":IND"] + " personal, " + _HSA[TY + ":FAM"] + " family)";
 
 		// IsDependent.style.display = ((FilingStatus.value === "SNG") && (! TP65.checked)) ? "inline" : "none";
 		
@@ -317,6 +323,9 @@
 		}
 
 		// Expand the adjustment section
+		IRAComment.innerHTML = "(" + _IRALimits[TY + ":MAX"]
+			+ ", " + _IRALimits[TY + ":SRMAX"]
+			+ " over age " + _IRALimits[TY + ":AGE"] + " per TP/SP)";
 		IExp = AdjustExpand.checked;
 		itemlist = document.getElementsByClassName("adjustment");
 		for (itno = 0; itno < itemlist.length; itno++) {
@@ -332,7 +341,7 @@
 		AGILimitRow.style.display =
 		MFJMFSAGILimitRow.style.display =
 		MiscellaneousRow.style.display =
-		MFJMFSMiscellaneousRow.style.display = (IExp && (TaxYear.value < 2018)) ? "table-row" : "none";
+		MFJMFSMiscellaneousRow.style.display = (IExp && (TY < 2018)) ? "table-row" : "none";
 
 		Input_Change("Wages");
 	}
@@ -461,7 +470,7 @@
 		if (thisId === "Init") return;
 
 		// Limit taxes paid if 2018+
-		if (TaxYear.value > 2017) {
+		if (TY > 2017) {
 			var taxlimit = (FilingStatus.value === "MFS") ? 5000 : 10000;
 			if (TPMFJ["TaxesPaid"] > taxlimit) {
 				alert ("State and local taxes is limited to $" + taxlimit);
@@ -551,7 +560,7 @@
 		CalcIn["EdExpenses"] = Math.min(CalcIn["EdExpenses"], edlimit);
 
 		// Limit HSA Deduction = can't test for age 55
-		var edlimit = +_HSA[TaxYear.value + ":FAM"] + 2000;
+		var edlimit = +_HSA[TY + ":FAM"] + 2000;
 		CalcIn["HSADeduction"] = Math.min(CalcIn["HSADeduction"], edlimit);
 		
 		// Limit IRA Contribution Deduction - can't test for age 55 or over 72-1/2
@@ -580,7 +589,7 @@
 		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Interest"] + +CalcIn["Dividends"]
 			+ +CalcIn["SEIncome"] + +CalcOut["CapGains"] + +CalcOut["Pensions"]
 			+ +CalcIn["OtherIncome"];
-		SSresult = _TaxableSS(TaxYear.value, FilingStatusValue, +CalcIn["SS"],
+		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
 			MFStogether.checked);
 		CalcOut["TaxableSS"] = +SSresult[0];
@@ -598,20 +607,20 @@
 
 		// Calculate standard deduction
 		if (CalcType === "J") {
-			CalcOut["Standard"] = _StandardDeduction(TaxYear.value, FilingStatusValue,
+			CalcOut["Standard"] = _StandardDeduction(TY, FilingStatusValue,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, false, 0);
 		}
 		if (CalcType === "T") {
-			CalcOut["Standard"] = _StandardDeduction(TaxYear.value, FilingStatusValue,
+			CalcOut["Standard"] = _StandardDeduction(TY, FilingStatusValue,
 				TP65.checked, TPBlind.checked, false, false, false, 0);
 		}
 		if (CalcType === "S") {
-			CalcOut["Standard"] = _StandardDeduction(TaxYear.value, FilingStatusValue,
+			CalcOut["Standard"] = _StandardDeduction(TY, FilingStatusValue,
 				false, false, SP65.checked, SPBlind.checked, false, 0);
 		}
 
 		// Get self-employment tax
-		SEresult = _SETax(TaxYear.value, +CalcIn["SEIncome"]);
+		SEresult = _SETax(TY, +CalcIn["SEIncome"]);
 		CalcOut["SETax"] = +SEresult[0];
 		CalcOut["SETaxCredit"] = +SEresult[1];
 		SETaxCredit.click();
@@ -621,14 +630,14 @@
 		if (((CalcType === "J") && (TP65.checked || SP65.checked)) ||
 			((CalcType === "T") && TP65.checked) ||
 			((CalcType === "S") && SP65.checked)) medexclusionindex = 1;
-		var medexclusion = Math.round(+CalcOut["AGI"] * +_MedicalExclusion[TaxYear.value].split(",")[medexclusionindex]);
+		var medexclusion = Math.round(+CalcOut["AGI"] * +_MedicalExclusion[TY].split(",")[medexclusionindex]);
 		CalcOut["Medical"] = Math.max(0, +CalcIn["ActualMedical"] + SEHIRemainder - medexclusion);
 
 		// Two percent limitation
 		CalcOut["TwoPercent"] = Math.round(+CalcOut["AGI"] * 0.02);
 
 		// Charitable limited to 50% AGI 60% in 2018+
-		charlimit = Math.round(AGI.innerHTML * ((TaxYear.value >= 2018) ? 0.6 : 0.5));
+		charlimit = Math.round(AGI.innerHTML * ((TY >= 2018) ? 0.6 : 0.5));
 		if (Charity.value > charlimit) {
 			Charity.value = charlimit;
 			Charity.focus();
@@ -651,13 +660,13 @@
 		ItemizedValue = +CalcOut["Medical"] + +CalcIn["TaxesPaid"] + +CalcIn["InterestPaid"] +
 			+CalcIn["Charity"] + +CalcIn["OtherItemized"];
 		// don't use += in the following statement
-		if (+TaxYear.value < 2018) ItemizedValue = +ItemizedValue + +CalcIn["Miscellaneous"];
+		if (+TY < 2018) ItemizedValue = +ItemizedValue + +CalcIn["Miscellaneous"];
 		CalcOut["Itemized"] = ItemizedValue;
 
 		// Are itemized deductions limited by Pease (high income) deduction limit?
 		//var itemval = (+CalcOut["Itemized"] == undefined) ? 0 : +CalcOut["Itemized"];
 		var itemval = ItemizedValue;
-		CalcOut["AGILimit"] = itemvallimit = +_ItemLimit[TaxYear.value + ":" + FilingStatusValue]
+		CalcOut["AGILimit"] = itemvallimit = +_ItemLimit[TY + ":" + FilingStatusValue]
 
 		if ((itemval > 0) && (+CalcOut["AGI"] > itemvallimit)) {
 			Misc.disabled = false;
@@ -684,7 +693,7 @@
 
 		// Calculate exemptions
 		CalcOut["PreExemptAmount"] = Math.round(Math.max(0, +CalcOut["AGI"] - Deductions));
-		var exemptamt = +_Standard[TaxYear.value].split(",")[_Standard["Exemption"]];
+		var exemptamt = +_Standard[TY].split(",")[_Standard["Exemption"]];
 		CalcOut["ExemptRate"] = exemptamt;
 		CalcOut["ExemptAmount"] = exemptamt * (((FilingStatusValue == "MFJ") ? 2 : 1) + +DependentsValue);
 		var elist = document.getElementsByClassName("exemptions");
@@ -695,10 +704,10 @@
 
 		// QBI Calc
 		var QBIDeduction = 0;
-		if (_LineNo[TaxYear.value + ":QBI"]) {
+		if (_LineNo[TY + ":QBI"]) {
 			QBILine.style.display = MFJMFSQBILine.style.display = "table-row";
 			var SENetIncome = +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"] - +CalcOut["SEHI"];
-			var QBIDeduction = _QBICalc(TaxYear.value, FilingStatusValue, SENetIncome,
+			var QBIDeduction = _QBICalc(TY, FilingStatusValue, SENetIncome,
 				(+CalcIn["QualDividends"] + +CalcOut["CapGains"]),
 				CalcIn["QBIDividends"], PostExemptAmount);
 			if (CalcType === "J") QBIOOS.style.display = (QBIDeduction == -1) ? "inline" : "none";
@@ -717,7 +726,7 @@
 		// Determine Tax
 		var CGtoUse = Math.min( +CalcIn["LTCapGains"], (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]));
 		CG = +CalcIn["QualDividends"] + Math.max(0, CGtoUse);
-		CalcOut["Tax"] = Math.round(_TaxLookup(TaxYear.value, FilingStatusValue, +CalcOut["TaxableAmount"], CG, true));
+		CalcOut["Tax"] = Math.round(_TaxLookup(TY, FilingStatusValue, +CalcOut["TaxableAmount"], CG, true));
 
 		CalcOut["PreWorkingTax"] = WorkingTax = Math.round(+CalcOut["Tax"] + +CalcIn["AdditionalTax"]);
 
@@ -753,7 +762,7 @@
 				CC2Earned = +TPMFS["Wages"] + +TPMFS["SEIncome"] - +TPMFS["SETaxCredit"];
 				break;
 		}
-		CalcOut["ChildCare"] = Math.round(_ChildCare(TaxYear.value, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
+		CalcOut["ChildCare"] = Math.round(_ChildCare(TY, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
 		if (FilingStatusValue == "MFS") CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
 		else CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
 		WorkingTax -= NRUsedTemp;
@@ -764,7 +773,7 @@
 			for (j = 1; j <= 3; j++) {
 				if (EdiList[j].value) {
 					etype = (EdtList[j].checked) ? "AOC" : "LLC";
-					result = _EdCredit(TaxYear.value, FilingStatus.value, AGI.innerHTML,
+					result = _EdCredit(TY, FilingStatus.value, AGI.innerHTML,
 						etype, EdiList[j].value);
 					// Don't use += below...
 					CalcIn["EducationCost"] = +CalcIn["EducationCost"] + +EdiList[j].value;
@@ -779,7 +788,7 @@
 
 		// Determine retirement expenses
 		retlimit = (FilingStatusValue === "MFS") ? 2000 : 4000;
-		CalcOut["Retirement"] = _Retirement(TaxYear.value, FilingStatusValue, CalcOut["AGI"],
+		CalcOut["Retirement"] = _Retirement(TY, FilingStatusValue, CalcOut["AGI"],
 				Math.min(CalcIn["RetirementCost"], retlimit), 0);
 		CalcOut["RetirementUsed"] = NRUsedTemp = Math.round(Math.min(WorkingTax, +CalcOut["Retirement"]));
 		WorkingTax -= NRUsedTemp;
@@ -787,7 +796,7 @@
 
 		// Get the CTC and ACTC amounts
 		var CTCresult = [];
-		CTCresult = _CTCLookup(TaxYear.value, FilingStatusValue, CTCDependentsValue, DependentsValue,
+		CTCresult = _CTCLookup(TY, FilingStatusValue, CTCDependentsValue, DependentsValue,
 				(+CalcIn["Wages"] + +CalcIn["SEIncome"]), +CalcOut["AGI"]);
 		var CTCAmount = +CTCresult[0];
 		var FTCAmount = +CTCresult[1];
@@ -823,11 +832,11 @@
 		var EICAmount = 0;
 		var EICInvest = +CalcOut["CapGains"] + +CalcIn["Interest"] + +CalcIn["TaxExempt"] + +CalcIn["Dividends"];
 		var EICEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
-		CalcOut["EICCredit"] = EICAmount = +_EICLookup(TaxYear.value, FilingStatusValue, EICDependentsValue,
+		CalcOut["EICCredit"] = EICAmount = +_EICLookup(TY, FilingStatusValue, EICDependentsValue,
 			EICEarned, EICInvest, AGI.innerHTML, TP65.checked, SP65.checked);
 
 		// Does NIIT apply?
-		var NIITAmount = _NIITCalc(TaxYear.value, FilingStatusValue, +CalcOut["AGI"], +CalcIn["Interest"],
+		var NIITAmount = _NIITCalc(TY, FilingStatusValue, +CalcOut["AGI"], +CalcIn["Interest"],
 				CalcIn["Dividends"], +CalcOut["CapGains"], +CalcIn["NIITExpenses"]);
 		CalcOut["NIITTax"] = NIITAmount;
 		if (CalcType === "J") {
@@ -1163,7 +1172,7 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
-			<td>IRA deduction <i>(5500, 6500 over age 55) per TP/SP)</i></td>
+			<td>Traditional IRA deduction <i><span id="IRAComment"></span></i></td>
 			<td></td>
 			<td><input id="IRADeduction" type="number" class="wkti"
 				onfocus="Get_Inputs(this.id);"
