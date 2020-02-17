@@ -65,11 +65,15 @@
 //	Paul Renard
 //	David Herman
 //	George Shevchuk
+//	Gordon Henderson
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
+var VERSION = "6.22 2/16/2020";
+//	Added an HOH option to the married status section if not MFJ
+//	Disabled income test for dependent as a child
 var VERSION = "6.21b 1/22/2020";
 //	Change COD message for citizenship test to residency test
 //	Added actual year numbers to residency test window
@@ -373,7 +377,7 @@ HelpMsg += "<li>A change history is imbedded in the source code.";
 HelpMsg += " You can view the source from your browser menu to see what changes were made and in what version.</li>";
 
 // Income box message
-var IncomeMsg = "Check if the dependent&apos;s gross income is less than the year&apos;s exemption amount.";
+var IncomeMsg = "Check if the potential dependent as a relative&apos;s gross income is less than the year&apos;s exemption amount.";
 IncomeMsg += "<br /><br />";
 IncomeMsg += "Gross income means all income the person received in the form of money, goods, property and services,";
 IncomeMsg += " that isn't exempt from tax.";
@@ -439,6 +443,7 @@ function Initialize() {
 	TPisMarried.checked = true;
 	TPfilingMFJ.checked = true;
 	TPrefund.checked = false;
+	TPfilingHOH.checked = false;
 	TPDivorced.checked = false;
 	LivedWith.checked = false;
 	JointSupport.checked = false;
@@ -665,8 +670,10 @@ function CalcStatus(from_age_calc) {
 	TPisDependent = "";
 
 	// Taxpayer marital status
+	TP_Filing = "Single";
+	if (TPisMarried.checked) TP_Filing = "MFS";
 	if (TPfilingMFJ.checked) TP_Filing = "MFJ";
-	else TP_Filing = (TPisMarried.checked) ? "MFS":"Single";
+	if (TPfilingHOH.checked) TP_Filing = "HOH";
 
 	// Taxpayer divorce and Form 8322 waivers
 	TP_IsParent = (BENE_Relation.indexOf("|PAR|") == NOT_A_BENEFIT)? false:true;
@@ -868,6 +875,8 @@ function CalcStatus(from_age_calc) {
 //		}
 		if (TP_DivorceApplies && WaiverToSP.checked) SetMessage(QualRelative,"- Ex-spouse has 8832 or decree");
 
+		LowIncome.disabled = (QualRelative.value == NO) ? true : false;
+
 
 	// ==============================================================
 
@@ -882,10 +891,11 @@ function CalcStatus(from_age_calc) {
 		if (! HHCost.checked) SetMessage(HOH,"- TP must provide >50% of household costs");
 		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(HOH,"- TP is not claiming child as a dependent");
 		if (TP_Filing == "MFJ") SetMessage(HOH,"- TP filing as married");
-		if (TP_Filing == "MFS") { // TP may be able to file HOH
+		if ((TP_Filing == "MFS") || (TP_Filing == "HOH")) { // TP may be able to file HOH
 			if (TPDivorced.checked && (! TP_DivorceApplies)) { // still married but living apart - dependent restrictions apply
 				if (! ((DEP_Relation == "CHILD") || (DEP_Relation == "FOSTER")) || ((QualChild.value == NO) && (QualRelative.value == NO))) {
-					SetMessage(HOH,"- In this TP's case, dependent must be a child, step-child or foster child claimed as an exemption");
+					SetMessage(HOH,"- In this TP's case, dependent must be a child, step-child or foster child");
+					HOH.value = NO;
 				}
 			}
 			if (HOH.value != NO) {
@@ -907,7 +917,7 @@ function CalcStatus(from_age_calc) {
 		if (DEP_Residency < 12) SetMessage(Widow,"- Failed residency test");
 		if (! HHCost.checked) SetMessage(Widow,"- TP must provide >50% of household costs");
 		if (TPDivorced.checked) SetMessage(Widow,"- TP divorced or separated, not widow(er)");
-		if ((TP_Filing == "MFJ") || (TP_Filing == "MFS")) SetMessage(Widow,"- TP filing as married");
+		if (TPisMarried.checked) SetMessage(Widow,"- TP cannot be married");
 
 	// ==============================================================
 
@@ -984,7 +994,7 @@ function CalcStatus(from_age_calc) {
 		 	else SetMessage(EITC,"- TP must have an SSN"); // add V6.12
 		}
 		if ((! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
-		if (TP_Filing == "MFS") SetMessage(EITC,"- TP failed joint return test");
+		if (TP_Filing == "MFS") SetMessage(EITC,"- TP cannot file MFS");
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		// if (TPisQR.checked) SetMessage(EITC,"- TP or SP cannot be a qualified relative of another taxpayer"); // rm V6.04
 		if (QualChildOfAnother.checked && QCAtest != "TP") SetMessage(EITC, QCAreason);
@@ -1043,11 +1053,11 @@ function CheckMultiUseBoxes() {
 //***************************************************************************************************
 
 	// ------------------------Spouse of TP-------------------------------
-	TPfilingMFJ.disabled = TPrefund.disabled = SPCitizenship.disabled = (! TPisMarried.checked);
+	TPfilingHOH.disabled = TPfilingMFJ.disabled = TPrefund.disabled = SPCitizenship.disabled = (! TPisMarried.checked);
 
 	// if there's a value for SPCitizenship, change it if it's N/A
-	var newval = (SPCitizenship.value == "N/A") ? "USA":SPCitizenship.value;
-	SPCitizenship.value = (TPisMarried.checked) ? newval:"N/A";
+	var newval = (SPCitizenship.value == "N/A") ? "USA" : SPCitizenship.value;
+	SPCitizenship.value = (TPisMarried.checked) ? newval : "N/A";
 
 	var SpouseIndex = RelationList.length - 1;
 	var UnrelatedIndex = SpouseIndex - 1;
@@ -1062,13 +1072,34 @@ function CheckMultiUseBoxes() {
 	if (DepRefund.disabled = ! DepFilingMFJ.checked) DepRefund.checked = false; // Remove previous mark if any
 	if (TPfilingMFJ.disabled) {
 		TPfilingMFJ.checked = false; // Clear any previous mark, if disabled
+		TPfilingHOH.checked = false; // Clear any previous mark, if disabled
 		TPrefund.checked = false; // Clear any previous mark, if disabled
 	}
 
-	if (! TPfilingMFJ.checked) {TPrefund.checked = false; TPrefund.disabled = true;}
-	else TPrefund.disabled = false;
+	if (TPfilingHOH.checked) {
+		TPfilingMFJ.checked = false;
+		TPfilingMFJ.disabled = true;
+	}
+
+	TPfilingHOH.disabled = true;
+	if (TPfilingMFJ.checked) {
+		TPrefund.disabled = false;
+		TPfilingHOH.checked = false;
+	}
+	else {
+		TPrefund.checked = false;
+		TPrefund.disabled = true;
+		if (TPDivorced.checked) {
+			TPfilingHOH.disabled = false;
+		}
+		else {
+			TPfilingHOH.checked = false;
+		}
+	}
+
 	if (TPfilingMFJ.checked && (! TPrefund.checked)) {
-		TPisQC.checked = false; TPisQC.disabled = true;
+		TPisQC.checked = false;
+		TPisQC.disabled = true;
 	}
 	else TPisQC.disabled = false;
 
@@ -1440,6 +1471,8 @@ function ColorCells() {
 // Determine the appropriate color for the results cells
 // Provide warning messages for YES results if other related factors need to be considered
 // All other "taxpayer" factors such as income level or other tax benefits are also included
+// Note that xxx.value does not display. Use xxx.innerHTML to display the result.
+// The first statement copies xxx.value to xxx.innerHTML. If not YES or NO, special processing is needed.
 //***************************************************************************************************
 	var ShowCaution = false; // set to true if any answer is YES
 
@@ -1580,9 +1613,17 @@ function ColorCells() {
 		EITC.title += "- If the dependent is not a qualifying child of another taxpayer\n";
 	}
 	if (EITC.value == "YES") {
-		if (TP_DivorceApplies) {
-			BenefitColor.EITC = ColorWarn;
-			EITC.title += "- If ex-spouse does not claim even if also qualified";
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.EITC = ColorWarn;
+					EITC.title += "- This dependent does not qualify the TP for HOH as selected.  EITC is allowed if there is another dependent that does.";
+				}
+			}
+			else {
+				BenefitColor.EITC = ColorWarn;
+				EITC.title += "- If ex-spouse does not claim even if also qualified";
+			}
 		}
 	}
 	if ((EITC.value == "NO") && (TP_Filing != "MFS") && (! TPSPITIN.checked) && (! EITC.title.indexOf("citizenship"))) {
@@ -1598,12 +1639,17 @@ function ColorCells() {
 		EdAdjustment.innerHTML = YES;
 		BenefitColor.EdAdjustment = ColorWarn;
 		EdAdjustment.title += "- Only if the spouse does not use the exemption\n";
-//		EdAdjustment.title += "- Tuition and fees adjustment expired beginning with tax year 2014\n";
 	}
-//	if (EdAdjustment.value == "YES") {
-//		BenefitColor.EdAdjustment = ColorWarn;
-//		EdAdjustment.title += "- Tuition and fees adjustment expired beginning with tax year 2014\n";
-//	}
+	if (EdAdjustment.value == "YES") {
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.EdAdjustment = ColorWarn;
+					EdAdjustment.title += "- This dependent does not qualify the TP for HOH as selected.  T&F adjustment is allowed if there is another dependent that does.";
+				}
+			}
+		}
+	}
 	EdAdjustment.style.backgroundColor = BenefitColor.EdAdjustment;
 
 	// Qualified dependent for Education Credit ----------------------------------
@@ -1616,7 +1662,14 @@ function ColorCells() {
 		EdCredit.title += "- Only if the spouse does not use the exemption\n";
 	}
 	if (EdCredit.value == "YES") {
-		// place holder
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.EdCredit = ColorWarn;
+					EdCredit.title += "- This dependent does not qualify the TP for HOH as selected.  Education credit is allowed if there is another dependent that does.";
+				}
+			}
+		}
 	}
 	EdCredit.style.backgroundColor = BenefitColor.EdCredit;
 
@@ -1628,6 +1681,16 @@ function ColorCells() {
 		AOCCredit.innerHTML = YES;
 		BenefitColor.AOCCredit = ColorWarn;
 		AOCCredit.title += "- Only if the spouse does not use the exemption\n";
+	}
+	if (AOCCredit.value == "YES") {
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.AOCCredit = ColorWarn;
+					AOCCredit.title += "- This dependent does not qualify the TP for HOH as selected. AOC is allowed if there is another dependent that does.";
+				}
+			}
+		}
 	}
 	AOCCredit.style.backgroundColor = BenefitColor.AOCCredit;
 
@@ -1871,6 +1934,9 @@ function TestResults() {
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPrefund" name="TPrefund" type="checkbox" onclick="CalcStatus()"
 				title="The taxpayer is filing jointly only to receive a refund of withholding or estimated tax payments" />
 				<span class="Label">&mdash;only for refund</span>
+				<br />&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPfilingHOH" name="TPfilingHOH" type="checkbox" onclick="CalcStatus()" value="MFJ"
+				title="The taxpayer is married but filing head of household due to separation and has a qualified dependent" checked="checked" />
+				<span class="Label">Filing Head of Household</span>
 				</td></tr>
 			<tr><td>
 				<span style="font-size:2%;"> <hr /></span>
@@ -2084,8 +2150,8 @@ function TestResults() {
 				<span class="Label">&mdash;only for refund</span>
 				<br /><span id="LowIncomeTitle">
 					<input id="LowIncome" name="LowIncome" type="checkbox" onclick="CalcStatus()"  checked="checked" />
-					<span class="Label">Income less than:</span>
-					<br /><div id="incomeLimit"></div>
+					<span class="Label">Income less than:
+					<br /><div id="incomeLimit"></div></span>
 				</span>
 			</td></tr>
 		</table>
