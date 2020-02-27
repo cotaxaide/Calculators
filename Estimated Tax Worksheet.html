@@ -146,7 +146,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.03, 2/12/2020)";
+	var VERSION = "(Version 3.04, 2/22/2020)";
+	//	Corrected IRA adjustment limit test
+	//var VERSION = "(Version 3.03, 2/12/2020)";
 	//	Corrected IRA adjustment comment
 	//	Added TY variable
 	//var VERSION = "(Version 3.02, 1/16/2020)";
@@ -564,7 +566,7 @@
 		CalcIn["HSADeduction"] = Math.min(CalcIn["HSADeduction"], edlimit);
 		
 		// Limit IRA Contribution Deduction - can't test for age 55 or over 72-1/2
-		var sllimit = (FilingStatusValue === "MFJ") ? 13000 : 6500;
+		var sllimit = _IRALimits[TY + ":SRMAX"] * ((FilingStatusValue === "MFJ") ? 2 : 1);
 		CalcIn["IRADeduction"] = Math.min(CalcIn["IRADeduction"], sllimit);
 
 		// Limit Student Loan Payment Deduction
