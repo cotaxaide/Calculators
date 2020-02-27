@@ -66,15 +66,22 @@
 //	David Herman
 //	George Shevchuk
 //	Gordon Henderson
+//	Joe Ohrazda
+//	Gordon Henderson
+//	Sam Kaplan
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.22 2/16/2020";
+var VERSION = "6.24 2/27/2020";
+//	Fixed error giving HOH to descendant of niece or nephew
+//var VERSION = "6.23 2/22/2020";
+//	Fixed error when income test could not be checked once unchecked
+//var VERSION = "6.22 2/16/2020";
 //	Added an HOH option to the married status section if not MFJ
 //	Disabled income test for dependent as a child
-var VERSION = "6.21b 1/22/2020";
+//var VERSION = "6.21b 1/22/2020";
 //	Change COD message for citizenship test to residency test
 //	Added actual year numbers to residency test window
 //	Changed dependent income comment from title to pop-up box
@@ -834,6 +841,7 @@ function CalcStatus(from_age_calc) {
 		}
 
 		if (QualChild.value != NO) { ShowMSRBox("Clear"); } // Closes display for MSR box if it was open
+		LowIncome.disabled = (QualChild.value == YES);
 	
 
 	// ==============================================================
@@ -875,7 +883,6 @@ function CalcStatus(from_age_calc) {
 //		}
 		if (TP_DivorceApplies && WaiverToSP.checked) SetMessage(QualRelative,"- Ex-spouse has 8832 or decree");
 
-		LowIncome.disabled = (QualRelative.value == NO) ? true : false;
 
 
 	// ==============================================================
@@ -1165,9 +1172,9 @@ function DetermineBenefits() {
 	case "SIBLING":			BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 //	case "HALF_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "NIECE_NEPHEW":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
+	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|   |   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
 	case "STEP_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
+	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|   |   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
 	case "PARENT":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
 	case "PARENT_ANC_SIB":		BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
 	case "IN_LAW":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
