@@ -13,6 +13,8 @@
 //	_EdCredit		AOC or LLC Credit
 //----------------------------------------------------------------------------------------
 //
+ Version 1.06 2/10/2020
+//	Prevent Child Care Credit from returning a negative amount
 // Version 1.05 12/5/2019
 // 	Realigned line numbers an calc in Sched D CG worksheet
 // 	Corrected Trust calculation for Kiddie tax
@@ -399,7 +401,7 @@ function _ChildCare (	// Form 2441
 	if (filingStatus === "MFJ") line6 = Math.min(+amountPaid, +TPEarnedIncome, +SPEarnedIncome);
 	else line6 = Math.min(+amountPaid, +TPEarnedIncome);
 	var line8 = (35 - (Math.ceil(Math.min(Math.max(0, (AGI - 15000)/2000), 15)))) / 100;
-	return (line6 * line8);
+	return Math.max(0, line6 * line8);
 }
 
 //----------------------------------------------------------------------------------------
