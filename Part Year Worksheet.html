@@ -560,6 +560,8 @@
 				case "Capital_Gain/Loss":
 				case "Dividend":
 				case "Interest":
+				case "Interest-gov":
+				case "Interest-CO_1st_Time_Home":
 				case "Other":
 				case "Rent":
 				case "Royalty":
@@ -608,9 +610,7 @@
 					FedSSAGI -= +Amountptr.value;
 					break;
 
-				case "Interest-gov":
 				case "Interest-tax-free_non-CO":
-				case "Interest-CO_1st_Time_Home":
 					FedSSTFI += +Amountptr.value;
 					break;
 			}
@@ -658,6 +658,25 @@
 			OtherSumptr = document.getElementById(sumtype + "TotalOther");
 			OtherSumptr.innerHTML = OtherSum[sumtype] += +Otherptr.value;
 		}
+
+		// Copy Fed amounts duplicated in State summary
+		document.getElementById("Interest-gov2TotalState").innerHTML =
+		document.getElementById("Interest-govTotalState").innerHTML;
+		document.getElementById("Interest-gov2TotalOther").innerHTML =
+		document.getElementById("Interest-govTotalOther").innerHTML;
+		document.getElementById("Interest-tax-free_non-CO2TotalState").innerHTML =
+		document.getElementById("Interest-tax-free_non-COTotalState").innerHTML;
+		document.getElementById("Interest-tax-free_non-CO2TotalOther").innerHTML =
+		document.getElementById("Interest-tax-free_non-COTotalOther").innerHTML;
+		document.getElementById("Dividend-CO_or_gov_adjust2TotalState").innerHTML =
+		document.getElementById("Dividend-CO_or_gov_adjustTotalState").innerHTML;
+		document.getElementById("Dividend-CO_or_gov_adjust2TotalOther").innerHTML =
+		document.getElementById("Dividend-CO_or_gov_adjustTotalOther").innerHTML;
+		document.getElementById("Interest-CO_1st_Time_Home2TotalState").innerHTML =
+		document.getElementById("Interest-CO_1st_Time_HomeTotalState").innerHTML;
+		document.getElementById("Interest-CO_1st_Time_Home2TotalOther").innerHTML =
+		document.getElementById("Interest-CO_1st_Time_HomeTotalOther").innerHTML;
+
 
 		// Get new taxable amount of SS/Tier1 based on changes made
 		result = _TaxableSS(TaxYear.value, FilingStatus.value, FedSSAmount, FedSSAGI + FedSSTFI, 0, false);
@@ -720,6 +739,7 @@
 	//----------------------------------------------------------------------------------------
 
 		COInterest.innerHTML = 0
+			+ StateSum["Interest-tax-free_non-CO"]
 			+ StateSum["Interest"]
 			+ StateSum["Interest-CO_1st_Time_Home"]
 			+ StateSum["Interest-gov"]
@@ -932,11 +952,11 @@
 		newsel.id = "Typ" + ItemCount;
 		Add_Option(newsel, "?", "Please enter the type of income or adjustment");
 
-		Add_Group(newsel, "Earned Income");
+		Add_Group(newsel, "Earned Fed Income");
 		Add_Option(newgrp, "W-2_wages", "Wages from employment");
 		Add_Option(newgrp, "Self_Employment", "Self-employment income or loss");
 
-		Add_Group(newsel, "Other Income");
+		Add_Group(newsel, "Other Fed Income");
 		Add_Option(newgrp, "Capital_Gain/Loss", "Capital gain income or loss");
 		Add_Option(newgrp, "Dividend", "Dividend income");
 		Add_Option(newgrp, "Dividend-CO_or_gov_adjust", "Colorado or government dividend income subtraction");
@@ -970,13 +990,17 @@
 		Add_Option(newgrp, "Jury_duty_pay_to_employer", "Jury duty pay given to employer");
 		Add_Option(newgrp, "Other_Adjustment", "Other adjustment to income");
 
-		Add_Group(newsel, "State AGI Additions");
+		Add_Group(newsel, "State Additions");
+		Add_Option(nogrp, "Interest-tax-free_non-CO2", "Tax free interest from non-Colorado bonds.");
 		Add_Option(newgrp, "Other_Addition", "Other additions to state Adjusted Gross Income");
 
-		Add_Group(newsel, "State AGI Subtractions");
+		Add_Group(newsel, "State Subtractions");
+		Add_Option(nogrp, "Interest-gov2", "Government bond savings or investment interest");
+		Add_Option(nogrp, "Dividend-CO_or_gov_adjust2", "Colorado or government dividend income subtraction");
 		Add_Option(newgrp, "CO_Capital_gain_subtraction", "Capital gain on Colorado investments");
 		Add_Option(newgrp, "College_tuition_contribution", "Contribution to one of the state's college 529 plans");
 		Add_Option(newgrp, "PERA/DPSRS_subtraction", "Non-taxable PERA/DPSRS retirement benefits");
+		Add_Option(nogrp, "Interest-CO_1st_Time_Home2", "Interest from a Colorado first time homebuyer savings account (2017 and later)");
 		Add_Option(nogrp, "RRB_Tier1_subtraction", "RR Tier 1 benefits exclusion from state tax");
 		Add_Option(nogrp, "RRB_Tier2_subtraction", "RR Tier 2 benefits exclusion from state tax");
 		Add_Option(nogrp, "Taxpayer_Military_pension_exclusion", "Taxpayer military pension exclusion from state tax");
@@ -1349,8 +1373,8 @@
 			<tr><td></td><td>Unemployment Benefits</td><td><span id="COUnemployment">0</span></td></tr>
 			<tr><td></td><td>Other Income/Loss</td><td><span id="COOtherIncome">0</span></td></tr>
 			<tr><td></td><td>Federal Adjustments</td><td><span id="COAdjustments">0</span></td></tr>
-			<tr><td></td><td>Additions to Adjusted Gross Income</td><td><span id="COAdditions">0</span></td></tr>
-			<tr><td></td><td>Subtractions from Adjusted Gross Income</td><td><span id="COSubtractions">0</span></td></tr>
+			<tr><td></td><td>Additions to Colorado Adjusted Gross Income</td><td><span id="COAdditions">0</span></td></tr>
+			<tr><td></td><td>Subtractions from Colorado Adjusted Gross Income</td><td><span id="COSubtractions">0</span></td></tr>
 		</table>
 	</div> <!-- COIncomeDiv -->
 
