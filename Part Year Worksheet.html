@@ -103,11 +103,17 @@
 	// --------------------------------------------------------------------------------
 	// Contributors:
 	// 	Kirk Coonley
+	//	Barry Berlin
+	//	David Hutchison
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.08, 2/4/2020)";
+	var VERSION = "(Version 1.09, 3/25/2020)";
+	//	Corrected tax free non-CO interest to distribute vs all to CO
+	//var VERSION = "(Version 1.08a, 3/12/2020)";
+	//	Added W-2 and 1099 clarification note in instructions
+	//var VERSION = "(Version 1.08, 2/4/2020)";
 	//	Entry checking when negative amounts (cap gains) caused problems - removed
 	//var VERSION = "(Version 1.07, 1/1/2020)";
 	//	Added SE SEP/SIMPLE, SE health, Bus. exp. of reservist
@@ -409,7 +415,7 @@
 						break;
 
 					// Colorado only group
-					case "Interest-tax-free_non-CO":
+					//case "Interest-tax-free_non-CO":
 					case "Early_withdrawal_penalty":
 					case "Charitable_Contributions-total":
 					case "CO_Capital_gain_subtraction":
@@ -1290,10 +1296,15 @@
 				earned or gross income, depending on the particular adjustment.</li>
 				<li>&quot;From&quot; and &quot;Thru&quot; entries indicate when
 				the account was active during the year.</li></ul></li>
+			<li>If W-2 or 1099 state withholding does not accurately indicate the income distribution
+				between multiple states, modify the entry of the W-2 or 1099 in TaxSlayer to indicate
+				the correct income amounts and match those distributions in this calculator.
+				DO NOT adjust the withholding amounts.</li>
 			<li>Entry of annuities/pensions/Social Security/RR Retirement benefits
 				automatically calculate the correct exclusion amounts for Colorado Subtractions
 				from AGI using age limits and owner as needed.
-				<ul><li>For Social Security and RRB Tier I benefits enter the gross amounts;
+				<ul><li>For annuities and pensions enter the <u>taxable</u> amounts.</li>
+					<li>For Social Security and RRB Tier I benefits enter the <u>gross</u> amounts;
 					the taxable amount will be calculated.</li></ul></li>
 			<li>The Colorado allocation will be calculated automatically based on residency dates,
 				account dates and income ratios as appropriate for the entry type.
