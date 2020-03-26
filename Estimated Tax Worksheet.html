@@ -146,7 +146,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.04, 2/22/2020)";
+	var VERSION = "(Version 3.05, 3/26/2020)";
+	//	Estimated payments not responsive to changes in options
+	//var VERSION = "(Version 3.04, 2/22/2020)";
 	//	Corrected IRA adjustment limit test
 	//var VERSION = "(Version 3.03, 2/12/2020)";
 	//	Corrected IRA adjustment comment
@@ -1397,33 +1399,33 @@
 		<tr><td colspan="5">Estimated Payments Needed:</td>
 		<tr><td>  </td>
 			<td colspan="2">90% of estimated total tax
-				(<input id="Farmer" type="checkbox" />
+				(<input id="Farmer" type="checkbox" onchange="Do_Estimates();" />
 				66 2/3% for farmers and fishermen)</td>
 			<td id="Tax90" class="calculated">0</td></tr>
 		<tr><td>  </td>
 			<td colspan = "2">
 				Enter 100% of last year&apos;s income tax
-				(<input id="HighAGI" type="checkbox" />
+				(<input id="HighAGI" type="checkbox" onchange="Do_Estimates();" />
 				Check if AGI last year was > $<span id="LYAGI"></span>K)</td>
 			<td><input id="TaxLastYear" type="number"
-				onkeyup="Input_Change(this.id);" /></td></tr>
+				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
 			<td colspan="3"><b>Choose which to use...</b></td></tr>
 		<tr><td style="vertical-align: top;"></td>
-			<td colspan="2" class="indent">
+			<td colspan="2" class="indent" onchange="Do_Estimates();">
 				<input id="UseSmall" type="radio" name="UseTax" checked="checked"
-				onchange="Input_Change(this.id);" /> Smaller of above or ...
+				 /> Smaller of above or ...
 				<br /><input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% last year&apos;s amount from the line above.
 				<br /><input id="UseTYTax" type="radio" name="UseTax" /> Use 100% of the <span id="TaxYear3"></span> estimated total tax.</td>
 			<td class="calculated" style="vertical-align: bottom;"><span id="EstAmount">0</span></td></tr>
 		<tr><td></td>
 			<td colspan="2">Income tax withheld and estimated to be withheld</td>
 			<td><input id="WHAmount" type="number"
-				onchange="Input_Change(this.id);" /></td></tr>
+				onchange="Do_Estimates();" /></td></tr>
 		<tr><td></td>
 			<td colspan="2">Balance (override if a different amount is desired:
 				<input id="OverrideAmount" type="number" 
-				onkeyup="Input_Change(this.id);" />)
+				onkeyup="Do_Estimates();" />)
 				<span id="PayNotRequired"> (Payment not required if less than $1000)</span></td>
 			<td class="calculated"><span id="VoucherAmount"></span></td></tr>
 		<tr><td>  </td>
