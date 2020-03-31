@@ -75,9 +75,13 @@
 	//	Barry Schwarz
 	//	John Broughton
 	//	Barbara Smith-Thomas
+	//	Diana Kenning
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.08a, 1/18/2020)";
+	VERSION = "(Version 1.08b, 2/25/2020)";
+	//	Removed all line numbers
+	//	Clarified Nontaxable on Medicaid Waiver line
+	//VERSION = "(Version 1.08a, 1/18/2020)";
 	//	Added W-2 source on Medicaid Waiver line
 	//VERSION = "(Version 1.08, 11/23/2017)";
 	//	Changed non taxable refunds to 3 seperate lines
@@ -240,17 +244,17 @@
 		<span class="instruction">(Enter all numbers as positive numbers)</span>
 		<table id="IncomeTable" onkeyup="IncomeCalc();" onchange="IncomeCheck();">
 			<tr><th>Income Description</th><th>Source</th><th>&plusmn;</th><th>Amount</th></tr>
-			<tr><td>AGI</td><td>Form 1040, Line 38</td><td>+</td><td><input id="Income01" type="nunber" /></td></tr>
-			<tr><td class="tdul">Tax-exempt Interest</td><td class="tdul">Form 1040, Line 8b</td><td>+</td><td><input id="Income02" type="nunber" /></td></tr>
-			<tr><td><span class="bold">SUBTRACT</span> Taxable IRA Distributions<sup>1</sup></td><td>Form 1040, Line 15b</td><td>-</td><td><input id="Income03" type="nunber" /></td></tr>
-			<tr><td>Total IRA Distributions</td><td>Form 1040, Line 15a</td><td>+</td><td><input id="Income04" type="nunber" /></td></tr>
+			<tr><td>AGI</td><td>Form 1040</td><td>+</td><td><input id="Income01" type="nunber" /></td></tr>
+			<tr><td class="tdul">Tax-exempt Interest</td><td class="tdul">Form 1040</td><td>+</td><td><input id="Income02" type="nunber" /></td></tr>
+			<tr><td><span class="bold">SUBTRACT</span> Taxable IRA Distributions<sup>1</sup></td><td>Form 1040</td><td>-</td><td><input id="Income03" type="nunber" /></td></tr>
+			<tr><td>Total IRA Distributions</td><td>Form 1040</td><td>+</td><td><input id="Income04" type="nunber" /></td></tr>
 			<tr><td class="tdul"><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> any rollover amounts included in the line above.<sup>2</sup></td><td class="tdul">Form 1099-R</td><td>-</td><td><input id="Income04r" type="nunber" /></td></tr>
-			<tr><td><span class="bold">SUBTRACT</span> Taxable Pensions and Annuities<sup>1</sup></td><td>Form 1040, Line 16b</td><td>-</td><td><input id="Income05" type="nunber" /></td></tr>
-			<tr><td>Total Pensions and Annuities</td><td>Form 1040, Line 16a</td><td>+</td><td><input id="Income06" type="nunber" /></td></tr>
+			<tr><td><span class="bold">SUBTRACT</span> Taxable Pensions and Annuities<sup>1</sup></td><td>Form 1040</td><td>-</td><td><input id="Income05" type="nunber" /></td></tr>
+			<tr><td>Total Pensions and Annuities</td><td>Form 1040</td><td>+</td><td><input id="Income06" type="nunber" /></td></tr>
 			<tr><td class="tdul"><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> any rollover amounts included in the line above.<sup>2</sup></td><td class="tdul">Form 1099-R</td><td>-</td><td><input id="Income06r" type="nunber" /></td></tr>
-			<tr><td><span class="bold">SUBTRACT</span> Taxable Social Security Benefits</td><td>Form 1040, Line 20b</td><td>-</td><td><input id="Income07" type="nunber" /></td></tr>
-			<tr><td class="tdul">Total Social Security Benefits</td><td class="tdul">Form 1040, Line 20a</td><td>+</td><td><input id="Income08" type="nunber" /></td></tr>
-			<tr><td>Medicaid Waiver payments</td><td>Form W-2 or 1099-Misc</td><td>+</td><td><input id="Income09" type="nunber" /></td></tr>
+			<tr><td><span class="bold">SUBTRACT</span> Taxable Social Security Benefits</td><td>Form 1040</td><td>-</td><td><input id="Income07" type="nunber" /></td></tr>
+			<tr><td class="tdul">Total Social Security Benefits</td><td class="tdul">Form 1040</td><td>+</td><td><input id="Income08" type="nunber" /></td></tr>
+			<tr><td>Nontaxable Medicaid Waiver payments</td><td>Form W-2 or 1099-Misc</td><td>+</td><td><input id="Income09" type="nunber" /></td></tr>
 			<tr><td>Nontaxable Combat Pay</td><td>From W-2</td><td>+</td><td><input id="Income10" type="nunber" /></td></tr>
 			<tr><td>Workers Compensation Payments</td><td>Taxpayer</td><td>+</td><td><input id="Income11" type="nunber" /></td></tr>
 			<tr><td>Disability Insurance Payments</td><td>Taxpayer</td><td>+</td><td><input id="Income12" type="nunber" /></td></tr>
@@ -261,9 +265,9 @@
 			<tr><td>Inheritance (other than IRA or similar)</td><td>Taxpayer</td><td>+</td><td><input id="Income16" type="nunber" /></td></tr>
 -->
 			<tr><td>Residential Rental (less than 15 days)</td><td>Taxpayer</td><td>+</td><td><input id="Income17" type="nunber" /></td></tr>
-			<tr><td>Prior Year Federal Tax Refund</td><td>Prior Year 1040. line 75</td><td>+</td><td><input id="Income18" type="nunber" /></td></tr>
+			<tr><td>Prior Year Federal Tax Refund</td><td>Prior Year 1040</td><td>+</td><td><input id="Income18" type="nunber" /></td></tr>
 			<tr><td>Prior Year State Tax Refund</td><td>Prior Year State Return</td><td>+</td><td><input id="Income19" type="nunber" /></td></tr>
-			<tr><td>Portion of Prior Year State Tax Refunds that is Taxable</td><td>Prior Year 1040, line 10</td><td>-</td><td><input id="Income20" type="nunber" /></td></tr>
+			<tr><td>Portion of Prior Year State Tax Refunds that is Taxable</td><td>Prior Year 1040</td><td>-</td><td><input id="Income20" type="nunber" /></td></tr>
 			<tr><td>Supplemental Social Security Benefits</td><td>Taxpayer</td><td>+</td><td><input id="Income21" type="nunber" /></td></tr>
 			<tr><td>Any Other Nontaxable Income<sup>3</sup></td><td>Taxpayer</td><td>+</td><td><input id="Income22" type="nunber" /></td></tr>
 			<tr><th colspan="2" style="text-align: left;">Income for <a href="https://apps.irs.gov/app/stdc/stdc.html" target="_blank">IRS Sales Tax Calculator</a></th><th></th><th style="text-align: left;"><input id="Income99" type="nunber" /></th></tr>
