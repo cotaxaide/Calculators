@@ -29,6 +29,11 @@
 		background-color: lightgreen;
 		border-color: darkgreen;
 		border-style: solid;
+		border-width: 0 2px;}
+	.datatable tr:nth-child(14) {
+		background-color: lightgreen;
+		border-color: darkgreen;
+		border-style: solid;
 		border-width: 0 2px 2px 2px;}
 	div {background-color: #eeeeaa; padding: 5px; border:1px solid black;}
 	h1 {text-align: left; font-size: 110%; text-decoration: underline}
@@ -124,11 +129,17 @@
 	//	John Haim
 	//	Jheroen Dorenbosch
 	//	John Arenberg
+	//	Larry Ellison
+	//	Bob Fox
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.04b, 12/31/2019)";
+	var VERSION = "(Version 1.05, 3/31/2020)";
+	//	Added a line to show the nontaxable amount
+	//var VERSION = "(Version 1.04c, 3/22/2020)";
+	//	Prevent negative number as new basis when using TaxSlayer rounding
+	//var VERSION = "(Version 1.04b, 12/31/2019)";
 	//	Added a reminder to return to 1099-R to change taxable amount
 	//var VERSION = "(Version 1.04a, 11/18/2019)";
 	//	Removed "onchange" and "onclick" actions from output table 
@@ -226,7 +237,7 @@
 			line12c = +ROTHIRA3.value * line10;
 		line13 = line11 + line12; // nontaxable portion of all distributions
 		NewBasis.innerHTML =
-		line14 = Math.round(line03 - line13); // new total basis in traditional IRAs
+		line14 = Math.max(0, Math.round(line03 - line13)); // new total basis in traditional IRAs
 		line15 = line07 - line12; // taxable amount in traditional IRAs
 		line16 = line08;
 		line17 = line11;
@@ -238,6 +249,7 @@
 		errtest = line09 ? (line09 - line05) : 0;
 		Taxable.innerHTML = (errtest < 0) ? "Error" : ta;
 		Error1.innerHTML = (errtest < 0) ? "(Error: prior basis is greater than total IRA values, distributions and conversions)":"";
+		NonTaxable.innerHTML = Math.max(0, +OldBasis.value - +NewBasis.innerHTML);
 
 	}
 
@@ -395,6 +407,9 @@
 		<tr>
 			<td></td><td colspan="2">Total taxable amount <span id="Error1"></span></td>
 			<td class="calculated"><span id="Taxable"></span></td></tr>
+		<tr>
+			<td></td><td colspan="2">Change in basis (nontaxable amount)</span></td>
+			<td class="calculated"><span id="NonTaxable"></span></td></tr>
 	</table>
 
 </div> <!-- FilingInfo -->
