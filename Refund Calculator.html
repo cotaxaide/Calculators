@@ -36,10 +36,14 @@
 	h2 {
 		font-weight: bold;
 		background-color: lightgreen;
-		text-align: left;
-		font-size: 90%;
+		text-align: center;
+		font-size: 120%;
 		padding: 0;
 		margin: 0;
+	}
+	#NotDone {
+		color: yellow;
+		background-color: hotpink;
 	}
 
 	tr {
@@ -229,7 +233,9 @@
 	// To Do:
 	//	Provide for use of Schedule D
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.13b, 1/13/2020)";
+	VERSION = "(Version 2.13c, 4/9/2020)";
+	//	Added a warning message on results box if any data is needed
+	//VERSION = "(Version 2.13b, 1/13/2020)";
 	//	AGI variable error at CTCAGA
 	//VERSION = "(Version 2.13a, 1/12/2020)";
 	//	TaxSlayer change to where to enter Schedule 1 Line 1 bypass calculation
@@ -285,26 +291,13 @@
 	// --------------------------------------------------------------------------------
 
 	//Contributors:
-	//	Keith Gillen
-	//	Wells Johnson
-	//	Ronald Schmaeman
-	//	Sam Kaplan
-	//	Steve Conory
-	//	Fred Petranka
-	//	Bob Crews
-	//	Kenny Hayes
-	//	Leland Honda
-	//	Anne Hoffman
-	//	Milus Campbell
-	//	Peter Steefel
-	//	Deb Fisher
-	//	Lance Lauerhass
-	//	Dave Butner
-	//	Paul Peyser
-	//	Maria Maggio
-	//	Frank Krider
-	//	Vern Chartrand
-	//	Brad Kirby
+	//	Keith Gillen 		Wells Johnson 		Ronald Schmaeman
+	//	Sam Kaplan 		Steve Conory 		Fred Petranka
+	//	Bob Crews 		Kenny Hayes 		Leland Honda
+	//	Anne Hoffman		Milus Campbell		Peter Steefel
+	//	Deb Fisher		Lance Lauerhass		Dave Butner
+	//	Paul Peyser		Maria Maggio		Frank Krider
+	//	Vern Chartrand		Brad Kirby		Alvin Young
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -322,6 +315,7 @@
 	var ComputationComplete = false;
 	var ComputationCompleteAlert = false;
 	var MyinputList = [];
+	var NeedData = 0;
 	var PY = 0;
 	var CY = 0;
 	var NY = 0;
@@ -556,10 +550,13 @@
 		// What results lines to display
 		var ShowStatePT = (PropertyTaxRefundBox.checked) ? 0 : Math.round(+PropertyTaxRefund.value) ;
 		var ShowSalesPT = (PropertyTaxRefundBox.checked) ? Math.round(+PropertyTaxRefund.value) : 0 ;
+		var StateTest = +StateTaxRefund.value + ShowStatePT;
+		var FedTest = +SalesTaxRefund.value + +MedicalRefund.value + ShowSalesPT;
 		TaxableStateHeader.style.display =
-		TaxableStateRow.style.display = (+StateTaxRefund.value + ShowStatePT) ? "table-row" : "none" ;
+		TaxableStateRow.style.display = (StateTest) ? "table-row" : "none" ;
 		TaxableSalesHeader.style.display =
-		TaxableSalesRow.style.display = (+SalesTaxRefund.value + +MedicalRefund.value + ShowSalesPT) ? "table-row" : "none" ;
+		TaxableSalesRow.style.display = (FedTest) ? "table-row" : "none" ;
+		NotDone.style.display = (StateTest + FedTest) ? "block" : "none" ;
 		DedNY4QRow.style.display =
 		DedNY4QHeader.style.display = (DedNY4Q.value) ? "table-row" : "none" ;
 	
@@ -661,7 +658,7 @@
 		Elderly.style.backgroundColor = "";
 
 		// See if we have all we need to do a calculation
-		var NeedData = 0;
+		NeedData = 0;
 		TestingSchedAFor.innerHTML = "";
 		TestingStandardFor.innerHTML = "";
 		TestingNonTaxableFor.innerHTML = "";
@@ -1552,6 +1549,7 @@
 			TestingNonRefundableFor.innerHTML = "";
 			NonRefundableButton.style.display = "none";
 			ResultsDiv.style.backgroundColor = "lightgreen";
+			NotDone.style.display = "none";
 			RefundsButton.style.display = "none";
 		}
 
@@ -1999,6 +1997,7 @@
 
 <div id="ResultsDiv" class="new_block">
 	<h1>Results for TaxSlayer Entry</h1>
+	<h2 id="NotDone">Result is not yet final - complete all yellow boxes</h2>
 	<table class="data_entry">
 		<tr id="TaxableStateHeader">
 			<td colspan="3" class="underline">Federal taxable amount of refunds NOT taxable to the state:</td></tr>
