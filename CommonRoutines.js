@@ -13,7 +13,7 @@
 //	_EdCredit		AOC or LLC Credit
 //----------------------------------------------------------------------------------------
 //
- Version 1.06 2/10/2020
+// Version 1.06 2/10/2020
 //	Prevent Child Care Credit from returning a negative amount
 // Version 1.05 12/5/2019
 // 	Realigned line numbers an calc in Sched D CG worksheet
