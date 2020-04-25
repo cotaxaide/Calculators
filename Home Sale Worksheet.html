@@ -48,7 +48,7 @@
 		font-weight: bold;
 		font-size: 120%;
 		text-align: center;
-		width: 31%; 
+		width: 23%; 
 		margin-left: 1.4%;
 		display: inline-block;
 		border: 1px solid black;
@@ -58,6 +58,7 @@
 		position: relative;
 		top: 0;
 	}
+	#HomeDiv,
 	#InfoDiv,
 	#SaleDiv,
 	#CostDiv {
@@ -71,7 +72,6 @@
 	}
 	#DepName,
 	.TPName { width: 20em; font-size: 100%; }
-	.Improve { width: 17em; }
 	.tblLayout {
 		width: 100%;
 	}
@@ -83,7 +83,8 @@
 		width: 18em;
 	}
 	.tblLayout tr td:nth-child(2) {
-		width: 9em;
+		width: 10em;
+		white-space: nowrap;
 	}
 	.indent {
 		padding-left: 2em;
@@ -146,6 +147,19 @@
 		padding: 3px;
 		margin-top: 5px;
 	}
+	#HomeTable tr td {
+		border-bottom: 1px solid lightgrey;
+	}
+	#HomeTable tr td:nth-child(3) {
+		border-left: 2px solid grey;
+		padding-left: 5px;
+	}
+	#HITotal {
+		width: 100%;
+		text-align: center;
+		font-size: 120%;
+		font-weight: bold;
+	}
 	
 	@media print {
 		.doPrint {
@@ -171,7 +185,10 @@
 	// --------------------------------------------------------------------------------
 
 
-	VERSION = "(Version 1.00, 4/22/2020)";
+	VERSION = "(Version 1.01, 4/25/2020)";
+	//	Moved home improvement list to tab with inputs
+	//	Added $ to sale/cost inputs
+	//VERSION = "(Version 1.00, 4/22/2020)";
 
 	var TPExclusion = 250000;
 	var SPExclusion = 250000;
@@ -486,7 +503,6 @@ function Basis_Calc(test) {
 			DiedBasisComment.innerHTML = "Half of this value will be added to your basis";
 		}
 		CostType2Comment.innerHTML = "";
-		ImproveComment.innerHTML = " after spouse died";
 	}
 	else if (SPDivorcedY.checked) { // adjust the basis on date of divorce
 		if (SPDateDivorcedY.checked) {
@@ -499,7 +515,6 @@ function Basis_Calc(test) {
 			CostType2Comment.innerHTML = "Use home value when divorced";
 		}
 		DiedBasisComment.innerHTML = "";
-		ImproveComment.innerHTML = " after divorce";
 		CPSQuestion.style.display = "none";
 	}
 	else {
@@ -508,18 +523,18 @@ function Basis_Calc(test) {
 		SPDiedCommunityPropertyState.checked = false;
 		DiedBasis2.innerHTML = "";
 		CostType2Comment.innerHTML = "";
-		ImproveComment.innerHTML = "";
 	}
 
  	if (inherit2010) CostType2Comment.innerHTML += " (See Pubs 523 and 4895)";
 
 	if (ImproveElement[ImproveElement.length - 1].value != "") Add_Improvement();
 	ImproveTotal = 0;
-	for (i = 1 ; i <= ImproveElement.length ; i++) {
-		ImproveTotal += +ImproveElement[i-1].value;
+	for (i = 0 ; i < HomeImprovementList.length ; i++) {
+		ImproveTotal += +HomeImprovementList[i].value;
 	}
-	TSImproveAmount0.innerHTML = ImproveTotal;
-	ImproveAmount0.value = ImproveTotal;
+	HomeImprovementTotal.innerHTML = ImproveTotal;
+	TSImproveAmount.innerHTML = ImproveTotal;
+	ImproveAmount.value = ImproveTotal;
 
 	switch (true) {
 	case SPDivorcedY.checked:
@@ -715,13 +730,13 @@ function Tab_Click(id) {
 //	Change the view the user sees
 //----------------------------------------------------------------------------------------
 	InfoDivElement.style.display = "none";
-	InfoDivTabElement.style.zIndex = "0";
 	InfoDivTabElement.style.top = "0";
 	SaleDivElement.style.display = "none";
 	SaleDivTabElement.style.top = "0";
 	CostDivElement.style.display = "none";
-	CostDivTabElement.style.zIndex = "0";
 	CostDivTabElement.style.top = "0";
+	HomeDivElement.style.display = "none";
+	HomeDivTabElement.style.top = "0";
 	if ((id !== "InfoDiv") && (SaleDate.value == "")) {
 		alert ("Please enter the home sale date first.");
 		Tab_Click("InfoDiv");
@@ -747,6 +762,11 @@ function Tab_Click(id) {
 		CostDivTabElement.style.top = "1px";
 		PurchasePrice.focus();
 		break;
+	case "HomeDiv":
+		HomeDivElement.style.display = "block";
+		HomeDivTabElement.style.zIndex = "2";
+		HomeDivTabElement.style.top = "1px";
+		break;
 	}
 }
 
@@ -754,9 +774,8 @@ function Tab_Click(id) {
 function Add_Improvement() {
 //----------------------------------------------------------------------------------------
 	new_tr = document.createElement("tr");
-	CostTableElement.appendChild(new_tr);
+	HomeTableElement.appendChild(new_tr);
 	new_td = document.createElement("td");
-	new_td.className = "indent";
 	new_tr.appendChild(new_td);
 	new_input = document.createElement("input");
 	new_input.type = "text";
@@ -769,118 +788,13 @@ function Add_Improvement() {
 	new_input = document.createElement("input");
 	new_input.type = "number";
 	new_input.id = "ImproveAmount" + ImproveElement.push(new_input);
+	new_input.className = "HomeImprovement";
+	new_text = document.createElement("text");
+	new_text.innerHTML = "$";
+	new_td.appendChild(new_text);
 	new_td.appendChild(new_input);
 }
 
-//----------------------------------------------------------------------------------------
-function Show_Improve() {
-// Create the output window for home improvements guidelines
-//----------------------------------------------------------------------------------------
-	ImproveHelp = '<div style="backgroundColor:lightgreen;overflow:auto;">';
-	ImproveHelp += '<span class="floatbox">';
-	ImproveHelp += '<center>Systems</center><hr />';
-	ImproveHelp += 'Heating system';
-	ImproveHelp += '<br />Central air conditioning';
-	ImproveHelp += '<br />Furnace';
-	ImproveHelp += '<br />Duct work';
-	ImproveHelp += '<br />Central humidifier';
-	ImproveHelp += '<br />Central vacuum';
-	ImproveHelp += '<br />Air/water filtration systems';
-	ImproveHelp += '<br />Wiring';
-	ImproveHelp += '<br />Security system';
-	ImproveHelp += '<br />Lawn sprinkler system';
-	ImproveHelp += '</span>';
-	ImproveHelp += '';
-	ImproveHelp += '<span class="floatbox">';
-	ImproveHelp += '<center>Additions</center><hr />';
-	ImproveHelp += 'Bedroom';
-	ImproveHelp += '<br />Bathroom';
-	ImproveHelp += '<br />Deck';
-	ImproveHelp += '<br />Garage';
-	ImproveHelp += '<br />Porch';
-	ImproveHelp += '<br />Patio';
-	ImproveHelp += '</span>';
-	ImproveHelp += '';
-	ImproveHelp += '<span class="floatbox">';
-	ImproveHelp += '<center>Lawn &amp; Grounds</center><hr />';
-	ImproveHelp += 'Landscaping';
-	ImproveHelp += '<br />Driveway';
-	ImproveHelp += '<br />Walkway';
-	ImproveHelp += '<br />Fence';
-	ImproveHelp += '<br />Retaining wall';
-	ImproveHelp += '<br />Swimming pool';
-	ImproveHelp += '</span>';
-	ImproveHelp += '';
-	ImproveHelp += '<span class="floatbox">';
-	ImproveHelp += '<center>Pipes and duct work</center><hr />';
-	ImproveHelp += 'Plumbing';
-	ImproveHelp += '<br />Septic system';
-	ImproveHelp += '<br />Water heater';
-	ImproveHelp += '<br />Soft water system';
-	ImproveHelp += '<br />Filtration system';
-	ImproveHelp += '</span>';
-	ImproveHelp += '';
-	ImproveHelp += '<span class="floatbox">';
-	ImproveHelp += '<center>Interior</center><hr />';
-	ImproveHelp += 'Built-in appliances';
-	ImproveHelp += '<br />Kitchen modernization';
-	ImproveHelp += '<br />Flooring';
-	ImproveHelp += '<br />Wall-to-wall carpeting';
-	ImproveHelp += '<br />Fireplace';
-	ImproveHelp += '</span>';
-	ImproveHelp += '';
-	ImproveHelp += '<span class="floatbox">';
-	ImproveHelp += '<center>Exterior</center><hr />';
-	ImproveHelp += 'Storm windows/doors';
-	ImproveHelp += '<br />New roof';
-	ImproveHelp += '<br />New siding';
-	ImproveHelp += '<br />Satellite dish';
-	ImproveHelp += '</span>';
-	ImproveHelp += '';
-	ImproveHelp += '<span class="floatbox">';
-	ImproveHelp += '<center>Insulation</center><hr />';
-	ImproveHelp += 'Attic';
-	ImproveHelp += '<br />Walls';
-	ImproveHelp += '<br />Floors';
-	ImproveHelp += '</span>';
-	ImproveHelp += '';
-	ImproveHelp += '<div style="float: left; width: 100%">';
-	ImproveHelp += '<h3>Repairs done as part of larger project</h3>';
-	ImproveHelp += 'You can include repair-type work if it is done as part of an extensive remodeling';
-	ImproveHelp += 'or restoration job.';
-	ImproveHelp += 'For example, replacing broken windowpanes is a repair,';
-	ImproveHelp += 'but replacing the same window as part of a project of replacing all the windows';
-	ImproveHelp += 'in your home counts as an improvement.';
-	ImproveHelp += '</div>';
-	ImproveHelp += '';
-	ImproveHelp += '<div style="float: left; width: 100%">';
-	ImproveHelp += '<h3>Examples of improvements you CAN&apos;T include in your basis</h3>';
-	ImproveHelp += '<ul>';
-	ImproveHelp += '<li>Any costs of repairs or maintenance that are necessary to keep';
-	ImproveHelp += 'your home in good condition but don&apos;t add to its value or prolong its life.';
-	ImproveHelp += 'Examples include painting (interior or exterior), fixing leaks,';
-	ImproveHelp += 'filling holes or cracks, or replacing broken hardware.</li>';
-	ImproveHelp += '<li>Any costs of any improvements that are no longer part of your home';
-	ImproveHelp += '(for example, wall-to-wall carpeting that you installed but later replaced).</li>';
-	ImproveHelp += '<li>Any costs of any improvements with a life expectancy, when installed,';
-	ImproveHelp += 'of less than 1 year.</li>';
-	ImproveHelp += '</ul>';
-	ImproveHelp += '<u>Exception</u>: The entire job is considered an improvement if items that would';
-	ImproveHelp += 'otherwise be considered repairs are done as part of an extensive remodeling';
-	ImproveHelp += 'or restoration of your home.';
-	ImproveHelp += 'For example, if you have a casualty and your home is damaged,';
-	ImproveHelp += 'increase your basis by the amount you spend on repairs that restore the property';
-	ImproveHelp += 'to its pre-casualty condition.';
-	ImproveHelp += '</div></div>';
-	WinURL = document.URL;
-	HelpWindow = window.open("","","width=650,height=550,toolbar=yes,scrollbars=yes,resizeable=yes");
-	HelpWindow.document.open();
-	HelpWindow.document.writeln("<html><head><title>Home Improvements</title>");
-	StyleSpec = "h3{display:block;}";
-	StyleSpec += ".floatbox {display:inline;width:12em;float:left;padding:3px;margin:5px;border:2px solid green;}";
-	HelpWindow.document.writeln("<style>" + StyleSpec + "</style></head>");
-	HelpWindow.document.writeln("<body>" + ImproveHelp + "</body></html>");
-}
 </script>
 
 </head>
@@ -905,9 +819,10 @@ function Show_Improve() {
 
 	<div class="tabs noPrint">
 		<br />
-		<div id="InfoDivTab" class="tab" onclick="Tab_Click('InfoDiv');">Taxpayer information</div>
+		<div id="InfoDivTab" class="tab" onclick="Tab_Click('InfoDiv');">TP/home information</div>
 		<div id="SaleDivTab" class="tab" onclick="Tab_Click('SaleDiv');">Home sale details</div>
-		<div id="CostDivTab" class="tab" onclick="Tab_Click('CostDiv');">Home purchase details</div>
+		<div id="CostDivTab" class="tab" onclick="Tab_Click('CostDiv');">Home cost details</div>
+		<div id="HomeDivTab" class="tab" onclick="Tab_Click('HomeDiv');">Home improvements </div>
 	</div>
 
 	<div id="InfoDiv" class="section doPrint" onchange="Basis_Calc(true);">
@@ -1033,135 +948,273 @@ function Show_Improve() {
 			<td></td></tr>
 		<tr><td><br /><i><u>Sale price</u></i></span></td><td></td><td></td></tr>
 		<tr><td class="indent">Money received:</td>
-			<td><input id="SalePrice" type="number" /></td><td id="SalePriceComment"></td></tr>
+			<td>$<input id="SalePrice" type="number" /></td><td id="SalePriceComment"></td></tr>
 		<tr id="OtherValueRow"><td class="indent">Value of other property/services:</td>
-			<td><input id="OtherValue" type="number" /></td><td id="OtherValueComment"></td></tr>
+			<td>$<input id="OtherValue" type="number" /></td><td id="OtherValueComment"></td></tr>
 		<tr id="DebtsRow"><td class="indent">Value of debts assumed by buyer:</td>
-			<td><input id="Debts" type="number" /></td>
+			<td>$<input id="Debts" type="number" /></td>
 			<td>(eg: notes, mortgages)</td></tr>
 		<tr id="RETaxesRow"><td class="indent">Real estate taxes paid by buyer on your behalf:</td>
-			<td><input id="RETaxes" type="number" /></td>
+			<td>$<input id="RETaxes" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL SALE PRICE</b></td>
-				<td><input type="number" id="SalePriceTotal" disabled></td>
+				<td>$<input type="number" id="SalePriceTotal" disabled></td>
 			<td></td></tr>
 		<tr><td colspan="3"><br /><i><u>Expenses</u></i>
 			<span id="SaleExpenseComment"></span></td></tr>
 		<tr><td class="indent">Realtor commissions:</td>
-			<td><input id="Realtor" type="number" /></td>
+			<td>$<input id="Realtor" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Advertising and staging:</td>
-			<td><input id="Advertising" type="number" /></td>
+			<td>$<input id="Advertising" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Legal fees:</td>
-			<td><input id="Legal" type="number" /></td>
+			<td>$<input id="Legal" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Buyer&apos;s expenses you agreed to pay:</td>
-			<td><input id="BuyerExpense" type="number" /></td>
+			<td>$<input id="BuyerExpense" type="number" /></td>
 			<td>(eg: mortgage points, loan charges)</td></tr>
 		<tr><td class="indent">Other expenses:</td>
-			<td><input id="OtherExpense" type="number" /></td>
+			<td>$<input id="OtherExpense" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL SALE EXPENSES</b></td>
-			<td><input type="number" id="SaleExpensesTotal" disabled></td>
+			<td>$<input type="number" id="SaleExpensesTotal" disabled></td>
 			<td></td></tr>
 		</table>
 	</div> <!-- SaleDiv -->
 
 	<div id="CostDiv" class="section doPrint" onkeyup="Basis_Calc(true);">
-		<span class="tblHeader">Home purchase details:</span>
+		<span class="tblHeader">Home cost details:</span>
 		<br />&nbsp;
 		<span id="CostMFSNotice">
 			When filing Married Filing Seperately, only enter your portion of the amounts below.</span>
 		<table id="CostTable" class="tblLayout">
 		<tr><td id="CostType2"></td>
-			<td><input id="PurchasePrice" type="number" /></td>
+			<td>$<input id="PurchasePrice" type="number" /></td>
 			<td id="CostType2Comment"></td></tr>
 		<tr id="DiedBasisRow"><td id="DiedBasis2" class="indent"></td>
-			<td><input id="DiedBasis" type="number" /></td>
+			<td>$<input id="DiedBasis" type="number" /></td>
 			<td id="DiedBasisComment"></td></tr>
-		<tr><td colspan="3">Documented home improvements<span id="ImproveComment"></span>:
-				<button onclick="Show_Improve();" style="float: right;">Click to see what qualifies</button></td></tr>
-		</table>
-		<table class="tblLayout">
 		<tr><td>Home improvements total</td>
-			<td><input id="ImproveAmount0" type="number" disabled/></td>
-			<td></td></tr>
+			<td>$<input id="ImproveAmount" type="number" disabled/></td>
+			<td>(Total from home improvements tab)</td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>HOME COST BASIS</b></td>
-			<td><input id="Basis" type="number" disabled/></td>
+			<td>$<input id="Basis" type="number" disabled/></td>
 			<td></td></tr>
 		<tr><td>Tax assessments:</td>
-			<td><input id="TaxFee" type="number" /></td>
+			<td>$<input id="TaxFee" type="number" /></td>
 			<td>(eg: sidewalks, local improvements, condominium assessments)</td></tr>
 		<tr><td><br /><i><u>Expenses</u></i></td>
 			<td></td><td></td></tr>
 		<tr><td class="indent">Legal fees:</td>
-			<td><input id="LegalFee" type="number" /></td>
+			<td>$<input id="LegalFee" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Survey and recording fees:</td>
-			<td><input id="SurveyFee" type="number" /></td>
+			<td>$<input id="SurveyFee" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Title insurance:</td>
-			<td><input id="TitleFee" type="number" /></td>
+			<td>$<input id="TitleFee" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Seller fees you agreed to pay:</td>
-			<td><input id="SellerFee" type="number" /></td>
+			<td>$<input id="SellerFee" type="number" /></td>
 			<td>(eg: real estate taxes prior to sale, title/mortage fees, repair charges, real estate agent commissions)</td></tr>
 		<tr><td class="indent">Other fees:</td>
-			<td><input id="OtherFee" type="number" /></td>
+			<td>$<input id="OtherFee" type="number" /></td>
 			<td>(eg: sales tax on a mobile home or houseboat used as the home)</td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL PURCHASE EXPENSES</b></td>
-			<td><input type="number" id="PurchaseExpensesTotal" disabled></td>
+			<td>$<input type="number" id="PurchaseExpensesTotal" disabled></td>
 			<td></td></tr>
 		<tr><td><br /><i><u>Adjustments</u></i> (Decreases to your basis)</td>
 			<td></td><td></td></tr>
 		<tr><td class="indent">Payments received for easement, conservation restriction or right-of-way:</td>
-			<td><input id="Easements" type="number" /></td>
+			<td>$<input id="Easements" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Energy credits or subsidies:</td>
-			<td><input id="EnergyCredits" type="number" /></td>
+			<td>$<input id="EnergyCredits" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Adoption credits claimed or nontaxable payments from an employer-sponsored adoption assistance program:</td>
-			<td><input id="AdoptionCredits" type="number" /></td>
+			<td>$<input id="AdoptionCredits" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Real estate taxes the seller paid on your behalf:</td>
-			<td><input id="RETaxesBySeller" type="number" /></td>
+			<td>$<input id="RETaxesBySeller" type="number" /></td>
 			<td></td></tr>
 		<tr id="PointsBySellerRow">
 			<td class="indent">Mortgage points the seller paid on your behalf:</td>
-			<td><input id="PointsBySeller" type="number" /></td>
+			<td>$<input id="PointsBySeller" type="number" /></td>
 			<td id="PointsBySellerComment">
 			<!--if bought 12/31/1991 - 4/4/1994 and deducted
 			or after 4/3/1994 even if not deducted--></td></tr>
 		<tr><td class="indent">Sales tax paid on a mobile home or houseboat</td>
-			<td><input id="SalesTaxOnHome" type="number" /></td>
+			<td>$<input id="SalesTaxOnHome" type="number" /></td>
 			<td>If claimed as a deduction on a federal tax return</td></tr>
 		<tr><td class="indent">Other</td>
-			<td><input id="OtherAdjustments" type="number" /></td>
+			<td>$<input id="OtherAdjustments" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL ADJUSTMENTS</b></td>
-			<td><input id="TotalAdjusted" type="number" disabled/></td>
+			<td>$<input id="TotalAdjusted" type="number" disabled/></td>
 			<td></td></tr>
 		<tr><td><b>ADJUSTED COST BASIS</b></td>
-			<td><input id="AdjustedBasis" type="number" disabled/></td>
+			<td>$<input id="AdjustedBasis" type="number" disabled/></td>
 			<td></td></tr>
 		</table>
 	</div> <!-- CostDiv -->
+
+	<div id="HomeDiv" class="section doPrint" onkeyup="Basis_Calc(true);">
+		<span class="tblHeader">Home improvements:</span>
+		<br />&nbsp;
+		<br /><b>Examples of improvements you can include in your basis</b>
+		<ul>
+			<li>Do not include any costs of repairs or maintenance that are necessary to keep
+			your home in good condition but don&apos;t add to its value or prolong its life.
+			Examples include painting (interior or exterior), fixing leaks,
+			filling holes or cracks, or replacing broken hardware.</li>
+			<li>Do not include any costs of any improvements that are no longer part of your home
+			(for example, wall-to-wall carpeting that you installed but later replaced).</li>
+			<li>Do not include any costs of any improvements with a life expectancy,
+			when installed, of less than 1 year.</li>
+			<li>If the same improvement was made more than once,
+			only use the cost for the most current improvement</li>
+			<li>Do not enter individual amounts if they are part of a larger renovation project</li>
+		</ul>
+		<u>Exception</u>: The entire job is considered an improvement if items that would
+		otherwise be considered repairs are done as part of an extensive remodeling
+		or restoration of your home.
+		For example, if you have a casualty and your home is damaged,
+		increase your basis by the amount you spend on repairs that restore the property
+		to its pre-casualty condition.
+		<table id="HomeTable">
+			<tr>	<th colspan="4"><i><u>Systems</u></i></th></tr>
+			<tr>	<td>Air/water filtration systems</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Furnace</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Central air conditioning</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Heating system</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Central humidifier</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Lawn sprinkler system</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Central vacuum</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Security system</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Duct work</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Wiring</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<th colspan="4"><i><u>Additions</u></i></th></tr>
+			<tr>	<td>Bedroom</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Garage</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Bathroom</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Patio</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Deck</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Porch</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<th colspan="4"><i><u>Grounds</u></i></th></tr>
+			<tr>	<td>Driveway</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Retaining wall</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Fence</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Swimming pool</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Landscaping</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Walkway</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<th colspan="4"><i><u>Pipes and duct work</u></i></th></tr>
+			<tr>	<td>Filtration system</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Soft water system</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Plumbing</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Water heater</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Septic system</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<th colspan="4"><i><u>Interior</u></i></th></tr>
+			<tr>	<td>Built-in appliances</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Kitchen modernizaton</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Fireplace</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Wall-to-wall carpeting</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Flooring</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<th colspan="4"><i><u>Exterior</u></i></th></tr>
+			<tr>	<td>New roof</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Satellite dish</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>New siding</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Storm windows/doors</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<th colspan="4"><i><u>Insulation</u></i></th></tr>
+			<tr>	<td>Attic</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>Walls</td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td>Floors</td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<th colspan="4"><i><u>Remodeling projects</u></i></th></tr>
+			<tr>	<td colspan="4"><b>Repairs done as part of larger project</b>
+				<br />You can include repair-type work if it is done as part of an
+					extensive remodeling or restoration job.
+					For example, replacing broken window panes is a repair,
+					but replacing the same window as part of a project of
+					replacing all the windows in your home counts
+					as an improvement.</td></tr>
+		</table>
+		<br /><br />
+		<div id="HITotal">Home improvements total = $<span id="HomeImprovementTotal"></span></div>
+	<ul>
+	
+	</div> <!-- HomeDiv -->
 </div> <!-- InputDiv -->
 
 <div id="MessageDiv" class="section noPrint" style="margin-top:0" onchange="Basis_Calc(true);">
@@ -1238,7 +1291,7 @@ function Show_Improve() {
 		<tr><td colspan="2"></td><td>Other fees</td><td id="TSOtherFee"</td></tr>
 		<tr><td></td><td colspan="3"><b>General adjustments</b></td></tr>
 		<tr><td colspan="2"></td><td>Selling expenses</td><td id="TSSaleExpensesTotal"</td></tr>
-		<tr><td colspan="2"></td><td>Cost of additions and improvements that you made to your home</td><td id="TSImproveAmount0"</td></tr>
+		<tr><td colspan="2"></td><td>Cost of additions and improvements that you made to your home</td><td id="TSImproveAmount"</td></tr>
 		<tr><td colspan="2"></td><td>Tax assessments that you paid for sidewalks, streets and other local improvements</td><td id="TSTaxFee"</td></tr>
 		<tr><td colspan="2"></td><td>Other increases to your basis</td><td id="TSIncreases"</td></tr>
 		<tr><td colspan="2"></td><td>Decreases to your basis</td><td id="TSTotalAdjusted"</td></tr>
@@ -1281,7 +1334,10 @@ function Show_Improve() {
 	var SaleDivTabElement = document.getElementById("SaleDivTab");
 	var CostDivElement = document.getElementById("CostDiv");
 	var CostDivTabElement = document.getElementById("CostDivTab");
-	var CostTableElement = document.getElementById("CostTable");
+	var HomeDivElement = document.getElementById("HomeDiv");
+	var HomeDivTabElement = document.getElementById("HomeDivTab");
+	var HomeTableElement = document.getElementById("HomeTable");
+	var HomeImprovementList = document.getElementsByClassName("HomeImprovement");
 	// For testing
 	//SalePrice.value = 600000;
 	//PurchasePrice.value = 200000;
