@@ -6,51 +6,51 @@
         // Form line numbers
         // var LineNo = [];
 		// 1040
-		_LineNo[_TY+":Salary"] = "1";		// Needs update
-		_LineNo[_TY+":Business"] = "S1-3";		// Needs update
-                _LineNo[_TY+":Earned"] = "1&S1-3";		// Needs update
-		_LineNo[_TY+":Pension"] = "4b+4d";		// Needs update
-                _LineNo[_TY+":TaxExInc"] = "2a";		// Needs update
-                _LineNo[_TY+":QualDiv"] = "3a";		// Needs update
-                _LineNo[_TY+":SSI"] = "5a";		// Needs update
-                _LineNo[_TY+":SST"] = "5b";		// Needs update
-                _LineNo[_TY+":CapGains"] = "6";		// Needs update
-                _LineNo[_TY+":AGI"] = "8b";		// Needs update
-                _LineNo[_TY+":Deductions"] = "9";		// Needs update
-                _LineNo[_TY+":QBI"] = "10";		// Needs update
-                _LineNo[_TY+":Taxable"] = "11b";		// Needs update
-                _LineNo[_TY+":QDCG"] = "12";		// Needs update
-                _LineNo[_TY+":TaxAmount"] = "12";		// Needs update
-                _LineNo[_TY+":CTC"] = "13a";		// Needs update
-                _LineNo[_TY+":COD"] = "13a";		// Needs update
-                _LineNo[_TY+":NRCredit"] = "13b";		// Needs update
-                _LineNo[_TY+":EIC"] = "18a";		// Needs update
-                _LineNo[_TY+":ACTC"] = "18b";		// Needs update
-                _LineNo[_TY+":AOC"] = "18c";		// Needs update
+		_LineNo[_TY+":Salary"] = "1";		
+		_LineNo[_TY+":Business"] = "S1-3";	
+                _LineNo[_TY+":Earned"] = "1&S1-3";	
+		_LineNo[_TY+":Pension"] = "4b+4d";	
+                _LineNo[_TY+":TaxExInc"] = "2a";	
+                _LineNo[_TY+":QualDiv"] = "3a";		
+                _LineNo[_TY+":SSI"] = "5a";		
+                _LineNo[_TY+":SST"] = "5b";		
+                _LineNo[_TY+":CapGains"] = "6";		
+                _LineNo[_TY+":AGI"] = "8b";		
+                _LineNo[_TY+":Deductions"] = "9";	
+                _LineNo[_TY+":QBI"] = "10";		
+                _LineNo[_TY+":Taxable"] = "11b";	
+                _LineNo[_TY+":QDCG"] = "12";		
+                _LineNo[_TY+":TaxAmount"] = "12";	
+                _LineNo[_TY+":CTC"] = "13a";		
+                _LineNo[_TY+":COD"] = "13a";		
+                _LineNo[_TY+":NRCredit"] = "13b";	
+                _LineNo[_TY+":EIC"] = "18a";		
+                _LineNo[_TY+":ACTC"] = "18b";		
+                _LineNo[_TY+":AOC"] = "18c";		
 		// Schedules 1-3
-                _LineNo[_TY+":SEP"] = "S1-15";		// Needs update
-                _LineNo[_TY+":SEHI"] = "S1-16";		// Needs update
-                _LineNo[_TY+":Adjustments"] = "S1-22";		// Needs update
-                _LineNo[_TY+":ExcessAPTC"] = "S2-2";		// Needs update
-                _LineNo[_TY+":Foreign"] = "S3-1";		// Needs update
-                _LineNo[_TY+":TNF"] = "";		// Needs update
-                _LineNo[_TY+":Care"] = "S3-2";		// Needs update
-                _LineNo[_TY+":LLC"] = "S3-3";		// Needs update
-                _LineNo[_TY+":Retire"] = "S3-4";		// Needs update
-                _LineNo[_TY+":IRP"] = "";		// Needs update
-                _LineNo[_TY+":NetPTC"] = "S3-9";		// Needs update
+                _LineNo[_TY+":SEP"] = "S1-15";		
+                _LineNo[_TY+":SEHI"] = "S1-16";		
+                _LineNo[_TY+":Adjustments"] = "S1-22";	
+                _LineNo[_TY+":ExcessAPTC"] = "S2-2";	
+                _LineNo[_TY+":Foreign"] = "S3-1";	
+                _LineNo[_TY+":TNF"] = "";		
+                _LineNo[_TY+":Care"] = "S3-2";		
+                _LineNo[_TY+":LLC"] = "S3-3";		
+                _LineNo[_TY+":Retire"] = "S3-4";	
+                _LineNo[_TY+":IRP"] = "";		
+                _LineNo[_TY+":NetPTC"] = "S3-9";	
 		// Schedule A
-	        _LineNo[_TY+":StateWH"] = "5a"; // Sched A		// Needs update
-	        _LineNo[_TY+":Property"] = "5b"; // Sched A		// Needs update
-		_LineNo[_TY+":SALT"] = "5d"; // Sched A		// Needs update
-                _LineNo[_TY+":ItemDed"] = "17"; // Sched A		// Needs update
-		_LineNo[_TY+":UseSchedA"] = "18"; // Sched A	// Needs update
+	        _LineNo[_TY+":StateWH"] = "5a"; 
+	        _LineNo[_TY+":Property"] = "5b"; 
+		_LineNo[_TY+":SALT"] = "5d";
+                _LineNo[_TY+":ItemDed"] = "17";
+		_LineNo[_TY+":UseSchedA"] = "18";
 		// Form 2555
-	        _LineNo[_TY+":F2555"] = "45 & 50"; //Form 2555		// Needs update
+	        _LineNo[_TY+":F2555"] = "45 & 50";
 		// Form 8962
-	        _LineNo[_TY+":F8962A"] = "11a";		// Needs update
-	        _LineNo[_TY+":F8962B"] = "11b";		// Needs update
-	        _LineNo[_TY+":F8962F"] = "11f";		// Needs update
+	        _LineNo[_TY+":F8962A"] = "11a";		
+	        _LineNo[_TY+":F8962B"] = "11b";		
+	        _LineNo[_TY+":F8962F"] = "11f";		
 
         // var EdExpenseLimits = [];
 		// Source: Pub 970 or Form 8863 (AOC & LLC)
@@ -72,11 +72,10 @@
 		_EdExpenseLimits["N/A"]  = 2;	// SAV gone (SNG, HOH)
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, WID)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
-
-                _EdExpenseLimits[_TY+":TNF"] = " 4000, 66000, 2000,  80000,       0";	// Needs update
-                _EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";
-                _EdExpenseLimits[_TY+":LLC"] = "10000, 59000, 66000, 118000, 132000";	// Tentative
-                _EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";	// Need update
+        
+		_EdExpenseLimits[_TY+":TNF"] = " 4000, 66000, 2000,  80000,       0";	
+		_EdExpenseLimits[_TY+":LLC"] = "10000, 59000, 69000, 118000, 138000";	
+		_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";	
 		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 82350, 96100, 123550, 151600";	// Tentative
 
         // var Standard = [];	// Exemption and standard deductions
@@ -102,29 +101,29 @@
 
         // var TaxRates = [];
                 _TaxRates[_TY+":PCT"] = " 0.10,  0.12,   0.22,   0.24,   0.32,   0.35,   0.37";
-                _TaxRates[_TY+":SNG"] = " 9875, 40125,  85525, 163300, 207350, 518400";		// Tentative
-                _TaxRates[_TY+":MFJ"] = "19750, 80250, 171050, 326600, 414700, 622050";		// Tentative
-                _TaxRates[_TY+":WID"] = "19750, 80250, 171050, 326600, 414700, 622050";		// Tentative
-                _TaxRates[_TY+":MFS"] = " 9875, 40125,  85525, 163300, 207350, 311025";		// Tentative
-                _TaxRates[_TY+":HOH"] = "14100, 53700,  85500, 163300, 207350, 518400";		// Tentative
-                _TaxRates[_TY+":TRUST"]=" 2600,  2600,   2600,   9450,   9450,  12950";		// Tentative
+                _TaxRates[_TY+":SNG"] = " 9875, 40125,  85525, 163300, 207350, 518400";		
+                _TaxRates[_TY+":MFJ"] = "19750, 80250, 171050, 326600, 414700, 622050";		
+                _TaxRates[_TY+":WID"] = "19750, 80250, 171050, 326600, 414700, 622050";		
+                _TaxRates[_TY+":MFS"] = " 9875, 40125,  85525, 163300, 207350, 311025";		
+                _TaxRates[_TY+":HOH"] = "14100, 53700,  85500, 163300, 207350, 518400";		
+                _TaxRates[_TY+":TRUST"]=" 2600,  2600,   2600,   9450,   9450,  12950";		
 
 	// CGRates
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";
-                _CGRates[_TY+":SNG"] = "40000, 441450";		// Tentative
-                _CGRates[_TY+":MFJ"] = "80000, 496600";		// Tentative
-                _CGRates[_TY+":WID"] = "80000, 496600";		// Tentative
-                _CGRates[_TY+":MFS"] = "40000, 248300";		// Tentative
-                _CGRates[_TY+":HOH"] = "53600, 469050";		// Tentative
-                _CGRates[_TY+":TRUST"]=" 2650,  13150";		// Tentative
+                _CGRates[_TY+":SNG"] = "40000, 441450";		
+                _CGRates[_TY+":MFJ"] = "80000, 496600";		
+                _CGRates[_TY+":WID"] = "80000, 496600";		
+                _CGRates[_TY+":MFS"] = "40000, 248300";		
+                _CGRates[_TY+":HOH"] = "53600, 469050";		
+                _CGRates[_TY+":TRUST"]=" 2650,  13150";		
 
 	// Self-employment tax rates
-		_SESocSec[_TY] = 0.124;		// Needs update
-		_SEMedicare[_TY] = 0.029;		// Needs update
-		_SEMaxWages[_TY] = 128400;		// Needs update
+		_SESocSec[_TY] = 0.124;		
+		_SEMedicare[_TY] = 0.029;	
+		_SEMaxWages[_TY] = 128400;	
 
 	// var MedicalExclusion = [];
-		_MedicalExclusion[_TY] = "0.10, 0.10";		// Needs update
+		_MedicalExclusion[_TY] = "0.10, 0.10";	
 
 	// StateTaxCap
 		_SALT[_TY] = 10000;			// New tax law
@@ -132,12 +131,12 @@
         // var RetireLimits = [];
                 // Source: 1040 instructions for line 51
                 // MFJ,SNG,HOH,WID,MFS
-                _RetireLimits["SNG"] = 0;		// Needs update
-                _RetireLimits["WID"] = 0;		// Needs update
-                _RetireLimits["MFS"] = 0;		// Needs update
-                _RetireLimits["HOH"] = 1;		// Needs update
-                _RetireLimits["MFJ"] = 2;		// Needs update
-                _RetireLimits[_TY] = "31500, 47250, 63000"; 	// Need update
+                _RetireLimits["SNG"] = 0;		
+                _RetireLimits["WID"] = 0;		
+                _RetireLimits["MFS"] = 0;		
+                _RetireLimits["HOH"] = 1;		
+                _RetireLimits["MFJ"] = 2;		
+                _RetireLimits[_TY] = "31500, 47250, 63000"; 	
 
         // var CTCLimits = [];
                 // Source: 1040 instructions for line 52 and Form 8812
@@ -147,11 +146,11 @@
                 _CTCLimits["HOH"] = 1;
                 _CTCLimits["WID"] = 1;
                 _CTCLimits["MFS"] = 2;
-                _CTCLimits[_TY+":AGICap"] = "400000,200000,200000";		// Needs update
-		_CTCLimits[_TY+":CTCRate"] = 2000;		// Needs update
-		_CTCLimits[_TY+":FTCRate"] = 500;		// Needs update
-		_CTCLimits[_TY+":ACTCRate"] = 1400;		// Tentative
-		_CTCLimits[_TY+":ACTCThreshold"] = 2500;		// Needs update
+                _CTCLimits[_TY+":AGICap"] = "440000,240000,240000";
+		_CTCLimits[_TY+":CTCRate"] = 2000;		
+		_CTCLimits[_TY+":FTCRate"] = 500;		
+		_CTCLimits[_TY+":ACTCRate"] = 1400;		
+		_CTCLimits[_TY+":ACTCThreshold"] = 2500;	
 
         // var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)
@@ -165,13 +164,13 @@
 		// INVEST is the max investment limit to qualify for EIC
                 // Columns are: 0, 1, 2, 3 children
 		// Needs update
-                _EICRates[_TY+":AGISNG"] =   "  8790,  19330,  19330,  19330";		// Tentative
-                _EICRates[_TY+":AGIMFJ"] =   " 14680,  25220,  25220,  25220";		// Tentative
-                _EICRates[_TY+":SNG"] =      " 15570,  41094,  46703,  50162";		// Needs update
-                _EICRates[_TY+":MFJ"] =      " 21370,  46884,  52493,  55952";		// Needs update
-                _EICRates[_TY+":MAX"] =      "   529,   3526,   5828,   6557";		// Needs update
-                _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";		// Needs update
-                _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";		// Needs update
+                _EICRates[_TY+":AGISNG"] =   "  8790,  19330,  19330,  19330";		
+                _EICRates[_TY+":AGIMFJ"] =   " 14680,  25220,  25220,  25220";		
+                _EICRates[_TY+":SNG"] =      " 15820,  41756,  47440,  50954";		
+                _EICRates[_TY+":MFJ"] =      " 21710,  47646,  53330,  56844";		
+                _EICRates[_TY+":MAX"] =      "   538,   3584,   5920,   6660";		
+                _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";		
+                _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";		
                 _EICRates[_TY+":INVEST"] = 3650;		// Tentative
 
 	// var FPL = [];
@@ -198,48 +197,48 @@
 		_PTCFactorVal[_TY+":300"] = "400, 9.86, 9.86, 1250";		// Needs update
 
 	// var AffordRate = [];
-		_AffordRate[_TY] = 0.0805;	// Need verification? (went down?)		// Needs update
+		_AffordRate[_TY] = 0.0805;	
 
 	// var AffordRateEmployerSelf = [];
-		_AffordRateEmployerSelf[_TY] = 0.0986;		// Needs update
+		_AffordRateEmployerSelf[_TY] = 0.0986;	
 
 	// var Qualified Business Income Deduction
 		_QBILimits[_TY+":Rate"] = "0.2";
-		_QBILimits[_TY+":SNG"] = "163300";		// Tentative
-		_QBILimits[_TY+":MFJ"] = "326600";		// Tentative
-		_QBILimits[_TY+":MFS"] = "163300";		// Tentative
-		_QBILimits[_TY+":HOH"] = "163300";		// Tentative
-		_QBILimits[_TY+":WID"] = "326600";		// Tentative
+		_QBILimits[_TY+":SNG"] = "163300";		
+		_QBILimits[_TY+":MFJ"] = "326600";		
+		_QBILimits[_TY+":MFS"] = "163300";		
+		_QBILimits[_TY+":HOH"] = "163300";		
+		_QBILimits[_TY+":WID"] = "326600";		
 
 	// Net Investment Income Tax
-		_NIITLimits[_TY+":Rate"] = "0.038";		// Needs update
-		_NIITLimits[_TY+":SNG"] = "200000";		// Needs update
-		_NIITLimits[_TY+":MFJ"] = "250000";		// Needs update
-		_NIITLimits[_TY+":MFS"] = "125000";		// Needs update
-		_NIITLimits[_TY+":HOH"] = "200000";		// Needs update
-		_NIITLimits[_TY+":WID"] = "250000";		// Needs update
+		_NIITLimits[_TY+":Rate"] = "0.038";		
+		_NIITLimits[_TY+":SNG"] = "200000";		
+		_NIITLimits[_TY+":MFJ"] = "250000";		
+		_NIITLimits[_TY+":MFS"] = "125000";		
+		_NIITLimits[_TY+":HOH"] = "200000";		
+		_NIITLimits[_TY+":WID"] = "250000";		
 
 	// Alternative Minimum Tax
 		//                  Exempt  Phaseout
-		_AMT[_TY+":MFJ"] = "113400, 1036800";		// Tentative
-		_AMT[_TY+":SNG"] = "72900,   518400";		// Tentative
-		_AMT[_TY+":MFS"] = "56700,   518400";		// Tentative
-		_AMT[_TY+":WID"] = "72900,   518400";		// Tentative
-		_AMT[_TY+":HOH"] = "72900,   518400";		// Tentative
-		_AMT[_TY+":TRUST"]="25400,    84800";		// Tentative
+		_AMT[_TY+":MFJ"] = "113400, 1036800";		
+		_AMT[_TY+":SNG"] = "72900,   518400";		
+		_AMT[_TY+":MFS"] = "56700,   518400";		
+		_AMT[_TY+":WID"] = "72900,   518400";		
+		_AMT[_TY+":HOH"] = "72900,   518400";		
+		_AMT[_TY+":TRUST"]="25400,    84800";		
 		_AMT[_TY+":KIDDIE"]="7900,   510300";		// (Exempt + earned) up to SNG rate
 		
 	// Health Savings Account (HSA)
-		_HSA[_TY+":IND"] = 3500;	// Needs update
-		_HSA[_TY+":FAM"] = 7000;	// Needs update
+		_HSA[_TY+":IND"] = 3550;	
+		_HSA[_TY+":FAM"] = 7100;	
 
 	// Retirement Savings Contribution (Form 8880)
 		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";
-		_RETIRE[_TY+":MFJ"] = "38500,	41500,	64000";	// Need update
-		_RETIRE[_TY+":HOH"] = "28875,	31125,	48000";	// Need update
+		_RETIRE[_TY+":MFJ"] = "38500,	41500,	64000";	
+		_RETIRE[_TY+":HOH"] = "28875,	31125,	48000";	
 		_RETIRE[_TY+":SNG"] = 
 		_RETIRE[_TY+":WID"] = 
-		_RETIRE[_TY+":MFS"] = "19250,	20750,	32000";	// Need update
+		_RETIRE[_TY+":MFS"] = "19250,	20750,	32000";	
 
 	// IRA Adjustment limits
 		_IRALimits[_TY+":AGE"] = 50;
