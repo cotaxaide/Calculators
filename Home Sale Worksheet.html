@@ -147,6 +147,9 @@
 		padding: 3px;
 		margin-top: 5px;
 	}
+	#HomeTable {
+		margin: auto;
+	}
 	#HomeTable tr td {
 		border-bottom: 1px solid lightgrey;
 	}
@@ -182,10 +185,23 @@
 	// --------------------------------------------------------------------------------
 	// Contributors:
 	//	Kenny Hayes
+	//	Maggie Barrington
+	//	Bob Goings
+	//	Mark Riley
 	// --------------------------------------------------------------------------------
 
-
-	VERSION = "(Version 1.01, 4/25/2020)";
+	VERSION = "(Version 1.04, 4/30/2020)";
+	//	Changed message for like-kind exchange to no exclusion available
+	//VERSION = "(Version 1.03, 4/29/2020)";
+	//	Removed OOS for not main home
+	//VERSION = "(Version 1.02, 4/28/2020)";
+	//	Corrected error where only money received was incuded in SchedD cost
+	//	Changed not main home to out of scope
+	//	Added test for out of scope installment sale
+	//	Prevented sale date to be greater than current year
+	//	Display first-time homebuyer lines only for 2008-2011 purchases
+	//	Added alert message for 2010 inheritance
+	//VERSION = "(Version 1.01, 4/25/2020)";
 	//	Moved home improvement list to tab with inputs
 	//	Added $ to sale/cost inputs
 	//VERSION = "(Version 1.00, 4/22/2020)";
@@ -199,6 +215,8 @@
 	var ImproveElement = [];
 	var HasSpouse = false;
 	var SpouseApplies = false;
+	var InheritMessage = "Verify the date inherited.\n\nIt may not be the date of death\n\n(See Pubs 523 and 4895)";
+	var InheritMessageShown = false;
 
 function noop() {return}
 
@@ -210,17 +228,24 @@ function Initialize() {
 	SaleDate.value = _DefaultYear + "-01-01";
 	Add_Improvement();
 	Tab_Click("InfoDiv");
-	Basis_Calc(false);
+	Basis_Calc();
 }
 
 //----------------------------------------------------------------------------------------
-function Basis_Calc(test) {
-// test = true for changes in other than TP info section
+function Basis_Calc(ignore) {
+//	ignore = null for changes in other than SaleDate input
 //----------------------------------------------------------------------------------------
-	if (test && (SaleDate.value == "")) {
-		alert ("Please enter the home sale date first.");
-		Tab_Click("InfoDiv");
-		return;
+	if (SaleDate.value == "") {
+		if (ignore) {
+			ChangingSaleDate = true;
+			return;
+		}
+		else if (! ChangingSaleDate) {
+			alert ("Please enter the home sale date first.");
+			ChangingSaleDate = false;
+			Tab_Click("InfoDiv");
+			return;
+		}
 	}
 
 	// Initialize variables
@@ -232,6 +257,7 @@ function Basis_Calc(test) {
 	TPPartialExclusionApplies = false;
 	SPPartialExclusionApplies = false;
 	PartialExclusionApplies = false;
+	ChangingSaleDate = false;
 
 	FileMFS = (FilingStatus.value === "MFS");
 	SaleMFSNotice.style.display = (FileMFS) ? "block" : "none" ;
@@ -244,12 +270,17 @@ function Basis_Calc(test) {
 	// Taxpayer information section -----------------------------------------------
 
 	// Set relevant dates based on date of sale
-	Sale_Date = SaleDate.value;
+	var Sale_Date = [];
+	Sale_Date = SaleDate.value.split("-");
 	SaleDateDays = 0;
 	if (Sale_Date) {
-		Yr = Sale_Date.substr(0,4);
-		Mo = +Sale_Date.substr(5,2);
-		Dy = +Sale_Date.substr(8,2);
+		Yr = +Sale_Date[0];
+		if (Yr > _ThisYear) { // input doesn't always limit to 4 digits
+			Yr = _ThisYear;
+			SaleDate.value = Yr + "-" + Sale_Date[1] + "-" + Sale_Date[2]; 
+		}
+		Mo = +Sale_Date[1];
+		Dy = +Sale_Date[2];
 		SaleDateDays = new Date(SaleDate.value);
 		TSSaleDate.innerHTML =
 		DateSold.innerHTML = Mo + "/" + Dy + "/" + Yr;
@@ -260,23 +291,30 @@ function Basis_Calc(test) {
 		TPFiveYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 5);
 	}
 
+	DaysOwned.innerHTML = "";
 	if (PurchasedDate.value > SaleDate.value) {
 		alert ("The date purchased/inherited cannot be later than the date sold.");
+		DaysOwned.innerHTML = "Date error";
 		return;
 	}
 	PurchDateDays = 0;
-	Purchased_Date = PurchasedDate.value;
+	var Purchased_Date = [];
+	Purchased_Date = PurchasedDate.value.split("-");
 	if (Purchased_Date){
-		Yr = Purchased_Date.substr(0,4);
-		Mo = +Purchased_Date.substr(5,2);
-		Dy = +Purchased_Date.substr(8,2);
+		Yr = +Purchased_Date[0];
+		if (Yr > _ThisYear) { // input doesn't always limit to 4 digits
+			Yr = _ThisYear;
+			Purchased_Date.value = Yr + "-" + Purchased_Date[1] + "-" + Purchased_Date[2]; 
+		}
+		Mo = +Purchased_Date[1];
+		Dy = +Purchased_Date[2];
 		PurchDateDays = new Date(Purchased_Date);
 		TSPurchasedDate.innerHTML =
 		DateAcquired.innerHTML = Mo + "/" + Dy + "/" + Yr;
 
 		// Calculate how many days the property was owned
 		OwnedDays = Math.round((SaleDateDays.valueOf() - PurchDateDays.valueOf()) / (1000 * 24 * 60 * 60))
-		DaysOwned.innerHTML = "(Owned for " + OwnedDays + " days)";
+		if (OwnedDays) DaysOwned.innerHTML = "(Owned for " + OwnedDays + " days)";
 		FiveYearDays = (5 * 365) + 2;
 		// TaxSlayer doesn't count leap year days
 		OwnedDays = Math.min(OwnedDays, FiveYearDays, 1825);
@@ -301,10 +339,24 @@ function Basis_Calc(test) {
 			PointsBySellerRow.style.display = "table-row";
 		}
 		else PointsBySeller.value = "";
+
+		// Special situation if inherited in 2010
 		inherit2010 = ((Yr == 2010) && (Inherit.checked));
+		if ((inherit2010) && (! InheritMessageShown)) {
+			alert(InheritMessage);
+			InheritMessageShown = true;
+		}
+
+		// First-time homebuyer questions
+		ShowFTHB = ((Yr > 2007) && (Yr < 2012));
+		TSHBCredit.innerHTML = (ShowFTHB) ? "Check if true" : "No" ;
+		for (j = 0 ; j < FTHBList.length ; j++) {
+			FTHBList[j].style.display = (ShowFTHB) ? "table-row" : "none" ;
+		}
 	}
 	switch (true) {
 	case LikeKind.checked:
+		TPExclusionApplies = SPExclusionApplies = false;
 		OutOfScope = true;
 		break;
 	case Inherit.checked:
@@ -315,15 +367,18 @@ function Basis_Calc(test) {
 		CostType2.innerHTML = "Purchase price:";
 	}
 
-	if (MainN.checked) TPExclusionApplies = SPExclusionApplies = false;
+	if (MainN.checked) {
+		TPExclusionApplies = SPExclusionApplies = false;
+		//OutOfScope = true;
+	}
 
-	if (FileMFS) {
-		JointRow.style.display = "none";
-		JointN.checked = true;
-	}
-	else {
-		JointRow.style.display = "table-row";
-	}
+	//if (FileMFS) {
+	//	JointRow.style.display = "none";
+	//	JointN.checked = true;
+	//}
+	//else {
+	//	JointRow.style.display = "table-row";
+	//}
 
 	if (JointY.checked) {
 		SpouseApplies = true;
@@ -384,12 +439,14 @@ function Basis_Calc(test) {
 		SPExclusionApplies = false;
 	}
 
-	PostponedOOS.style.display = "none";
+	if (InstallmentY.checked) {
+		OutOfScope = true;
+	}
+
 	if (PostponedY.checked) {
 		OutOfScope = true;
 	}
 
-	RentalOOS.style.display = "none";
 	if (RentalY.checked) {
 		OutOfScope = true;
 	}
@@ -525,8 +582,6 @@ function Basis_Calc(test) {
 		CostType2Comment.innerHTML = "";
 	}
 
- 	if (inherit2010) CostType2Comment.innerHTML += " (See Pubs 523 and 4895)";
-
 	if (ImproveElement[ImproveElement.length - 1].value != "") Add_Improvement();
 	ImproveTotal = 0;
 	for (i = 0 ; i < HomeImprovementList.length ; i++) {
@@ -577,7 +632,12 @@ function Basis_Calc(test) {
 	TSInputDiv.style.display = "block";
 
 	if (OutOfScope) {
-		QualificationMessage.innerHTML = "An exclusion may be available";
+		if ((! TPExclusionApplies) && (! SPExclusionApplies)) {
+			QualificationMessage.innerHTML = "You do not qualify for an exclusion";
+		}
+		else {
+			QualificationMessage.innerHTML = "An exclusion may be available";
+		}
 		QualificationMessage.style.display = "block";
 		ErrorMessage.innerHTML = "Your situation is beyond the scope of this worksheet";
 		ErrorMessage.style.display = "block";
@@ -628,10 +688,10 @@ function Basis_Calc(test) {
 	}
 
 	ExclusionApplies = (ExclAmt) ? true : false ;
-	SalesPrice.innerHTML = SalePrice.value;
+	SalesPrice.innerHTML = spt;
 	cost = +AdjustedBasis.value + set;
 	Cost.innerHTML = cost;
-	Gain = SalePrice.value - cost;
+	Gain = SalePriceTotal.value - cost;
 	ExclusionMessage.style.display = "none";
 	ExclAmt = Math.min(ExclAmt, Math.max(0, Gain));
 	if (Gain >= 0) {
@@ -747,25 +807,25 @@ function Tab_Click(id) {
 	case "InfoDiv":
 		InfoDivElement.style.display = "block";
 		InfoDivTabElement.style.zIndex = "2";
-		InfoDivTabElement.style.top = "1px";
+		InfoDivTabElement.style.top = "2px";
 		TPName.focus();
 		break;
 	case "SaleDiv":
 		SaleDivElement.style.display = "block";
 		SaleDivTabElement.style.zIndex = "2";
-		SaleDivTabElement.style.top = "1px";
+		SaleDivTabElement.style.top = "2px";
 		SalePrice.focus();
 		break;
 	case "CostDiv":
 		CostDivElement.style.display = "block";
 		CostDivTabElement.style.zIndex = "2";
-		CostDivTabElement.style.top = "1px";
+		CostDivTabElement.style.top = "2px";
 		PurchasePrice.focus();
 		break;
 	case "HomeDiv":
 		HomeDivElement.style.display = "block";
 		HomeDivTabElement.style.zIndex = "2";
-		HomeDivTabElement.style.top = "1px";
+		HomeDivTabElement.style.top = "2px";
 		break;
 	}
 }
@@ -819,13 +879,15 @@ function Add_Improvement() {
 
 	<div class="tabs noPrint">
 		<br />
-		<div id="InfoDivTab" class="tab" onclick="Tab_Click('InfoDiv');">TP/home information</div>
-		<div id="SaleDivTab" class="tab" onclick="Tab_Click('SaleDiv');">Home sale details</div>
-		<div id="CostDivTab" class="tab" onclick="Tab_Click('CostDiv');">Home cost details</div>
-		<div id="HomeDivTab" class="tab" onclick="Tab_Click('HomeDiv');">Home improvements </div>
+		<table style="width: 100%;"><tr>
+		<td id="InfoDivTab" class="tab" onclick="Tab_Click('InfoDiv');">TP/home&nbsp;information</td>
+		<td id="SaleDivTab" class="tab" onclick="Tab_Click('SaleDiv');">Home&nbsp;sale&nbsp;details</td>
+		<td id="CostDivTab" class="tab" onclick="Tab_Click('CostDiv');">Home&nbsp;cost&nbsp;details</td>
+		<td id="HomeDivTab" class="tab" onclick="Tab_Click('HomeDiv');">Home&nbsp;improvements</td>
+		</tr></table>
 	</div>
 
-	<div id="InfoDiv" class="section doPrint" onchange="Basis_Calc(true);">
+	<div id="InfoDiv" class="section doPrint" onchange="Basis_Calc();">
 		<span class="tblHeader">Taxpayer Information:</span>
 		<br />
 		<br />
@@ -842,16 +904,18 @@ function Add_Improvement() {
 					<option value="HOH">HOH</option>
 					<option value="WID">Widow(er)</option></select>
 		</td><td></td></tr>
-		<tr><td>Date sold:</td>
-			<td><input id="SaleDate" type="date" /></td>
+		<tr id="SaleDateRow"><td>Date sold:</td>
+			<td><input id="SaleDate" type="date" onchange="Basis_Calc(this.id);" /></td>
 			<td><b>&#9754; Enter this before answering questions below!</b></td></tr>
+		</table>
+		<table class="tblLayout" onchange="Basis_Calc(this.id);">
 		<tr><td id="CostType1">Date obtained:</td>
 			<td><input id="PurchasedDate" type="date" /></td>
 			<td><span id="DaysOwned"></span></td></tr>
 		<tr><td>How did you obtain the home:</td>
 			<td colspan="2"><input id="Purchase" name="Inherit" type="radio" checked /> Purchase
 			<input id="Inherit" name="Inherit" type="radio" /> Inherited/gift
-			<input id="LikeKind" name="Inherit" type="radio" /> Like-kind exchange</td></tr>
+			<input id="LikeKind" name="Inherit" type="radio" /> Like-kind (1031) exchange</td></tr>
 		<tr><td>Was this your main home?</td>
 			<td><input id="MainY" name="Main" type="radio" checked /> Yes
 				<input id="MainN" name="Main" type="radio" /> No</td>
@@ -880,14 +944,18 @@ function Add_Improvement() {
 			<td><input id="RemarriedY" name="Remarried" type="radio" /> Yes
 				<input id="RemarriedN" name="Remarried" type="radio" /> No</td>
 			<td></td></tr>
+		<tr><td>Are you financing the buyer&apos;s purchase of your home?</td>
+			<td><input type="radio" id="InstallmentY" name="Installment" /> Yes
+				<input type="radio" id="InstallmentN" name="Installment" checked /> No</td>
+			<td><span id="InstallmentOOS" class="OOS"></td></tr>
 		<tr><td>Is there postponed gain or depreciation from a previous home sold prior to 5/7/1997?</td>
 			<td><input type="radio" id="PostponedY" name="Postponed" /> Yes
 				<input type="radio" id="PostponedN" name="Postponed" checked /> No</td>
-			<td><span id="PostponedOOS" class="OOS">OUT OF SCOPE</td></tr>
+			<td><span id="PostponedOOS" class="OOS"></td></tr>
 		<tr><td>Was the home ever used for business (including rental for more than 14 days) after 5/6/1997?</td>
 			<td><input type="radio" id="RentalY" name="Rental" /> Yes
 				<input type="radio" id="RentalN" name="Rental" checked /> No</td>
-			<td><span id="RentalOOS" class="OOS">OUT OF SCOPE</td></tr>
+			<td><span id="RentalOOS" class="OOS"></td></tr>
 		<tr><td>Have you <span id="LookbackSpouse"> or your spouse </span>taken a home sale exclusion since <span id="LookbackTwoYears"></span></td>
 			<td><input id="LookbackY" name="Lookback" type="radio" /> Yes
 				<input id="LookbackN" name="Lookback" type="radio" checked /> No</td>
@@ -928,7 +996,7 @@ function Add_Improvement() {
 		</table>
 	</div>
 
-	<div id="SaleDiv" class="section doPrint" style="margin-top: none;" onkeyup="Basis_Calc(true);" onchange="Basis_Calc(true);">
+	<div id="SaleDiv" class="section doPrint" style="margin-top: none;" onkeyup="Basis_Calc();" onchange="Basis_Calc();">
 		<span class="tblHeader">Home sale details:</span>
 		<br />&nbsp;
 		<span id="SaleMFSNotice">
@@ -985,11 +1053,11 @@ function Add_Improvement() {
 			<td></td></tr>
 		<tr><td><b>TOTAL SALE EXPENSES</b></td>
 			<td>$<input type="number" id="SaleExpensesTotal" disabled></td>
-			<td></td></tr>
+			<td>(Included as a cost basis increase for TaxSlayer input)</td></tr>
 		</table>
 	</div> <!-- SaleDiv -->
 
-	<div id="CostDiv" class="section doPrint" onkeyup="Basis_Calc(true);">
+	<div id="CostDiv" class="section doPrint" onkeyup="Basis_Calc();">
 		<span class="tblHeader">Home cost details:</span>
 		<br />&nbsp;
 		<span id="CostMFSNotice">
@@ -1012,7 +1080,7 @@ function Add_Improvement() {
 			<td></td></tr>
 		<tr><td>Tax assessments:</td>
 			<td>$<input id="TaxFee" type="number" /></td>
-			<td>(eg: sidewalks, local improvements, condominium assessments)</td></tr>
+			<td>(eg: sidewalks, local improvements, HOA or condominium assessments)</td></tr>
 		<tr><td><br /><i><u>Expenses</u></i></td>
 			<td></td><td></td></tr>
 		<tr><td class="indent">Legal fees:</td>
@@ -1074,10 +1142,10 @@ function Add_Improvement() {
 		</table>
 	</div> <!-- CostDiv -->
 
-	<div id="HomeDiv" class="section doPrint" onkeyup="Basis_Calc(true);">
+	<div id="HomeDiv" class="section doPrint" onkeyup="Basis_Calc();">
 		<span class="tblHeader">Home improvements:</span>
 		<br />&nbsp;
-		<br /><b>Examples of improvements you can include in your basis</b>
+		<br /><b>Examples of improvements you can not include in your basis</b>
 		<ul>
 			<li>Do not include any costs of repairs or maintenance that are necessary to keep
 			your home in good condition but don&apos;t add to its value or prolong its life.
@@ -1087,8 +1155,6 @@ function Add_Improvement() {
 			(for example, wall-to-wall carpeting that you installed but later replaced).</li>
 			<li>Do not include any costs of any improvements with a life expectancy,
 			when installed, of less than 1 year.</li>
-			<li>If the same improvement was made more than once,
-			only use the cost for the most current improvement</li>
 			<li>Do not enter individual amounts if they are part of a larger renovation project</li>
 		</ul>
 		<u>Exception</u>: The entire job is considered an improvement if items that would
@@ -1097,7 +1163,12 @@ function Add_Improvement() {
 		For example, if you have a casualty and your home is damaged,
 		increase your basis by the amount you spend on repairs that restore the property
 		to its pre-casualty condition.
-		<table id="HomeTable">
+		<br /><br /><b>Examples of improvements you can include in your basis</b>
+		<ul>
+			<li>If the same improvement was made more than once,
+			only use the cost for the most current improvement</li>
+		</ul>
+		<table id="HomeTable" style="margins: auto;">
 			<tr>	<th colspan="4"><i><u>Systems</u></i></th></tr>
 			<tr>	<td>Air/water filtration systems</td>
 				<td>$<input class="HomeImprovement" type="number" /></td>
@@ -1153,6 +1224,10 @@ function Add_Improvement() {
 				<td>$<input class="HomeImprovement" type="number" /></td>
 				<td>Walkway</td>
 				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+			<tr>	<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td><input type="text" placeholder="(Other)" /></td>
+				<td>$<input class="HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Pipes and duct work</u></i></th></tr>
 			<tr>	<td>Filtration system</td>
 				<td>$<input class="HomeImprovement" type="number" /></td>
@@ -1203,21 +1278,15 @@ function Add_Improvement() {
 				<td>$<input class="HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Remodeling projects</u></i></th></tr>
 			<tr>	<td colspan="4"><b>Repairs done as part of larger project</b>
-				<br />You can include repair-type work if it is done as part of an
-					extensive remodeling or restoration job.
-					For example, replacing broken window panes is a repair,
-					but replacing the same window as part of a project of
-					replacing all the windows in your home counts
-					as an improvement.</td></tr>
+				 &mdash; See the exception note above.</td></tr>
 		</table>
 		<br /><br />
 		<div id="HITotal">Home improvements total = $<span id="HomeImprovementTotal"></span></div>
-	<ul>
 	
 	</div> <!-- HomeDiv -->
 </div> <!-- InputDiv -->
 
-<div id="MessageDiv" class="section noPrint" style="margin-top:0" onchange="Basis_Calc(true);">
+<div id="MessageDiv" class="section noPrint" style="margin-top:0" onchange="Basis_Calc();">
 	<span id="QualificationMessage"></span>
 	<span id="ErrorMessage"></span>
 	<span id="ExclusionMessage"></span>
@@ -1239,7 +1308,7 @@ function Add_Improvement() {
 
 </div> <!-- MessageDiv -->
 
-<div id="TSInputDiv" class="section" onchange="Basis_Calc(true);">
+<div id="TSInputDiv" class="section" onchange="Basis_Calc();">
 	<span class="tblHeader">TaxSlayer input:</span>
 	<span id="TSChoices">
 		<input id="UseSchedD" name="EnterAs" type="radio" checked /> Enter directly as Capital Gains
@@ -1258,44 +1327,45 @@ function Add_Improvement() {
 		<tr><th colspan="4">Sale of Main Home Worksheet</th></tr>
 		<tr><td colspan="4"><b>Basic Information about Your Home</b></td></tr>
 		<tr><td></td><td colspan="3"><b>Basic info about the Sale</b></td></tr>
-		<tr><td colspan="2"></td><td>Date of purchase</td><td id="TSPurchasedDate"</td></tr>
-		<tr><td colspan="2"></td><td>Purchase price</td><td id="TSPurchasePrice"</td></tr>
-		<tr><td colspan="2"></td><td>Date of sale</td><td id="TSSaleDate"</td></tr>
-		<tr><td colspan="2"></td><td>Sale price</td><td id="TSSalePriceTotal"</td></tr>
+		<tr><td colspan="2"></td><td>Date of purchase</td><td id="TSPurchasedDate"></td></tr>
+		<tr><td colspan="2"></td><td>Purchase price</td><td id="TSPurchasePrice"></td></tr>
+		<tr><td colspan="2"></td><td>Date of sale</td><td id="TSSaleDate"></td></tr>
+		<tr><td colspan="2"></td><td>Sale price</td><td id="TSSalePriceTotal"></td></tr>
 		<tr><td></td><td colspan="3"><b>Info about your home</b></td></tr>
 		<tr><td colspan="2"></td>
 			<td>How many days in the last 5 years was the home your main home?</td>
-			<td id="TSTPTwoYears"</td></tr>
+			<td id="TSTPTwoYears"></td></tr>
 		<tr><td colspan="2"></td>
 			<td>How many days in the last 5 years did you own your home?</td>
-			<td id="TSTPOwner"</td></tr>
+			<td id="TSTPOwner"></td></tr>
 		<tr id="TSSPTwoYearsRow"><td colspan="2"></td>
 			<td>How many days in the last 5 years was the home your spouse&apos;s main home</td>
-			<td id="TSSPTwoYears"</td></tr>
+			<td id="TSSPTwoYears"></td></tr>
 		<tr id="TSSPOwnerRow"><td colspan="2"></td>
 			<td>How many days in the last 5 years did your spouse own your home?</td>
-			<td id="TSSPOwner"</td></tr>
-		<tr><td colspan="2"></td><td>Check here if you recieved the first-time Homebuyers Credit...</td><td id="TSHBCredit">Check if true</td></tr>
-		<tr><td colspan="3"><b>First-time homebuyer credit - Sale of Home section</b></td></tr>
-		<tr><td colspan="2"></td><td>Selling price of home, insurance proceeds, ...</td><td id="TSHCSalePriceTotal"</td></tr>
-		<tr><td colspan="2"></td><td>Selling expenses (including commissions, advertising and legal fees, ...</td><td id="TSHCSaleExpensesTotal"</td></tr>
-		<tr><td colspan="2"></td><td>Adjusted basis of home sold</td><td id="TSHCAdjustedBasis"</td></tr>
-		<tr><td colspan="2"></td><td>Check here if you qualify for the Maximum Exclusion... (TP)</td><td id="TSTPQualifies"</td></tr>
-		<tr id="TSSPQualifiesRow"><td colspan="2"></td><td>Check here if you qualify for the Maximum Exclusion... (SP)</td><td id="TSSPQualifies"</td></tr>
+			<td id="TSSPOwner"></td></tr>
+		<tr><td colspan="2"></td><td>Check here if you recieved the first-time Homebuyers Credit...</td><td id="TSHBCredit"></td></tr>
+		<tr class="FTHB"><td></td><td colspan="3"><b>First-time homebuyer credit - Sale of Home section</b></td></tr>
+		<tr class="FTHB"><td colspan="2"></td><td><i>(Answer first-time homebuyer questions as needed)</i></td><td></td></tr>
+		<tr class="FTHB"><td colspan="2"></td><td>Selling price of home, insurance proceeds, ...</td><td id="TSHCSalePriceTotal"></td></tr>
+		<tr class="FTHB"><td colspan="2"></td><td>Selling expenses (including commissions, advertising and legal fees, ...></td><td id="TSHCSaleExpensesTotal"></td></tr>
+		<tr class="FTHB"><td colspan="2"></td><td>Adjusted basis of home sold</td><td id="TSHCAdjustedBasis"></td></tr>
+		<tr><td colspan="2"></td><td>Check here if you qualify for the Maximum Exclusion... (TP)</td><td id="TSTPQualifies"></td></tr>
+		<tr id="TSSPQualifiesRow"><td colspan="2"></td><td>Check here if you qualify for the Maximum Exclusion... (SP)</td><td id="TSSPQualifies"></td></tr>
 		<tr><td colspan="4"><b>Adjustments to the Sale</td></tr>
 		<tr><td></td><td colspan="3"><b>Fees you may have paid when you bought your home</b></td></tr>
-		<tr><td colspan="2"></td><td>Legal fees</td><td id="TSLegalFee"</td></tr>
-		<tr><td colspan="2"></td><td>Surveys</td><td id="TSSurveyFee"</td></tr>
-		<tr><td colspan="2"></td><td>Title Insurance</td><td id="TSTitleFee"</td></tr>
-		<tr><td colspan="2"></td><td>Fees that the seller owed that you agreed to pay</td><td id="TSSellerFee"</td></tr>
-		<tr><td colspan="2"></td><td>Other fees</td><td id="TSOtherFee"</td></tr>
+		<tr><td colspan="2"></td><td>Legal fees</td><td id="TSLegalFee"></td></tr>
+		<tr><td colspan="2"></td><td>Surveys</td><td id="TSSurveyFee"></td></tr>
+		<tr><td colspan="2"></td><td>Title Insurance</td><td id="TSTitleFee"></td></tr>
+		<tr><td colspan="2"></td><td>Fees that the seller owed that you agreed to pay</td><td id="TSSellerFee"></td></tr>
+		<tr><td colspan="2"></td><td>Other fees</td><td id="TSOtherFee"></td></tr>
 		<tr><td></td><td colspan="3"><b>General adjustments</b></td></tr>
-		<tr><td colspan="2"></td><td>Selling expenses</td><td id="TSSaleExpensesTotal"</td></tr>
-		<tr><td colspan="2"></td><td>Cost of additions and improvements that you made to your home</td><td id="TSImproveAmount"</td></tr>
-		<tr><td colspan="2"></td><td>Tax assessments that you paid for sidewalks, streets and other local improvements</td><td id="TSTaxFee"</td></tr>
-		<tr><td colspan="2"></td><td>Other increases to your basis</td><td id="TSIncreases"</td></tr>
-		<tr><td colspan="2"></td><td>Decreases to your basis</td><td id="TSTotalAdjusted"</td></tr>
-		<tr><td colspan="2"></td><td>Does return qualify for $250,000/$500,000 max exclusion?</td><td id="TSUseExclusion"</td></tr>
+		<tr><td colspan="2"></td><td>Selling expenses</td><td id="TSSaleExpensesTotal"></td></tr>
+		<tr><td colspan="2"></td><td>Cost of additions and improvements that you made to your home</td><td id="TSImproveAmount"></td></tr>
+		<tr><td colspan="2"></td><td>Tax assessments that you paid for sidewalks, streets and other local improvements</td><td id="TSTaxFee"></td></tr>
+		<tr><td colspan="2"></td><td>Other increases to your basis</td><td id="TSIncreases"></td></tr>
+		<tr><td colspan="2"></td><td>Decreases to your basis</td><td id="TSTotalAdjusted"></td></tr>
+		<tr><td colspan="2"></td><td>Does return qualify for $250,000/$500,000 max exclusion?</td><td id="TSUseExclusion"></td></tr>
 		</table>
 		</div>
 	<div id="SchedD">
@@ -1338,6 +1408,7 @@ function Add_Improvement() {
 	var HomeDivTabElement = document.getElementById("HomeDivTab");
 	var HomeTableElement = document.getElementById("HomeTable");
 	var HomeImprovementList = document.getElementsByClassName("HomeImprovement");
+	var FTHBList = document.getElementsByClassName("FTHB");
 	// For testing
 	//SalePrice.value = 600000;
 	//PurchasePrice.value = 200000;
