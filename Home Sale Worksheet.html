@@ -128,10 +128,6 @@
 		margin: auto;
 		display: inline-block;
 	}
-	.OOS {
-		font-weight: bold;
-		color: red;
-	}
 	.help {
 		background-color: lightgreen;
 		border: 1px solid black;
@@ -188,9 +184,14 @@
 	//	Maggie Barrington
 	//	Bob Goings
 	//	Mark Riley
+	//	Allan Goldberg
+	//	Bill Zlobik
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.04, 4/30/2020)";
+	VERSION = "(Version 1.05, 5/7/2020)";
+	//	Added test for non-qualified use of main home use after 2008
+	//	Removed obsolete OOS comment messages that were never visible
+	//VERSION = "(Version 1.04, 4/30/2020)";
 	//	Changed message for like-kind exchange to no exclusion available
 	//VERSION = "(Version 1.03, 4/29/2020)";
 	//	Removed OOS for not main home
@@ -275,8 +276,9 @@ function Basis_Calc(ignore) {
 	SaleDateDays = 0;
 	if (Sale_Date) {
 		Yr = +Sale_Date[0];
-		if (Yr > _ThisYear) { // input doesn't always limit to 4 digits
-			Yr = _ThisYear;
+		if (Yr > +_ThisYear) { // input doesn't always limit to 4 digits
+			alert ("Please verify the year sold");
+			Sale_Date[0] = Yr = _ThisYear;
 			SaleDate.value = Yr + "-" + Sale_Date[1] + "-" + Sale_Date[2]; 
 		}
 		Mo = +Sale_Date[1];
@@ -302,8 +304,9 @@ function Basis_Calc(ignore) {
 	Purchased_Date = PurchasedDate.value.split("-");
 	if (Purchased_Date){
 		Yr = +Purchased_Date[0];
-		if (Yr > _ThisYear) { // input doesn't always limit to 4 digits
-			Yr = _ThisYear;
+		if (Yr > +_ThisYear) { // input doesn't always limit to 4 digits
+			alert ("Please verify the year purchased");
+			Purchased_Date[0] = Yr = _ThisYear;
 			Purchased_Date.value = Yr + "-" + Purchased_Date[1] + "-" + Purchased_Date[2]; 
 		}
 		Mo = +Purchased_Date[1];
@@ -367,9 +370,27 @@ function Basis_Calc(ignore) {
 		CostType2.innerHTML = "Purchase price:";
 	}
 
-	if (MainN.checked) {
+	PartialRow.style.display = "none";
+	if (MainY.checked) {
+		HomeType.innerHTML = "Main home"
+		Sale5yrDate = (Sale_Date[0] - 5) + "-" + Sale_Date[1] + "-" + Sale_Date[2];
+		if (PurchasedDate.value < Sale5yrDate) {
+			partialdates = "between ";
+			partialdates += ((Purchased_Date[0] > 2008) ? DateAcquired.innerHTML : "1/1/2009" );
+			partialdates += " and " + TPFiveYears.innerHTML;
+			PartialDates.innerHTML = partialdates;
+			PartialRow.style.display = "table-row";
+		}
+		else {
+			PartialRow.style.display = "none";
+			PartialN.checked = true;
+		}
+	}
+	else {
+		HomeType.innerHTML = "Secondary home"
 		TPExclusionApplies = SPExclusionApplies = false;
-		//OutOfScope = true;
+		PartialRow.style.display = "none";
+		PartialN.checked = true;
 	}
 
 	//if (FileMFS) {
@@ -451,7 +472,10 @@ function Basis_Calc(ignore) {
 		OutOfScope = true;
 	}
 
-	LookbackComment.style.display = "none";
+	if (PartialY.checked) {
+		OutOfScope = true;
+	}
+
 	if (LookbackY.checked) {
 		TPExclusionApplies = SPExclusionApplies = false;
 	}
@@ -655,7 +679,12 @@ function Basis_Calc(ignore) {
 	}
 
 	if ((PurchasedDate.value == "") || (RealizedAmount == 0) || (AdjustedBasis.value == 0)) {
-		QualificationMessage.innerHTML = "An exclusion may be available";
+		if ((! TPExclusionApplies) && (! SPExclusionApplies)) {
+			QualificationMessage.innerHTML = "You do not qualify for an exclusion";
+		}
+		else {
+			QualificationMessage.innerHTML = "An exclusion may be available";
+		}
 		QualificationMessage.style.display = "block";
 		reason = (PurchasedDate.value) ? "sale and purchase details" : "Date obtained" ;
 		ErrorMessage.innerHTML = "Insufficient data to determine taxability (" + reason + ")";
@@ -947,19 +976,26 @@ function Add_Improvement() {
 		<tr><td>Are you financing the buyer&apos;s purchase of your home?</td>
 			<td><input type="radio" id="InstallmentY" name="Installment" /> Yes
 				<input type="radio" id="InstallmentN" name="Installment" checked /> No</td>
-			<td><span id="InstallmentOOS" class="OOS"></td></tr>
+			<td></td></tr>
 		<tr><td>Is there postponed gain or depreciation from a previous home sold prior to 5/7/1997?</td>
 			<td><input type="radio" id="PostponedY" name="Postponed" /> Yes
 				<input type="radio" id="PostponedN" name="Postponed" checked /> No</td>
-			<td><span id="PostponedOOS" class="OOS"></td></tr>
+			<td></td></tr>
 		<tr><td>Was the home ever used for business (including rental for more than 14 days) after 5/6/1997?</td>
 			<td><input type="radio" id="RentalY" name="Rental" /> Yes
 				<input type="radio" id="RentalN" name="Rental" checked /> No</td>
-			<td><span id="RentalOOS" class="OOS"></td></tr>
+			<td></td></tr>
+		<tr id="PartialRow">
+			<td>Was there any time <span id="PartialDates"></span>
+				when this home was <u>not</u> used as the main home
+				for either taxpayer or spouse?</td>
+			<td><input type="radio" id="PartialY" name="Partial" /> Yes
+				<input type="radio" id="PartialN" name="Partial" checked /> No</td>
+			<td>(Check yes if used as a vacation or second home during this period)</td></tr>
 		<tr><td>Have you <span id="LookbackSpouse"> or your spouse </span>taken a home sale exclusion since <span id="LookbackTwoYears"></span></td>
 			<td><input id="LookbackY" name="Lookback" type="radio" /> Yes
 				<input id="LookbackN" name="Lookback" type="radio" checked /> No</td>
-			<td><span id="LookbackComment" class="OOS">You do not qualify for an exclusion</td></tr>
+			<td></td></tr>
 		<tr><td>Did you <span id="OwnerSpouse">and/or your spouse</span> own the home for any 24 months (730 days) since <span id="OwnFiveYears"></span></td>
 			<td><input id="OwnerY" name="Owner" type="radio" checked /> Yes
 				<input id="OwnerN" name="Owner" type="radio" /> No</td>
@@ -1166,7 +1202,7 @@ function Add_Improvement() {
 		<br /><br /><b>Examples of improvements you can include in your basis</b>
 		<ul>
 			<li>If the same improvement was made more than once,
-			only use the cost for the most current improvement</li>
+			only use the cost for the most recent improvement</li>
 		</ul>
 		<table id="HomeTable" style="margins: auto;">
 			<tr>	<th colspan="4"><i><u>Systems</u></i></th></tr>
@@ -1277,7 +1313,7 @@ function Add_Improvement() {
 				<td><input type="text" placeholder="(Other)" /></td>
 				<td>$<input class="HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Remodeling projects</u></i></th></tr>
-			<tr>	<td colspan="4"><b>Repairs done as part of larger project</b>
+			<tr>	<td colspan="4"><i>For repairs done as part of larger project</i>
 				 &mdash; See the exception note above.</td></tr>
 		</table>
 		<br /><br />
@@ -1373,7 +1409,7 @@ function Add_Improvement() {
 		<table class="tblLayout">
 		<tr><th colspan="3">Capital Gains and Loss Items</th></tr>
 		<tr><td>Description of Property</td>
-			<td>Main home</td><td></td></tr>
+			<td id="HomeType">Main home</td><td></td></tr>
 		<tr><td>Date Acquired</td><td id="DateAcquired"></td><td></td></tr>
 		<tr><td>Date Sold</td><td id="DateSold"></td><td></td></tr>
 		<tr><td>Sales Price</td><td id="SalesPrice"></td><td></td></tr>
