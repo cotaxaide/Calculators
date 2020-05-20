@@ -142,11 +142,15 @@
 	//	Bob Goings
 	//	Emily Lin
 	//	Pete Burgner
+	//	Bob Schroer
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.05, 3/26/2020)";
+	var VERSION = "(Version 3.06, 5/19/2020)";
+	//	Fixed problem where living with spouse used with MFJ calc
+	//	Fixed problem where SE tax adjustment was using MFJ value in FMS columns
+	//var VERSION = "(Version 3.05, 3/26/2020)";
 	//	Estimated payments not responsive to changes in options
 	//var VERSION = "(Version 3.04, 2/22/2020)";
 	//	Corrected IRA adjustment limit test
@@ -173,7 +177,7 @@
 	var TPMFJcList = [];
 	var EdtList = [];
 	var EdiList = [];
-	var InTitle = [];
+	var InTitle = []; // Titles for the MFJ/MFS comparison input box
 		InTitle["Wages"] = "Wages, salaries, tips, etc from W-2s";
 		InTitle["Interest"] = "Taxable interest";
 		InTitle["TaxExempt"] = "Tax-exempt interest expected";
@@ -541,8 +545,13 @@
 				break;
 		}
 
+		// Get self-employment tax
+		SEresult = _SETax(TY, +CalcIn["SEIncome"]);
+		CalcOut["SETax"] = +SEresult[0];
+		CalcOut["SETaxCredit"] = +SEresult[1];
+
 		// Total the adjustments
-		CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - CalcIn["SETaxCredit"] - CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
+		CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - CalcOut["SETaxCredit"] - CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
 		var SEHIRemainder = Math.max(0, +CalcIn["SEInsurance"] - +CalcOut["SEHI"]);
 		if (CalcType === "J") {
 			if (SEHIRemainder) {
@@ -577,14 +586,11 @@
 
 		// Get the taxable Social Security amount
 		var SSAdjustments = +CalcIn["EdExpenses"] + +CalcIn["HSADeduction"]
-			+ +SETaxCredit.innerHTML + +CalcIn["SESEP"] + +CalcOut["SEHI"]
+			+ +CalcOut["SETaxCredit"] + +CalcIn["SESEP"] + +CalcOut["SEHI"]
 			+ +CalcIn["AlimonyPaid"] + +CalcIn["IRADeduction"]
 			+ +CalcIn["SavingsPenalty"] + +CalcIn["OtherCredits"];
 		var AdjustmentsValue = SSAdjustments + +CalcIn["StudentLoan"];
 		CalcOut["Adjustments"] = AdjustmentsValue;
-		//if (CalcType === "J") Adjustments.value = TPMFJ["Adjustments"] = AdjustmentsValue;
-		//if (CalcType === "T") CalcOut["TPAdjustments"] = TPMFS["Adjustments"] = AdjustmentsValue;
-		//if (CalcType === "S") CalcOut["SPAdjustments"] = SPMFS["Adjustments"] = AdjustmentsValue;
 
 		// Capital gains
 		var CGLossLimit = (FilingStatusValue == "MFS") ? -1500 : -3000;
@@ -593,9 +599,10 @@
 		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Interest"] + +CalcIn["Dividends"]
 			+ +CalcIn["SEIncome"] + +CalcOut["CapGains"] + +CalcOut["Pensions"]
 			+ +CalcIn["OtherIncome"];
+		MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
-			MFStogether.checked);
+			MFStogetherRelevant);
 		CalcOut["TaxableSS"] = +SSresult[0];
 		if (CalcType === "J") {
 			TPMFJ["IRAgap00"] = +SSresult[1];
@@ -624,10 +631,10 @@
 		}
 
 		// Get self-employment tax
-		SEresult = _SETax(TY, +CalcIn["SEIncome"]);
-		CalcOut["SETax"] = +SEresult[0];
-		CalcOut["SETaxCredit"] = +SEresult[1];
-		SETaxCredit.click();
+		//SEresult = _SETax(TY, +CalcIn["SEIncome"]);
+		//CalcOut["SETax"] = +SEresult[0];
+		//CalcOut["SETaxCredit"] = +SEresult[1];
+		//SETaxCredit.click();
 
 		// Medical limitation
 		var medexclusionindex = 0
@@ -1130,7 +1137,7 @@
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
 			<td colspan="3">Gross income expected</td>
-			<td id="Gross" type="number" class="calculated wktc"></td></tr>
+			<td id="Gross" class="calculated wktc"></td></tr>
 		<tr><td colspan="5">Adjustments to Income:
 			(<input type="checkbox" id="AdjustExpand"
 			onchange="File_Change();" /><i>Expand to enter details.)</i></td></tr>
@@ -1263,7 +1270,7 @@
 			</td>
 			<td></td>
 			<td style="vertical-align: top;" id="Itemized"
-				type="number" class="calculated wktc"></td></tr>
+				class="calculated wktc"></td></tr>
 		<tr class="exemptions"><td></td>
 			<td colspan="2">Amount after deductions</td><td></td>
 			<td id="PreExemptAmount" class="calculated wktc">0</td></tr>
@@ -1307,7 +1314,7 @@
 					<input id="ForeignCost" type="number" class="wkti"
 					onfocus="Get_Inputs(this.id);"
 					onkeyup="Input_Change(this.id);" /></span></td>
-			<td id="Foreign" type="number" class="calculated wktc"></td>
+			<td id="Foreign" class="calculated wktc"></td>
 			<td id="ForeignUsed" class="calculated wktc"></tr>
 		<tr><td>  </td>
 			<td>Child and dependent care expenses
