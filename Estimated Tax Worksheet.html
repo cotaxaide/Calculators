@@ -123,31 +123,20 @@
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
 	// Contributors:
-	//	Henry Burgess
-	//	Steve Conary
-	//	Ed Farver
-	//	Bill Smout
-	//	Pete Burgner
-	//	Bob Wells
-	//	Jim Kaplan
-	//	Lyn Lu
-	//	Robert Williams
-	//	John Swaney
-	//	Gloria Coyle
-	//	Joe Ohrazda
-	//	Russ Gross
-	//	Larry Raffery
-	//	Kathleen Quinn
-	//	John Arenberg
-	//	Bob Goings
-	//	Emily Lin
-	//	Pete Burgner
-	//	Bob Schroer
+	//	Henry Burgess		Steve Conary		Ed Farver
+	//	Bill Smout		Pete Burgner		Bob Wells
+	//	Jim Kaplan		Lyn Lu			Robert Williams
+	//	John Swaney		Gloria Coyle		Joe Ohrazda
+	//	Russ Gross		Larry Raffery		Kathleen Quinn
+	//	John Arenberg		Bob Goings		Emily Lin
+	//	Pete Burgner		Bob Schroer		Richar Staub
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.06, 5/19/2020)";
+	var VERSION = "(Version 3.07, 6/30/2020)";
+	//	Fixed problem where could not enter negative capital gains
+	//var VERSION = "(Version 3.06, 5/19/2020)";
 	//	Fixed problem where living with spouse used with MFJ calc
 	//	Fixed problem where SE tax adjustment was using MFJ value in FMS columns
 	//var VERSION = "(Version 3.05, 3/26/2020)";
@@ -508,8 +497,9 @@
 			Show_Results("S");
 		}
 		else {
+			// Do not use "+" to get value below - it may be a minus sign
 			TPMFS[thisId] =
-			TPMFJ[thisId] = +document.getElementById(thisId).value;
+			TPMFJ[thisId] = document.getElementById(thisId).value;
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
