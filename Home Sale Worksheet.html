@@ -188,7 +188,9 @@
 	//	Bill Zlobik
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.05, 5/7/2020)";
+	//VERSION = "(Version 1.05a, 5/8/2020)";
+	//	Minor text change in non-qualified use question
+	//VERSION = "(Version 1.05, 5/7/2020)";
 	//	Added test for non-qualified use of main home use after 2008
 	//	Removed obsolete OOS comment messages that were never visible
 	//VERSION = "(Version 1.04, 4/30/2020)";
@@ -377,7 +379,8 @@ function Basis_Calc(ignore) {
 		if (PurchasedDate.value < Sale5yrDate) {
 			partialdates = "between ";
 			partialdates += ((Purchased_Date[0] > 2008) ? DateAcquired.innerHTML : "1/1/2009" );
-			partialdates += " and " + TPFiveYears.innerHTML;
+			//partialdates += " and " + TPFiveYears.innerHTML;
+			partialdates += " and when used as a main home ";
 			PartialDates.innerHTML = partialdates;
 			PartialRow.style.display = "table-row";
 		}
@@ -391,6 +394,7 @@ function Basis_Calc(ignore) {
 		TPExclusionApplies = SPExclusionApplies = false;
 		PartialRow.style.display = "none";
 		PartialN.checked = true;
+		//OutOfScope = true;
 	}
 
 	//if (FileMFS) {
