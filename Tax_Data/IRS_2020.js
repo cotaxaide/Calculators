@@ -1,6 +1,6 @@
         //----------------------------------------------------------------------------------------
         var _TY = _StopYear = "2020"; // Tax parameters
-	_Preliminary[_TY] = true; // Preliminary information
+	_Preliminary[_TY] = false; // Preliminary information
         //----------------------------------------------------------------------------------------
 
         // Form line numbers

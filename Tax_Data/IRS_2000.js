@@ -33,7 +33,7 @@ var _IRALimits = [];
 var _ThisDate = new Date();
 var _ThisYear = +_ThisDate.getFullYear();
 var _ThisMonth = +_ThisDate.getMonth(); // 0 = January
-// Show this year starting in July
+// Show this year starting in May
 var d = (_ThisMonth < 4) ? 1:0; // shift start year in May
 var _StartYear = _ThisYear - 3 - d;
 var _StopYear = _ThisYear - d; // overridden by individual year file
