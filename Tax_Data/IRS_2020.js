@@ -30,10 +30,10 @@
 		// Schedules 1-3
                 _LineNo[_TY+":SEP"] = "S1-15";		
                 _LineNo[_TY+":SEHI"] = "S1-16";		
+                _LineNo[_TY+":TNF"] = "S1-21";		
                 _LineNo[_TY+":Adjustments"] = "S1-22";	
                 _LineNo[_TY+":ExcessAPTC"] = "S2-2";	
                 _LineNo[_TY+":Foreign"] = "S3-1";	
-                _LineNo[_TY+":TNF"] = "";		
                 _LineNo[_TY+":Care"] = "S3-2";		
                 _LineNo[_TY+":LLC"] = "S3-3";		
                 _LineNo[_TY+":Retire"] = "S3-4";	
