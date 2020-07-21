@@ -13,10 +13,12 @@
 //	_EdCredit		AOC or LLC Credit
 //----------------------------------------------------------------------------------------
 //
+// Version 1.07 7/18/2020
+// 	Dependent deduction not incrementing for age 65 or blind
 // Version 1.06 2/10/2020
 //	Prevent Child Care Credit from returning a negative amount
 // Version 1.05 12/5/2019
-// 	Realigned line numbers an calc in Sched D CG worksheet
+// 	Realigned line number for calc in Sched D CG worksheet
 // 	Corrected Trust calculation for Kiddie tax
 // Version 1.04 3/29/2019
 // 	Added ChildCare, Retirement and EdCredit
@@ -126,19 +128,17 @@ function _StandardDeduction( // Standard Deduction amount
 	}
 	var taxdata = _Standard[taxYear].split(",");
 	var stdval = +taxdata[_Standard[filingStatus]];
-	if (dependent && (filingStatus != "MFJ")) {
+	var stdinc = +taxdata[+_Standard[filingStatus] + 1];
+	if (dependent) {
 		var depval = Math.max(
 				+taxdata[_Standard["Minimum"]],
 				+earnedIncome + 350);
 		stdval = Math.min(depval, stdval);
 	}
-	else {
-		var stdinc = +taxdata[_Standard[filingStatus]+1];
-		if (TP65) stdval += stdinc;
-		if (SP65) stdval += stdinc;
-		if (TPBlind) stdval += stdinc;
-		if (SPBlind) stdval += stdinc;
-	}
+	if (TP65) stdval += stdinc;
+	if (SP65) stdval += stdinc;
+	if (TPBlind) stdval += stdinc;
+	if (SPBlind) stdval += stdinc;
 	return (Math.round(stdval));
 }
 
