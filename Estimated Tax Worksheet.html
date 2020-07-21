@@ -99,6 +99,16 @@
 
 	#PayNotRequired { font-style: italic; color: darkgreen; float: right; }
 	#Warn1116 { color: red; font-style: italic; font-weight: bold; display: none; }
+	#TaxableWarning,
+	#DependentWarning { color: yellow; }
+	.blinking{ text-align: center; animation:blinkingText 2s infinite; }
+		@keyframes blinkingText {
+    			0%   { color: yellow; }
+    			59%  { color: yellow; }
+    			80%  { color: transparent; }
+    			99%  { color: transparent; }
+    			100% { color: yellow; }
+		}
 	@media print {
 		.doPrint { display:inline; }
 		.noPrint { display:none; }
@@ -134,7 +144,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.07, 6/30/2020)";
+	var VERSION = "(Version 3.08, 7/20/2020)";
+	//	Added options for dependent
+	//	Changed inputs from number type to text to better handle negative entries
+	//var VERSION = "(Version 3.07, 6/30/2020)";
 	//	Fixed problem where could not enter negative capital gains
 	//var VERSION = "(Version 3.06, 5/19/2020)";
 	//	Fixed problem where living with spouse used with MFJ calc
@@ -162,18 +175,20 @@
 	var TPMFS = [];
 	var SPMFS = [];
 	var CalcOut = [];
+	var MFJMFSError = false;
 	var TPMFJiList = [];
 	var TPMFJcList = [];
 	var EdtList = [];
 	var EdiList = [];
 	var InTitle = []; // Titles for the MFJ/MFS comparison input box
 		InTitle["Wages"] = "Wages, salaries, tips, etc from W-2s";
+		InTitle["Scholar"] = "Taxable scholarships";
 		InTitle["Interest"] = "Taxable interest";
 		InTitle["TaxExempt"] = "Tax-exempt interest expected";
 		InTitle["Dividends"] = "Ordinary dividends";
 		InTitle["QualDividends"] = "Qualified dividends";
 		InTitle["QBIDividends"] = "Section 199A dividends";
-		InTitle["QCD"] = "Amount of QCD included in the IRA distribution";
+		InTitle["QCD"] = "Amount of non-taxable QCD included in the IRA distribution";
 		InTitle["TotalPensions"] = "IRAs, pensions and annuities";
 		InTitle["SS"] = "Social Security expected";
 		InTitle["SEIncome"] = "Business income";
@@ -225,8 +240,6 @@
 
 		// Set the default to the tax year
 		TY = TaxYear.value = _DefaultYear + 1;
-		MFJMFS_Change();
-		File_Change();
 
 		// Create the data arrays and initialize inputs
 		TPMFJiList = document.getElementsByClassName("wkti"); // inputs
@@ -243,12 +256,57 @@
 			TPMFS[TPMFJiList[j].id] = "";
 			SPMFS[TPMFJiList[j].id] = "";
 		}
+
+		MFJMFS_Change();
+		File_Change();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function MFJMFS_Test(thisId) {
+	//----------------------------------------------------------------------------------------
+		// Check input values
+		MFJMFSError = false;
+		allowNegative = MFSallowNegative.checked;
+		TPInput.style.backgroundColor = "white";
+		SPInput.style.backgroundColor = "white";
+
+		if (! allowNegative) {
+			if ((TPInput.value < 0) || (TPInput.value === "-")) {
+				TPInput.style.backgroundColor = "hotpink";
+				MFJMFSError = true;
+			}
+			if ((SPInput.value < 0) || (SPInput.value === "-")) {
+				SPInput.style.backgroundColor = "hotpink";
+				MFJMFSError = true;
+			}
+		}
+		if (isNaN(TPInput.value) && (TPInput.value !== "-")) {
+			TPInput.style.backgroundColor = "hotpink";
+			MFJMFSError = true;
+		}
+		if (isNaN(SPInput.value) && (SPInput.value !== "-")) {
+			SPInput.style.backgroundColor = "hotpink";
+			MFJMFSError = true;
+		}
+
+		// Disable the buttons if there's an error
+		JOINTButton.style.backgroundColor = 
+		SAVEButton.style.backgroundColor = (MFJMFSError) ? "hotpink" : "lightgreen" ;
+		JOINTButton.style.cursor = 
+		SAVEButton.style.cursor = (MFJMFSError) ? "not-allowed" : "pointer" ;
+		JOINTButton.style.disabled = 
+		SAVEButton.style.disabled = (MFJMFSError);
+
 	}
 
 	//----------------------------------------------------------------------------------------
 	function MFJMFS_Change() {
 	// This function adds tax year options to the Filing Information section
 	//----------------------------------------------------------------------------------------
+
+		// Dependents cannot file MFJ, so no comparison
+		if (IsDependent.checked) MFJMFS.checked = false;
+
 		// Change the page layout to show/hide the MFS grid section and options
 		if (MFJMFS.checked) {
 			MFSInfo.style.display = "block";
@@ -288,8 +346,12 @@
 		// Check dependent consistency
 		var dep = Math.max(CTCDependents.value, EICDependents.value);
 		if (Dependents.value < dep) Dependents.value = dep;
-		// if (TP65.checked) Kiddie.checked = false;
-		// if (Kiddie.checked) TP65.checked = false;
+		// if (TP65.checked) IsDependent.checked = false;
+		if (IsDependent.checked) {
+			Dependents.value = 0;
+			EICDependents.value = 0;
+			CTCDependents.value = 0;
+		}
 		
 		// Deactivate unneeded entries
 		SP65.disabled = ! (FilingStatus.value === "MFJ");
@@ -301,17 +363,28 @@
 		if (ChildCareCost.disabled) ChildCareCost.value = "";
 		LYAGI.innerHTML = (FilingStatus.value === "MFS") ? 75:150;
 		ItemizeRequiredOption.display = 
-		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "inline" : "none";
+		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
+		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
+		if (IsDependent.checked) {
+			DependentsRow.style.display = "none";
+			EICRow.style.display = "none";
+			CTCRow.style.display = "none";
+			if ( (! TP65.checked) && (! SP65.checked)) DependentAgeRow.style.display = "table-row";
+		}
+		else {
+			DependentsRow.style.display = "table-row";
+			EICRow.style.display = "table-row";
+			CTCRow.style.display = "table-row";
+			DependentAgeRow.style.display = "none";
+		}
 		if (! MFJMFS.checked) MFSInputBox.style.display = "none";
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
 		if ((FilingStatus.value != "MFS") && (! MFJMFS.checked)) ItemizeRequired.checked = false;
 		SP65Option.style.display = SPBlindOption.style.display = (FilingStatus.value === "MFJ") ? "inline" : "none";
 		HSAText.innerHTML = "("+ _HSA[TY + ":IND"] + " personal, " + _HSA[TY + ":FAM"] + " family)";
 
-		// IsDependent.style.display = ((FilingStatus.value === "SNG") && (! TP65.checked)) ? "inline" : "none";
 		
 		// Expand the income section
-		//if ((! IncomeExpanded) && (! IncomeWasExpanded)) Wages.value = Gross.value;
 		IncomeExpanded = IncomeExpand.checked || (EICDependents.value > 0);
 		if (IncomeExpanded) IncomeWasExpanded = true;
 		incomelist = document.getElementsByClassName("income");
@@ -344,9 +417,11 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function Get_Inputs(thisId) {
+	function Get_Inputs(thisId, allowNegative) {
 	// This function gets inputs for taxpayer and spouse for MFJMFS comparison
 	//----------------------------------------------------------------------------------------
+		if (allowNegative === undefined) allowNegative = false;
+
 		if (thisId === "listener") { // scrolling or resizing
 			if (MFSInputBox.style.display == "block") {
 				thisId = MFSInputId.innerHTML;
@@ -382,6 +457,7 @@
 			MFSInputBox.style.top = pos.y + "px";
 			TPInput.value = (TPMFS[thisId]) ? TPMFS[thisId] : "";
 			SPInput.value = (SPMFS[thisId]) ? SPMFS[thisId] : "";
+			MFSallowNegative.checked = allowNegative;
 		}
 		else {
 			MFSInputBox.style.display = "none";
@@ -421,10 +497,11 @@
 	function Do_Joint() {
 	// This function gets inputs for taxpayer and spouse for MFJMFS comparison
 	//----------------------------------------------------------------------------------------
+		if (MFJMFSError) return; // bad input
 		var joint = +TPInput.value + +SPInput.value;
 		SPInput.value = Math.round(joint / 2);
 		// (do not use -= in next statement)
-		TPInput.value = Math.round(Math.max(0, joint - +SPInput.value));
+		TPInput.value = Math.round(joint - +SPInput.value);
 		Do_Inputs("MFJMFS");
 	}
 
@@ -435,6 +512,7 @@
 	//----------------------------------------------------------------------------------------
 		switch (inType) {
 			case "MFJMFS":
+				if (MFJMFSError) return; // bad input
 				thisId = MFSInputId.innerHTML;
 				if (thisId == "") return;
 				TPMFS[thisId] = +TPInput.value;
@@ -443,7 +521,7 @@
 				MFSInputId.innerHTML = "";
 				MFSInputBox.style.display = "none";
 				TPMFJiList[thisId].disabled = false;
-				Input_Change(thisId);
+				Input_Change(thisId, true);
 				break;
 			case "Education":
 				EdInputBox.style.display = "none";
@@ -453,10 +531,16 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function Input_Change(thisId) {
+	function Input_Change(thisId, allowNegative) {
 	// This function adds tax year options to the Filing Information section
 	//----------------------------------------------------------------------------------------
+		if (allowNegative === undefined) allowNegative = false;
+
 		// Check input values
+		thisElement = TPMFJiList[thisId];
+		var tev = thisElement.value;
+		thisElement.style.backgroundColor = ( (isNaN(tev) && (tev !== "-"))
+			|| ((! allowNegative) && ((tev < 0) || tev === "-")) ) ? "hotpink" : "white";
 		QualDividends.style.backgroundColor = (+QualDividends.value > +Dividends.value) ? "hotpink" : "white";
 		QBIDividends.style.backgroundColor = (+QBIDividends.value > +Dividends.value) ? "hotpink" : "white";
 		SEInsurance.disabled = SESEP.disabled = (+SEIncome.value == 0);
@@ -499,7 +583,7 @@
 		else {
 			// Do not use "+" to get value below - it may be a minus sign
 			TPMFS[thisId] =
-			TPMFJ[thisId] = document.getElementById(thisId).value;
+			TPMFJ[thisId] = thisElement.value;
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
@@ -586,9 +670,9 @@
 		var CGLossLimit = (FilingStatusValue == "MFS") ? -1500 : -3000;
 		CalcOut["CapGains"] = Math.max( (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]) , CGLossLimit);
 
-		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Interest"] + +CalcIn["Dividends"]
-			+ +CalcIn["SEIncome"] + +CalcOut["CapGains"] + +CalcOut["Pensions"]
-			+ +CalcIn["OtherIncome"];
+		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Scholar"] + +CalcIn["Interest"]
+			+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
+			+ +CalcOut["Pensions"] + +CalcIn["OtherIncome"];
 		MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
@@ -607,9 +691,34 @@
 		CalcOut["AGI"] = Math.round(Math.max(0, +CalcOut["Gross"] - +AdjustmentsValue));
 
 		// Calculate standard deduction
+		var StdEarned = +CalcIn["Wages"] + +CalcIn["Scholar"]
+			+ +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
+
+		// Check for dependent limits
+		var DependentError = "";
+		var TaxableError = "";
+		if (IsDependent.checked) {
+			if (IsYouth.checked) { // Dependent as child
+				var KiddieUnearned = +CalcOut["Gross"] - StdEarned + +CalcIn["Scholar"];
+				var KiddieLimit = +_Standard[TY].split(",")[+_Standard["Kid"]];
+				if (KiddieUnearned > KiddieLimit) {
+					DependentError = "Unearned income exceeds kiddie tax limit. Additional taxes (Form 8615) may apply.";
+				}
+			}
+			else { // Dependent as relative
+				//DepIncome = (MFStogetherRelevant) ?  CalcOut["Gross"] : IncomeNoSS;
+				var grossLimit = +_Standard[TY].split(",")[+_Standard["DepAsRel"]]
+				if ((CalcOut["Gross"] > grossLimit) || (CalcOut["TaxableSS"] > 0)) {
+					TaxableError = "WARNING: your income is too high to be a dependent.";
+				}
+			}
+		}
+		TaxableWarning.innerHTML = TaxableError;
+		DependentWarning.innerHTML = DependentError;
+
 		if (CalcType === "J") {
 			CalcOut["Standard"] = _StandardDeduction(TY, FilingStatusValue,
-				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, false, 0);
+				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, IsDependent.checked, StdEarned);
 		}
 		if (CalcType === "T") {
 			CalcOut["Standard"] = _StandardDeduction(TY, FilingStatusValue,
@@ -856,6 +965,11 @@
 
 		// Determine tax due
 		CalcOut["TaxDue"] = taxdue = Math.round(+CalcOut["TotalTax"] - +CalcOut["ACTCredit"] - +CalcOut["EICCredit"] - +CalcOut["AOCCredit"] - +CalcIn["Refundable"]);
+		mustFile = (Math.round(+CalcOut["Tax"] + +CalcOut["SETax"] + +CalcIn["OtherTaxes"]) > 0);
+		if ((FilingStatus.value == "MFJ") && IsDependent.checked && mustFile) {
+			DependentWarning.innerHTML = "WARNING: You cannot file as MFJ and still be a dependent if filing for other than a refund of withholding.";
+		}
+
 		return (CalcOut);
 	}
 
@@ -908,6 +1022,10 @@
 	function Do_Estimates() {
 	// This function calculates the estimated tax payments required
 	//----------------------------------------------------------------------------------------
+		// check inputs
+		TaxLastYear.style.backgroundColor = (TaxLastYear.value < 0) ? "hotpink" : "white";
+		WHAmount.style.backgroundColor = (WHAmount.value < 0) ? "hotpink" : "white";
+		OverrideAmount.style.backgroundColor = (OverrideAmount.value < 0) ? "hotpink" : "white";
 
 		var taxdue = TaxDue.innerHTML;
 
@@ -993,7 +1111,7 @@
 			<td>Taxpayer&apos;s Name:</td>
 			<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td>
 			<td></td>
-			<td rowspan="5" style="text-align: center; vertical-align: top;">
+			<td rowspan="2" style="text-align: center; vertical-align: top;">
 				<a href="http://www.aarp.org/work/retirement-planning/required_minimuum_distribution_calculator/" 
 					target="_blank">Click here for the<br />AARP RMD Calculator</a></td></tr>
 		<tr>
@@ -1012,27 +1130,34 @@
 			<td style="text-align:top">
 				<input id="TPBlind" type="checkbox" title="Taxpayer is blind"/> blind
 				<span id="SPBlindOption"><br /><input id="SPBlind" type="checkbox" title="Spouse is blind"/> blind</span></td></tr>
-			<tr><td></td><td></td><td colspan="2">
-					<span id="MFSoption">
-						<input id="MFStogether" type="checkbox" /> Check if you <span id="MFSoptionText">will be living</span> with your spouse.</span></td></tr>
-<!--
-			<tr><td></td><td></td><td colspan="2">
-				<span id="IsDependent"><input id="Kiddie" type="checkbox" /> TP 17 or younger and a dependent.</span>
-				</td></tr>
--->
-		<tr title="Total number of dependents in the tax family.">
+		<tr id="MFSoption">
+			<td colspan="2"></td>
+			<td colspan="3">
+				<input id="MFStogether" type="checkbox" />
+				Check if you <span id="MFSoptionText">will be living</span> with your spouse.</td></tr>
+		<tr id="IsDependentRow" title="Check if either taxpayer (or spouse) can be a dependent on anyone else's return - even if not claimed!">
+			<td colspan="2"></td>
+			<td colspan="3">
+				<input id="IsDependent" type="checkbox" />
+				TP (or SP) is or can be a dependent on someone else's return.</td></tr>
+		<tr id="DependentAgeRow">
+			<td colspan="2"></td>
+			<td colspan="3">
+				<input id="IsYouth" type="checkbox" />
+				Dependent is 16 or younger, or a full time student and 23 or younger.</td></tr>
+		<tr id="DependentsRow" title="Total number of dependents in the tax family.">
 			<td colspan="2">Total Dependents claimed:
-			<td colspan="2"><span id="DependentsMFS1">TP: </span>
+			<td colspan="3"><span id="DependentsMFS1">TP: </span>
 				<input id="Dependents" size="2" value="0" />
 				<span id="DependentsMFS2">, SP: <input id="SPDependents" size="2" value="0" /></span>
 				</td></tr>
-		<tr title="Number of dependents in the tax family age under age 18 (or 24 if a full time student or any age if disabled).">
+		<tr id="EICRow" title="Number of dependents in the tax family age under age 18 (or 24 if a full time student or any age if disabled).">
 			<td colspan="2">Dependents qualified for EIC:</td>
-			<td colspan="2"><span id="EICDependentsMFS1">TP: </span>
+			<td colspan="3"><span id="EICDependentsMFS1">TP: </span>
 			<input id="EICDependents" size="2" value="0" />
 				<span id="EICDependentsMFS2">, SP: <input id="SPEICDependents" size="2" value="0" /></span>
 				</td></tr>
-		<tr title="Number of dependents in the tax family under age 17.">
+		<tr id="CTCRow" title="Number of dependents in the tax family under age 17.">
 			<td colspan="2">Dependents qualified for CTC:</td>
 			<td colspan="2"><span id="CTCDependentsMFS1">TP: </span>
 				<input id="CTCDependents" size="2" value="0" />
@@ -1056,73 +1181,78 @@
 				onchange="File_Change();" /><i>Expand to enter details.)</i></td>
 			<td colspan="3"><i>Enter Form 1040 expected amounts:</i></td></tr>
 		<tr class="income"><td></td>
-			<td>Wages, salaries, tips, etc from W-2s</td><td></td>
-			<td><input id="Wages" type="number" class="wkti"
+			<td colspan="2">Wages, salaries, tips, etc from W-2s</td>
+			<td><input id="Wages" type="text" class="wkti"
+				onfocus="Get_Inputs(this.id);"
+				onkeyup="Input_Change(this.id);" /></td></tr>
+		<tr class="income"><td></td>
+			<td colspan="2"> Taxable scholarships</td>
+			<td><input id="Scholar" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
 			<td>Taxable interest</td><td></td>
-			<td><input id="Interest" type="number" class="wkti"
+			<td><input id="Interest" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
-		<tr class="income"><td>  </td>
+		<tr class="income"><td></td>
 			<td class="indent">Tax-exempt interest expected</td>
-			<td><input id="TaxExempt" type="number" class="wkti"
+			<td><input id="TaxExempt" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="income"><td></td>
 			<td>Ordinary dividends</td><td></td>
-			<td><input id="Dividends" type="number" class="wkti"
+			<td><input id="Dividends" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
 			<td class="indent">Qualified dividends</td>
-			<td><input id="QualDividends" type="number" class="wkti"
+			<td><input id="QualDividends" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
 			</tr>
 		<tr class="income"><td></td>
 			<td class="indent">Section 199A dividends</td>
-			<td><input id="QBIDividends" type="number" class="wkti"
+			<td><input id="QBIDividends" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
 			</tr>
 		<tr class="income"><td></td>
 			<td>IRAs, pensions and annuities
-				(Amount of QCD included: <input id="QCD" type="number" class="wkti"
+				(Amount of QCD included: <input id="QCD" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)</td>
-			<td><input id="TotalPensions" type="number" class="wkti"
+			<td><input id="TotalPensions" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
 			<td id="Pensions" class="calculated wktc"></tr>
 		<tr class="income"><td></td>
 			<td>Amount of social security expected</td>
-			<td><input id="SS" type="number" class="wkti"
+			<td><input id="SS" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
 			<td id="TaxableSS" class="calculated wktc"></td></tr>
 		<tr class="income"><td></td>
 			<td>Business income</td><td></td>
-			<!-- next input is text to allow minus sign entry on keyup -->
+			<!-- Get_Inputs true parameter allows negative input -->
 			<td><input id="SEIncome" type="text" class="wkti"
-				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
+				onfocus="Get_Inputs(this.id, true);"
+				onkeyup="Input_Change(this.id, true);" /></td></tr>
 		<tr class="income"><td></td>
 			<td style="height: 3.2em;">Capital gains/loss
 				<span style="text-align: right; display: inline-block; float: right; right: 3px;">Short term gain/loss:
 					<br />Long term gain/loss:</span></td>
-			<!-- next 2 inputs are text to allow minus sign entry on keyup -->
+			<!-- Get_Inputs true parameter allows negative input -->
 			<td><input id="STCapGains" type="text" class="wkti"
-				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" />
+				onfocus="Get_Inputs(this.id, true);"
+				onkeyup="Input_Change(this.id, true);" />
 			<br /><input id="LTCapGains" type="text" class="wkti"
-				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td>
+				onfocus="Get_Inputs(this.id, true);"
+				onkeyup="Input_Change(this.id, true);" /></td>
 			<td id="CapGains" class="calculated wktc"></td></tr>
 		<tr class="income"><td></td>
 			<td>Other income (alimony, royalties, unemployment, etc)</td><td></td>
-			<td><input id="OtherIncome" type="number" class="wkti"
+			<td><input id="OtherIncome" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
@@ -1134,13 +1264,13 @@
 		<tr class="adjustment"><td></td>
 			<td>Educator expenses <i>(250 maximum per TP/SP)</i></td>
 			<td></td>
-			<td><input id="EdExpenses" type="number" class="wkti"
+			<td><input id="EdExpenses" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
 			<td>Health savings account <span id="HSAText"></span></td>
 			<td></td>
-			<td><input id="HSADeduction" type="number" class="wkti"
+			<td><input id="HSADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
@@ -1150,12 +1280,12 @@
 		<tr class="adjustment"><td></td>
 			<td>Self-employment SEP, SIMPLE and qualified plans</td>
 			<td></td>
-			<td><input id="SESEP" type="number" class="wkti"
+			<td><input id="SESEP" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment" id="SEHIRow"><td></td>
 			<td colspan="2">Self-employment health insurance deduction
-			(Total health insurance: <input id="SEInsurance" type="number" class="wkti"
+			(Total health insurance: <input id="SEInsurance" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)
 			<span id="SEHIExcess"><br /></span>
@@ -1163,45 +1293,45 @@
 		<tr class="adjustment"><td></td>
 			<td>Penalty on early withdawal of savings</td>
 			<td></td>
-			<td><input id="SavingsPenalty" type="number" class="wkti"
+			<td><input id="SavingsPenalty" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
 			<td>Alimony paid</td>
 			<td></td>
-			<td><input id="AlimonyPaid" type="number" class="wkti"
+			<td><input id="AlimonyPaid" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
 			<td>Traditional IRA deduction <i><span id="IRAComment"></span></i></td>
 			<td></td>
-			<td><input id="IRADeduction" type="number" class="wkti"
+			<td><input id="IRADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
 			<td>Student loan interest <i>(2500 per TP/SP)</i></td>
 			<td></td>
-			<td><input id="StudentLoan" type="number" class="wkti"
+			<td><input id="StudentLoan" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
 			<td>Other adjustments expected (Forms 2106 &amp; 3903)</td>
 			<td></td>
-			<td><input id="OtherCredits" type="number" class="wkti"
+			<td><input id="OtherCredits" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr><td></td>
 			<td>Total adjustments
 			<td></td><td></td>
 			<td style="vertical-align: top;" id="Adjustments"
-				type="number" class="calculated wktc"></td></tr>
+				type="text" class="calculated wktc"></td></tr>
 		<tr><td></td>
 			<td colspan="3">Adjusted gross income expected
 			<td id="AGI" class="calculated wktc">0</td></tr>
 <!--
 		<tr><td> 2</td>
 			<td>Deductions: If a dependent of another, enter earned income</td>
-			<td><input id="Dependent" type="number" class="wkti"
+			<td><input id="Dependent" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td><tr>
 -->
@@ -1216,40 +1346,40 @@
 			<td>Medical expenses
 				(Total expenses
 				<span id="NoInsurance"><i>without insurance</i></span>
-				= <input id="ActualMedical" type="number" class="wkti"
+				= <input id="ActualMedical" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)</td>
 			<td id="Medical" class="calculated wktc"></td></tr>
 		<tr class="deductions"><td></td>
 			<td>State income tax or sales tax, and property taxes</td>
-			<td><input id="TaxesPaid" type="number" class="wkti"
+			<td><input id="TaxesPaid" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Interest paid</td>
-			<td><input id="InterestPaid" type="number" class="wkti"
+			<td><input id="InterestPaid" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Gifts to charity</td>
-			<td><input id="Charity" type="number" class="wkti"
+			<td><input id="Charity" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions" id="MiscellaneousRow"><td></td>
 			<!-- not available after 2017 -->
 			<td>Job expenses and miscellaneous deductions
 				(2% AGI = <span id="TwoPercent"></span>)</td>
-			<td><input id="Miscellaneous" type="number" class="wkti"
+			<td><input id="Miscellaneous" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Other miscellaneous deductions (gambling losses)</td>
-			<td><input id="OtherItemized" type="number" class="wkti"
+			<td><input id="OtherItemized" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions" id="AGILimitRow" style="height: 2.5em;"><td>  </td>
 			<td>Medical expenses, investment interest expenses, casualty losses and gambling losses included in the total itemized deductions entered in line above (for AGI > <span id="AGILimit"></span>)</td>
-			<td><input id="Misc" type="number" class="wkti"
+			<td><input id="Misc" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
@@ -1277,14 +1407,15 @@
 		<tr><td></td>
 			<td colspan="2">Taxable income</td><td></td>
 			<td id="TaxableAmount" class="calculated wktc">0</td></tr>
-		<tr class="tablebreak" style="background-color: black;"><td colspan="5"></td></tr>
+		<tr class="tablebreak" style="background-color: black;">
+			<td id="TaxableWarning" colspan="5" class="blinking"></td></tr>
 		<tr><td colspan="5">Tax:</td>
 		<tr><td></td>
 			<td colspan="3">Tax from tax tables</td>
 			<td id="Tax" class="calculated wktc">0</td></tr>
 		<tr><td></td>
 			<td colspan="2">Enter any additional taxes (Forms 4972, 6251, 8814 or 8889)</td>
-			<td><input id="AdditionalTax" type="number" class="wkti"
+			<td><input id="AdditionalTax" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
@@ -1301,7 +1432,7 @@
 					onchange="Input_Change('Foreign');" />
 					Check to allow)</span>
 				<span class="floatright">
-					<input id="ForeignCost" type="number" class="wkti"
+					<input id="ForeignCost" type="text" class="wkti"
 					onfocus="Get_Inputs(this.id);"
 					onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Foreign" class="calculated wktc"></td>
@@ -1309,7 +1440,7 @@
 		<tr><td>  </td>
 			<td>Child and dependent care expenses
 			<span class="floatright">
-				<input id="ChildCareCost" type="number" class="wkti"
+				<input id="ChildCareCost" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="ChildCare" class="calculated wktc"></td>
@@ -1318,7 +1449,7 @@
 		<tr><td>  </td>
 			<td>Credit for elderly or disabled
 			<span class="floatright">
-				<input id="ElderlyCost" type="number" class="wkti"
+				<input id="ElderlyCost" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Elderly" class="calculated wktc"></td>
@@ -1327,7 +1458,7 @@
 		<tr><td>  </td>
 			<td>Education credits
 			<span class="floatright">
-				<input id="EducationCost" type="number" class="wkti"
+				<input id="EducationCost" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Education" class="calculated wktc"></td>
@@ -1335,7 +1466,7 @@
 		<tr><td>  </td>
 			<td>Retirement savings contributions credit <i>(2000 per TP/SP)</i>
 			<span class="floatright">
-				<input id="RetirementCost" type="number" class="wkti"
+				<input id="RetirementCost" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Retirement" class="calculated wktc"></td>
@@ -1346,7 +1477,7 @@
 			<td id="CTCreditUsed" class="calculated wktc"></tr>
 		<tr><td>  </td>
 			<td>Residential energy and other credits</td>
-			<td><input id="Residential" type="number" class="wkti"
+			<td><input id="Residential" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
 			<td id="ResidentialUsed" class="calculated wktc"></tr>
@@ -1362,13 +1493,13 @@
 			<td id="SETax" class="calculated wktc">0</td></tr>
 		<tr id="NIITRow"><td>  </td>
 			<td colspan="2">Net Investment Income tax
-			(Enter investment expenses: <input id="NIITExpenses" type="number" class="wkti"
+			(Enter investment expenses: <input id="NIITExpenses" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)</td>
 			<td id="NIITTax" class="calculated wktc">0</td></tr>
 		<tr><td></td>
 			<td colspan="2">Other taxes (First-time homebuyer, etc)</td>
-			<td><input id="OtherTaxes" type="number" class="wkti"
+			<td><input id="OtherTaxes" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
@@ -1386,13 +1517,14 @@
 			<td id="AOCCredit" class="calculated wktc"></td></tr>
 		<tr><td></td>
 			<td>Other refundable credits</td>
-			<td><input id="Refundable" type="number" class="wkti"
+			<td><input id="Refundable" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td>  </td>
 			<td colspan="3">Estimated total tax</td>
 			<td id="TaxDue" class="calculated wktc">0</td></tr>
-		<tr class="tablebreak" style="background-color: black;"><td colspan="5"></td></tr>
+		<tr class="tablebreak" style="background-color: black;">
+			<td id="DependentWarning" colspan="5" class="blinking"></td></tr>
 		<tr><td colspan="5">Estimated Payments Needed:</td>
 		<tr><td>  </td>
 			<td colspan="2">90% of estimated total tax
@@ -1404,7 +1536,7 @@
 				Enter 100% of last year&apos;s income tax
 				(<input id="HighAGI" type="checkbox" onchange="Do_Estimates();" />
 				Check if AGI last year was > $<span id="LYAGI"></span>K)</td>
-			<td><input id="TaxLastYear" type="number"
+			<td><input id="TaxLastYear" type="text"
 				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
 			<td colspan="3"><b>Choose which to use...</b></td></tr>
@@ -1417,11 +1549,11 @@
 			<td class="calculated" style="vertical-align: bottom;"><span id="EstAmount">0</span></td></tr>
 		<tr><td></td>
 			<td colspan="2">Income tax withheld and estimated to be withheld</td>
-			<td><input id="WHAmount" type="number"
-				onchange="Do_Estimates();" /></td></tr>
+			<td><input id="WHAmount" type="text"
+				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
 			<td colspan="2">Balance (override if a different amount is desired:
-				<input id="OverrideAmount" type="number" 
+				<input id="OverrideAmount" type="text" 
 				onkeyup="Do_Estimates();" />)
 				<span id="PayNotRequired"> (Payment not required if less than $1000)</span></td>
 			<td class="calculated"><span id="VoucherAmount"></span></td></tr>
@@ -1438,6 +1570,7 @@
 		<tr><td></td><td></td></tr> <!-- 3rd column stores hidden variables for indexing -->
 		<tr><th>Taxpayer</th><th>Spouse</th></tr>
 		<tr class="income"><td id="TPWages"></td><td id="SPWages"></td></tr>
+		<tr class="income"><td id="TPScholar"></td><td id="SPScholar"></td></tr>
 		<tr class="income"><td id="TPInterest"></td><td id="SPInterest"></td></tr>
 		<tr class="income"><td id="TPTaxExempt"></td><td id="SPTaxExempt"></td></tr>
 		<tr class="income"><td id="TPDividends"></td><td id="SPDividends"></td></tr>
@@ -1590,14 +1723,17 @@
 		<span id="MFSInputTitle"></span>
 		<br /><br />
 		<table id="MFSInputTable">
-			<tr><td>Taxpayer:</td><td><input type="number" id="TPInput" /></td></tr>
-			<tr><td>Spouse:</td><td><input type="number" id="SPInput" /></td></tr>
+			<tr><td>Taxpayer:</td><td><input type="text" id="TPInput" 
+				onkeyup="MFJMFS_Test(this.id);" /></td></tr>
+			<tr><td>Spouse:</td><td><input type="text" id="SPInput"
+				onkeyup="MFJMFS_Test(this.id);" /></td></tr>
 		</table>
+		<input id="MFSallowNegative" type="checkbox" class="hidden" />
 		<br />
 		(If joint, enter amount in TP space and click JOINT)
 		<br />
-		<button onclick="Do_Joint()">JOINT</button>
-		<button onclick="Do_Inputs('MFJMFS')">SAVE</button>
+		<button id="JOINTButton" onclick="Do_Joint()">JOINT</button>
+		<button id="SAVEButton" onclick="Do_Inputs('MFJMFS')">SAVE</button>
 	</center>
 </div>
 </div>
@@ -1612,15 +1748,15 @@
 			<tr><td>#1:
 				<input type="radio" id="Ed1AOC" name="EdS1" checked />AOC
 				<input type="radio" id="Ed1LLC" name="EdS1" />LLC</td>
-				<td><input type="number" id="Ed1Cost" /></td></tr>
+				<td><input type="text" id="Ed1Cost" /></td></tr>
 			<tr><td>#2:
 				<input type="radio" id="Ed2AOC" name="EdS2" checked />AOC
 				<input type="radio" id="Ed2LLC" name="EdS2" />LLC</td>
-				<td><input type="number" id="Ed2Cost" /></td></tr>
+				<td><input type="text" id="Ed2Cost" /></td></tr>
 			<tr><td>#3:
 				<input type="radio" id="Ed3AOC" name="EdS3" checked />AOC
 				<input type="radio" id="Ed3LLC" name="EdS3" />LLC</td>
-				<td><input type="number" id="Ed3Cost" /></td></tr>
+				<td><input type="text" id="Ed3Cost" /></td></tr>
 		</table>
 		<button onclick="Do_Inputs('Education')">SAVE</button>
 	</center>
