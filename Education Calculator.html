@@ -139,13 +139,14 @@
 	.STRefund1 { font-style: italic; }
 	.STRefund1 { border-top: 1px solid black; }
 	.tabSet {
-		width: 102%;
 		height: 3.2em;
 		background-color: none;
+		text-align: center;
+		margins: auto;
 	}
 	.tabReal {
 		font-size: 1.25em; font-weight: bold; border: 3px solid black; text-align: center;
-		vertical-align: middle; width: calc(95% / 6); height: 2.5em;
+		vertical-align: middle; width: calc((100% - 36px) / 6); height: 2.5em;
 		-moz-border-top-left-radius: 15px; -moz-border-top-right-radius: 15px;
 		-webkit-border-top-left-radius: 15px; -webkit-border-top-right-radius: 15px;
 		border-top-left-radius: 15px; border-top-right-radius: 15px;
@@ -179,9 +180,12 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.3a, 2/20/2020";
+	var VERSION = "Version 3.4, 8/8/2020";
+	//	Modified optimizer to use adj to income amounts to increase taxable scholarships
+	//		before invoking the kiddie tax
+	//var VERSION = "Version 3.3a, 2/20/2020";
 	//	Removed links to extinct Education Cookbook
-	var VERSION = "Version 3.3, 2/7/2020";
+	//var VERSION = "Version 3.3, 2/7/2020";
 	//	Fixed retirement credit not carrying to LLC column
 	//var VERSION = "Version 3.20b, 1/20/2020";
 	//	Added pink to AGI if income but AGI is blank
@@ -538,10 +542,6 @@
 		// Child (and Family) Tax Credit name change in 2018
 		OTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
 
-		// Kiddie tax method change in 2018 but rescinded in 2020
-		KiddieAllow.disabled = ((+TaxYear.value == 2018) || (+TaxYear.value == 2019)) ? false : true;
-		if (KiddieAllow.disabled) KiddieAllow.checked = false;
-
 		// Calculate Fed Poverty Line for the given year
 		RegionList = document.getElementsByName("Region");
 		for (i = 0; i < RegionList.length; i++){
@@ -593,7 +593,7 @@
 		else { // Student is a dependent
 			KiddieWarn.style.display = "list-item";
 			if (whatChanged == "TaxYear") {
-				KiddieAllow.checked = (TaxYear.value > 2017); // true/false
+				if ((+TaxYear.value < 2018) || (+TaxYear.value > 2019)) KiddieAllow.checked = false;
 			}
 		}
 		Exemptions += +Dependents.value;
@@ -656,8 +656,9 @@
 			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 		}
 		
+		// Kiddie tax method change in 2018 but rescinded in 2020
 		KiddieAllowOption.style.display =
-		KTdiv.style.display = (KiddieTaxApplies) ? "inline" : "none";
+		KTdiv.style.display = ((KiddieTaxApplies) && ((+TaxYear.value == 2018) || (+TaxYear.value == 2019))) ? "inline" : "none"; // v3.4
 
 		// Hide tax return results line if student not a dependent
 		StudentInput.style.display = (DependentNo.checked) ? "none" : "inline";
@@ -875,42 +876,50 @@
 		}
 
 		// Calculate the amount of the scholarship that can be made taxable
-
 		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
-		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies && (! KiddieAllow.checked)) {
 			// Get the student's current unearned income amount and determine if must file
 
 			// Taxable scholarship is earned income for this test
-			var fileAmount = +_StandardDeduction(TaxYear.value, StudentFilingStatus.value,
+			var deductionAmount = +_StandardDeduction(TaxYear.value, StudentFilingStatus.value,
 				StudentTP65.checked, StudentTPBlind.checked, StudentSP65.checked, StudentSPBlind.checked,
 				false, 0);
 			var fileMinimum = +_Standard[TaxYear.value].split(",")[_Standard["Minimum"]];
-			taxableLimit = Math.min(fileAmount, taxableLimit);
+
+			taxableLimit = Math.min(deductionAmount, taxableLimit);
+
+			// Set default filing margins (-1 means not yet calculated)
 			if (KiddieFileMargin == -1) {
 				KiddieFileMargin = KiddieTaxThreshold;
-				StudentFileMargin = fileAmount;
+				StudentFileMargin = deductionAmount;
 			}
 
-			// Get the student's current unearned (not quite accurate - should use total income)
+			// Get the student's current unearned income
+			// (StudEarnedTax.value is stored in a hidden row in the student's table)
 			var studentUnearned = Math.max(0, +StudAGITax.value - +StudEarnedTax.value);
+
+			// Determine margins (amounts before tax kicks in)
 			var unearnedMargin = fileMinimum - studentUnearned;
-			var earnedMargin = fileAmount - +StudEarnedTax.value;
-			var grossMargin = fileAmount - +StudAGITax.value;
+			var earnedMargin = deductionAmount - +StudEarnedTax.value;
+			var grossMargin = deductionAmount - +StudAGITax.value;
 			KiddieFileMargin = KiddieTaxThreshold - studentUnearned; // Taxable scholarship is not included
 			if (studentUnearned > 350) {
 				StudentFileMargin = unearnedMargin; // amount to earn before having to file
 			}
 			else {
-				StudentFileMargin = Math.min(earnedMargin, grossMargin); // amount to earn before having to file
+				//StudentFileMargin = Math.min(earnedMargin, grossMargin); // amount to earn before having to file
+				StudentFileMargin = grossMargin; // amount to earn before having to file NEW
 			}
 
-			if ((unearnedMargin < 0) || (earnedMargin < 0) || (grossMargin < 0)) { // must file
+			//if ((unearnedMargin < 0) || (earnedMargin < 0) || (grossMargin < 0)) { // must file
+			if ((unearnedMargin < 0) || (grossMargin < 0)) { // must file NEW
 				taxableLimit = Math.min(KiddieFileMargin, taxableLimit);
 			}
 			else { // dont have to file yet
-				//taxableLimit = Math.min(StudentFileMargin, taxableLimit);
+				//taxableLimit = Math.min(StudentFileMargin, taxableLimit); (this was commented out)
+				taxableLimit = StudentFileMargin; // NEW
 			}
 
 			if (ScholarTaxable.value > taxableLimit) {
@@ -1602,7 +1611,7 @@
 		}
 
 		// adjust for kiddie tax avoidance
-		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (+TaxYear.value > 2019) || (! KiddieAllow.checked))) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -3204,7 +3213,7 @@
 	<span id="ExpenseAllowedFlag">&nbsp;&#x2714;&nbsp;<i>Check marks indicate expenses allowed for scholarships or other funds.</i></span>
 	<table id="EItable" onchange="BudgetChange()">
 		<tr>	<td><center><b>&darr;</b></center></td>
-			<td><i>Check the box if the <u>scholarship</u> can be used to pay for the expenses without being taxed:</i></td></tr>
+			<td><i>Check the box if the scholarship <u>can</u> be used to pay for the expenses without being taxed:</i></td></tr>
 		<tr>
 			<th></th>
 			<th>Expense category</th>
@@ -3951,9 +3960,9 @@
 		<hr /><div class="TaxReturnHeader">Student&apos;s return:
 			<span id="KiddieAllowOption"> 
 				(<input id="KiddieAllow" type="checkbox"
-				checked="true"
 				onchange="BudgetChange();"
-				title="check to allow kiddie tax calculation" /> 				Check to optimize using kiddie tax with trust tax rates)
+				title="check to allow kiddie tax calculation" />
+				Check to optimize using kiddie tax with trust tax rates)
 			</span>
 		</div>
 	<table id="StudentTaxForm" onchange="BudgetChange()">
