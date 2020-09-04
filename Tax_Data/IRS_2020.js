@@ -7,27 +7,26 @@
         // var LineNo = [];
 		// 1040
 		_LineNo[_TY+":Salary"] = "1";		
-		_LineNo[_TY+":Business"] = "S1-3";	
                 _LineNo[_TY+":Earned"] = "1&S1-3";	
-		_LineNo[_TY+":Pension"] = "4b+4d";	
                 _LineNo[_TY+":TaxExInc"] = "2a";	
                 _LineNo[_TY+":QualDiv"] = "3a";		
-                _LineNo[_TY+":SSI"] = "5a";		
-                _LineNo[_TY+":SST"] = "5b";		
-                _LineNo[_TY+":CapGains"] = "6";		
-                _LineNo[_TY+":AGI"] = "8b";		
-                _LineNo[_TY+":Deductions"] = "9";	
-                _LineNo[_TY+":QBI"] = "10";		
-                _LineNo[_TY+":Taxable"] = "11b";	
-                _LineNo[_TY+":QDCG"] = "12";		
-                _LineNo[_TY+":TaxAmount"] = "12";	
-                _LineNo[_TY+":CTC"] = "13a";		
-                _LineNo[_TY+":COD"] = "13a";		
-                _LineNo[_TY+":NRCredit"] = "13b";	
-                _LineNo[_TY+":EIC"] = "18a";		
-                _LineNo[_TY+":ACTC"] = "18b";		
-                _LineNo[_TY+":AOC"] = "18c";		
+		_LineNo[_TY+":Pension"] = "4b+5b";	
+                _LineNo[_TY+":SSI"] = "6a";		
+                _LineNo[_TY+":SST"] = "6b";		
+                _LineNo[_TY+":CapGains"] = "7";		
+                _LineNo[_TY+":AGI"] = "11";		
+                _LineNo[_TY+":Deductions"] = "12";	
+                _LineNo[_TY+":QBI"] = "13";		
+                _LineNo[_TY+":Taxable"] = "15";	
+                _LineNo[_TY+":TaxAmount"] = "16";	
+                _LineNo[_TY+":CTC"] = "19";		
+                _LineNo[_TY+":COD"] = "19";		
+                _LineNo[_TY+":NRCredit"] = "20";	
+                _LineNo[_TY+":EIC"] = "27";		
+                _LineNo[_TY+":ACTC"] = "28";		
+                _LineNo[_TY+":AOC"] = "29";		
 		// Schedules 1-3
+		_LineNo[_TY+":Business"] = "S1-3";	
                 _LineNo[_TY+":SEP"] = "S1-15";		
                 _LineNo[_TY+":SEHI"] = "S1-16";		
                 _LineNo[_TY+":TNF"] = "S1-21";		
@@ -39,6 +38,8 @@
                 _LineNo[_TY+":Retire"] = "S3-4";	
                 _LineNo[_TY+":IRP"] = "";		
                 _LineNo[_TY+":NetPTC"] = "S3-9";	
+		// Qualified dividends and cap gains worksheet
+                _LineNo[_TY+":QDCG"] = "12";
 		// Schedule A
 	        _LineNo[_TY+":StateWH"] = "5a"; 
 	        _LineNo[_TY+":Property"] = "5b"; 

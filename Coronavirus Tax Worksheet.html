@@ -1,0 +1,449 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Coronavirus Tax Worksheet</title>
+
+<style type="text/css">
+	html { background-color: #cceecc; }
+	body { background-color: #cceecc;
+		font-family: sans-serif;
+		padding: 0 2.5% 0 2.5%;
+	}
+	button { cursor: pointer;
+		background-color: lightgreen;
+	}
+	table { background-color: #eeffee;
+		border-collapse: collapse;
+		margin: auto;
+	}
+	table tr th,
+	table tr td { vertical-align: middle; }
+	h1 { text-align: center;
+		font-size: 110%;
+		text-decoration: underline}
+	tr { vertical-align: top; }
+	th { background-color: #c7dfc7; }
+	select { width: 8em; font-size: 100%; }
+	input { text-align: left; }
+	input, select { background-color: white; }
+	input[type="number"] { width: 6em; text-align: right; }
+	input[type="radio"] { margin-left: 1em; }
+	input:disabled,
+	select:disabled {
+		background-color: lightgrey;
+		font-weight: bold;
+	      }
+	.bold { font-weight: bold; }
+	.center { text-align: center; }
+	.tblHeader { font-size:110%; font-weight:bold; text-decoration:underline; }
+	.title { font-size:125%; font-weight:bold; }
+	.instruction { font-style: italic; float: right; }
+	.borderbottom { border-bottom: 3px solid black; }
+	.comment { font-style:italic; }
+	.section { background-color: #eeffee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 98%; }
+	.noPrint { float:left; }
+
+	#TPName { width: 16em; font-size: 100%; margin: auto; }
+	#TPTable tr td { padding: 5px; }
+	#TPTable tr td:first-child { text-align: right; }
+
+	#CalcDiv { margin: auto; }
+	#DataTable { border: 3px solid black; }
+	#DataTable tr td { padding: 5px; }
+	#DataTable tr td { text-align: right; }
+	#DataTable tr:last-child * { margin-top: 5px; }
+	#TotalTable { border: 3px solid green; }
+	#TotalTable tr td { padding: 5px; text-align: right; }
+
+	#ClearAndPrint { text-align: center; float:right; z-level:2; position: absolute; top: 0.8em; right: 1em; }
+	#ShowError { text-decoration: italic; text-align: right; display: none; }
+
+	#ErrorMessage1,
+	#ErrorMessage2a,
+	#ErrorMessage2b { background-color: hotpink; font-size: 120%; }
+	
+	@media print {
+		.doPrint { display:inline; }
+		.noPrint { display:none; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding:0; margin:0; }
+		input, select, option { font-size: 0.8em; }
+		table { background-color: white; }
+	}
+</style>
+
+<script src="CommonRoutines.js"></script>
+<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2020.js"></script>
+<script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
+
+<script type="text/javascript">
+// --------------------------------------------------------------------------------
+// Contributors:
+//	Steve Conary
+//
+// --------------------------------------------------------------------------------
+
+var VERSION = 0;
+VERSION = "(Version 1.04, 9/4/2020)";
+//	Capped distribution to 100,000 and clarified >100000 message
+//VERSION = "(Version 1.03, 9/3/2020)";
+//	Added code to remember original 2020 AGI and adjust display for paybacks
+//	Fixed inability to change 2021 and 2022 AGIs
+//	Added Calculate button
+//VERSION = "(Version 1.02, 9/3/2020)";
+//	Corrected taxable income calc for 2020
+//VERSION = "(Version 1.01, 9/3/2020)";
+//	Added payback fields, many text changes and amendment concept
+//VERSION = "(Version 1.00, 8/30/2020)";
+
+//----------------------------------------------------------------------------------------
+// GLOBAL VARIABLES
+//----------------------------------------------------------------------------------------
+var AGI1_2020_Save = 0;
+var AGI_Base = 0;
+var AGI_Previous_Base = 0;
+var Remainder_2020 = 0;
+
+//----------------------------------------------------------------------------------------
+function Initialize() {
+//----------------------------------------------------------------------------------------
+	FilingStatus.value = "MFJ";
+	Tax_Calc();
+}
+
+//----------------------------------------------------------------------------------------
+function Change_Status() {
+//----------------------------------------------------------------------------------------
+	// Show SP age/blind line
+	SPRow.style.display = (FilingStatus.value === "MFJ") ? "table-row" : "none" ;
+	Clear_Values("tax");
+	Tax_Calc();
+}
+
+//----------------------------------------------------------------------------------------
+function Tax_Calc(field) {
+
+//----------------------------------------------------------------------------------------
+	// check year
+	if (field === undefined) field = "";
+
+	// Verify distribution amount
+	if (Distribution.value <= 0) {
+		Clear_Values("all");
+		return;
+	}
+	Distribution.value = Math.round(Distribution.value);
+	if (+Distribution.value > 100000) {
+		dist_val = 0
+		var dist_str = "" + Math.round(Distribution.value); // string
+		if (dist_str.length > 3) {
+			dist_str = dist_str.substring(0, dist_str.length - 3) + "," + dist_str.substr(dist_str.length - 3, 3);
+		}
+		if (dist_str.length > 7) {
+			dist_str = dist_str.substring(0, dist_str.length - 7) + "," + dist_str.substr(dist_str.length - 7, 7);
+		}
+
+		alert("You entered $" + dist_str + ". \nA maximum of $100,000 is allowed.");
+		Distribution.value = 100000;
+		return;
+	}
+	if (+Distribution.value < 0) Distribution.value = "";
+
+	// Check payback amounts
+	Payback_2020.style.backgroundColor = "white";
+	Payback_2021.style.backgroundColor = "white";
+	Payback_2022.style.backgroundColor = "white";
+	Payback_2020.value = Math.round(Payback_2020.value);
+	Payback_2021.value = Math.round(Payback_2021.value);
+	Payback_2022.value = Math.round(Payback_2022.value);
+	if (+Payback_2020.value <= 0) Payback_2020.value = "";
+	if (+Payback_2021.value <= 0) Payback_2021.value = "";
+	if (+Payback_2022.value <= 0) Payback_2022.value = "";
+	var Payback_total = +Payback_2020.value + +Payback_2021.value + +Payback_2022.value;
+	if (Payback_total > +Distribution.value) {
+		if (+Payback_2020.value > 0) Payback_2020.style.backgroundColor = "hotpink";
+		if (+Payback_2021.value > 0) Payback_2021.style.backgroundColor = "hotpink";
+		if (+Payback_2022.value > 0) Payback_2022.style.backgroundColor = "hotpink";
+		alert("The paid back total seems to be more than the distribution.");
+		Clear_Values("tax");
+		return;
+	}
+	switch (true) {
+		case (+Payback_2022.value > 0): 
+			Amend_2022.style.display = "inline";
+			// no break
+		case (+Payback_2021.value > 0): 
+			Amend_2021.style.display = "inline"; 
+			break;
+		default: 
+			Clear_Values("amend");
+	}
+
+	// Check 2020 AGI value
+	if (+AGI1_2020.value <= 0) AGI1_2020.value = "";
+	if (AGI1_2020.value === "") {
+		Clear_Values("all");
+		return;
+	}
+
+	// Change made to 2020 AGI
+	if (field === "AGI1_2020") {
+		AGI1_2020_Save = AGI1_2020.value;
+		Remainder_2020 = +Distribution.value - +Payback_2020.value;
+		AGI_Base = AGI1_2020.value - Remainder_2020; // can be negative
+	}
+
+	// Set AGI1 values
+	AGI1_2020.value = AGI_Base + +Distribution.value - Payback_total;
+	if ((AGI1_2021.value === "") || (+AGI1_2021.value == AGI_Previous_Base)) AGI1_2021.value = Math.max(0, AGI_Base); 
+	if ((AGI1_2022.value === "") || (+AGI1_2022.value == AGI_Previous_Base)) AGI1_2022.value = Math.max(0, AGI_Base); 
+	AGI_Previous_Base = AGI_Base;
+
+	// Get standard deductions
+	var standard2020 = +_StandardDeduction("2020", FilingStatus.value, TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, false, 0);
+	var standard2021 = +_StandardDeduction("2021", FilingStatus.value, TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, false, 0);
+	var standard2022 = +_StandardDeduction("2022", FilingStatus.value, TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, false, 0);
+
+	// Determine taxable income
+	Taxable1_2020.innerHTML = Math.max(0, +AGI1_2020.value - standard2020);
+	Taxable1_2021.innerHTML = Math.max(0, +AGI1_2021.value - standard2021);
+	Taxable1_2022.innerHTML = Math.max(0, +AGI1_2022.value - standard2022);
+
+	// Determine tax
+	Tax1_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1_2020.innerHTML, 0, true, 0);
+	Tax1_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable1_2021.innerHTML, 0, true, 0);
+	Tax1_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable1_2022.innerHTML, 0, true, 0);
+
+	// Determine AGIs
+	Dist_Remainder = +Distribution.value - +Payback_total;
+	var IRA_part = Math.floor(Dist_Remainder / 3);
+	AGI3_2020.innerHTML = Math.max(0, AGI_Base + IRA_part);
+	AGI3_2021.innerHTML = Math.max(0, +AGI1_2021.value + IRA_part);
+	AGI3_2022.innerHTML = Math.max(0, +AGI1_2022.value + Dist_Remainder - (2 * IRA_part));
+
+	// Determine 3-year taxable incomes
+	Taxable3_2020.innerHTML = Math.max(0, +AGI3_2020.innerHTML - standard2020);
+	Taxable3_2021.innerHTML = Math.max(0, +AGI3_2021.innerHTML - standard2021);
+	Taxable3_2022.innerHTML = Math.max(0, +AGI3_2022.innerHTML - standard2022);
+
+	// Determine 3-year taxes
+	Tax3_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable3_2020.innerHTML, 0, true, 0);
+	Tax3_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable3_2021.innerHTML, 0, true, 0);
+	Tax3_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable3_2022.innerHTML, 0, true, 0);
+
+	// Determine totals
+	Total1.innerHTML = +Tax1_2020.innerHTML + +Tax1_2021.innerHTML + +Tax1_2022.innerHTML;
+	Total3.innerHTML = +Tax3_2020.innerHTML + +Tax3_2021.innerHTML + +Tax3_2022.innerHTML;
+}
+
+//----------------------------------------------------------------------------------------
+function AGI_Changed() {
+//----------------------------------------------------------------------------------------
+
+}
+//----------------------------------------------------------------------------------------
+function Clear_Values(start) {
+//----------------------------------------------------------------------------------------
+	switch (start) {
+		case "all": 
+			AGI1_2020.value = "";
+			AGI1_2021.value = "";
+			AGI1_2022.value = "";
+			// no break
+		case "tax": 
+			Taxable1_2020.innerHTML = "";
+			Taxable1_2020.innerHTML = "";
+			Taxable1_2020.innerHTML = "";
+			Tax1_2020.innerHTML = "";
+			Tax1_2021.innerHTML = "";
+			Tax1_2022.innerHTML = "";
+			AGI3_2020.innerHTML = "";
+			AGI3_2021.innerHTML = "";
+			AGI3_2022.innerHTML = "";
+			Taxable3_2020.innerHTML = "";
+			Taxable3_2020.innerHTML = "";
+			Taxable3_2020.innerHTML = "";
+			Tax3_2020.innerHTML = "";
+			Tax3_2021.innerHTML = "";
+			Tax3_2022.innerHTML = "";
+			// no break
+		case "amend":
+			Amend_2021.style.display = "none";
+			Amend_2022.style.display = "none";
+	}
+}
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize();">
+
+<center>
+	<span class="title">Coronavirus Tax Worksheet</span>
+	<br /><span id="Version"></span>
+	<script>Version.innerHTML = VERSION;</script>
+</center>
+
+	<span id="ClearAndPrint" class="noPrint">
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</span>
+	<div id="TPInfo" class="section">
+		<span class="tblHeader">Taxpayer Information:</span>
+		<br />
+		<br />
+		<table id="TPTable" onchange="Change_Status();">
+			<tr>	<td>Taxpayer Name:</td>
+				<td><input id="TPName" /></td></tr>
+			<tr>	<td>Filing Status:</td>
+				<td>	<select id="FilingStatus">
+						<option value="SNG">Single</option>
+						<option value="MFJ">MFJ</option>
+						<option value="MFS">MFS</option>
+						<option value="HOH">HOH</option>
+						<option value="WID">Widow(er)</option>
+					</select></td></tr>
+			<tr>	<td>TP is:</td>
+				<td>	<input id="TP65" type="checkbox"
+						title="Taxpayer is 65 or older" />
+						65 or older&nbsp;&nbsp;
+					<input id="TPBlind" type="checkbox"
+						title="Taxpayer is blind" />
+						Blind&nbsp;&nbsp;</td></tr>
+			<tr id="SPRow">
+				<td>SP is:</td>
+				<td>	<input id="SP65" type="checkbox"
+						title="Spouse is 65 or older" />
+						65 or older&nbsp;&nbsp;
+					<input id="SPBlind" type="checkbox"
+						title="Spouse is blind"/>
+						Blind&nbsp;&nbsp;
+				</td></tr>
+		</table>
+	</div>
+
+	<div id="CalcDiv" class="section" onchange="Tax_Calc();">
+		<span class="tblHeader">Tax options:</span>
+		<br />
+		<br />
+		Taxpayers may spread the taxability of an early distribution of up to $100,000 from a
+		retirement saving plan (IRA, 401(k), 403(b), 457(b)) across three years
+		if taken between 1/1/2020 and 12/30/2020 due to the adverse effect of the
+		coronavirus on their personal financial situation.
+		The 10% penalty for an early distribution is also waived for this case.
+		<br />
+		<b>NOTE:</b> THIS OPTION IS NOT AVAILABLE FOR NORMAL (NON-CORONAVIRUS) DISTRIBUTIONS!
+		<br />
+		<br />
+		During the 3-year period,
+		taxability can be reduced by paying back all or part of the funds removed
+		however the previous years&apos; return(s) must be amended to reflect the reduced
+		distribution amount and recover the tax paid.
+		<br />
+		<ol>
+			<li>Complete the tax return using the tax software
+			assuming the tax for the distribution amount (less any
+			amount paid back) is fully paid in 2020.</li>
+			<li>In the table below,
+			enter the total amount that was distributed and the amount
+			you have paid or plan to pay back during the 2020-2022 tax years
+			(by the IRS filing date for that year - usually 4/15).</li>
+			<li>Enter the 2020 adjusted gross income (AGI) calculated from the tax software.
+			Enter figures for AGI for years 2021 and 2022 <u>only</u>
+			if you expect them to be significantly
+			different than what 2020 would have been without the distribution.</li>
+			<li>The results for distributing the tax over three years
+			will be calculated.</li>
+		</ol>
+		<table id="DataTable">
+			<tr class="borderbottom"><td>Tax Year: </td><th>2020</th><th>2021</th><th>2022</th></tr>
+			<tr>	<td>Amount of distribution(s)
+					<br />in 2020 due to Coronavirus:</td>
+				<td><input id="Distribution" type="number"></td>
+				<td></td>
+				<td></td></tr>
+			<tr class="borderbottom">
+				<td>Amount paid back by 4/15
+					<br />of the following year:</td>
+				<td><input id="Payback_2020" title="paid back by 4/15/2021" type="number"></td>
+				<td><input id="Payback_2021" title="paid back by 4/15/2022" type="number"></td>
+				<td><input id="Payback_2022" title="paid back by 4/18/2023" type="number"></td></tr>
+			<tr>	<th colspan="4">1-year tax option: </th></tr>
+			<tr>	<td>Adjusted gross income: </td>
+				<td><input id="AGI1_2020" type="number" onchange="Tax_Calc(this.id)";></td>
+				<td><input id="AGI1_2021" type="number"></td>
+				<td><input id="AGI1_2022" type="number"></td></tr>
+			<tr>	<td>Taxable income: </td>
+				<td id="Taxable1_2020"></td>
+				<td id="Taxable1_2021"></td>
+				<td id="Taxable1_2022"></td></tr>
+			<tr class="borderbottom">
+				<td>Approximate tax amount: </td>
+				<td id="Tax1_2020"></td>
+				<td id="Tax1_2021"></td>
+				<td id="Tax1_2022"></td></tr>
+			<tr>	<th colspan="4">3-year tax option: </th></tr>
+			<tr>	<td>Adjusted gross income: </td>
+				<td id="AGI3_2020"></td>
+				<td id="AGI3_2021"></td>
+				<td id="AGI3_2022"></td></tr>
+			<tr>	<td>Taxable income: </td>
+				<td id="Taxable3_2020"></td>
+				<td id="Taxable3_2021"></td>
+				<td id="Taxable3_2022"></td></tr>
+			<tr>	<td>Approximate tax amount: </td>
+				<td id="Tax3_2020"></td>
+				<td id="Tax3_2021"></td>
+				<td id="Tax3_2022"></td></tr>
+		</table>
+
+		<br />
+		<center><button> Calculate </button></center>
+
+		<br />
+		<table id="TotalTable">
+			<tr><th colspan="2">3-year tax totals</th><tr>
+			<tr><td>1-year option</td><td id="Total1"></td></tr>
+			<tr><td>3-year option</td><td id="Total3"></td></tr>
+		</table>
+
+		<span id="Amend_2021">
+			<br />
+			<ul>
+			<li>The 2020 tax return will need to be amended to recover the excess tax
+			paid in that year.</li>
+			<span id="Amend_2022">
+				<li>
+				The 2021 tax return will need to be amended to recover the excess tax
+				paid in that year.</li>
+			</span>
+			</ul>
+		</span>
+
+		<br />
+		<b>Disclaimer:</b> This worksheet is for discussion purposes only.
+		Resulting tax amounts do not reflect many aspects of the tax code and may not match
+		the results from the tax software.
+		Tax rates for 2022 are not yet known but have been adjusted
+		to be similar to the 2021 changes. Also, changes in capital gains,
+		qualified dividends, business income, and itemized deductions can vary
+		greatly from year to year and such changes are not considered (2020 values
+		are assumed).
+	</div>
+
+	<div class="noPrint section">
+		Please send corrections and suggestions to
+		<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	  	<span id="printbutton2" style="float: right;">
+			<button onclick="window.print()">Print a taxpayer copy</button>
+		</span>
+	</div>
+</body>
