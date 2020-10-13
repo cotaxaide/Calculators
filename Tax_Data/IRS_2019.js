@@ -169,9 +169,9 @@
                 _EICRates[_TY+":INVEST"] = 3600;
 
 	// var FPL = [];
-		_FPL[_TY+":US"] =     "12140, 4320";
-		_FPL[_TY+":Alaska"] = "15180, 5400";
-		_FPL[_TY+":Hawaii"] = "13960, 4970";
+		_FPL[_TY+":US"] =     "12400, 4420";
+		_FPL[_TY+":Alaska"] = "15600, 5530";
+		_FPL[_TY+":Hawaii"] = "14380, 5080";
 
 	// var PTCFactorVal = [];	
 		// A,B are FPL% ranges, C-D are PTC multipliers * 100

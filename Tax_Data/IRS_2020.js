@@ -127,7 +127,7 @@
 		_MedicalExclusion[_TY] = "0.10, 0.10";	
 
 	// StateTaxCap
-		_SALT[_TY] = 10000;			// New tax law
+		_SALT[_TY] = 10000;
 
         // var RetireLimits = [];
                 // Source: 1040 instructions for line 51
@@ -175,9 +175,9 @@
                 _EICRates[_TY+":INVEST"] = 3650;		// Tentative
 
 	// var FPL = [];
-		_FPL[_TY+":US"] =     "12140, 4320";		// Needs update
-		_FPL[_TY+":Alaska"] = "15180, 5400";		// Needs update
-		_FPL[_TY+":Hawaii"] = "13960, 4970";		// Needs update
+		_FPL[_TY+":US"] =     "12400, 4420";	// Need update
+		_FPL[_TY+":Alaska"] = "15600, 5530";	// Need update
+		_FPL[_TY+":Hawaii"] = "14380, 5080";	// Need update
 
 	// var PTCFactorVal = [];	// Need update
 		// A,B are FPL% ranges, C-D are PTC multipliers * 100
@@ -190,12 +190,12 @@
 		// 300-400 = 9.5-9.5
 		// col 4 = SNG APTC repayment limit
 
-		_PTCFactorVal[_TY+":0"] =   "133, 2.08, 2.08,  300";		// Needs update
-		_PTCFactorVal[_TY+":133"] = "150, 3.11, 4.15,  300";		// Needs update
-		_PTCFactorVal[_TY+":150"] = "200, 4.15, 6.54,  300";		// Needs update
-		_PTCFactorVal[_TY+":200"] = "250, 6.54, 8.36,  750";		// Needs update
-		_PTCFactorVal[_TY+":250"] = "300, 8.36, 9.86,  750";		// Needs update
-		_PTCFactorVal[_TY+":300"] = "400, 9.86, 9.86, 1250";		// Needs update
+		_PTCFactorVal[_TY+":0"] =   "133, 2.06, 2.06,  300";
+		_PTCFactorVal[_TY+":133"] = "150, 3.09, 4.12,  300";
+		_PTCFactorVal[_TY+":150"] = "200, 4.12, 6.49,  300";
+		_PTCFactorVal[_TY+":200"] = "250, 6.49, 8.29,  750";
+		_PTCFactorVal[_TY+":250"] = "300, 8.29, 9.78,  750";
+		_PTCFactorVal[_TY+":300"] = "400, 9.78, 9.78, 1250";
 
 	// var AffordRate = [];
 		_AffordRate[_TY] = 0.0805;	
