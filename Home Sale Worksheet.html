@@ -188,6 +188,9 @@
 	//	Bill Zlobik
 	// --------------------------------------------------------------------------------
 
+	VERSION = "(Version 1.05b, 9/30/2020)";
+	//	Modified partialdates parameter to prior understanding
+	//	Fixed undefined version number
 	//VERSION = "(Version 1.05a, 5/8/2020)";
 	//	Minor text change in non-qualified use question
 	//VERSION = "(Version 1.05, 5/7/2020)";
@@ -379,8 +382,8 @@ function Basis_Calc(ignore) {
 		if (PurchasedDate.value < Sale5yrDate) {
 			partialdates = "between ";
 			partialdates += ((Purchased_Date[0] > 2008) ? DateAcquired.innerHTML : "1/1/2009" );
-			//partialdates += " and " + TPFiveYears.innerHTML;
-			partialdates += " and when used as a main home ";
+			partialdates += " and " + TPFiveYears.innerHTML; // CONTRAVERSIAL
+			//partialdates += " when used as a main home "; // why was this here?
 			PartialDates.innerHTML = partialdates;
 			PartialRow.style.display = "table-row";
 		}
@@ -905,7 +908,7 @@ function Add_Improvement() {
 </center>
 
 	<span id="ClearAndPrint" class="noPrint">
-	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </span>
 <div id="InputDiv" style="position: relative;">
