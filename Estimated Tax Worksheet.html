@@ -101,6 +101,8 @@
 	#Warn1116 { color: red; font-style: italic; font-weight: bold; display: none; }
 	#TaxableWarning,
 	#DependentWarning { color: yellow; }
+	#PayChoice { float: right; }
+	#payJ, #payT, #payS { width: 4em; }
 	.blinking{ text-align: center; animation:blinkingText 2s infinite; }
 		@keyframes blinkingText {
     			0%   { color: yellow; }
@@ -144,7 +146,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.08, 7/20/2020)";
+	var VERSION = "(Version 3.09, 10/13/2020)";
+	//	Added CARES act above-line charitable and recovery rebate credit lines
+	//	Bolded which of standard/itemized total was used in calcs
+	//	Added estimated payment buttons for MFJMFS comparison
+	//var VERSION = "(Version 3.08, 7/20/2020)";
 	//	Added options for dependent
 	//	Changed inputs from number type to text to better handle negative entries
 	//var VERSION = "(Version 3.07, 6/30/2020)";
@@ -180,6 +186,7 @@
 	var TPMFJcList = [];
 	var EdtList = [];
 	var EdiList = [];
+	var payOption = "J";
 	var InTitle = []; // Titles for the MFJ/MFS comparison input box
 		InTitle["Wages"] = "Wages, salaries, tips, etc from W-2s";
 		InTitle["Scholar"] = "Taxable scholarships";
@@ -201,6 +208,7 @@
 		InTitle["SEInsurance"] = "Health insurance cost";
 		InTitle["SavingsPenalty"] = "Penalty on early withdawal of savings";
 		InTitle["AlimonyPaid"] = "Alimony paid";
+		InTitle["CharityStandard"] = "Charitable contributions";
 		InTitle["IRADeduction"] = "IRA deduction";
 		InTitle["StudentLoan"] = "Student loan interest";
 		InTitle["OtherCredits"] = "Other adjustments expected (Forms 2106 &amp; 3903)";
@@ -222,6 +230,7 @@
 		InTitle["Residential"] = "Residential energy and other credits";
 		InTitle["NIITExpenses"] = "Net Investment Income tax investment expenses";
 		InTitle["OtherTaxes"] = "Other taxes";
+		InTitle["RecoveryCredit"] = "Recovery rebate credit";
 		InTitle["Refundable"] = "Other refundable credits";
 	
 
@@ -313,17 +322,20 @@
 			IncomeInfo.style.gridColumn = "1 / 2";	
 			FilingStatus.value = "MFJ";
 			FilingStatus.disabled = true;
+			PayChoice.style.display =
 			DependentsMFS1.style.display =
 			CTCDependentsMFS1.style.display =
 			EICDependentsMFS1.style.display = 
 			DependentsMFS2.style.display =
 			CTCDependentsMFS2.style.display =
 			EICDependentsMFS2.style.display = "inline";
+			PayChange("payJ");
 		}
 		else {
 			FilingStatus.disabled = false;
 			MFSInfo.style.display = "none";
 			IncomeInfo.style.gridColumn = "1 / 3";
+			PayChoice.style.display =
 			DependentsMFS1.style.display =
 			CTCDependentsMFS1.style.display =
 			EICDependentsMFS1.style.display =
@@ -362,8 +374,8 @@
 		EducationCost.disabled = (FilingStatus.value === "MFS");
 		if (ChildCareCost.disabled) ChildCareCost.value = "";
 		LYAGI.innerHTML = (FilingStatus.value === "MFS") ? 75:150;
-		ItemizeRequiredOption.display = 
-		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
+		ItemizeRequiredOption.style.display = 
+		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "inline" : "none";
 		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
 		if (IsDependent.checked) {
 			DependentsRow.style.display = "none";
@@ -408,10 +420,18 @@
 		for (itno = 0; itno < itemlist.length; itno++) {
 			itemlist[itno].style.display = (IExp) ? "table-row" : "none";
 		}
+
+		// 2019 tax form changes
 		AGILimitRow.style.display =
 		MFJMFSAGILimitRow.style.display =
 		MiscellaneousRow.style.display =
 		MFJMFSMiscellaneousRow.style.display = (IExp && (TY < 2018)) ? "table-row" : "none";
+
+		// 2020 tax form changes
+		MFJMFSCSRow.style.display =
+		CharityStandardRow.style.display = (TY > 2019) ? "table-row" : "none";
+		MFJMFSRecoveryCreditRow.style.display =
+		RecoveryCreditRow.style.display = (TY > 2019) ? "table-row" : "none";
 
 		Input_Change("Wages");
 	}
@@ -573,12 +593,12 @@
 		// Load input arrays for calculations
 		if (MFJMFS.checked) { // Do all 3 returns
 			// Do_Inputs has set the input values
-			Do_Calcs("J", TPMFJ);
-			Show_Results("J");
 			Do_Calcs("T", TPMFS);
 			Show_Results("T");
 			Do_Calcs("S", SPMFS);
 			Show_Results("S");
+			Do_Calcs("J", TPMFJ);
+			Show_Results("J");
 		}
 		else {
 			// Do not use "+" to get value below - it may be a minus sign
@@ -729,12 +749,6 @@
 				false, false, SP65.checked, SPBlind.checked, false, 0);
 		}
 
-		// Get self-employment tax
-		//SEresult = _SETax(TY, +CalcIn["SEIncome"]);
-		//CalcOut["SETax"] = +SEresult[0];
-		//CalcOut["SETaxCredit"] = +SEresult[1];
-		//SETaxCredit.click();
-
 		// Medical limitation
 		var medexclusionindex = 0
 		if (((CalcType === "J") && (TP65.checked || SP65.checked)) ||
@@ -748,6 +762,7 @@
 
 		// Charitable limited to 50% AGI 60% in 2018+
 		charlimit = Math.round(AGI.innerHTML * ((TY >= 2018) ? 0.6 : 0.5));
+		if (TY == 2020) charlimit = +AGI.innerHTML; // CARES ACT
 		if (Charity.value > charlimit) {
 			Charity.value = charlimit;
 			Charity.focus();
@@ -762,7 +777,7 @@
 				message += " for spouse.";
 				SPMFS["Charity"] = charlimit;
 			}
-			alert (message);
+			//alert (message);
 			Charity.focus();
 		}
 
@@ -799,16 +814,30 @@
 		else {
 			Deductions = Math.max(+CalcOut["Standard"], itemval);
 		}
+		
+		CalcOut["Itemizing"] = (Deductions !== CalcOut["Standard"]); // T/F
+
+		if (+TaxYear.value >= 2020) {
+			// Adjust the charitable standard deduction amount
+			CalcOut["CharityStandard"] = 0;
+			if (! CalcOut["Itemizing"]) {
+				var charityLimit = (CalcType === "J") ? 600 : 300 ;
+				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
+				CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard"];
+				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"]);
+			}
+		}
+
 		CalcOut["Deductions"] = Math.round(Deductions);
 
 		// Calculate exemptions
 		CalcOut["PreExemptAmount"] = Math.round(Math.max(0, +CalcOut["AGI"] - Deductions));
-		var exemptamt = +_Standard[TY].split(",")[_Standard["Exemption"]];
-		CalcOut["ExemptRate"] = exemptamt;
-		CalcOut["ExemptAmount"] = exemptamt * (((FilingStatusValue == "MFJ") ? 2 : 1) + +DependentsValue);
+		var exemptAmt = +_Standard[TY].split(",")[_Standard["Exemption"]];
+		CalcOut["ExemptRate"] = exemptAmt;
+		CalcOut["ExemptAmount"] = exemptAmt * (((FilingStatusValue == "MFJ") ? 2 : 1) + +DependentsValue);
 		var elist = document.getElementsByClassName("exemptions");
 		if (CalcType === "J") for (elistno = 0; elistno < elist.length; elistno++) {
-			elist[elistno].style.display = (exemptamt) ? "table-row" : "none";
+			elist[elistno].style.display = (exemptAmt) ? "table-row" : "none";
 		}
 		var PostExemptAmount = Math.round(Math.max(0, +CalcOut["PreExemptAmount"] - +CalcOut["ExemptAmount"]));
 
@@ -964,7 +993,13 @@
 		CalcOut["TotalTax"] = Math.round(+CalcOut["TaxPostCredits"] + +CalcOut["SETax"] + +CalcOut["NIITTax"] + +CalcIn["OtherTaxes"]);
 
 		// Determine tax due
-		CalcOut["TaxDue"] = taxdue = Math.round(+CalcOut["TotalTax"] - +CalcOut["ACTCredit"] - +CalcOut["EICCredit"] - +CalcOut["AOCCredit"] - +CalcIn["Refundable"]);
+		CalcOut["TaxDue"] = 
+		taxdue = Math.round(+CalcOut["TotalTax"]
+			- +CalcOut["ACTCredit"]
+			- +CalcOut["EICCredit"]
+			- +CalcOut["AOCCredit"]
+			- +CalcIn["RecoveryCredit"]
+			- +CalcIn["Refundable"]);
 		mustFile = (Math.round(+CalcOut["Tax"] + +CalcOut["SETax"] + +CalcIn["OtherTaxes"]) > 0);
 		if ((FilingStatus.value == "MFJ") && IsDependent.checked && mustFile) {
 			DependentWarning.innerHTML = "WARNING: You cannot file as MFJ and still be a dependent if filing for other than a refund of withholding.";
@@ -1011,6 +1046,28 @@
 			}
 		}
 
+		switch (resultType) {
+			case "J":
+				Standard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
+				Itemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
+				Standard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+				Itemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				break;
+			case "T":
+				TPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
+				TPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
+				TPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+				TPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				break;
+			case "S":
+				SPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
+				SPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
+				SPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+				SPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				break;
+
+		}
+
 		// MFJ/MFS Comparison results
 		MFJResult.innerHTML = TaxDue.innerHTML;
 		MFSResult.innerHTML = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
@@ -1051,6 +1108,43 @@
 				IRAgap = Math.max(0,IRAgap - IRAequiv);
 			}
 			MaxIRA.innerHTML = Math.max(0,Math.floor(IRAcalc + IRAgap));
+		}
+
+		Do_Pay();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function PayChange(id) {
+	//----------------------------------------------------------------------------------------
+		payJ.style.fontWeight =
+		payT.style.fontWeight =
+		payS.style.fontWeight = "normal";
+		switch (id) {
+		case ("payJ"): 
+			payOption = "J";
+			payJ.style.fontWeight = "bold"
+			break;
+		case ("payT"):
+			payOption = "T";
+			payT.style.fontWeight = "bold"
+			break;
+		case ("payS"):
+			payOption = "S";
+			payS.style.fontWeight = "bold"
+		       break;
+		}
+		Do_Pay();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Do_Pay() {
+	// This function calculates the estimated tax payments required
+	//----------------------------------------------------------------------------------------
+		// get tax due for payChoice option
+		switch (payOption) {
+		case "T": taxdue = TPTaxDue.innerHTML; break;
+		case "S": taxdue = SPTaxDue.innerHTML; break;
+		default: taxdue = TaxDue.innerHTML; break;
 		}
 
 		// How much needs to be paid
@@ -1320,6 +1414,11 @@
 			<td><input id="OtherCredits" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
+
+		<tr id="CharityStandardRow"><td></td>
+			<td colspan="2">Charitable contributions if using standard deduction <i>(enter under Deductions below)</i></td>
+			<td id="CharityStandard" type="text" class="calculated wktc"></tr>
+
 		<tr><td></td>
 			<td>Total adjustments
 			<td></td><td></td>
@@ -1515,6 +1614,11 @@
 		<tr><td>  </td>
 			<td>American Opportunity Credit (enter cost in Nonrefundable Credits line)</td>
 			<td id="AOCCredit" class="calculated wktc"></td></tr>
+		<tr id="RecoveryCreditRow"><td>  </td>
+			<td>Recovery Rebate Credit</td>
+			<td><input id="RecoveryCredit" type="text" class="wkti"
+				onfocus="Get_Inputs(this.id);"
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
 			<td>Other refundable credits</td>
 			<td><input id="Refundable" type="text" class="wkti"
@@ -1525,7 +1629,13 @@
 			<td id="TaxDue" class="calculated wktc">0</td></tr>
 		<tr class="tablebreak" style="background-color: black;">
 			<td id="DependentWarning" colspan="5" class="blinking"></td></tr>
-		<tr><td colspan="5">Estimated Payments Needed:</td>
+		<tr><td colspan="5">Estimated Payments Needed:
+			<span id="PayChoice">
+				by: 
+				<button id="payJ" onclick="PayChange(this.id)">Joint</button>
+				<button id="payT" onclick="PayChange(this.id)">TP</button>
+				<button id="payS" onclick="PayChange(this.id)">SP</button>
+			</span></td>
 		<tr><td>  </td>
 			<td colspan="2">90% of estimated total tax
 				(<input id="Farmer" type="checkbox" onchange="Do_Estimates();" />
@@ -1605,6 +1715,7 @@
 		<tr class="adjustment"><td id="TPIRADeduction"></td><td id="SPIRADeduction"></td></tr>
 		<tr class="adjustment"><td id="TPStudentLoan"></td><td id="SPStudentLoan"></td></tr>
 		<tr class="adjustment"><td id="TPOtherCredits"></td><td id="SPOtherCredits"></td></tr>
+		<tr id="MFJMFSCSRow"><td id="TPCharityStandard"></td><td id="SPCharityStandard"></td></tr>
 		<tr><td id="TPAdjustments"></td><td id="SPAdjustments"></td></tr>
 		<tr><td id="TPAGI"></td><td id="SPAGI"></td></tr>
 		<tr style="page-break-before: always;"><th colspan="2">Deductions:</th></tr>
@@ -1682,6 +1793,7 @@
 		<tr><td id="TPEICCredit"></td><td id="SPEICCredit"></td></tr>
 		<tr><td id="TPACTCredit"></td><td id="SPACTCredit"></td></tr>
 		<tr><td id="TPAOCCredit"></td><td id="SPAOCCredit"></td></tr>
+		<tr id="MFJMFSRecoveryCreditRow"><td id="TPRecoveryCredit"></td><td id="SPRecoveryCredit"></td></tr>
 		<tr><td id="TPRefundable"></td><td id="SPRefundable"></td></tr>
 		<tr><td id="TPTaxDue"></td><td id="SPTaxDue"></td></tr>
 		<tr class="tablebreak" style="background-color: black;"><td colspan="2"></td></tr>
