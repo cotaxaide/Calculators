@@ -190,12 +190,12 @@
 		// 300-400 = 9.5-9.5
 		// col 4 = SNG APTC repayment limit
 
-		_PTCFactorVal[_TY+":0"] =   "133, 2.08, 2.08,  300";		// Needs update	// Needs update
-		_PTCFactorVal[_TY+":133"] = "150, 3.11, 4.15,  300";		// Needs update	// Needs update
-		_PTCFactorVal[_TY+":150"] = "200, 4.15, 6.54,  300";		// Needs update	// Needs update
-		_PTCFactorVal[_TY+":200"] = "250, 6.54, 8.36,  750";		// Needs update	// Needs update
-		_PTCFactorVal[_TY+":250"] = "300, 8.36, 9.86,  750";		// Needs update	// Needs update
-		_PTCFactorVal[_TY+":300"] = "400, 9.86, 9.86, 1250";		// Needs update	// Needs update
+		_PTCFactorVal[_TY+":0"] =   "133, 2.08, 2.08,  325";		// col 1-3 Needs update
+		_PTCFactorVal[_TY+":133"] = "150, 3.11, 4.15,  325";		// col 1-3 Needs update
+		_PTCFactorVal[_TY+":150"] = "200, 4.15, 6.54,  325";		// col 1-3 Needs update
+		_PTCFactorVal[_TY+":200"] = "250, 6.54, 8.36,  800";		// col 1-3 Needs update
+		_PTCFactorVal[_TY+":250"] = "300, 8.36, 9.86,  800";		// col 1-3 Needs update
+		_PTCFactorVal[_TY+":300"] = "400, 9.86, 9.86, 1350";		// col 1-3 Needs update
 
 	// var AffordRate = [];
 		_AffordRate[_TY] = 0.0805;		// Needs update
