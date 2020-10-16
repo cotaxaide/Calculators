@@ -169,7 +169,7 @@
                 _EICRates[_TY+":INVEST"] = 3600;
 
 	// var FPL = [];
-		_FPL[_TY+":US"] =     "12400, 4420";
+		_FPL[_TY+":US"] =     "12490, 4420";
 		_FPL[_TY+":Alaska"] = "15600, 5530";
 		_FPL[_TY+":Hawaii"] = "14380, 5080";
 
