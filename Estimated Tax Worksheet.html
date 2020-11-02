@@ -146,7 +146,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.09, 10/13/2020)";
+	var VERSION = "(Version 3.10, 10/20/2020)";
+	//	Corrected above-line charity to 300 per return vs per TP/SP
+	//var VERSION = "(Version 3.09, 10/13/2020)";
 	//	Added CARES act above-line charitable and recovery rebate credit lines
 	//	Bolded which of standard/itemized total was used in calcs
 	//	Added estimated payment buttons for MFJMFS comparison
@@ -821,7 +823,7 @@
 			// Adjust the charitable standard deduction amount
 			CalcOut["CharityStandard"] = 0;
 			if (! CalcOut["Itemizing"]) {
-				var charityLimit = (CalcType === "J") ? 600 : 300 ;
+				var charityLimit = (CalcType === "J") ? 300 : 300 ;
 				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
 				CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard"];
 				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"]);
