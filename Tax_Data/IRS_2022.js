@@ -124,7 +124,7 @@
 		_SEMaxWages[_TY] = 128400;		// Needs update
 
 	// var MedicalExclusion = [];
-		_MedicalExclusion[_TY] = "0.10, 0.10";		// Needs update
+		_MedicalExclusion[_TY] = "0.075, 0.075";		// Needs update
 
 	// StateTaxCap
 		_SALT[_TY] = 10000;			// New tax law	// Needs update

@@ -124,7 +124,7 @@
 		_SEMaxWages[_TY] = 128400;	
 
 	// var MedicalExclusion = [];
-		_MedicalExclusion[_TY] = "0.10, 0.10";	
+		_MedicalExclusion[_TY] = "0.075, 0.075";	
 
 	// StateTaxCap
 		_SALT[_TY] = 10000;
