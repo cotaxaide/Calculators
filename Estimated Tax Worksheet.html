@@ -146,7 +146,12 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.10, 10/20/2020)";
+	var VERSION = "(Version 3.11, 11/4/2020)";
+	//	Separated IRA and Pension/Annuity lines
+	//	Lived with spouse for MFS not displaying as a table row
+	//	Toggled default for lived with spouse option when MFJMFS changes
+	//	Limited display of recovery rebate credit to TY2020
+	//var VERSION = "(Version 3.10, 10/20/2020)";
 	//	Corrected above-line charity to 300 per return vs per TP/SP
 	//var VERSION = "(Version 3.09, 10/13/2020)";
 	//	Added CARES act above-line charitable and recovery rebate credit lines
@@ -198,7 +203,8 @@
 		InTitle["QualDividends"] = "Qualified dividends";
 		InTitle["QBIDividends"] = "Section 199A dividends";
 		InTitle["QCD"] = "Amount of non-taxable QCD included in the IRA distribution";
-		InTitle["TotalPensions"] = "IRAs, pensions and annuities";
+		InTitle["TotalIRAs"] = "IRA distributions";
+		InTitle["TotalPensions"] = "Pensions and annuities";
 		InTitle["SS"] = "Social Security expected";
 		InTitle["SEIncome"] = "Business income";
 		InTitle["LTCapGains"] = "Net long term capital gains (or loss)";
@@ -324,6 +330,7 @@
 			IncomeInfo.style.gridColumn = "1 / 2";	
 			FilingStatus.value = "MFJ";
 			FilingStatus.disabled = true;
+			MFStogether.checked = true;
 			PayChoice.style.display =
 			DependentsMFS1.style.display =
 			CTCDependentsMFS1.style.display =
@@ -335,6 +342,7 @@
 		}
 		else {
 			FilingStatus.disabled = false;
+			MFStogether.checked = false;
 			MFSInfo.style.display = "none";
 			IncomeInfo.style.gridColumn = "1 / 3";
 			PayChoice.style.display =
@@ -377,7 +385,7 @@
 		if (ChildCareCost.disabled) ChildCareCost.value = "";
 		LYAGI.innerHTML = (FilingStatus.value === "MFS") ? 75:150;
 		ItemizeRequiredOption.style.display = 
-		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "inline" : "none";
+		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
 		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
 		if (IsDependent.checked) {
 			DependentsRow.style.display = "none";
@@ -433,7 +441,7 @@
 		MFJMFSCSRow.style.display =
 		CharityStandardRow.style.display = (TY > 2019) ? "table-row" : "none";
 		MFJMFSRecoveryCreditRow.style.display =
-		RecoveryCreditRow.style.display = (TY > 2019) ? "table-row" : "none";
+		RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
 
 		Input_Change("Wages");
 	}
@@ -662,7 +670,8 @@
 		}
 
 		// Pension with QCD
-		CalcOut["Pensions"] = +CalcIn["TotalPensions"] - +CalcIn["QCD"];
+		CalcOut["IRAs"] = +CalcIn["TotalIRAs"] - +CalcIn["QCD"];
+		CalcOut["Pensions"] = +CalcIn["TotalPensions"];
 
 		// Limit educator expenses
 		var edlimit = (FilingStatusValue === "MFJ") ? 500 : 250;
@@ -694,7 +703,7 @@
 
 		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Scholar"] + +CalcIn["Interest"]
 			+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
-			+ +CalcOut["Pensions"] + +CalcIn["OtherIncome"];
+			+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["OtherIncome"];
 		MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
@@ -1314,10 +1323,16 @@
 				onkeyup="Input_Change(this.id);" /></td>
 			</tr>
 		<tr class="income"><td></td>
-			<td>IRAs, pensions and annuities
+			<td>IRAs distributions
 				(Amount of QCD included: <input id="QCD" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)</td>
+			<td><input id="TotalIRAs" type="text" class="wkti"
+				onfocus="Get_Inputs(this.id);"
+				onkeyup="Input_Change(this.id);" /></td>
+			<td id="IRAs" class="calculated wktc"></tr>
+		<tr class="income"><td></td>
+			<td>Pensions and annuities</td>
 			<td><input id="TotalPensions" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
@@ -1688,10 +1703,13 @@
 		<tr class="income"><td id="TPDividends"></td><td id="SPDividends"></td></tr>
 		<tr class="income"><td id="TPQualDividends"></td><td id="SPQualDividends"></td></tr>
 		<tr class="income"><td id="TPQBIDividends"></td><td id="SPQBIDividends"></td></tr>
-		<tr class="income"><td id="TPPensions"></td><td id="SPPensions"></td>
+		<tr class="income"><td id="TPIRAs"></td><td id="SPIRAs"></td>
 			<td>	<span id="TPQCD" class="hidden"></span>
 				<span id="SPQCD" class="hidden"></span>
-				<span id="TPTotalPensions" class="hidden"></span>
+				<span id="TPTotalIRAs" class="hidden"></span>
+				<span id="SPTotalIRAs" class="hidden"></span></td></tr>
+		<tr class="income"><td id="TPPensions"></td><td id="SPPensions"></td>
+			<td>	<span id="TPTotalPensions" class="hidden"></span>
 				<span id="SPTotalPensions" class="hidden"></span></td></tr>
 		<tr class="income"><td id="TPTaxableSS"></td><td id="SPTaxableSS"></td>
 			<td>	<span id="TPSS" class="hidden"></span>
