@@ -91,7 +91,7 @@
 		_Standard["DepAsRel"] = 13; // maximum earned income to be a Dependent as a Relative	// Needs update
 
                 // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    WID,inc,    HOH,inc,  Kiddie, DepAsRel
-                _Standard[_TY] = "          0,1100,   12600,1650, 12600,1300, 25200,1300, 252,1300, 18900,1650,  2200,   4300";		// Tentative for testing // Needs update
+                _Standard[_TY] = "          0,1100,   12600,1650, 12600,1300, 25200,1300, 25200,1300, 18900,1650,  2200,   4300";		// Tentative for testing // Needs update
 
 	// var ItemLimit = []; // Limit repealed by new tax law
                 _ItemLimit[_TY+":SNG"] = 10000000; //261500;	// Needs update
