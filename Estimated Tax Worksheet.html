@@ -70,9 +70,19 @@
 	#IncomeTable tr:nth-child(even) { background-color: #fefeca; }
 	#HSAText { font-style: italic; }
 	#MFSTable { width: 12em; }
-	#MFSTable tr:nth-child(2) { text-align: center; text-decoration: underline; font-weight: bold; }
+	#MFSTable tr:nth-child(2) {
+		text-align: center;
+		text-decoration: underline;
+		font-weight: bold;
+	}
 	#MFSTable tr td:nth-child(1),
-	#MFSTable tr td:nth-child(2) { text-align: right; width: 50%; border-left: 1px solid grey; }
+	#MFSTable tr td:nth-child(2) {
+		text-align: right;
+		width: 50%;
+		border-left:
+		1px solid grey;
+		cursor: not-allowed;
+	}
 	#MFSTable tr:nth-child(even) { background-color: #fefeca; }
 	#EdContainer,
 	#MFSContainer {
@@ -96,6 +106,11 @@
 	#MFJMFSResultsTable { width: auto; margin: auto; }
 	#MFJMFSResultsTable tr:last-child { border-top: 1px solid black; }
 	#MFJMFSResultsTable tr td:last-child { text-align: right; }
+	#ItemizeMessage,
+	#NotItemizeMessage {
+		display: none;
+		font-weight: bold;
+	}
 
 	#PayNotRequired { font-style: italic; color: darkgreen; float: right; }
 	#Warn1116 { color: red; font-style: italic; font-weight: bold; display: none; }
@@ -146,7 +161,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.11, 11/4/2020)";
+	var VERSION = "(Version 3.12, 12/11/2020)";
+	//	Removed dependency count checks
+	//	Separated cash and non-cash charitable contributions
+	//	Show best option for MFJMFS comparison for itemized or standard deduction
+	//var VERSION = "(Version 3.11, 11/4/2020)";
 	//	Separated IRA and Pension/Annuity lines
 	//	Lived with spouse for MFS not displaying as a table row
 	//	Toggled default for lived with spouse option when MFJMFS changes
@@ -189,6 +208,7 @@
 	var SPMFS = [];
 	var CalcOut = [];
 	var MFJMFSError = false;
+	var MFJMFSItemized = [];
 	var TPMFJiList = [];
 	var TPMFJcList = [];
 	var EdtList = [];
@@ -224,7 +244,8 @@
 		InTitle["ActualMedical"] = "Total unreimbursed medical expenses";
 		InTitle["TaxesPaid"] = "State income tax or sales tax, and property taxes";
 		InTitle["InterestPaid"] = "Interest paid";
-		InTitle["Charity"] = "Gifts to charity";
+		InTitle["Charity"] = "Cash gifts to charity";
+		InTitle["CharityNoncash"] = "Non-cash gifts to charity";
 		InTitle["Miscellaneous"] = "Job expenses and miscellaneous deductions";
 		InTitle["OtherItemized"] = "Other miscellaneous deductions (gambling losses)";
 		InTitle["Misc"] = "Medical expenses, investment interest expenses,";
@@ -357,7 +378,7 @@
 
 	//----------------------------------------------------------------------------------------
 	function File_Change() {
-	// Calculates the values for filing threshold and poverty levels
+	// Calculates the values for filing threshold
 	//----------------------------------------------------------------------------------------
 
 		// Change tax year?
@@ -366,9 +387,6 @@
 		MFSoptionText.innerHTML = (TY == _StopYear) ? "will be living" : "lived with" ;
 
 		// Check dependent consistency
-		var dep = Math.max(CTCDependents.value, EICDependents.value);
-		if (Dependents.value < dep) Dependents.value = dep;
-		// if (TP65.checked) IsDependent.checked = false;
 		if (IsDependent.checked) {
 			Dependents.value = 0;
 			EICDependents.value = 0;
@@ -384,7 +402,7 @@
 		EducationCost.disabled = (FilingStatus.value === "MFS");
 		if (ChildCareCost.disabled) ChildCareCost.value = "";
 		LYAGI.innerHTML = (FilingStatus.value === "MFS") ? 75:150;
-		ItemizeRequiredOption.style.display = 
+		ItemizeRequiredOption.style.display = (FilingStatus.value === "MFS") ? "inline" : "none";
 		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
 		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
 		if (IsDependent.checked) {
@@ -425,7 +443,8 @@
 		}
 
 		// Itemized deduction row display or not
-		IExp = ItemizeExpand.checked || ItemizeRequired.checked;
+		if (ItemizeRequired.checked) ItemizeExpand.checked = "checked";
+		IExp = ItemizeExpand.checked;
 		itemlist = document.getElementsByClassName("deductions");
 		for (itno = 0; itno < itemlist.length; itno++) {
 			itemlist[itno].style.display = (IExp) ? "table-row" : "none";
@@ -497,7 +516,7 @@
 
 	//----------------------------------------------------------------------------------------
 	function Get_Position(thisId) {
-	// This function gets inputs for taxpayer and spouse for MFJMFS comparison
+	// This function gets coordinates for the MFJMFS entry box to use
 	//----------------------------------------------------------------------------------------
 
 		var xPosition = 0;
@@ -525,7 +544,7 @@
 
 	//----------------------------------------------------------------------------------------
 	function Do_Joint() {
-	// This function gets inputs for taxpayer and spouse for MFJMFS comparison
+	// This function merges inputs for joint taxpayer and spouse for MFJMFS comparison
 	//----------------------------------------------------------------------------------------
 		if (MFJMFSError) return; // bad input
 		var joint = +TPInput.value + +SPInput.value;
@@ -537,7 +556,7 @@
 
 	//----------------------------------------------------------------------------------------
 	function Do_Inputs(inType) {
-	// type		"MFJMFS" or "Education" to indicate which input box used
+	// type		"MFJMFS" or "Education" to indicate which input box type used
 	// This function gets inputs for taxpayer and spouse for MFJMFS comparison
 	//----------------------------------------------------------------------------------------
 		switch (inType) {
@@ -580,7 +599,7 @@
 		// Ignore if called from init
 		if (thisId === "Init") return;
 
-		// Limit taxes paid if 2018+
+		// Limit taxes paid if 2018 or later
 		if (TY > 2017) {
 			var taxlimit = (FilingStatus.value === "MFS") ? 5000 : 10000;
 			if (TPMFJ["TaxesPaid"] > taxlimit) {
@@ -603,10 +622,29 @@
 		// Load input arrays for calculations
 		if (MFJMFS.checked) { // Do all 3 returns
 			// Do_Inputs has set the input values
+			// For MFS, see if both itemizing is better than standard
+			ItemizeRequired.checked = ! ItemizeRequired.checked;
 			Do_Calcs("T", TPMFS);
 			Show_Results("T");
 			Do_Calcs("S", SPMFS);
 			Show_Results("S");
+			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
+			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
+			ItemizeRequired.checked = ! ItemizeRequired.checked;
+			Do_Calcs("T", TPMFS);
+			Show_Results("T");
+			Do_Calcs("S", SPMFS);
+			Show_Results("S");
+			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
+			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
+
+			// Choose which is better and change if not the latter
+			ItemizedIsBest = (MFJMFSItemized["Standard"] > MFJMFSItemized["Itemize"]);
+			if (ItemizeRequired.checked === (! ItemizedIsBest)) {
+				ItemizeRequired.checked = ItemizedIsBest;
+				File_Change();
+			}
+
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
@@ -655,7 +693,7 @@
 		CalcOut["SETaxCredit"] = +SEresult[1];
 
 		// Total the adjustments
-		CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - CalcOut["SETaxCredit"] - CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
+		CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
 		var SEHIRemainder = Math.max(0, +CalcIn["SEInsurance"] - +CalcOut["SEHI"]);
 		if (CalcType === "J") {
 			if (SEHIRemainder) {
@@ -675,19 +713,19 @@
 
 		// Limit educator expenses
 		var edlimit = (FilingStatusValue === "MFJ") ? 500 : 250;
-		CalcIn["EdExpenses"] = Math.min(CalcIn["EdExpenses"], edlimit);
+		CalcIn["EdExpenses"] = Math.min(+CalcIn["EdExpenses"], edlimit);
 
 		// Limit HSA Deduction = can't test for age 55
 		var edlimit = +_HSA[TY + ":FAM"] + 2000;
-		CalcIn["HSADeduction"] = Math.min(CalcIn["HSADeduction"], edlimit);
+		CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], edlimit);
 		
 		// Limit IRA Contribution Deduction - can't test for age 55 or over 72-1/2
 		var sllimit = _IRALimits[TY + ":SRMAX"] * ((FilingStatusValue === "MFJ") ? 2 : 1);
-		CalcIn["IRADeduction"] = Math.min(CalcIn["IRADeduction"], sllimit);
+		CalcIn["IRADeduction"] = Math.min(+CalcIn["IRADeduction"], sllimit);
 
 		// Limit Student Loan Payment Deduction
 		var sllimit = (FilingStatusValue === "MFJ") ? 5000 : 2500;
-		CalcIn["StudentLoan"] = Math.min(CalcIn["StudentLoan"], sllimit);
+		CalcIn["StudentLoan"] = Math.min(+CalcIn["StudentLoan"], sllimit);
 
 		// Get the taxable Social Security amount
 		var SSAdjustments = +CalcIn["EdExpenses"] + +CalcIn["HSADeduction"]
@@ -719,7 +757,8 @@
 		CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"]);
 
 		// Figure the AGI
-		CalcOut["AGI"] = Math.round(Math.max(0, +CalcOut["Gross"] - +AdjustmentsValue));
+		var TrueAGI = Math.round(+CalcOut["Gross"] - +AdjustmentsValue);
+		CalcOut["AGI"] = Math.max(0, TrueAGI);
 
 		// Calculate standard deduction
 		var StdEarned = +CalcIn["Wages"] + +CalcIn["Scholar"]
@@ -737,9 +776,9 @@
 				}
 			}
 			else { // Dependent as relative
-				//DepIncome = (MFStogetherRelevant) ?  CalcOut["Gross"] : IncomeNoSS;
+				//DepIncome = (MFStogetherRelevant) ?  +CalcOut["Gross"] : IncomeNoSS;
 				var grossLimit = +_Standard[TY].split(",")[+_Standard["DepAsRel"]]
-				if ((CalcOut["Gross"] > grossLimit) || (CalcOut["TaxableSS"] > 0)) {
+				if ((+CalcOut["Gross"] > grossLimit) || (+CalcOut["TaxableSS"] > 0)) {
 					TaxableError = "WARNING: your income is too high to be a dependent.";
 				}
 			}
@@ -772,29 +811,15 @@
 		CalcOut["TwoPercent"] = Math.round(+CalcOut["AGI"] * 0.02);
 
 		// Charitable limited to 50% AGI 60% in 2018+
-		charlimit = Math.round(AGI.innerHTML * ((TY >= 2018) ? 0.6 : 0.5));
-		if (TY == 2020) charlimit = +AGI.innerHTML; // CARES ACT
-		if (Charity.value > charlimit) {
-			Charity.value = charlimit;
-			Charity.focus();
-		}
-		if (+CalcIn["Charity"] > charlimit) {
-			CalcIn["Charity"] = charlimit;
-			if (CalcType === "T") {
-				message += " for taxpayer.";
-				TPMFS["Charity"] = charlimit;
-			}
-			if (CalcType === "S") {
-				message += " for spouse.";
-				SPMFS["Charity"] = charlimit;
-			}
-			//alert (message);
-			Charity.focus();
-		}
+		if (CalcOut["CharityStandard"] === undefined) CalcOut["CharityStandard"] = 0;
+		CharityAGI = Math.max(0, TrueAGI + +CalcOut["CharityStandard"]);
+		charlimit = Math.round(CharityAGI * ((TY >= 2018) ? 0.6 : 0.5));
+		if (TY == 2020) charlimit = CharityAGI; // +AGI.innerHTML; // CARES ACT
+		CalcOut["CharityTotal"] = Math.min((+CalcIn["Charity"] + +CalcIn["CharityNoncash"]), charlimit);
 
 		// Find the itemized deduction total
 		ItemizedValue = +CalcOut["Medical"] + +CalcIn["TaxesPaid"] + +CalcIn["InterestPaid"] +
-			+CalcIn["Charity"] + +CalcIn["OtherItemized"];
+			+CalcOut["CharityTotal"] + +CalcIn["OtherItemized"];
 		// don't use += in the following statement
 		if (+TY < 2018) ItemizedValue = +ItemizedValue + +CalcIn["Miscellaneous"];
 		CalcOut["Itemized"] = ItemizedValue;
@@ -1083,7 +1108,13 @@
 		MFJResult.innerHTML = TaxDue.innerHTML;
 		MFSResult.innerHTML = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
 		DiffResult.innerHTML = +MFJResult.innerHTML - +MFSResult.innerHTML;
-		TextResult.innerHTML = "Best result is " + ((+MFJResult.innerHTML > +MFSResult.innerHTML) ? "MFS" : "MFJ");
+		BestResultIsMFS = (+MFJResult.innerHTML > +MFSResult.innerHTML);
+		ItemizedIsBest = (MFJMFSItemized["Standard"] > MFJMFSItemized["Itemize"]);
+		ResultMessage = "Best result is " + ( (BestResultIsMFS) ? "MFS" : "MFJ" );
+		if (BestResultIsMFS) {
+			ResultMessage += "<br />and " + ( (ItemizedIsBest) ? "" : "not" ) + " itemizing.";
+		}
+		TextResult.innerHTML = ResultMessage;
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -1250,7 +1281,7 @@
 			<td colspan="3">
 				<input id="IsYouth" type="checkbox" />
 				Dependent is 16 or younger, or a full time student and 23 or younger.</td></tr>
-		<tr id="DependentsRow" title="Total number of dependents in the tax family.">
+		<tr id="DependentsRow" title="Total number of dependents in the tax family claimed.">
 			<td colspan="2">Total Dependents claimed:
 			<td colspan="3"><span id="DependentsMFS1">TP: </span>
 				<input id="Dependents" size="2" value="0" />
@@ -1477,10 +1508,15 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions"><td></td>
-			<td>Gifts to charity</td>
-			<td><input id="Charity" type="text" class="wkti"
+			<td>Gifts to charity  - cash:
+			<input id="Charity" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
+				onkeyup="Input_Change(this.id);" />
+			, non-cash:
+			<input id="CharityNoncash" type="text" class="wkti"
+				onfocus="Get_Inputs(this.id);"
+				onkeyup="Input_Change(this.id);" /></td>
+			<td id="CharityTotal" class="calculated wktc"></td></tr>
 		<tr class="deductions" id="MiscellaneousRow"><td></td>
 			<!-- not available after 2017 -->
 			<td>Job expenses and miscellaneous deductions
@@ -1499,12 +1535,12 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
-			<td>Total itemized deductions
+			<td colspan="2">Total itemized deductions
 			<span id="ItemizeRequiredOption">
-				<input type="checkbox" id="ItemizeRequired"
-				onchange="File_Change();" /> Check if required to itemize</span>
+				(<input type="checkbox" id="ItemizeRequired"
+				onchange="File_Change();" />
+				Check if required to itemize)</span>
 			</td>
-			<td></td>
 			<td style="vertical-align: top;" id="Itemized"
 				class="calculated wktc"></td></tr>
 		<tr class="exemptions"><td></td>
@@ -1745,7 +1781,11 @@
 				<span id="SPActualMedical" class="hidden"></span></td></tr>
 		<tr class="deductions"><td id="TPTaxesPaid"></td><td id="SPTaxesPaid"></td></tr>
 		<tr class="deductions"><td id="TPInterestPaid"></td><td id="SPInterestPaid"></td></tr>
-		<tr class="deductions"><td id="TPCharity"></td><td id="SPCharity"></td></tr>
+		<tr class="deductions"><td id="TPCharityTotal"></td><td id="SPCharityTotal"></td>
+			<td>	<span id="TPCharity" class="hidden"></span>
+				<span id="SPCharity" class="hidden"></span>
+				<span id="TPCharityNoncash" class="hidden"></span>
+				<span id="SPCharityNoncash" class="hidden"></span></td></tr>
 		<tr class="deductions" id="MFJMFSMiscellaneousRow">
 			<td id="TPMiscellaneous"></td><td id="SPMiscellaneous"></td>
 			<td>	<span id="TPTwoPercent" class="hidden"></span>
