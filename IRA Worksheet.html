@@ -130,11 +130,14 @@
 	//	John Arenberg
 	//	Larry Ellison
 	//	Bob Fox
+	//	Burt Loper
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.05, 3/31/2020)";
+	var VERSION = "(Version 1.06, 12/16/2020)";
+	//	Commented out the TS calculation option since TS appears to have fixed it
+	//var VERSION = "(Version 1.05, 3/31/2020)";
 	//	Added a line to show the nontaxable amount
 	//var VERSION = "(Version 1.04c, 3/22/2020)";
 	//	Prevent negative number as new basis when using TaxSlayer rounding
@@ -220,12 +223,13 @@
 			line08 = +ROTHIRA1.value + +ROTHIRA2.value + +ROTHIRA3.value;
 			line09 = line06 + line07 + line08;
 
-		if (CalcMethod.value == "Accurate") {
+		//if (CalcMethod.value == "Accurate") {
 			line10 = (line09) ? (Math.min(1, line05 / line09)) : 0;
-		}
-		else { // TS Calc Method
-			line10 = (line09) ? (Math.round(1000 * Math.min(1, line05 / line09)) / 1000) : 0; // TaxSlayer rounding
-		}
+		//}
+		//else { // TS Calc Method
+		//	line10 = (line09) ? (Math.round(1000 * Math.min(1, line05 / line09)) / 1000) : 0; // TaxSlayer rounding
+		//}
+
 		line11 = line08 * line10; // nontaxable portion of converted distributions
 			line11a = +DistIRA1.value * line10;
 			line11b = +DistIRA2.value * line10;
@@ -280,10 +284,11 @@
 </center>
 
 <div id="ClearAndPrint" class="noPrint">
-	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </div>
 
+<!--
 <div id="CalcMethodDiv" class="noPrint">
 	<span id="CalcMethodQ"
 		onmouseover="CalcMethodInfo.style.display='inline-block';"
@@ -301,6 +306,7 @@
 		But using this option will not match the Form 8606 produced by TaxSlayer.
 	</span>
 </div>
+-->
 	
 <!-- ****************************************** FILING INFORMATION TABLE ****************************************** -->
 
