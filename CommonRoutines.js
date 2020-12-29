@@ -11,8 +11,11 @@
 //	_ChildCare		Child Care Credit
 //	_Retirement		Retirement Savings Contributions deduction
 //	_EdCredit		AOC or LLC Credit
+//	_IRADeduction		IRA Deduction as an income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.08 12/19/2020
+// 	Added IRA Deduction
 // Version 1.07 7/18/2020
 // 	Dependent deduction not incrementing for age 65 or blind
 // Version 1.06 2/10/2020
@@ -475,4 +478,100 @@ function _EdCredit (	// Form 8863
 	result[1] = Math.round(0.4 * result[0]); // refundable part
 	result[0] -= result[1]; // nonrefundable part
 	return(result);
+}
+
+
+//----------------------------------------------------------------------------------------
+function _IRADeduction (// IRA Deduction worksheet from Form 1040
+	taxYear,	// tax year tables to use
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	MAGI,		// AGI less IRA deduction
+	earned,		// Wages + (SE Income - SE Tax Ded - SESEP) + Alimony + nontaxable combat pay
+	TP_RetPlan,	// T/F, TP has Retirement Plan
+	TP_50,		// T/F, TP is 50+
+	SP_RetPlan,	// T/F, SP has Retirement Plan
+	SP_50,		// T/F, SP is 50+
+	MFStogether	// T/F, filing MFS and living together (optional)
+		) {
+// returns array	[amount, TPamount, SPamount, reason] = IRA deduction limits
+//----------------------------------------------------------------------------------------
+	if ((filingStatus !== "MFS") || (MFStogether === undefined)) MFStogether = false;
+	var Result = [];
+	Result["comment"] = "";
+
+	TP_DedMax = (TP_50) ? _IRALimits[taxYear + ":SRMAX"] : _IRALimits[taxYear + ":MAX"] ;
+	SP_DedMax = (SP_50) ? _IRALimits[taxYear + ":SRMAX"] : _IRALimits[taxYear + ":MAX"] ;
+	MFJ_DedMax = TP_DedMax + SP_DedMax;
+
+	if (TP_RetPlan || SP_RetPlan) { // deduction may be limited
+
+		// line 2 (TP_AGIlimit, SP_AGIlimit)
+		switch (filingStatus) {
+		case "MFJ":
+			MFJ_AGIlimits = _IRALimits[taxYear + ":" + filingStatus].split(",");
+			TP_AGIlimit = +MFJ_AGIlimits[((TP_RetPlan) ? 0 : 1)];
+			SP_AGIlimit = +MFJ_AGIlimits[((SP_RetPlan) ? 0 : 1)];
+			break;
+		default:
+			TP_AGIlimit = +_IRALimits[taxYear + ":" + filingStatus];
+			SP_AGIlimit = 0;
+			if (MFStogether) TP_AGIlimit = 10000;
+		}
+
+		// lines 3 - 5 are MAGI
+
+		// line 6 NO
+		if ((+MAGI >= TP_AGIlimit) && (+MAGI >= SP_AGIlimit)) {
+			Result["amount"] = 0;
+			Result["comment"] = "AGI too high";
+			return (Result);
+		}
+
+		// line 6 YES and 7
+		switch (filingStatus) {
+		case "MFJ":
+			SP_AGIlimit -= +MAGI;
+			retlimit = (SP_RetPlan) ? 20000 : 10000 ;
+			if (SP_AGIlimit < retlimit) {
+				multiplier = (SP_50) ? 0.35 : 0.3 ;
+				multiplier *= (SP_RetPlan) ? 1 : 2 ;
+				SP_DedMax = Math.ceil(SP_AGIlimit * multiplier / 10) * 10;
+				SP_DedMax = Math.max(SP_DedMax, 200);
+			}
+			// no break
+		case "WID": // and MFJ
+			TP_AGIlimit -= +MAGI;
+			retlimit = (TP_RetPlan) ? 20000 : 10000 ;
+			if (TP_AGIlimit < retlimit) {
+				multiplier = (TP_50) ? 0.35 : 0.3 ;
+				multiplier *= (TP_RetPlan) ? 1 : 2 ;
+				TP_DedMax = Math.ceil(TP_AGIlimit * multiplier / 10) * 10;
+				TP_DedMax = Math.max(TP_DedMax, 200);
+			}
+			break;
+		default: // SNG, HOH, MFS
+			TP_AGIlimit -= +MAGI;
+			if (TP_AGIlimit < 10000) {
+				TP_DedMax = TP_AGIlimit;
+				multiplier = (TP_50) ? 0.7 : 0.6 ;
+				TP_DedMax = Math.ceil(TP_AGIlimit * multiplier / 10) * 10;
+				TP_DedMax = Math.max(TP_DedMax, 200);
+			}
+		}
+
+	}
+
+	// Line 8 - 10 is earned
+	if ((filingStatus === "MFJ") && ((TP_DedMax + SP_DedMax) < MFJ_DedMax)) {
+		// May need to figure based on TP/SP earned incomes
+		// Result["comment"] = "May not be accurate";
+	}
+
+	// Line 11 must be done by calling routine
+
+	// Line 12
+	Result["TPamount"] = Math.min(TP_DedMax, +earned);
+	Result["SPamount"] = Math.min(SP_DedMax, +earned);
+	Result["amount"] = Math.min(Result["TPamount"] + ((filingStatus === "MFJ") ? Result["SPamount"] : 0 ), earned);
+	return (Result);
 }

@@ -55,11 +55,12 @@
 		position:absolute; top:0; right:1em; }
 	#ClearAndPrint button { margin: 2px; }
 	#FilingStatus { width: 8em; }
-	#FilingInfoTbl tr td:nth-child(1) { min-width: 7em; max-width: 7em; }
-	#FilingInfoTbl tr td:nth-child(2) { min-width: 6em; max-width: 6em; }
-	#FilingInfoTbl tr td:nth-child(3) { text-align: left; min-width: 9em; max-width: 9em; }
-	//#FilingInfoTbl tr td:nth-child(4) { min-width: 4em; }
-	#FilingInfoTbl tr td:nth-child(5) { text-align: center; min-width: 17em; }
+	#FilingInfoTbl tr td { vertical-align: top; }
+	//#FilingInfoTbl tr td { border: 1px solid blue; }
+	#FilingInfoTbl tr td:nth-child(1) { width: 9em; min-width: 9em; }
+	#FilingInfoTbl tr td:nth-child(2) { width: 8em; min-width: 8em; }
+	#FilingInfoTbl tr td:nth-child(3) { text-align: left; min-width: 32em; }
+	#FilingInfoTbl tr td:nth-child(4) { text-align: center; }
 	#TaxYear { width: 6em; }
 	#IncomeTable tr,
 	#MFSTable tr { height: 1.7em; border-bottom: 1px solid grey; }
@@ -157,11 +158,16 @@
 	//	Russ Gross		Larry Raffery		Kathleen Quinn
 	//	John Arenberg		Bob Goings		Emily Lin
 	//	Pete Burgner		Bob Schroer		Richar Staub
+	//	Arlene Green
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.12, 12/11/2020)";
+	var VERSION = "(Version 3.13, 12/29/2020)";
+	//	Re-corrected above-line charity to 150 for filing MFS
+	//	Fixed a problem with MFJ/MFS comparison option remaining checked
+	//	Added limit to IRA contribution deduction in adjustment to income
+	//var VERSION = "(Version 3.12, 12/11/2020)";
 	//	Removed dependency count checks
 	//	Separated cash and non-cash charitable contributions
 	//	Show best option for MFJMFS comparison for itemized or standard deduction
@@ -204,6 +210,7 @@
 	var IncomeNoSS = 0;
 	var Deductions = 0;
 	var TPMFJ = [];
+	var SPMFJ = [];
 	var TPMFS = [];
 	var SPMFS = [];
 	var CalcOut = [];
@@ -229,6 +236,7 @@
 		InTitle["SEIncome"] = "Business income";
 		InTitle["LTCapGains"] = "Net long term capital gains (or loss)";
 		InTitle["STCapGains"] = "Net short term capital gains (or loss)";
+		InTitle["Alimony"] = "Alimony received";
 		InTitle["OtherIncome"] = "Other income (alimony, royalties, unemployment, etc)";
 		InTitle["EdExpenses"] = "Educator expenses";
 		InTitle["HSADeduction"] = "Health savings account deduction";
@@ -238,6 +246,7 @@
 		InTitle["AlimonyPaid"] = "Alimony paid";
 		InTitle["CharityStandard"] = "Charitable contributions";
 		InTitle["IRADeduction"] = "IRA deduction";
+		InTitle["IRADeductionJoint"] = "IRA deduction for MFJMFS calculations";
 		InTitle["StudentLoan"] = "Student loan interest";
 		InTitle["OtherCredits"] = "Other adjustments expected (Forms 2106 &amp; 3903)";
 		InTitle["Dependent"] = "Deductions: If a dependent of another, enter earned income";
@@ -342,14 +351,10 @@
 	// This function adds tax year options to the Filing Information section
 	//----------------------------------------------------------------------------------------
 
-		// Dependents cannot file MFJ, so no comparison
-		if (IsDependent.checked) MFJMFS.checked = false;
-
 		// Change the page layout to show/hide the MFS grid section and options
 		if (MFJMFS.checked) {
 			MFSInfo.style.display = "block";
 			IncomeInfo.style.gridColumn = "1 / 2";	
-			FilingStatus.value = "MFJ";
 			FilingStatus.disabled = true;
 			MFStogether.checked = true;
 			PayChoice.style.display =
@@ -398,6 +403,8 @@
 		if (SP65.disabled) SP65.checked = false;
 		SPBlind.disabled = ! (FilingStatus.value === "MFJ");
 		if (SPBlind.disabled) SPBlind.checked = false;
+		MFJMFS.disabled = (IsDependent.checked || (FilingStatus.value !== "MFJ"));
+		if (MFJMFS.disabled) MFJMFS.checked = false;
 		ChildCareCost.disabled = ((Dependents.value == 0) || (FilingStatus.value === "MFS"));
 		EducationCost.disabled = (FilingStatus.value === "MFS");
 		if (ChildCareCost.disabled) ChildCareCost.value = "";
@@ -420,7 +427,7 @@
 		if (! MFJMFS.checked) MFSInputBox.style.display = "none";
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
 		if ((FilingStatus.value != "MFS") && (! MFJMFS.checked)) ItemizeRequired.checked = false;
-		SP65Option.style.display = SPBlindOption.style.display = (FilingStatus.value === "MFJ") ? "inline" : "none";
+		SP65Option.style.display = (FilingStatus.value === "MFJ") ? "inline" : "none";
 		HSAText.innerHTML = "("+ _HSA[TY + ":IND"] + " personal, " + _HSA[TY + ":FAM"] + " family)";
 
 		
@@ -462,7 +469,13 @@
 		MFJMFSRecoveryCreditRow.style.display =
 		RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
 
-		Input_Change("Wages");
+		if (MFJMFS.checked) {
+			TPInput.value = TPMFS["IRADeductionJoint"];
+			SPInput.value = SPMFS["IRADeductionJoint"];
+			MFSInputId.innerHTML = "IRADeduction";
+			Do_Inputs("MFJMFS");
+		}
+		else Input_Change("IRADeduction");
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -504,6 +517,7 @@
 			var pos = Get_Position(TPMFJiList[thisId]);
 			MFSInputBox.style.left = pos.x + "px";
 			MFSInputBox.style.top = pos.y + "px";
+			if (thisId == "IRADeduction") thisId = "IRADeductionJoint";
 			TPInput.value = (TPMFS[thisId]) ? TPMFS[thisId] : "";
 			SPInput.value = (SPMFS[thisId]) ? SPMFS[thisId] : "";
 			MFSallowNegative.checked = allowNegative;
@@ -566,6 +580,10 @@
 				if (thisId == "") return;
 				TPMFS[thisId] = +TPInput.value;
 				SPMFS[thisId] = +SPInput.value;
+				if (thisId === "IRADeduction") {
+					TPMFS["IRADeductionJoint"] = +TPInput.value;
+					SPMFS["IRADeductionJoint"] = +SPInput.value;
+				}
 				TPMFJiList[thisId].value = TPMFJ[thisId] = +TPInput.value + +SPInput.value;
 				MFSInputId.innerHTML = "";
 				MFSInputBox.style.display = "none";
@@ -624,15 +642,19 @@
 			// Do_Inputs has set the input values
 			// For MFS, see if both itemizing is better than standard
 			ItemizeRequired.checked = ! ItemizeRequired.checked;
+			TPMFS["IRADeduction"] = TPMFS["IRADeductionJoint"];
 			Do_Calcs("T", TPMFS);
 			Show_Results("T");
+			SPMFS["IRADeduction"] = SPMFS["IRADeductionJoint"];
 			Do_Calcs("S", SPMFS);
 			Show_Results("S");
 			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
 			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
 			ItemizeRequired.checked = ! ItemizeRequired.checked;
+			TPMFS["IRADeduction"] = TPMFS["IRADeductionJoint"];
 			Do_Calcs("T", TPMFS);
 			Show_Results("T");
+			SPMFS["IRADeduction"] = SPMFS["IRADeductionJoint"];
 			Do_Calcs("S", SPMFS);
 			Show_Results("S");
 			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
@@ -719,9 +741,7 @@
 		var edlimit = +_HSA[TY + ":FAM"] + 2000;
 		CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], edlimit);
 		
-		// Limit IRA Contribution Deduction - can't test for age 55 or over 72-1/2
-		var sllimit = _IRALimits[TY + ":SRMAX"] * ((FilingStatusValue === "MFJ") ? 2 : 1);
-		CalcIn["IRADeduction"] = Math.min(+CalcIn["IRADeduction"], sllimit);
+		// Limit IRA Contribution Deduction will be done later after AGI is known
 
 		// Limit Student Loan Payment Deduction
 		var sllimit = (FilingStatusValue === "MFJ") ? 5000 : 2500;
@@ -741,7 +761,7 @@
 
 		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Scholar"] + +CalcIn["Interest"]
 			+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
-			+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["OtherIncome"];
+			+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["Alimony"] + +CalcIn["OtherIncome"];
 		MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
@@ -759,6 +779,45 @@
 		// Figure the AGI
 		var TrueAGI = Math.round(+CalcOut["Gross"] - +AdjustmentsValue);
 		CalcOut["AGI"] = Math.max(0, TrueAGI);
+
+		// Add the IRA comment and limit the amount entered
+		var MAGI = CalcOut["AGI"] + +CalcIn["IRADeduction"];
+		var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcIn["SETaxCredit"]);
+		var IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["Alimony"];
+		if (CalcType === "J") {
+			var IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
+			Comment = "(Maximum deduction is " + IRAMax["amount"] + ")";
+			if (IRAMax["comment"]) Comment += (", " + IRAMax["comment"]);
+			IRAComment.innerHTML = Comment;
+			IRAJoint = Math.min(+TPMFS["IRADeductionJoint"] + +SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
+		}
+		if (CalcType === "T") {
+			var IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), false, false, MFStogetherRelevant);
+			IRAJoint = Math.min(+TPMFS["IRADeductionJoint"], +IRAMax["amount"]);
+		}
+		if (CalcType === "S") {
+			var IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, SPPlan.checked, (SP50.checked || SP65.checked), false, false, MFStogetherRelevant);
+			IRAJoint = Math.min(+SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
+		}
+
+		// Make adjustments to calculations already made
+		if (CalcIn["IRADeduction"] > IRAMax["amount"]) { // Deduction limited
+			IRAAdjust = CalcIn["IRADeduction"] - IRAMax["amount"];
+			IRADeduction.value -= IRAAdjust;
+			CalcIn["IRADeduction"] -= IRAAdjust;
+			CalcOut["Adjustments"] -= IRAAdjust;
+			TrueAGI = TrueAGI + IRAAdjust; // may still be negative
+			CalcOut["AGI"] = Math.max(0, TrueAGI);
+		}
+		else { // Adjust due to an increase in age
+			IRAAdjust = IRAJoint - +CalcIn["IRADeduction"];
+			CalcIn["IRADeduction"] = +CalcIn["IRADeduction"] + IRAAdjust;
+			CalcOut["Adjustments"] += IRAAdjust;
+			TrueAGI = TrueAGI - IRAAdjust; // may go negative
+			CalcOut["AGI"] = Math.max(0, TrueAGI);
+		}
+		if (CalcType === "T") TPIRADeduction.innerHTML = CalcOut["IRADeduction"] = CalcIn["IRADeduction"];
+		if (CalcType === "S") SPIRADeduction.innerHTML = CalcOut["IRADeduction"] = CalcIn["IRADeduction"];
 
 		// Calculate standard deduction
 		var StdEarned = +CalcIn["Wages"] + +CalcIn["Scholar"]
@@ -857,7 +916,8 @@
 			// Adjust the charitable standard deduction amount
 			CalcOut["CharityStandard"] = 0;
 			if (! CalcOut["Itemizing"]) {
-				var charityLimit = (CalcType === "J") ? 300 : 300 ;
+				var charityLimitJ = (FilingStatusValue === "MFS") ? 150 : 300 ;
+				var charityLimit = (CalcType === "J") ? charityLimitJ : 150 ;
 				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
 				CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard"];
 				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"]);
@@ -1242,17 +1302,16 @@
 	<h1>Basic Filing Information for tax year <select id="TaxYear" onchange="File_Change();"></select>
 		<span id="Preliminary">(Some tax rate data is preliminary or estimated)</span></h1>
 	<table id="FilingInfoTbl" onkeyup="File_Change();" onclick="File_Change();">
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td><td></td><td></td><td></td></tr>
 		<tr>
 			<td>Taxpayer&apos;s Name:</td>
 			<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td>
-			<td></td>
 			<td rowspan="2" style="text-align: center; vertical-align: top;">
 				<a href="http://www.aarp.org/work/retirement-planning/required_minimuum_distribution_calculator/" 
 					target="_blank">Click here for the<br />AARP RMD Calculator</a></td></tr>
 		<tr>
 			<td>Filing Status:</td>
-			<td style="text-align:top">
+			<td>
 				<select id="FilingStatus" title="Select the taxpayer's filing status.">
 					<option value="SNG">Single</option>
 					<option value="MFJ" selected>MFJ</option>
@@ -1260,42 +1319,51 @@
 					<option value="HOH">HOH</option>
 					<option value="WID">Widow(er)</option></select>
 			</td>
-			<td style="text-align:top">
-				<input id="TP65" type="checkbox" title="Taxpayer is age 65 or older"/> TP 65 or older
-				<span id="SP65Option"><br /><input id="SP65" type="checkbox" title="Spouse is age 65 or older"/> SP 65 or older</span></td>
-			<td style="text-align:top">
-				<input id="TPBlind" type="checkbox" title="Taxpayer is blind"/> blind
-				<span id="SPBlindOption"><br /><input id="SPBlind" type="checkbox" title="Spouse is blind"/> blind</span></td></tr>
+			<td>
+				TP is
+				<input id="TP50" type="checkbox" title="Taxpayer is age 50 - 64" onclick="if (TP50.checked) TP65.checked = false;" /> 50 - 64
+				<input id="TP65" type="checkbox" title="Taxpayer is age 65 or older" onclick="if (TP65.checked) TP50.checked = false;" /> 65 or older
+				<input id="TPBlind" type="checkbox" title="Taxpayer is blind" /> blind
+				<input id="TPPlan" type="checkbox" title="Taxpayer has a retirement plan" /> has retirement plan
+				<span id="SP65Option">
+					<br />SP is
+					<input id="SP50" type="checkbox" title="Spouse is age 50 - 64" onclick="if (SP50.checked) SP65.checked = false;" /> 50 - 64
+					<input id="SP65" type="checkbox" title="Spouse is age 65 or older" onclick="if (SP65.checked) SP50.checked = false;" /> 65 or older
+					<input id="SPBlind" type="checkbox" title="Spouse is blind" /> blind
+					<input id="SPPlan" type="checkbox" title="Spouse has a retirement plan" /> has retirement plan
+				</span></td></tr>
 		<tr id="MFSoption">
 			<td colspan="2"></td>
-			<td colspan="3">
+			<td colspan="2">
 				<input id="MFStogether" type="checkbox" />
 				Check if you <span id="MFSoptionText">will be living</span> with your spouse.</td></tr>
 		<tr id="IsDependentRow" title="Check if either taxpayer (or spouse) can be a dependent on anyone else's return - even if not claimed!">
 			<td colspan="2"></td>
-			<td colspan="3">
+			<td colspan="2">
 				<input id="IsDependent" type="checkbox" />
 				TP (or SP) is or can be a dependent on someone else's return.</td></tr>
 		<tr id="DependentAgeRow">
 			<td colspan="2"></td>
-			<td colspan="3">
+			<td colspan="2">
 				<input id="IsYouth" type="checkbox" />
 				Dependent is 16 or younger, or a full time student and 23 or younger.</td></tr>
 		<tr id="DependentsRow" title="Total number of dependents in the tax family claimed.">
 			<td colspan="2">Total Dependents claimed:
-			<td colspan="3"><span id="DependentsMFS1">TP: </span>
+			<td><span id="DependentsMFS1">TP: </span>
 				<input id="Dependents" size="2" value="0" />
 				<span id="DependentsMFS2">, SP: <input id="SPDependents" size="2" value="0" /></span>
-				</td></tr>
+				</td>
+			<td></td></tr>
 		<tr id="EICRow" title="Number of dependents in the tax family age under age 18 (or 24 if a full time student or any age if disabled).">
 			<td colspan="2">Dependents qualified for EIC:</td>
-			<td colspan="3"><span id="EICDependentsMFS1">TP: </span>
+			<td><span id="EICDependentsMFS1">TP: </span>
 			<input id="EICDependents" size="2" value="0" />
 				<span id="EICDependentsMFS2">, SP: <input id="SPEICDependents" size="2" value="0" /></span>
-				</td></tr>
+				</td>
+			<td></td></tr>
 		<tr id="CTCRow" title="Number of dependents in the tax family under age 17.">
 			<td colspan="2">Dependents qualified for CTC:</td>
-			<td colspan="2"><span id="CTCDependentsMFS1">TP: </span>
+			<td><span id="CTCDependentsMFS1">TP: </span>
 				<input id="CTCDependents" size="2" value="0" />
 				<span id="CTCDependentsMFS2">, SP: <input id="SPCTCDependents" size="2" value="0" /></span></td>
 			<td title="Check to show MFS columns" style="text-align: center;" >
@@ -1393,7 +1461,12 @@
 				onkeyup="Input_Change(this.id, true);" /></td>
 			<td id="CapGains" class="calculated wktc"></td></tr>
 		<tr class="income"><td></td>
-			<td>Other income (alimony, royalties, unemployment, etc)</td><td></td>
+			<td>Alimony (if taxable)</td><td></td>
+			<td><input id="Alimony" type="text" class="wkti"
+				onfocus="Get_Inputs(this.id);"
+				onkeyup="Input_Change(this.id);" /></td></tr>
+		<tr class="income"><td></td>
+			<td>Other income (royalties, unemployment, etc)</td><td></td>
 			<td><input id="OtherIncome" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
@@ -1439,14 +1512,14 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
-			<td>Alimony paid</td>
+			<td>Alimony paid (if deductible)</td>
 			<td></td>
 			<td><input id="AlimonyPaid" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
 			<td>Traditional IRA deduction <i><span id="IRAComment"></span></i></td>
-			<td></td>
+			<td><span style="hidden"><input id="IRADeductionJoint" class="wkti hidden"></span></td>
 			<td><input id="IRADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>
@@ -1756,6 +1829,7 @@
 				<span id="SPSTCapGains" class="hidden"></span>
 				<span id="TPLTCapGains" class="hidden"></span>
 				<span id="SPLTCapGains" class="hidden"></span></td></tr>
+		<tr class="income"><td id="TPAlimony"></td><td id="SPAlimony"></td></tr>
 		<tr class="income"><td id="TPOtherIncome"></td><td id="SPOtherIncome"></td></tr>
 		<tr><td id="TPGross"></td><td id="SPGross"></td></tr>
 		<tr><th colspan="2">Adjustments to Income:</th></tr>
@@ -1768,7 +1842,9 @@
 				<span id="SPSEInsurance" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPSavingsPenalty"></td><td id="SPSavingsPenalty"></td></tr>
 		<tr class="adjustment"><td id="TPAlimonyPaid"></td><td id="SPAlimonyPaid"></td></tr>
-		<tr class="adjustment"><td id="TPIRADeduction"></td><td id="SPIRADeduction"></td></tr>
+		<tr class="adjustment"><td id="TPIRADeduction"></td><td id="SPIRADeduction"></td>
+			<td>	<span id="TPIRADeductionJoint" class="hidden"></span>
+				<span id="SPIRADeductionJoint" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPStudentLoan"></td><td id="SPStudentLoan"></td></tr>
 		<tr class="adjustment"><td id="TPOtherCredits"></td><td id="SPOtherCredits"></td></tr>
 		<tr id="MFJMFSCSRow"><td id="TPCharityStandard"></td><td id="SPCharityStandard"></td></tr>
