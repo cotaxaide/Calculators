@@ -245,3 +245,9 @@
 		_IRALimits[_TY+":AGE"] = 50;	// Needs update
 		_IRALimits[_TY+":MAX"] = 6000;	// Needs update
 		_IRALimits[_TY+":SRMAX"] = 7000;	// Needs update
+		_IRALimits[_TY+":SNG"] = 
+		_IRALimits[_TY+":MFS"] = 
+		_IRALimits[_TY+":HOH"] = "76000";	// Needs update
+		_IRALimits[_TY+":WID"] = "125000";	// Needs update
+		// Col 1 = ret plan, Col 2 = no ret plan
+		_IRALimits[_TY+":MFJ"] = "125000, 209000";	// Needs update

@@ -21,7 +21,7 @@
                 _LineNo[_TY+":TaxAmount"] = "16";	
                 _LineNo[_TY+":CTC"] = "19";		
                 _LineNo[_TY+":COD"] = "19";		
-                _LineNo[_TY+":NRCredit"] = "20";	
+                _LineNo[_TY+":NRCredit"] = "21";	
                 _LineNo[_TY+":EIC"] = "27";		
                 _LineNo[_TY+":ACTC"] = "28";		
                 _LineNo[_TY+":AOC"] = "29";		
@@ -241,7 +241,13 @@
 		_RETIRE[_TY+":WID"] = 
 		_RETIRE[_TY+":MFS"] = "19250,	20750,	32000";	
 
-	// IRA Adjustment limits
+	// IRA Adjustment limits (1040 IRA Deduction Worksheet)
 		_IRALimits[_TY+":AGE"] = 50;
 		_IRALimits[_TY+":MAX"] = 6000;
 		_IRALimits[_TY+":SRMAX"] = 7000;
+		_IRALimits[_TY+":SNG"] = 
+		_IRALimits[_TY+":MFS"] = 
+		_IRALimits[_TY+":HOH"] = "75000";
+		_IRALimits[_TY+":WID"] = "124000";
+		// Col 1 = ret plan, Col 2 = no ret plan
+		_IRALimits[_TY+":MFJ"] = "124000, 206000";

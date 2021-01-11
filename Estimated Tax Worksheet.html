@@ -136,7 +136,21 @@
 			margin: 0;
 			page-break-inside: avoid;
 		}
-		table { width: 100%; background-color: white; }
+		table {
+			width: 100%;
+			background-color: white;
+			font-size: 95%;
+			overflow: hidden;
+		}
+		input[type="number"] { text-align: right; width:4em; }
+		input[type="text"] { text-align: right; width:4em; }
+		#IncomeTable tr td:nth-child(3),
+		#IncomeTable tr td:nth-child(4),
+		#IncomeTable tr td:nth-child(5) {
+			width: 4em;
+			text-align: right;
+		}
+		#MFSTable { width: 11.9em; }
 		#TaxYear { width: 8em; }
 	}
 </style>
@@ -158,12 +172,16 @@
 	//	Russ Gross		Larry Raffery		Kathleen Quinn
 	//	John Arenberg		Bob Goings		Emily Lin
 	//	Pete Burgner		Bob Schroer		Richar Staub
-	//	Arlene Green
+	//	Arlene Green		Bob Janesak		Fred Marker
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.13, 12/29/2020)";
+	var VERSION = "(Version 3.14a, 1/2/2021)";
+	//	Printing problem: SP column prints beyond page edge, not visible
+	//var VERSION = "(Version 3.14, 12/30/2020)";
+	//	Fixed problem where AGI not calculating
+	//var VERSION = "(Version 3.13, 12/29/2020)";
 	//	Re-corrected above-line charity to 150 for filing MFS
 	//	Fixed a problem with MFJ/MFS comparison option remaining checked
 	//	Added limit to IRA contribution deduction in adjustment to income
@@ -304,6 +322,7 @@
 			SPMFS[TPMFJiList[j].id] = "";
 		}
 
+		// Initialize with no input
 		MFJMFS_Change();
 		File_Change();
 	}
@@ -475,7 +494,7 @@
 			MFSInputId.innerHTML = "IRADeduction";
 			Do_Inputs("MFJMFS");
 		}
-		else Input_Change("IRADeduction");
+		else Input_Change("Wages");
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -642,19 +661,19 @@
 			// Do_Inputs has set the input values
 			// For MFS, see if both itemizing is better than standard
 			ItemizeRequired.checked = ! ItemizeRequired.checked;
-			TPMFS["IRADeduction"] = TPMFS["IRADeductionJoint"];
+			TPMFS["IRADeduction"] = +TPMFS["IRADeductionJoint"];
 			Do_Calcs("T", TPMFS);
 			Show_Results("T");
-			SPMFS["IRADeduction"] = SPMFS["IRADeductionJoint"];
+			SPMFS["IRADeduction"] = +SPMFS["IRADeductionJoint"];
 			Do_Calcs("S", SPMFS);
 			Show_Results("S");
 			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
 			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
 			ItemizeRequired.checked = ! ItemizeRequired.checked;
-			TPMFS["IRADeduction"] = TPMFS["IRADeductionJoint"];
+			TPMFS["IRADeduction"] = +TPMFS["IRADeductionJoint"];
 			Do_Calcs("T", TPMFS);
 			Show_Results("T");
-			SPMFS["IRADeduction"] = SPMFS["IRADeductionJoint"];
+			SPMFS["IRADeduction"] = +SPMFS["IRADeductionJoint"];
 			Do_Calcs("S", SPMFS);
 			Show_Results("S");
 			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
@@ -667,6 +686,7 @@
 				File_Change();
 			}
 
+			TPMFJ["IRADeduction"] = +TPMFS["IRADeductionJoint"];
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
@@ -674,6 +694,7 @@
 			// Do not use "+" to get value below - it may be a minus sign
 			TPMFS[thisId] =
 			TPMFJ[thisId] = thisElement.value;
+			TPMFJ["IRADeduction"] = +TPMFS["IRADeductionJoint"];
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
@@ -1519,7 +1540,7 @@
 				onkeyup="Input_Change(this.id);" /></tr>
 		<tr class="adjustment"><td></td>
 			<td>Traditional IRA deduction <i><span id="IRAComment"></span></i></td>
-			<td><span style="hidden"><input id="IRADeductionJoint" class="wkti hidden"></span></td>
+			<td><span style="hidden"><input id="IRADeductionJoint" type="text" class="wkti hidden"></span></td>
 			<td><input id="IRADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></tr>

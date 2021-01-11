@@ -239,3 +239,9 @@
 		_IRALimits[_TY+":AGE"] = 50;
 		_IRALimits[_TY+":MAX"] = 6000;
 		_IRALimits[_TY+":SRMAX"] = 7000;
+		_IRALimits[_TY+":SNG"] = 
+		_IRALimits[_TY+":MFS"] = 
+		_IRALimits[_TY+":HOH"] = "74000";
+		_IRALimits[_TY+":WID"] = "123000";
+		// Col 1 = ret plan, Col 2 = no ret plan
+		_IRALimits[_TY+":MFJ"] = "123000, 203000";
