@@ -91,7 +91,7 @@
 		_Standard["DepAsRel"] = 13; // maximum earned income to be a Dependent as a Relative	// Needs update
 
                 // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    WID,inc,    HOH,inc,  Kiddie, DepAsRel
-                _Standard[_TY] = "          0,1100,   12800,1650, 12800,1300, 25600,1300, 25600,1300, 19200,1650,  2200,   4300";		// Tentative for testing // Needs update
+                _Standard[_TY] = "          0,1100,   12700,1650, 12700,1300, 25400,1300, 25400,1300, 18950,1650,  2200,   4300";		// Tentative for testing // Needs update
 
 	// var ItemLimit = []; // Limit repealed by new tax law
                 _ItemLimit[_TY+":SNG"] = 10000000; //261500;	// Needs update
@@ -102,11 +102,11 @@
 
         // var TaxRates = [];
                 _TaxRates[_TY+":PCT"] = " 0.10,  0.12,   0.22,   0.24,   0.32,   0.35,   0.37";	// Needs update
-                _TaxRates[_TY+":SNG"] = "10175, 41325,  88100, 168225, 213600, 534050";		// for testing	// Needs update
-                _TaxRates[_TY+":MFJ"] = "20350, 82650, 176200, 336500, 427200, 631375";		// for testing	// Needs update
-                _TaxRates[_TY+":WID"] = "20050, 81450, 173600, 336500, 427700, 631375";		// for testing	// Needs update
-                _TaxRates[_TY+":MFS"] = "10175, 41325,  88100, 168225, 213600, 321374";		// for testing	// Needs update
-                _TaxRates[_TY+":HOH"] = "14500, 55300,  88075, 168225, 213600, 534050";		// for testing	// Needs update
+                _TaxRates[_TY+":SNG"] = "10025, 40925,  87225, 166550, 211500, 528800";		// for testing	// Needs update
+                _TaxRates[_TY+":MFJ"] = "20050, 81850, 174450, 333100, 423000, 634550";		// for testing	// Needs update
+                _TaxRates[_TY+":WID"] = "20050, 81850, 174450, 333100, 423000, 634550";		// for testing	// Needs update
+                _TaxRates[_TY+":MFS"] = "10025, 40925,  87225, 166550, 211500, 317275";		// for testing	// Needs update
+                _TaxRates[_TY+":HOH"] = "14300, 54700,  87200, 166500, 211475, 528800";		// for testing	// Needs update
                 _TaxRates[_TY+":TRUST"]=" 2600,  2600,   2600,   9450,   9450,  12950";		// for testing	// Needs update
 
 	// CGRates

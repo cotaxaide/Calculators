@@ -112,8 +112,8 @@
 	// CGRates
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";
                 _CGRates[_TY+":SNG"] = "40000, 441450";		
-                _CGRates[_TY+":MFJ"] = "80000, 496600";		
-                _CGRates[_TY+":WID"] = "80000, 496600";		
+                _CGRates[_TY+":MFJ"] = "80000, 496050";		
+                _CGRates[_TY+":WID"] = "80000, 496050";		
                 _CGRates[_TY+":MFS"] = "40000, 248300";		
                 _CGRates[_TY+":HOH"] = "53600, 469050";		
                 _CGRates[_TY+":TRUST"]=" 2650,  13150";		
