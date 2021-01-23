@@ -173,11 +173,12 @@
 	//	John Arenberg		Bob Goings		Emily Lin
 	//	Pete Burgner		Bob Schroer		Richar Staub
 	//	Arlene Green		Bob Janesak		Fred Marker
+	//	Henry Geisser
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.14a, 1/2/2021)";
+	var VERSION = "(Version 3.15, 1/23/2021)";
 	//	Printing problem: SP column prints beyond page edge, not visible
 	//var VERSION = "(Version 3.14, 12/30/2020)";
 	//	Fixed problem where AGI not calculating
@@ -694,7 +695,6 @@
 			// Do not use "+" to get value below - it may be a minus sign
 			TPMFS[thisId] =
 			TPMFJ[thisId] = thisElement.value;
-			TPMFJ["IRADeduction"] = +TPMFS["IRADeductionJoint"];
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
@@ -708,6 +708,7 @@
 	//----------------------------------------------------------------------------------------
 		// Initialize output array
 		CalcOut = [];
+		IRAMax = [];
 
 		var FilingStatusValue = FilingStatus.value;
 		var DependentsValue = +Dependents.value;
@@ -806,18 +807,23 @@
 		var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcIn["SETaxCredit"]);
 		var IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["Alimony"];
 		if (CalcType === "J") {
-			var IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
+			IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
 			Comment = "(Maximum deduction is " + IRAMax["amount"] + ")";
 			if (IRAMax["comment"]) Comment += (", " + IRAMax["comment"]);
 			IRAComment.innerHTML = Comment;
-			IRAJoint = Math.min(+TPMFS["IRADeductionJoint"] + +SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
+			if (MFJMFS.checked) {
+				IRAJoint = Math.min(+TPMFS["IRADeductionJoint"] + +SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
+			}
+			else {
+				IRAJoint = Math.min(IRAMax["amount"], +CalcIn["IRADeduction"]);
+			}
 		}
 		if (CalcType === "T") {
-			var IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), false, false, MFStogetherRelevant);
+			IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), false, false, MFStogetherRelevant);
 			IRAJoint = Math.min(+TPMFS["IRADeductionJoint"], +IRAMax["amount"]);
 		}
 		if (CalcType === "S") {
-			var IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, SPPlan.checked, (SP50.checked || SP65.checked), false, false, MFStogetherRelevant);
+			IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, SPPlan.checked, (SP50.checked || SP65.checked), false, false, MFStogetherRelevant);
 			IRAJoint = Math.min(+SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
 		}
 
