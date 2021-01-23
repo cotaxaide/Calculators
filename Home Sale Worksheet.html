@@ -188,7 +188,11 @@
 	//	Bill Zlobik
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.05b, 9/30/2020)";
+	VERSION = "(Version 1.06, 1/22/2021)";
+	//	Added rounding to all inputs with number type
+	//	Corrected basis calculation and adjustment due to purchase costs
+	//		(prior calc still produced the correct end result)
+	//VERSION = "(Version 1.05b, 9/30/2020)";
 	//	Modified partialdates parameter to prior understanding
 	//	Fixed undefined version number
 	//VERSION = "(Version 1.05a, 5/8/2020)";
@@ -212,6 +216,7 @@
 	//	Added $ to sale/cost inputs
 	//VERSION = "(Version 1.00, 4/22/2020)";
 
+	var InputList = [];
 	var TPExclusion = 250000;
 	var SPExclusion = 250000;
 	var TPExclusionApplies = true;
@@ -309,6 +314,7 @@ function Basis_Calc(ignore) {
 	Purchased_Date = PurchasedDate.value.split("-");
 	if (Purchased_Date){
 		Yr = +Purchased_Date[0];
+		if (Yr < 1900) return;
 		if (Yr > +_ThisYear) { // input doesn't always limit to 4 digits
 			alert ("Please verify the year purchased");
 			Purchased_Date[0] = Yr = _ThisYear;
@@ -540,6 +546,16 @@ function Basis_Calc(ignore) {
 
 	// Home sale details section -------------------------------------------------------------
 
+	// Round all inputs
+	InputList = document.getElementsByClassName("datain");
+	actEl = document.activeElement;
+	for (i in InputList) {
+		if (InputList[i] != actEl) {
+			ilval = Math.round(InputList[i].value);
+			InputList[i].value = (ilval) ? ilval : "" ; // blank for 0
+		}
+	}
+
 	if (F1099SY.checked) {
 		DebtsRow.style.display = "none";
 		RETaxesRow.style.display = "none";
@@ -618,6 +634,7 @@ function Basis_Calc(ignore) {
 	for (i = 0 ; i < HomeImprovementList.length ; i++) {
 		ImproveTotal += +HomeImprovementList[i].value;
 	}
+	ImproveTotal = Math.round(ImproveTotal);
 	HomeImprovementTotal.innerHTML = ImproveTotal;
 	TSImproveAmount.innerHTML = ImproveTotal;
 	ImproveAmount.value = ImproveTotal;
@@ -725,7 +742,7 @@ function Basis_Calc(ignore) {
 
 	ExclusionApplies = (ExclAmt) ? true : false ;
 	SalesPrice.innerHTML = spt;
-	cost = +AdjustedBasis.value + set;
+	cost = +AdjustedBasis.value;
 	Cost.innerHTML = cost;
 	Gain = SalePriceTotal.value - cost;
 	ExclusionMessage.style.display = "none";
@@ -1059,44 +1076,44 @@ function Add_Improvement() {
 			<td></td></tr>
 		<tr><td><br /><i><u>Sale price</u></i></span></td><td></td><td></td></tr>
 		<tr><td class="indent">Money received:</td>
-			<td>$<input id="SalePrice" type="number" /></td><td id="SalePriceComment"></td></tr>
+			<td>$<input id="SalePrice" class="datain" type="number" /></td><td id="SalePriceComment"></td></tr>
 		<tr id="OtherValueRow"><td class="indent">Value of other property/services:</td>
-			<td>$<input id="OtherValue" type="number" /></td><td id="OtherValueComment"></td></tr>
+			<td>$<input id="OtherValue" class="datain" type="number" /></td><td id="OtherValueComment"></td></tr>
 		<tr id="DebtsRow"><td class="indent">Value of debts assumed by buyer:</td>
-			<td>$<input id="Debts" type="number" /></td>
+			<td>$<input id="Debts" class="datain" type="number" /></td>
 			<td>(eg: notes, mortgages)</td></tr>
 		<tr id="RETaxesRow"><td class="indent">Real estate taxes paid by buyer on your behalf:</td>
-			<td>$<input id="RETaxes" type="number" /></td>
+			<td>$<input id="RETaxes" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL SALE PRICE</b></td>
-				<td>$<input type="number" id="SalePriceTotal" disabled></td>
+				<td>$<input type="number" class="datain" id="SalePriceTotal" disabled></td>
 			<td></td></tr>
 		<tr><td colspan="3"><br /><i><u>Expenses</u></i>
 			<span id="SaleExpenseComment"></span></td></tr>
 		<tr><td class="indent">Realtor commissions:</td>
-			<td>$<input id="Realtor" type="number" /></td>
+			<td>$<input id="Realtor" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Advertising and staging:</td>
-			<td>$<input id="Advertising" type="number" /></td>
+			<td>$<input id="Advertising" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Legal fees:</td>
-			<td>$<input id="Legal" type="number" /></td>
+			<td>$<input id="Legal" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Buyer&apos;s expenses you agreed to pay:</td>
-			<td>$<input id="BuyerExpense" type="number" /></td>
+			<td>$<input id="BuyerExpense" class="datain" type="number" /></td>
 			<td>(eg: mortgage points, loan charges)</td></tr>
 		<tr><td class="indent">Other expenses:</td>
-			<td>$<input id="OtherExpense" type="number" /></td>
-			<td></td></tr>
+			<td>$<input id="OtherExpense" class="datain" type="number" /></td>
+			<td><input type="text" style="width: 100%"></td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL SALE EXPENSES</b></td>
-			<td>$<input type="number" id="SaleExpensesTotal" disabled></td>
-			<td>(Included as a cost basis increase for TaxSlayer input)</td></tr>
+			<td>$<input class="datain" type="number" id="SaleExpensesTotal" disabled></td>
+			<td></td></tr>
 		</table>
 	</div> <!-- SaleDiv -->
 
@@ -1107,80 +1124,80 @@ function Add_Improvement() {
 			When filing Married Filing Seperately, only enter your portion of the amounts below.</span>
 		<table id="CostTable" class="tblLayout">
 		<tr><td id="CostType2"></td>
-			<td>$<input id="PurchasePrice" type="number" /></td>
+			<td>$<input id="PurchasePrice" class="datain" type="number" /></td>
 			<td id="CostType2Comment"></td></tr>
 		<tr id="DiedBasisRow"><td id="DiedBasis2" class="indent"></td>
-			<td>$<input id="DiedBasis" type="number" /></td>
+			<td>$<input id="DiedBasis" class="datain" type="number" /></td>
 			<td id="DiedBasisComment"></td></tr>
 		<tr><td>Home improvements total</td>
-			<td>$<input id="ImproveAmount" type="number" disabled/></td>
+			<td>$<input id="ImproveAmount" class="datain" type="number" disabled/></td>
 			<td>(Total from home improvements tab)</td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>HOME COST BASIS</b></td>
-			<td>$<input id="Basis" type="number" disabled/></td>
+			<td>$<input id="Basis" class="datain" type="number" disabled/></td>
 			<td></td></tr>
 		<tr><td>Tax assessments:</td>
-			<td>$<input id="TaxFee" type="number" /></td>
+			<td>$<input id="TaxFee" class="datain" type="number" /></td>
 			<td>(eg: sidewalks, local improvements, HOA or condominium assessments)</td></tr>
 		<tr><td><br /><i><u>Expenses</u></i></td>
 			<td></td><td></td></tr>
 		<tr><td class="indent">Legal fees:</td>
-			<td>$<input id="LegalFee" type="number" /></td>
+			<td>$<input id="LegalFee" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Survey and recording fees:</td>
-			<td>$<input id="SurveyFee" type="number" /></td>
+			<td>$<input id="SurveyFee" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Title insurance:</td>
-			<td>$<input id="TitleFee" type="number" /></td>
+			<td>$<input id="TitleFee" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Seller fees you agreed to pay:</td>
-			<td>$<input id="SellerFee" type="number" /></td>
+			<td>$<input id="SellerFee" class="datain" type="number" /></td>
 			<td>(eg: real estate taxes prior to sale, title/mortage fees, repair charges, real estate agent commissions)</td></tr>
 		<tr><td class="indent">Other fees:</td>
-			<td>$<input id="OtherFee" type="number" /></td>
+			<td>$<input id="OtherFee" class="datain" type="number" /></td>
 			<td>(eg: sales tax on a mobile home or houseboat used as the home)</td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL PURCHASE EXPENSES</b></td>
-			<td>$<input type="number" id="PurchaseExpensesTotal" disabled></td>
+			<td>$<input class="datain" type="number" id="PurchaseExpensesTotal" disabled></td>
 			<td></td></tr>
 		<tr><td><br /><i><u>Adjustments</u></i> (Decreases to your basis)</td>
 			<td></td><td></td></tr>
 		<tr><td class="indent">Payments received for easement, conservation restriction or right-of-way:</td>
-			<td>$<input id="Easements" type="number" /></td>
+			<td>$<input id="Easements" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Energy credits or subsidies:</td>
-			<td>$<input id="EnergyCredits" type="number" /></td>
+			<td>$<input id="EnergyCredits" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Adoption credits claimed or nontaxable payments from an employer-sponsored adoption assistance program:</td>
-			<td>$<input id="AdoptionCredits" type="number" /></td>
+			<td>$<input id="AdoptionCredits" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr><td class="indent">Real estate taxes the seller paid on your behalf:</td>
-			<td>$<input id="RETaxesBySeller" type="number" /></td>
+			<td>$<input id="RETaxesBySeller" class="datain" type="number" /></td>
 			<td></td></tr>
 		<tr id="PointsBySellerRow">
 			<td class="indent">Mortgage points the seller paid on your behalf:</td>
-			<td>$<input id="PointsBySeller" type="number" /></td>
+			<td>$<input id="PointsBySeller" class="datain" type="number" /></td>
 			<td id="PointsBySellerComment">
 			<!--if bought 12/31/1991 - 4/4/1994 and deducted
 			or after 4/3/1994 even if not deducted--></td></tr>
 		<tr><td class="indent">Sales tax paid on a mobile home or houseboat</td>
-			<td>$<input id="SalesTaxOnHome" type="number" /></td>
+			<td>$<input id="SalesTaxOnHome" class="datain" type="number" /></td>
 			<td>If claimed as a deduction on a federal tax return</td></tr>
 		<tr><td class="indent">Other</td>
-			<td>$<input id="OtherAdjustments" type="number" /></td>
-			<td></td></tr>
+			<td>$<input id="OtherAdjustments" class="datain" type="number" /></td>
+			<td><input type="text" style="width: 100%"></td></tr>
 		<tr><td class="indent"></td>
 			<td style="border-bottom: 2px solid black;"></td>
 			<td></td></tr>
 		<tr><td><b>TOTAL ADJUSTMENTS</b></td>
-			<td>$<input id="TotalAdjusted" type="number" disabled/></td>
+			<td>$<input id="TotalAdjusted" class="datain" type="number" disabled/></td>
 			<td></td></tr>
 		<tr><td><b>ADJUSTED COST BASIS</b></td>
-			<td>$<input id="AdjustedBasis" type="number" disabled/></td>
+			<td>$<input id="AdjustedBasis" class="datain" type="number" disabled/></td>
 			<td></td></tr>
 		</table>
 	</div> <!-- CostDiv -->
@@ -1214,111 +1231,111 @@ function Add_Improvement() {
 		<table id="HomeTable" style="margins: auto;">
 			<tr>	<th colspan="4"><i><u>Systems</u></i></th></tr>
 			<tr>	<td>Air/water filtration systems</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Furnace</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Central air conditioning</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Heating system</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Central humidifier</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Lawn sprinkler system</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Central vacuum</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Security system</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Duct work</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Wiring</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Additions</u></i></th></tr>
 			<tr>	<td>Bedroom</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Garage</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Bathroom</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Patio</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Deck</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Porch</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Grounds</u></i></th></tr>
 			<tr>	<td>Driveway</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Retaining wall</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Fence</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Swimming pool</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Landscaping</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Walkway</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Pipes and duct work</u></i></th></tr>
 			<tr>	<td>Filtration system</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Soft water system</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Plumbing</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Water heater</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Septic system</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Interior</u></i></th></tr>
 			<tr>	<td>Built-in appliances</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Kitchen modernizaton</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Fireplace</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Wall-to-wall carpeting</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Flooring</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Exterior</u></i></th></tr>
 			<tr>	<td>New roof</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Satellite dish</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>New siding</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Storm windows/doors</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Insulation</u></i></th></tr>
 			<tr>	<td>Attic</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td>Walls</td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<td>Floors</td>
-				<td>$<input class="HomeImprovement" type="number" /></td>
+				<td>$<input class="datain HomeImprovement" type="number" /></td>
 				<td><input type="text" placeholder="(Other)" /></td>
-				<td>$<input class="HomeImprovement" type="number" /></td></tr>
+				<td>$<input class="datain HomeImprovement" type="number" /></td></tr>
 			<tr>	<th colspan="4"><i><u>Remodeling projects</u></i></th></tr>
 			<tr>	<td colspan="4"><i>For repairs done as part of larger project</i>
 				 &mdash; See the exception note above.</td></tr>
@@ -1351,7 +1368,7 @@ function Add_Improvement() {
 
 </div> <!-- MessageDiv -->
 
-<div id="TSInputDiv" class="section" onchange="Basis_Calc();">
+<div id="TSInputDiv" class="doPrint section" onchange="Basis_Calc();">
 	<span class="tblHeader">TaxSlayer input:</span>
 	<span id="TSChoices">
 		<input id="UseSchedD" name="EnterAs" type="radio" checked /> Enter directly as Capital Gains
@@ -1363,7 +1380,7 @@ function Add_Improvement() {
 		this main home sale does not need to be reported to the IRS.
 		If you do wish to report it, check this box &#x261B; <input id="NoNeedButShow" type="checkbox" />.
 	</div>
-	<div id="TSWorksheet">
+	<div id="TSWorksheet" class="doprint">
 		<br />&nbsp;
 		<table id="TSTable">
 		<tr><th></th><th></th><th></th><th></th></tr>
@@ -1411,7 +1428,7 @@ function Add_Improvement() {
 		<tr><td colspan="2"></td><td>Does return qualify for $250,000/$500,000 max exclusion?</td><td id="TSUseExclusion"></td></tr>
 		</table>
 		</div>
-	<div id="SchedD">
+	<div id="SchedD" class="doprint">
 		<br />&nbsp;
 		<table class="tblLayout">
 		<tr><th colspan="3">Capital Gains and Loss Items</th></tr>
