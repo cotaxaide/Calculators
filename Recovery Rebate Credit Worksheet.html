@@ -1,0 +1,231 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Recovery Rebate Credit Worksheet</title>
+
+<style type="text/css">
+	html { background-color: #ccbcaa; }
+	body { background-color: #ccbcaa; font-family: sans-serif; font-size: 0.9em; padding: 0 2.5% 0 2.5%; overflow-x: visible; }
+	div { margin: 2em; width: 95%; border: 1px solid black; background-color: lightpink; padding: 5px; }
+	button { cursor: pointer; background-color: lightpink; }
+	table { border-collapse:collapse; width: 100%; }
+	h1 { text-align: left; font-size: 110%; text-decoration: underline}
+	tr { vertical-align: middle; }
+	input[type="number"] { text-align: right; width:6em; }
+	input[type="text"] { text-align: right; width:6em; }
+	input, select { background-color: white; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.title { font-size:125%; font-weight: bold; }
+	.instruction { text-align: right; text-decoration: italic; }
+	.comment { font-style:italic; }
+	.calculated { text-align: right; cursor: not-allowed; }
+	.tablebreak { max-height: 5px !important; }
+	.hidden { display: none; }
+	.indent { padding-left: 1.5em; }
+	.floatright { float: right; font-weight: normal; }
+
+	#ClearAndPrint { width: 16em; 
+		text-align:center; 
+		border:0;
+	       	background-color:transparent;
+		z-index:2;
+		position:absolute; top:0; right:1em; }
+	#ClearAndPrint button { margin: 2px; }
+	#FilingStatus { width: 8em; }
+	#FilingInfoTbl tr td:nth-child(1) { width: 12em; }
+	#FilingInfoTbl tr td:nth-child(2) { min-width: 6em; max-width: 6em; }
+	#FilingInfoTbl tr td:nth-child(3) { text-align: left; min-width: 9em; max-width: 9em; }
+	#FilingInfoTbl2 tr td:nth-child(1) { width: 20em; }
+	#TaxYear { width: 6em; }
+	.blinking{ text-align: center; animation:blinkingText 2s infinite; }
+		@keyframes blinkingText {
+    			0%   { color: yellow; }
+    			59%  { color: yellow; }
+    			80%  { color: transparent; }
+    			99%  { color: transparent; }
+    			100% { color: yellow; }
+		}
+	@media print {
+		.doPrint { display:inline; }
+		.noPrint { display:none; }
+		body {
+			background-color: white;
+			padding: 0;
+			margin: 0;
+			page-break-inside: avoid;
+		}
+		table { width: 100%; background-color: white; }
+		#TaxYear { width: 8em; }
+	}
+</style>
+
+<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2017.js"></script>
+<script src="Tax_Data/IRS_2018.js"></script>
+<script src="Tax_Data/IRS_2019.js"></script>
+<script src="Tax_Data/IRS_2020.js"></script>
+<script src="CommonRoutines.js"></script>
+<script type="text/javascript">
+	// --------------------------------------------------------------------------------
+	// Contributors:
+	// --------------------------------------------------------------------------------
+
+	// --------------------------------------------------------------------------------
+	// CHANGE HISTORY:
+	var VERSION = "(Version 1.00, 10/29/2019)";
+	// --------------------------------------------------------------------------------
+
+	//----------------------------------------------------------------------------------------
+	function Initialize() {
+	// This function adds tax year options to the Filing Information section
+	// and establishes initial settings and arrays
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		//var tyOptIndex = 0;
+		//for (var ty = _StartYear; ty <= _StopYear; ty++) {
+		//	var tyopti = document.createElement("option");
+		//	tyopti.text = tyopti.value = ty;
+		//	TaxYear.add(tyopti,tyOptIndex++);
+		//}
+
+		// Set the default to the tax year
+		//TY = TaxYear.value = _DefaultYear + 1;
+	}
+
+	//----------------------------------------------------------------------------------------
+	function File_Change() {
+	// Calculates the values for filing threshold
+	//----------------------------------------------------------------------------------------
+
+		// Line 1
+		if (IsDependent.checked) {
+			claim.innerHTML = "NO";
+			return;
+		}
+
+		// Line 2
+		var OKforCredit = false;
+		if (FilingStatus.value === "MFJ") {
+			if (TPSSN.checked && SPSSN.checked) {
+				OKforCredit = true;
+			}
+			else {	// Line 3
+				if ((TPSSN.checked || SPSSN.checked) 
+				   && (TPMilitary.checked || SPMilitary.checked)) {
+					   OKforCredit = true;
+				}
+			}
+		}
+		else {
+			if (TPSSN.checked) OKforCredit = true;
+		}
+		if (! OKforCredit) {
+			claim.innerHTML = "NO";
+			return;
+		}
+
+		// Line 4
+		Credit = (FilingStatus.value === "MFJ") ? 2400 : 1200 ;
+		// Line 5, 6
+		Credit += ((+CTCDependents.value + +ATINDependents.value) * 500);
+
+		// Line 8
+		switch (FilingStatus.value) {
+			case "MFJ": Limit = 150000; break;
+			case "HOH": Limit = 112500; break;
+			default: Limit = 75000;
+		}
+
+		// Line 9 - 11
+		if (AGI.value > Limit) {
+			Credit = Math.max( 0, Credit - ((+AGI.value - Limit) * 0.05) );
+		}
+
+		// Line 12, 13
+		claim.value = Math.max( 0, (Credit - CreditReceived.value) );
+
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body id="theBody" onload="Initialize()">
+
+<center>
+	<span class="title"><span id="TaxYear2"></span>Recovery Rebate Credit Worksheet</span>
+	<br><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+	<br />&nbsp;
+</center>
+
+<div id="ClearAndPrint" class="noPrint">
+	<button onclick="window.open(window.location, '_self')">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</div>
+	
+<!-- ****************************************** FILING INFORMATION TABLE ****************************************** -->
+
+<div id="FilingInfo">
+	<h1>Basic Filing Information for tax year 2021</h1>
+	<table id="FilingInfoTbl" onkeyup="File_Change();" onclick="File_Change();">
+		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr>
+			<td>Taxpayer&apos;s Name:</td>
+			<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td>
+			<td></td>
+		<tr>
+			<td>Filing Status:</td>
+			<td style="text-align:top">
+				<select id="FilingStatus" title="Select the taxpayer's filing status.">
+					<option value="SNG">Single</option>
+					<option value="MFJ" selected>MFJ</option>
+					<option value="MFS">MFS</option>
+					<option value="HOH">HOH</option>
+					<option value="WID">Widow(er)</option></select>
+			</td>
+			<td style="text-align:top">
+				<input id="TPSSN" type="checkbox" title="Taxpayer has a valid SSN"/> TP has a valid SSN
+				<span id="SPSSNRow"><br /><input id="SPSSN" type="checkbox" title="Spouse has a valid SSN"/> SP has a valid SSN</span></td>
+			<td id="TPMilitaryOption" style="text-align:top">
+				<input id="TPMilitary" type="checkbox" title="Taxpayer was a member of US Armed Forces during 2020"/>TP was a member of US Armed Forces during 2020 
+				<span id="SPMilitaryOption"><br /><input id="SPMilitary" type="checkbox" title="Spouse was a member of US Armed Forces during 2020"> TP was a member of US Armed Forces during 2020</span></td></tr>
+		<tr id="IsDependentRow" title="Check if either taxpayer (or spouse) can be a dependent on anyone else's return - even if not claimed!">
+			<td colspan="2"></td>
+			<td colspan="3">
+				<input id="IsDependent" type="checkbox" />
+				TP (or SP) is or can be a dependent on someone else's return.</td></tr>
+		<tr id="CTCRow" title="Number of dependents in the tax family under age 17.">
+			<td colspan="2">Dependents qualified and claimed for CTC:</td>
+			<td colspan="2"><input id="CTCDependents" type="number" size="2" value="0" /></td></tr>
+		<tr id="ATINRow" title="Number of dependents in the tax family with an ATIN (adoption tax id number).">
+			<td colspan="2">Dependents with an ATIN:</td>
+			<td colspan="2"><input id="ATINDependents" type="number" size="2" value="0" /></td></tr>
+		</table>
+
+
+</div> <!-- FilingInfo -->
+
+<!-- ****************************************** INCOME WORKSHEET ****************************************** -->
+<div id="IncomeInfo">
+	<table id="FilingInfoTbl2" onkeyup="File_Change();" onclick="File_Change();">
+		<tr id="CredtRow" title="Number of dependents in the tax family with an ATIN (adoption tax id number).">
+			<td>Amount of credit received:</td>
+			<td><input id="CreditReceived" type="number" size="2" value="0" /></td><td></td></tr>
+		<tr id="AGIRow" title="Number of dependents in the tax family with an ATIN (adoption tax id number).">
+			<td>Adjusted gross income (AGI):</td>
+			<td><input id="AGI" type="number" size="2" value="0" /></td></tr>
+
+		<tr title="Additional amount you can claim">
+			<td>Additional Recovery Rebate Credit to claim:</td>
+			<td><input id="claim" type="number" size="2" disabled value="0" /></td></tr>
+	</table>
+</div>
+
+</body>
+</html>
