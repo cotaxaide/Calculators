@@ -6,60 +6,65 @@
 	<title>General Sales Tax Deduction Income Worksheet</title>
 
 <style type="text/css">
-	html {background-color: #cccccc;}
-	body {background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%;}
-	button {cursor: pointer; background-color: lightgreen;}
-	table {background-color: #eeeeee; border-collapse:collapse; width: 100%}
-	div {background-color: #eeeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 99%;}
-	h1 {text-align: center; font-size: 110%; text-decoration: underline}
-	tr {vertical-align: top;}
-	th {background-color: #c7c7c7;}
-	input {text-align: left;}
-	input, select {background-color: white;}
-	input[type="number"] {width: 6em;}
-	input:disabled, select:disabled {background-color: lightgrey; font-weight: bold;}
-	.bold {font-weight: bold;}
-	.center {text-align: center;}
-	.tblHeader {font-size:110%; font-weight:bold; text-decoration:underline;}
-	.title {font-size:125%; font-weight:bold;}
-	.tdul {border-bottom: 1px solid black;}
-	.instruction {font-style: italic; float: right;}
-	.comment {font-style:italic;}
-	.noteflag {background-color:yellow;}
-	.link {text-decoration:underline; color:purple; cursor:pointer;}
-	.inputTitle {font-weight:bold;}
-	.noPrint {float:left;}
-	#TPNameTable tr td {text-align: right;}
-	#ClearAndPrint {text-align: center; float:right; z-level:2; position: absolute; top: 1.6em; right: 1em;}
-	#ResultTable tr td {text-align: right;}
-	#ResultTable tr:first-child {font-size:110%; font-weight:bold}
-	#Name {width:25em;}
-	#Exemptions {width:3em;}
-	#Year, #Zip ,#Local, #State {width:30%;}
-	#TotalSalesTax {width: 8em;}
-	#IncomeTable, #LargeTaxTable {border: 1px solid black}
-	#IncomeTable td, th {padding-right: 1em;}
-	#IncomeTable tr:first-child {border-bottom: 1px solid black}
-	#IncomeTable tr:last-child {border-top: 1px solid black; text-align: left;}
-	#IncomeTable tr:nth-child(even) {background-color: #fefefe}
-	#IncomeTable input {text-align: right;}
-	#LargeTaxTable td, th {padding-right: 1em;}
-	#LargeTaxTable tr:first-child {border-bottom: 1px solid black}
-	#LargeTaxTable tr:last-child {border-top: 1px solid black; text-align: left;}
-	#LargeTaxTable tr:nth-child(even) {background-color: #fefefe}
-	#LargeTaxTable input {text-align: right;}
-	#Income03, #Income05, #Income07 ,#Income04r, #Income06r {background-color: #ffe1e1;}
-	#Income99, #Large99 {background-color: #ccffcc;}
-	#ShowError {text-decoration: italic; text-align: right; display: none;}
+	html { background-color: #cccccc; }
+	body { background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%; }
+	button { cursor: pointer; background-color: lightgreen; }
+	table { background-color: #eeeeee; border-collapse: collapse; width: 100%}
+	div { background-color: #eeeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 99%; }
+	h1 { text-align: center; font-size: 110%; text-decoration: underline}
+	tr { vertical-align: top; }
+	th { background-color: #c7c7c7; }
+	input { text-align: left; }
+	input, select { background-color: white; }
+	input[type="number"] { width: 6em; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.bold { font-weight: bold; }
+	.center { text-align: center; }
+	.tblHeader { font-size: 110%; font-weight: bold; text-decoration: underline; }
+	.title { font-size: 125%; font-weight: bold; }
+	.trul { border-bottom: 1px solid black; }
+	.instruction { font-style: italic; float: right; }
+	.comment { font-style: italic; }
+	.noteflag { background-color: yellow; }
+	.link { text-decoration: underline; color: purple; cursor: pointer; }
+	.inputTitle { font-weight: bold; }
+	.noPrint { float: left; }
+	.borderbottom { border-bottom: 1px solid black; }
+	#TPNameTable tr td { text-align: right; }
+	#ClearAndPrint { text-align: center; float: right; z-level: 2; position:  absolute; top: 1.6em; right: 1em; }
+	#ResultTable tr td { text-align: right; }
+	#ResultTable tr: first-child { font-size: 110%; font-weight: bold; }
+	#Name { width: 25em; }
+	#Exemptions { width: 3em; }
+	#Year, #Zip ,#Local, #State { width: 30%; }
+	#TotalSalesTax { width: 8em; }
+	#IncomeTable, #LargeTaxTable { border: 1px solid black; }
+	#IncomeTable tr th:first-child { min-width: 30em; }
+	#IncomeTable tr th:nth-child(2) { min-width: 11em; }
+	#IncomeTable tr th:nth-child(3),
+	#IncomeTable tr td:nth-child(3) { min-width: 2em; text-align: right; }
+	#IncomeTable tr th:nth-child(4) { width: 7em; text-align: left; }
+	#IncomeTable td, th { padding-right: 1em; }
+	#IncomeTable tr:first-child { border-bottom: 1px solid black; }
+	#IncomeTable tr:last-child { border-top: 1px solid black; text-align: left; }
+	#IncomeTable tr:nth-child(even) { background-color: #fefefe; }
+	#IncomeTable input { text-align: right; width: 8em; }
+	#LargeTaxTable td, th { padding-right: 1em; }
+	#LargeTaxTable tr:first-child { border-bottom: 1px solid black; }
+	#LargeTaxTable tr:last-child { border-top: 1px solid black; text-align: left; }
+	#LargeTaxTable tr:nth-child(even) { background-color: #fefefe; }
+	#LargeTaxTable input { text-align: right; }
+	#Income03, #Income05, #Income07 ,#Income04r, #Income06r, #Income20 { background-color: #ffe1e1; }
+	#Income99, #Large99 { background-color: #ccffcc; }
+	#ShowError { text-decoration: italic; text-align: right; display: none; }
 	
-	@media print {
-		.doPrint {display:inline;}
-		.noPrint {display:none;}
-		html {background-color: white; font-size: 0.8em;}
-		body {font-size: 0.8em; background-color: white; padding:0; margin:0;}
-		input, select, option {font-size: 0.8em;}
-		table {width: 100%; background-color: white;}
-		#AffordTable {page-break-before: always}
+	@media print { 
+		.doPrint { display: inline; }
+		.noPrint { display: none; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
+		input, select, option { font-size: 0.8em; }
+		table { width: 100%; background-color: white; }
 	}
 </style>
 
@@ -76,9 +81,15 @@
 	//	John Broughton
 	//	Barbara Smith-Thomas
 	//	Diana Kenning
+	//	Gina Kritchevsky
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.08b, 2/25/2020)";
+	VERSION = "(Version 1.09, 1/24/2021)";
+	//	Added 2020 EIP line
+	//	Grouped subtractions with totals on same table line
+	//VERSION = "(Version 1.08c, 11/4/2020)";
+	//	IRS disallowed direct link to its Sales Tax Calculator
+	//VERSION = "(Version 1.08b, 2/25/2020)";
 	//	Removed all line numbers
 	//	Clarified Nontaxable on Medicaid Waiver line
 	//VERSION = "(Version 1.08a, 1/18/2020)";
@@ -112,8 +123,8 @@
 	var ErrorColor = "hotpink";
 
 	//----------------------------------------------------------------------------------------
-	function IncomeCheck(){
-	// This function adds the Income columns
+	function IncomeCheck(){ 
+	// This function checks input consistantcy
 	//----------------------------------------------------------------------------------------
 		Error = false;
 		Income03.style.backgroundColor = "";
@@ -124,26 +135,45 @@
 		Income06r.style.backgroundColor = "";
 		Income07.style.backgroundColor = "";
 		Income08.style.backgroundColor = "";
+		Income20.style.backgroundColor = "";
 		if ((+Income04.value) && (+Income03.value > +Income04.value)) {
 			Error = true; 
-			Income04.style.backgroundColor = ErrorColor;
+			Income03.style.backgroundColor = ErrorColor;
 		}
-		if ((+Income04r.value) && (+Income04r.value > +Income04.value)) {
+		Income03.style.textDecoration = (Income04.value) ? "none" : "line-through";
+		if ((+Income04.value) && (+Income04r.value > +Income04.value)) {
 			Error = true; 
 			Income04r.style.backgroundColor = ErrorColor;
 		}
+		Income04r.style.textDecoration = (Income04.value) ? "none" : "line-through";
+		if ((+Income04.value) && ((+Income03.value + +Income04r.value) > +Income04.value)) {
+			Error = true; 
+			Income04.style.backgroundColor = ErrorColor;
+		}
 		if ((+Income06.value) && (+Income05.value > +Income06.value)) {
 			Error = true; 
-			Income06.style.backgroundColor = ErrorColor;
+			Income05.style.backgroundColor = ErrorColor;
 		}
-		if ((+Income06r.value) && (+Income06r.value > +Income06.value)) {
+		Income05.style.textDecoration = (Income06.value) ? "none" : "line-through";
+		if ((+Income06.value) && (+Income06r.value > +Income06.value)) {
 			Error = true; 
 			Income06r.style.backgroundColor = ErrorColor;
 		}
+		Income06r.style.textDecoration = (Income06.value) ? "none" : "line-through";
+		if ((+Income06.value) && ((+Income05.value + +Income06r.value) > +Income06.value)) {
+			Error = true; 
+			Income06.style.backgroundColor = ErrorColor;
+		}
 		if ((+Income08.value) && (+Income07.value > +Income08.value)) {
 			Error = true; 
-			Income08.style.backgroundColor = ErrorColor;
+			Income07.style.backgroundColor = ErrorColor;
 		}
+		Income07.style.textDecoration = (Income08.value) ? "none" : "line-through";
+		if ((+Income19.value) && (+Income20.value > +Income19.value)) {
+			Error = true; 
+			Income20.style.backgroundColor = ErrorColor;
+		}
+		Income20.style.textDecoration = (Income19.value) ? "none" : "line-through";
 		IncomeCalc();
 	}
 
@@ -157,24 +187,24 @@
 		if (+Income03.value > +Income04.value) {
 			//alert("Taxable IRA Distributions cannot be greater than Total IRA Distributions.");
 		}
-		Income99v -= +Income03.value;
 		Income99v += +Income04.value;
-		Income99v -= +Income04r.value;
+		Income99v -= (Income03.style.textDecoration == "line-through") ? 0 : +Income03.value;
+		Income99v -= (Income04r.style.textDecoration == "line-through") ? 0 : +Income04r.value;
 	}
 	if (+Income06.value != 0) {
 		if (+Income05.value > +Income06.value) {
 			//alert("Taxable IRA Distributions cannot be greater than Total IRA Distributions.");
 		}
-		Income99v -= +Income05.value;
 		Income99v += +Income06.value;
-		Income99v -= +Income06r.value;
+		Income99v -= (Income05.style.textDecoration == "line-through") ? 0 : +Income05.value;
+		Income99v -= (Income06r.style.textDecoration == "line-through") ? 0 : +Income06r.value;
 	}
 	if (+Income08.value != 0) {
 		if (+Income07.value > +Income08.value) {
 			//alert("Taxable IRA Distributions cannot be greater than Total IRA Distributions.");
 		}
-		Income99v -= +Income07.value;
 		Income99v += +Income08.value;
+		Income99v -= (Income03.style.textDecoration == "line-through") ? 0 : +Income07.value;
 	}
 	Income99v += +Income09.value;
 	Income99v += +Income10.value;
@@ -186,10 +216,16 @@
 //	Income99v += +Income16.value; // Inheritance
 	Income99v += +Income17.value;
 	Income99v += +Income18.value;
-	Income99v += +Income19.value;
-	Income99v -= +Income20.value;
+	if (+Income19.value != 0) {
+		if (+Income20.value > +Income19.value) {
+			//alert("Taxable IRA Distributions cannot be greater than Total IRA Distributions.");
+		}
+		Income99v += +Income19.value;
+		Income99v -= (Income20.style.textDecoration == "line-through") ? 0 : +Income20.value;
+	}
 	Income99v += +Income21.value;
 	Income99v += +Income22.value;
+	Income99v += +Income23.value;
 	Income99.value = Math.round(Income99v*100)/100;
 	ShowColor.style.backgroundColor = (Error) ? ErrorColor:"";
 	ShowError.style.display = (Error) ? "block":"none";
@@ -218,12 +254,12 @@
 
 <center>
 	<span class="title">General Sales Tax Deduction Income Worksheet</span>
-	<br><a href="https://apps.irs.gov/app/stdc/stdc.html" target="_blank">(for use with IRS Sales Tax Calculator)</a>
+	<br><a href="https://www.irs.gov/credits-deductions/individuals/sales-tax-deduction-calculator" target="_blank">(for use with IRS Sales Tax Calculator)</a>
 	<br /><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
 </center>
 
 	<span id="ClearAndPrint" class="noPrint">
-	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </span>
 	<div id="TPInfo">
@@ -245,15 +281,54 @@
 		<table id="IncomeTable" onkeyup="IncomeCalc();" onchange="IncomeCheck();">
 			<tr><th>Income Description</th><th>Source</th><th>&plusmn;</th><th>Amount</th></tr>
 			<tr><td>AGI</td><td>Form 1040</td><td>+</td><td><input id="Income01" type="nunber" /></td></tr>
-			<tr><td class="tdul">Tax-exempt Interest</td><td class="tdul">Form 1040</td><td>+</td><td><input id="Income02" type="nunber" /></td></tr>
-			<tr><td><span class="bold">SUBTRACT</span> Taxable IRA Distributions<sup>1</sup></td><td>Form 1040</td><td>-</td><td><input id="Income03" type="nunber" /></td></tr>
-			<tr><td>Total IRA Distributions</td><td>Form 1040</td><td>+</td><td><input id="Income04" type="nunber" /></td></tr>
-			<tr><td class="tdul"><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> any rollover amounts included in the line above.<sup>2</sup></td><td class="tdul">Form 1099-R</td><td>-</td><td><input id="Income04r" type="nunber" /></td></tr>
-			<tr><td><span class="bold">SUBTRACT</span> Taxable Pensions and Annuities<sup>1</sup></td><td>Form 1040</td><td>-</td><td><input id="Income05" type="nunber" /></td></tr>
-			<tr><td>Total Pensions and Annuities</td><td>Form 1040</td><td>+</td><td><input id="Income06" type="nunber" /></td></tr>
-			<tr><td class="tdul"><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> any rollover amounts included in the line above.<sup>2</sup></td><td class="tdul">Form 1099-R</td><td>-</td><td><input id="Income06r" type="nunber" /></td></tr>
-			<tr><td><span class="bold">SUBTRACT</span> Taxable Social Security Benefits</td><td>Form 1040</td><td>-</td><td><input id="Income07" type="nunber" /></td></tr>
-			<tr><td class="tdul">Total Social Security Benefits</td><td class="tdul">Form 1040</td><td>+</td><td><input id="Income08" type="nunber" /></td></tr>
+			<tr class="trul"><td>Tax-exempt Interest</td><td>Form 1040</td><td>+</td><td><input id="Income02" type="nunber" /></td></tr>
+			<tr class="trul"><td>Total IRA Distributions
+					<br /><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> any rollover amounts included in the line above.<sup>1,2</sup>
+					<br /><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> Taxable IRA Distributions<sup>2</sup>
+				</td>
+				<td>Form 1040
+					<br />Form 1040<sup> </sup>
+					<br />Form 1099-R<sup> </sup>
+				</td>
+				<td>+
+					<br />-
+					<br />-
+				</td>
+				<td><input id="Income04" type="nunber" />
+					<br /><input id="Income04r" type="nunber" />
+					<br /><input id="Income03" type="nunber" />
+				</td>
+			</tr>
+			<tr class="trul"><td>Total Pensions and Annuities
+					<br /><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> any rollover amounts included in the line above.<sup>1,2</sup>
+					<br /><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> Taxable Pensions and Annuities<sup>2</sup>
+				</td>
+				<td>Form 1040
+					<br />Form 1099-R<sup> </sup>
+					<br />Form 1040<sup> </sup>
+				</td>
+				<td>+
+					<br />-
+					<br />-
+				</td>
+				<td><input id="Income06" type="nunber" />
+					<br /><input id="Income06r" type="nunber" />
+					<br /><input id="Income05" type="nunber" />
+				</td>
+			</tr>
+			<tr class="trul"><td>Total Social Security Benefits
+					<br /><span class="bold">&nbsp;&nbsp;&nbsp;SUBTRACT</span> Taxable Social Security Benefits
+				</td>
+				<td>Form 1040
+					<br />Form 1040
+				</td>
+				<td>+
+					<br />-
+				</td>
+				<td><input id="Income08" type="nunber" />
+					<br /><input id="Income07" type="nunber" />
+				</td>
+			</tr>
 			<tr><td>Nontaxable Medicaid Waiver payments</td><td>Form W-2 or 1099-Misc</td><td>+</td><td><input id="Income09" type="nunber" /></td></tr>
 			<tr><td>Nontaxable Combat Pay</td><td>From W-2</td><td>+</td><td><input id="Income10" type="nunber" /></td></tr>
 			<tr><td>Workers Compensation Payments</td><td>Taxpayer</td><td>+</td><td><input id="Income11" type="nunber" /></td></tr>
@@ -265,16 +340,28 @@
 			<tr><td>Inheritance (other than IRA or similar)</td><td>Taxpayer</td><td>+</td><td><input id="Income16" type="nunber" /></td></tr>
 -->
 			<tr><td>Residential Rental (less than 15 days)</td><td>Taxpayer</td><td>+</td><td><input id="Income17" type="nunber" /></td></tr>
-			<tr><td>Prior Year Federal Tax Refund</td><td>Prior Year 1040</td><td>+</td><td><input id="Income18" type="nunber" /></td></tr>
-			<tr><td>Prior Year State Tax Refund</td><td>Prior Year State Return</td><td>+</td><td><input id="Income19" type="nunber" /></td></tr>
-			<tr><td>Portion of Prior Year State Tax Refunds that is Taxable</td><td>Prior Year 1040</td><td>-</td><td><input id="Income20" type="nunber" /></td></tr>
+			<tr class="trul"><td>Prior Year Federal Tax Refund</td><td>Prior Year 1040</td><td>+</td><td><input id="Income18" type="nunber" /></td></tr>
+			<tr class="trul"><td>Prior Year State Tax Refund
+					<br />&nbsp;&nbsp;&nbsp;<b>SUBTRACT</b> taxable portion of Prior Year State Tax Refund
+				</td>
+				<td>Prior Year State Return
+					<br />Form 1040
+				</td>
+				<td>+
+					<br />-
+				</td>
+				<td><input id="Income19" type="nunber" />
+					<br /><input id="Income20" type="nunber" />
+				</td>
+			</tr>
 			<tr><td>Supplemental Social Security Benefits</td><td>Taxpayer</td><td>+</td><td><input id="Income21" type="nunber" /></td></tr>
-			<tr><td>Any Other Nontaxable Income<sup>3</sup></td><td>Taxpayer</td><td>+</td><td><input id="Income22" type="nunber" /></td></tr>
-			<tr><th colspan="2" style="text-align: left;">Income for <a href="https://apps.irs.gov/app/stdc/stdc.html" target="_blank">IRS Sales Tax Calculator</a></th><th></th><th style="text-align: left;"><input id="Income99" type="nunber" /></th></tr>
+			<tr><td>2020 Economic Impact Payments</td><td>Taxpayer</td><td>+</td><td><input id="Income22" type="nunber" /></td></tr>
+			<tr><td>Any Other Nontaxable Income<sup>3</sup></td><td>Taxpayer</td><td>+</td><td><input id="Income23" type="nunber" /></td></tr>
+			<tr><th colspan="2" style="text-align: left;">Income for <a href="https://www.irs.gov/credits-deductions/individuals/sales-tax-deduction-calculator" target="_blank">IRS Sales Tax Calculator</a></th><th></th><th style="text-align: left;"><input id="Income99" type="nunber" /></th></tr>
 		</table>
 		<span id="ShowError" class="instruction">The entry above shown as <span id="ShowColor">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span> may be an error.<br /></span>
-		<sup>1</sup> Entry not required (and will be ignored) if the next line (total amount) is 0.
-		<br /><sup>2</sup> Include any 1099-R with a distribution code 6 (Tax-free Section 1035 exchange) as a rollover.
+		<sup>1</sup> Include any 1099-R with a distribution code 6 (Tax-free Section 1035 exchange) as a rollover.
+		<br /><sup>2</sup> Entry not required (and will be ignored) if the total amount is 0.
 		<br /><sup>3</sup> See Publication 4012, Page D-1, Table B for additional examples of non-taxable income.
 	</div>
 
@@ -286,7 +373,7 @@
 			<tr><th>Sales Tax on Large Item Purchases</th><th>Source</th><th>Tax</th></tr>
 			<tr><td>Motor Vehicle (including RVs, ATVs, etc.)</td><td>Taxpayer</td><td><input id="Large01" type="nunber" /></td></tr>
 			<tr><td>Watercraft or Aircraft</td><td>Taxpayer</td><td><input id="Large02" type="nunber" /></td></tr>
-			<tr style="vertical-align:middle;"><td>Building Materials for home contruction<br />or remodel (if identified separately)</td><td>Taxpayer</td><td><input id="Large03" type="nunber" /></td></tr>
+			<tr style="vertical-align:middle;"><td>Building Materials for home contruction or remodel (if identified separately)</td><td>Taxpayer</td><td><input id="Large03" type="nunber" /></td></tr>
 			<tr><td>House (if general sales tax applies)</td><td>Taxpayer</td><td><input id="Large04" type="nunber" /></td></tr>
 			<tr><th colspan="2" style="text-align: left;">Additional Sales Tax on Specified Items for <a href="https://apps.irs.gov/app/stdc/stdc.html" target="_blank">IRS Sales Tax Calculator</a></th><th style="text-align: left;"><input id="Large99" type="nunber" /></th></tr>
 		</table>
