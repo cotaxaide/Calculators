@@ -40,6 +40,8 @@ function _SETax (	// Self-employment tax
 // returns an array: [self-employment tax amount, deductible amount]
 //----------------------------------------------------------------------------------------
 
+	if (SEIncome == 0) return ([0,0]);
+
 	var selfamt = +SEIncome;
 	var selftax = 0;
 	var selftest = selfamt * 0.9235;
@@ -70,9 +72,10 @@ function _TaxableSS(	// Taxable amount of Social Security
 // 	the IRA gaps are used to determine additional IRA contributions that can
 // 	be made without increasing SS taxability to the next level
 //----------------------------------------------------------------------------------------
-	// if ((SSAmount == 0) || (otherIncome == 0)) return (0);
+	if (SSAmount == 0) return ([0,0,0,0]);
 	if (MFStogether == "undefined") MFStogether = false;
 	if (adjustments == "undefined") adjustments = 0;
+
 	var ssline1 = +SSAmount;
 	var ssline2 = ssline1 * .5;
 	// ssline3 included in line 5

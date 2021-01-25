@@ -178,7 +178,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.15, 1/23/2021)";
+	var VERSION = "(Version 3.15a, 1/24/2021)";
+	//	Not calculating unless MFJMFS toggled
+	//var VERSION = "(Version 3.15, 1/23/2021)";
 	//	Printing problem: SP column prints beyond page edge, not visible
 	//var VERSION = "(Version 3.14, 12/30/2020)";
 	//	Fixed problem where AGI not calculating
@@ -619,11 +621,13 @@
 
 	//----------------------------------------------------------------------------------------
 	function Input_Change(thisId, allowNegative) {
-	// This function adds tax year options to the Filing Information section
+	// This function prepares for a recalculation due to an input change
+	//   thisId		The id of the input that has changed
+	//   allowNegative	optional field that indicates that the value is allowed to be neg.
 	//----------------------------------------------------------------------------------------
 		if (allowNegative === undefined) allowNegative = false;
 
-		// Check input values
+		// Check input validity
 		thisElement = TPMFJiList[thisId];
 		var tev = thisElement.value;
 		thisElement.style.backgroundColor = ( (isNaN(tev) && (tev !== "-"))
@@ -670,6 +674,7 @@
 			Show_Results("S");
 			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
 			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
+			// Recalc to get opposite results for itemizing vs standard
 			ItemizeRequired.checked = ! ItemizeRequired.checked;
 			TPMFS["IRADeduction"] = +TPMFS["IRADeductionJoint"];
 			Do_Calcs("T", TPMFS);
@@ -680,7 +685,7 @@
 			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
 			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
 
-			// Choose which is better and change if not the latter
+			// Choose which is better and change the option if not the latter
 			ItemizedIsBest = (MFJMFSItemized["Standard"] > MFJMFSItemized["Itemize"]);
 			if (ItemizeRequired.checked === (! ItemizedIsBest)) {
 				ItemizeRequired.checked = ItemizedIsBest;
@@ -804,7 +809,7 @@
 
 		// Add the IRA comment and limit the amount entered
 		var MAGI = CalcOut["AGI"] + +CalcIn["IRADeduction"];
-		var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcIn["SETaxCredit"]);
+		var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcOut["SETaxCredit"]);
 		var IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["Alimony"];
 		if (CalcType === "J") {
 			IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
@@ -815,7 +820,7 @@
 				IRAJoint = Math.min(+TPMFS["IRADeductionJoint"] + +SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
 			}
 			else {
-				IRAJoint = Math.min(IRAMax["amount"], +CalcIn["IRADeduction"]);
+				IRAJoint = Math.min(+IRAMax["amount"], +CalcIn["IRADeduction"]);
 			}
 		}
 		if (CalcType === "T") {
@@ -828,8 +833,8 @@
 		}
 
 		// Make adjustments to calculations already made
-		if (CalcIn["IRADeduction"] > IRAMax["amount"]) { // Deduction limited
-			IRAAdjust = CalcIn["IRADeduction"] - IRAMax["amount"];
+		if (CalcIn["IRADeduction"] > +IRAMax["amount"]) { // Deduction limited
+			IRAAdjust = +CalcIn["IRADeduction"] - +IRAMax["amount"];
 			IRADeduction.value -= IRAAdjust;
 			CalcIn["IRADeduction"] -= IRAAdjust;
 			CalcOut["Adjustments"] -= IRAAdjust;
@@ -1153,7 +1158,7 @@
 		for (j = 0; j < TPMFJcList.length; j++) {
 			TagId = TPMFJcList[j].id;
 			TagVal = CalcOut[TagId];
-			if (isNaN(TagVal)) TagVal = "";
+			//if (isNaN(TagVal)) TagVal = "";
 			switch (resultType) {
 			case "J":
 				TPMFJcList[j].innerHTML = TPMFJ[TagId] = TagVal;
