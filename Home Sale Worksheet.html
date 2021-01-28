@@ -90,6 +90,9 @@
 		padding-left: 2em;
 		width: 16em;
 	}
+	#TSInputDiv {
+		display: none;
+	}
 	#TSTable {
 		width: 100%;
 	}
@@ -126,7 +129,7 @@
 		text-align: center;
 		width: 100%;
 		margin: auto;
-		display: inline-block;
+		display: none; //inline-block;
 	}
 	.help {
 		background-color: lightgreen;
@@ -188,7 +191,7 @@
 	//	Bill Zlobik
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.06, 1/22/2021)";
+	VERSION = "(Version 1.06, 1/24/2021)";
 	//	Added rounding to all inputs with number type
 	//	Corrected basis calculation and adjustment due to purchase costs
 	//		(prior calc still produced the correct end result)
@@ -223,6 +226,7 @@
 	var SPExclusionApplies = true;
 	var PartialExclusionApplies = false;
 	var OutOfScope = false;
+	var ChangingSaleDate = false;
 	var ImproveElement = [];
 	var HasSpouse = false;
 	var SpouseApplies = false;
@@ -237,21 +241,24 @@ function Initialize() {
 //----------------------------------------------------------------------------------------
 	// Set some defaults
 	SaleDate.value = _DefaultYear + "-01-01";
+	ErrorMessage.innerHTML = "Please enter Date sold and Date obtained";
+	ErrorMessage.style.display = "block";
 	Add_Improvement();
 	Tab_Click("InfoDiv");
-	Basis_Calc();
+	Basis_Calc("init");
 }
 
 //----------------------------------------------------------------------------------------
-function Basis_Calc(ignore) {
+function Basis_Calc(changingId) {
 //	ignore = null for changes in other than SaleDate input
 //----------------------------------------------------------------------------------------
-	if (SaleDate.value == "") {
-		if (ignore) {
-			ChangingSaleDate = true;
-			return;
-		}
-		else if (! ChangingSaleDate) {
+	switch (changingId) {
+	case "init": break;
+	case "SaleDate":
+		ChangingSaleDate = true;
+		return;
+	default:
+		if (SaleDate.value == _DefaultYear + "-01-01") {
 			alert ("Please enter the home sale date first.");
 			ChangingSaleDate = false;
 			Tab_Click("InfoDiv");
@@ -581,18 +588,14 @@ function Basis_Calc(ignore) {
 		BankruptRow.style.display = "none";
 		BankruptN.checked = true;
 	}
-	spt = +SalePrice.value + +Debts.value + +RETaxes.value + +OtherValue.value;
-	TSSalePriceTotal.innerHTML = spt;
-	TSHCSalePriceTotal.innerHTML = spt;
-	SalePriceTotal.value = spt;
-	set = +Realtor.value + +Advertising.value + +Legal.value + +BuyerExpense.value + +OtherExpense.value;
-	TSHCSaleExpensesTotal.innerHTML = TSSaleExpensesTotal.innerHTML = set;
-	SaleExpensesTotal.value = set;
-	RealizedAmount = spt - set;
-
-	if (LikeKind.checked) { // This may be redundant since it was done earlier
-		OutOfScope = true;
-	}
+	//spt = +SalePrice.value + +Debts.value + +RETaxes.value + +OtherValue.value;
+	//TSSalePriceTotal.innerHTML = spt;
+	//TSHCSalePriceTotal.innerHTML = spt;
+	//SalePriceTotal.value = spt;
+	//set = +Realtor.value + +Advertising.value + +Legal.value + +BuyerExpense.value + +OtherExpense.value;
+	//TSHCSaleExpensesTotal.innerHTML = TSSaleExpensesTotal.innerHTML = set;
+	//SaleExpensesTotal.value = set;
+	//RealizedAmount = spt - set;
 
 	// Home purchase details section -----------------------------------------------
 
@@ -653,24 +656,39 @@ function Basis_Calc(ignore) {
 	}
 	Basis.value = basis + ImproveTotal;
 
-	// Populate TaxSlayer entry tables and calculate totals
-	TSTaxFee.innerHTML = +TaxFee.value;
-	TSLegalFee.innerHTML = +LegalFee.value;
-	TSSurveyFee.innerHTML = +SurveyFee.value;
-	TSTitleFee.innerHTML = +TitleFee.value;
-	TSSellerFee.innerHTML = +SellerFee.value;
-	TSOtherFee.innerHTML = +OtherFee.value;
-	pet = +LegalFee.value + +SurveyFee.value + +TitleFee.value + +SellerFee.value + +OtherFee.value;
-	PurchaseExpensesTotal.value = pet;
-	TSPurchasePrice.innerHTML = +PurchasePrice.value;
-	AdjustAmount = +Easements.value + +EnergyCredits.value + +AdoptionCredits.value;
-	AdjustAmount += +RETaxesBySeller.value + +PointsBySeller.value;
-	AdjustAmount += +SalesTaxOnHome.value + +OtherAdjustments.value;
-	TSTotalAdjusted.innerHTML = AdjustAmount;
-	TotalAdjusted.value = AdjustAmount;
-	TSHCAdjustedBasis.innerHTML =
-	AdjustedBasis.value = Math.max(0, Basis.value - AdjustAmount + +TaxFee.value + pet);
+	// Populate TaxSlayer entry tables and calculate totals based on Worksheet 1
+	TSPurchasePrice.innerHTML = +PurchasePrice.value; // 1, 2, 3
+	TSLegalFee.innerHTML = +LegalFee.value; // 4b
+	TSSurveyFee.innerHTML = +SurveyFee.value; // 4c
+	TSTitleFee.innerHTML = +TitleFee.value; // 4d
+	TSSellerFee.innerHTML = +SellerFee.value; // 4f
+	TSOtherFee.innerHTML = +OtherFee.value; // 4g
+	ClosingCosts = +LegalFee.value + +SurveyFee.value + +TitleFee.value + +SellerFee.value + +OtherFee.value;
+	PurchaseExpensesTotal.value = ClosingCosts; // 5
+	TSTaxFee.innerHTML = +TaxFee.value; // 7
+	BasisDecrease = +Easements.value + +EnergyCredits.value + +AdoptionCredits.value;
+	BasisDecrease += +RETaxesBySeller.value + +PointsBySeller.value;
+	BasisDecrease += +SalesTaxOnHome.value + +OtherAdjustments.value; // 8
+	TotalAdjusted.value = BasisDecrease;
+	TSTotalAdjusted.innerHTML = BasisDecrease;
+	AdjustedBasis = Math.max(0, Basis.value - BasisDecrease + +TaxFee.value + ClosingCosts); // 9, 13
+	TSHCAdjustedBasis.innerHTML = AdjustedBasis;
+	AdjustedCostBasis.value = AdjustedBasis;
+	Cost.innerHTML = AdjustedBasis;
 	AdjReason = "";
+
+	// Taxable gain based on Worksheet 2
+	SellingPrice = +SalePrice.value + +Debts.value + +RETaxes.value + +OtherValue.value; // 1
+	TSSalePriceTotal.innerHTML = SellingPrice;
+	TSHCSalePriceTotal.innerHTML = SellingPrice;
+	SalePriceTotal.value = SellingPrice;
+	SalesPrice.innerHTML = SellingPrice;
+	SaleExpenses = +Realtor.value + +Advertising.value + +Legal.value + +BuyerExpense.value + +OtherExpense.value; // 2
+	SaleExpensesTotal.value = SaleExpenses;
+	TSHCSaleExpensesTotal.innerHTML = SaleExpenses;
+	TSSaleExpensesTotal.innerHTML = SaleExpenses;
+	AmountRealized = SellingPrice - SaleExpenses; // 3
+	SaleGain = AmountRealized - AdjustedBasis; // 5
 
 	// Display result ----------------------------------------------------
 	ExclusionMessage.style.display = "none";
@@ -702,7 +720,7 @@ function Basis_Calc(ignore) {
 		return;
 	}
 
-	if ((PurchasedDate.value == "") || (RealizedAmount == 0) || (AdjustedBasis.value == 0)) {
+	if ((PurchasedDate.value == "") || (AmountRealized == 0) || (AdjustedBasis == 0)) {
 		if ((! TPExclusionApplies) && (! SPExclusionApplies)) {
 			QualificationMessage.innerHTML = "You do not qualify for an exclusion";
 		}
@@ -740,14 +758,12 @@ function Basis_Calc(ignore) {
 		TSSPQualifies.innerHTML = "No";
 	}
 
+	ExcludableGain = Math.max(0, SaleGain); // 7, 12
+	MaximumExclusion = ExclAmt // 13
+	ExclAmt = Math.min(ExclAmt, ExcludableGain); //14
 	ExclusionApplies = (ExclAmt) ? true : false ;
-	SalesPrice.innerHTML = spt;
-	cost = +AdjustedBasis.value;
-	Cost.innerHTML = cost;
-	Gain = SalePriceTotal.value - cost;
 	ExclusionMessage.style.display = "none";
-	ExclAmt = Math.min(ExclAmt, Math.max(0, Gain));
-	if (Gain >= 0) {
+	if (SaleGain >= 0) {
 		if (ExclusionApplies) {
 			ExclusionMessage.innerHTML = "An exclusion of $" + ExclAmt + " is available for this home sale";
 			ExclusionMessage.style.display = "block";
@@ -755,43 +771,53 @@ function Basis_Calc(ignore) {
 		}
 	}
 	else {
-		ExclusionMessage.innerHTML = "This sale resulted in a nondeductible loss of $" + -Gain;
+		ExclusionMessage.innerHTML = "This sale resulted in a nondeductible loss of $" + -SaleGain;
 		ExclusionMessage.style.display = "block";
 		TSUseExclusion.innerHTML = "No";
 		TSChoices.style.display = "inline";
 	}
 
+	AdjustmentDetail.innerHTML = "";
 	switchCode = (UseExclusionY.checked) ? "Y" : "" ;
-	switchCode += (Gain > 0) ? "G" : "" ; // if Gain is 0, don't indicate as a home sale
-	switchCode += (Gain < 0) ? "L" : "" ;
+	switchCode += (SaleGain > 0) ? "G" : "" ; // if Gain is 0, don't indicate as a home sale
+	switchCode += (SaleGain < 0) ? "L" : "" ;
 	switchCode += (ExclusionApplies) ? "X" : "" ;
 	switch (switchCode) {
 	case "YGX":
 		AdjReason = "H";
-		Adjustments.innerHTML = -ExclAmt;
+		Adjustments.innerHTML = -ExclAmt - SaleExpenses;
+		AdjustmentDetail.innerHTML = "(Exclusion = " + ExclAmt + ", Sale Expenses = " + SaleExpenses + ")";
 		AdjustmentReason.innerHTML = AdjReason;
-		GainOrLoss.innerHTML = Gain - ExclAmt;
+		GainOrLoss.innerHTML = SaleGain - ExclAmt;
 		TSUseExclusion.innerHTML = "Yes";
-		UseWorksheet.disabled = ""; // this may be redundant
+		//UseWorksheet.disabled = ""; // this may be redundant
 		break;
 	case "YLX":
-	case "LX":
 		AdjReason = "L";
-		Adjustments.innerHTML = -Gain;
+		Adjustments.innerHTML = -SaleGain - SaleExpenses;
+		AdjustmentDetail.innerHTML = "(Exclusion = " + ExclAmt + ", Sale Expenses = " + SaleExpenses + ")";
 		AdjustmentReason.innerHTML = AdjReason;
 		GainOrLoss.innerHTML = 0;
 		TSUseExclusion.innerHTML = "No";
 		ExclAmt = 0;
 		break;
-	case "YG":
 	case "YL":
+	case "LX":
+	case "L":
+		AdjustmentDetail.innerHTML = "(Adjustment to remove the loss)";
+		AdjustmentReason.innerHTML = "H";
+		Adjustments.innerHTML = AdjustedBasis - SellingPrice;
+		TSUseExclusion.innerHTML = "No";
+		GainOrLoss.innerHTML = 0
+		ExclAmt = 0;
+		break;
+	case "YG":
 	case "G":
 	case "GX":
-	case "L":
 		AdjustmentReason.innerHTML = "(none)";
-		Adjustments.innerHTML = "(leave blank)";
+		Adjustments.innerHTML = -SaleExpenses;
 		TSUseExclusion.innerHTML = "No";
-		GainOrLoss.innerHTML = Gain;
+		GainOrLoss.innerHTML = SellingPrice - AdjustedBasis - SaleExpenses;
 		ExclAmt = 0;
 		break;
 	default:
@@ -810,10 +836,10 @@ function Basis_Calc(ignore) {
 	TSChoices.style.display = "inline";
 	TSNoNeedToEnter.style.display = "none";
 	switchCode = (F1099SY.checked) ? "F" : "";
-	switchCode += (Gain > ExclAmt) ? "T" : ""; // Taxable
+	switchCode += (SaleGain > ExclAmt) ? "T" : ""; // Taxable
 	switch (switchCode) {
 	case "":
-		if (ExclusionApplies) TSNoNeedToEnter.style.display = "block";
+		if ((ExclusionApplies) || (SaleGain < 0)) TSNoNeedToEnter.style.display = "block";
 		else NoNeedButShow.checked = true;
 		UseWorksheet.disabled = "disabled";
 		UWOptionText.style.textDecoration = "line-through";
@@ -825,9 +851,11 @@ function Basis_Calc(ignore) {
 		}
 		break;
 	case "F":
-		UseWorksheet.disabled = "disabled";
-		UWOptionText.style.textDecoration = "line-through";
-		UseSchedD.checked = true;
+		if (SaleGain < 0) {
+			UseWorksheet.disabled = "disabled";
+			UWOptionText.style.textDecoration = "line-through";
+			UseSchedD.checked = true;
+		}
 		break;
 	case "FT":
 	case "T":
@@ -1197,7 +1225,7 @@ function Add_Improvement() {
 			<td>$<input id="TotalAdjusted" class="datain" type="number" disabled/></td>
 			<td></td></tr>
 		<tr><td><b>ADJUSTED COST BASIS</b></td>
-			<td>$<input id="AdjustedBasis" class="datain" type="number" disabled/></td>
+			<td>$<input id="AdjustedCostBasis" class="datain" type="number" disabled/></td>
 			<td></td></tr>
 		</table>
 	</div> <!-- CostDiv -->
@@ -1439,7 +1467,7 @@ function Add_Improvement() {
 		<tr><td>Sales Price</td><td id="SalesPrice"></td><td></td></tr>
 		<tr><td>Cost basis type</td><td colspan="2" id="CostBasisType">Did not receive Form 1099-B</td></tr>
 		<tr><td>Cost</td><td id="Cost"></td><td></td></tr>
-		<tr><td>Adjustments</td><td id="Adjustments"></td><td></td></tr>
+		<tr><td>Adjustments</td><td id="Adjustments"></td"><td id="AdjustmentDetail"></td></tr>
 		<tr><td>Adjustment explanation</td><td id="AdjustmentReason">H</td><td></td></tr>
 		</table>
 		<hr />
