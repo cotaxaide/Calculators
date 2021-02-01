@@ -88,7 +88,8 @@
 		border: 1px solid black;
 		padding: 3px;
 	}
-	#ClearAndPrint {width: 16em; 
+	#ClearAndPrint {
+		width: 16em; 
 		text-align:center; 
 		border:0;
 	       	background-color:transparent;
@@ -102,6 +103,9 @@
 		position: absolute;
 		top: 4.5em;
 		right: 2.2em;
+	}
+	#IRA8606 tr:nth-child(even) {
+		background-color: #ddddaa;
 	}
 	@media print {
 		.doPrint {display:inline;}
@@ -131,11 +135,14 @@
 	//	Larry Ellison
 	//	Bob Fox
 	//	Burt Loper
+	//	Mark Mergenthaler
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.06, 12/16/2020)";
+	var VERSION = "(Version 1.07, 2/1/2020)";
+	//	Restored the TS calculation option - not fixed (broke again?)
+	//var VERSION = "(Version 1.06, 12/16/2020)";
 	//	Commented out the TS calculation option since TS appears to have fixed it
 	//var VERSION = "(Version 1.05, 3/31/2020)";
 	//	Added a line to show the nontaxable amount
@@ -223,12 +230,12 @@
 			line08 = +ROTHIRA1.value + +ROTHIRA2.value + +ROTHIRA3.value;
 			line09 = line06 + line07 + line08;
 
-		//if (CalcMethod.value == "Accurate") {
+		if (CalcMethod.value == "Accurate") {
 			line10 = (line09) ? (Math.min(1, line05 / line09)) : 0;
-		//}
-		//else { // TS Calc Method
-		//	line10 = (line09) ? (Math.round(1000 * Math.min(1, line05 / line09)) / 1000) : 0; // TaxSlayer rounding
-		//}
+		}
+		else { // TS Calc Method
+			line10 = (line09) ? (Math.round(1000 * Math.min(1, line05 / line09)) / 1000) : 0; // TaxSlayer rounding
+		}
 
 		line11 = line08 * line10; // nontaxable portion of converted distributions
 			line11a = +DistIRA1.value * line10;
@@ -288,7 +295,6 @@
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </div>
 
-<!--
 <div id="CalcMethodDiv" class="noPrint">
 	<span id="CalcMethodQ"
 		onmouseover="CalcMethodInfo.style.display='inline-block';"
@@ -306,7 +312,6 @@
 		But using this option will not match the Form 8606 produced by TaxSlayer.
 	</span>
 </div>
--->
 	
 <!-- ****************************************** FILING INFORMATION TABLE ****************************************** -->
 
@@ -420,7 +425,6 @@
 </div> <!-- FilingInfo -->
 <br />
 
-<!--
 <div>
 	<h1>Adjustment to income for TaxSlayer:</h1>
 	(Federal Section > Deductions > Adjustments > IRA Deduction)
@@ -433,7 +437,6 @@
 	</table>
 </div>
 <br />
--->
 
 <div id="IncomeInfo">
 	<h1>Form 8606 input for TaxSlayer:</h1>
