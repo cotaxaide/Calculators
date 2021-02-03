@@ -49,32 +49,20 @@
 <script>
 //***************************************************************************************************
 //Contributors:
-//	Joe Bowman
-//	Steve Conary
-//	Deb Fisher
-//	Gina Kritchevsky
-//	Andreas Kuehnel
-//	Tom LaJeunesse
-//	Frank Petranka
-//	Ken Denbow
-//	Ted Fox
-//	Gregory Gendron
-//	Jon Naiman
-//	Sue Stavio
-//	Patricia Palanker
-//	Paul Renard
-//	David Herman
-//	George Shevchuk
-//	Gordon Henderson
-//	Joe Ohrazda
-//	Gordon Henderson
-//	Sam Kaplan
+//	Joe Bowman		Steve Conary		Deb Fisher 		Gina Kritchevsky
+//	Andreas Kuehnel 	Tom LaJeunesse		Frank Petranka		Ken Denbow
+//	Ted Fox			Gregory Gendron		Jon Naiman		Sue Stavio
+//	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
+//	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
+//	Bruce Dumas
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.24 2/27/2020";
+var VERSION = "6.25 2/3/2021";
+//	Fixed error where HOH not allowed for TP giving dependent to ex SP
+//var VERSION = "6.24 2/27/2020";
 //	Fixed error giving HOH to descendant of niece or nephew
 //var VERSION = "6.23 2/22/2020";
 //	Fixed error when income test could not be checked once unchecked
@@ -758,8 +746,10 @@ function CalcStatus(from_age_calc) {
 		// Relationship test
 		TestFor = "|DCQ|HOH|CAR|MED|EITC|WID|";
 		if (BENE_Relation.indexOf("|DPC|") == NOT_A_BENEFIT) SetMessage(QualChild,"- Failed relationship test.");
-		TestFor = "|HOH|CAR|MED|EITC|WID|";
-		if (QualChildOfAnother.checked && QCAtest != "TP") SetMessage(QualChild, QCAreason);
+		TestFor = "|CAR|MED|EITC|WID|";
+		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(QualChild, QCAreason);
+		TestFor = "|HOH|";
+		if (QualChildOfAnother.checked && (QCAtest != "TP") && (QCAtest != "OTHER_NO_HOH")) SetMessage(QualChild, QCAreason);
 
 		TestFor = "|DCQ|HOH|CAR|MED|EITC|WID|";
 		// Age test
@@ -896,7 +886,7 @@ function CalcStatus(from_age_calc) {
 		if ((MSRBoxActive) && (QualRelative.value != NO)) SetMessage(HOH,"- Multiple support person is not an HOH dependent");
 		if ((DEP_Relation != "PARENT") && (DEP_Residency < 7)) SetMessage(HOH,"- Failed residency test");
 		if (! HHCost.checked) SetMessage(HOH,"- TP must provide >50% of household costs");
-		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(HOH,"- TP is not claiming child as a dependent");
+		if (QualChildOfAnother.checked && (QCAtest != "TP") && (QCAtest != "OTHER_NO_HOH")) SetMessage(HOH,"- TP is not claiming child as a dependent");
 		if (TP_Filing == "MFJ") SetMessage(HOH,"- TP filing as married");
 		if ((TP_Filing == "MFS") || (TP_Filing == "HOH")) { // TP may be able to file HOH
 			if (TPDivorced.checked && (! TP_DivorceApplies)) { // still married but living apart - dependent restrictions apply
@@ -1238,7 +1228,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			else {
 				TPAGI.checked = SPAGI.checked = false;
 				QCA_AGITest.style.display = "none";
-				if (TPRes.checked) QCAtest = (PermissionGiven.checked) ? "TP_GIVEN" : "TP";
+				if (TPRes.checked) QCAtest = (PermissionGiven.checked) ? "OTHER_NO_HOH" : "TP";
 				if (SPRes.checked) QCAtest = (PermissionToUse.checked) ? "OTHER_OK" : "OTHER_RES";
 			}
 		}
@@ -1282,6 +1272,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 		case (QCAtest == "TP_GIVEN"):
 			QCAtest = "OTHER";
 			// no break
+		case (QCAtest == "OTHER_NO_HOH"): // Don't change this to OTHER
 		case (QCAtest == "TP"):
 			TieBreaker.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;(Tie-Breaker = This TP)";
 			break;
