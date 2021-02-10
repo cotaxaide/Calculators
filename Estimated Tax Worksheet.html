@@ -173,12 +173,16 @@
 	//	John Arenberg		Bob Goings		Emily Lin
 	//	Pete Burgner		Bob Schroer		Richar Staub
 	//	Arlene Green		Bob Janesak		Fred Marker
-	//	Henry Geisser
+	//	Henry Geisser		Bob Schroer		Chuck Sherman
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.15a, 1/24/2021)";
+	var VERSION = "(Version 3.17, 2/10/2021)";
+	//	Corrected taxes paid limitation for MFJMFS comparison, allowed 10K to TP/SP
+	//var VERSION = "(Version 3.16, 2/2/2021)";
+	//	Taxable Social Security needed adjustment due to charity adjustment
+	//var VERSION = "(Version 3.15a, 1/24/2021)";
 	//	Not calculating unless MFJMFS toggled
 	//var VERSION = "(Version 3.15, 1/23/2021)";
 	//	Printing problem: SP column prints beyond page edge, not visible
@@ -272,7 +276,7 @@
 		InTitle["OtherCredits"] = "Other adjustments expected (Forms 2106 &amp; 3903)";
 		InTitle["Dependent"] = "Deductions: If a dependent of another, enter earned income";
 		InTitle["ActualMedical"] = "Total unreimbursed medical expenses";
-		InTitle["TaxesPaid"] = "State income tax or sales tax, and property taxes";
+		InTitle["ActualTaxesPaid"] = "State income tax or sales tax, and property taxes";
 		InTitle["InterestPaid"] = "Interest paid";
 		InTitle["Charity"] = "Cash gifts to charity";
 		InTitle["CharityNoncash"] = "Non-cash gifts to charity";
@@ -641,26 +645,6 @@
 		// Ignore if called from init
 		if (thisId === "Init") return;
 
-		// Limit taxes paid if 2018 or later
-		if (TY > 2017) {
-			var taxlimit = (FilingStatus.value === "MFS") ? 5000 : 10000;
-			if (TPMFJ["TaxesPaid"] > taxlimit) {
-				alert ("State and local taxes is limited to $" + taxlimit);
-				TaxesPaid.value =
-				TPMFJ["TaxesPaid"] = taxlimit;
-			}
-			if (TPMFS["TaxesPaid"] > taxlimit) {
-				taxlimit = 5000;
-				if (MFJMFS.checked) alert ("Taxpayer state and local taxes is limited to $" + taxlimit);
-				TPMFS["TaxesPaid"] = taxlimit;
-			}
-			if (SPMFS["TaxesPaid"] > taxlimit) {
-				taxlimit = 5000;
-				if (MFJMFS.checked) alert ("Spouse state and local taxes is limited to $" + taxlimit);
-				SPMFS["TaxesPaid"] = taxlimit;
-			}
-		}
-
 		// Load input arrays for calculations
 		if (MFJMFS.checked) { // Do all 3 returns
 			// Do_Inputs has set the input values
@@ -774,7 +758,7 @@
 		var sllimit = (FilingStatusValue === "MFJ") ? 5000 : 2500;
 		CalcIn["StudentLoan"] = Math.min(+CalcIn["StudentLoan"], sllimit);
 
-		// Get the taxable Social Security amount
+		// Total the adjustments, not including charitable contribution
 		var SSAdjustments = +CalcIn["EdExpenses"] + +CalcIn["HSADeduction"]
 			+ +CalcOut["SETaxCredit"] + +CalcIn["SESEP"] + +CalcOut["SEHI"]
 			+ +CalcIn["AlimonyPaid"] + +CalcIn["IRADeduction"]
@@ -789,11 +773,22 @@
 		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Scholar"] + +CalcIn["Interest"]
 			+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
 			+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["Alimony"] + +CalcIn["OtherIncome"];
+		// Get the taxable Social Security amount
 		MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
 			MFStogetherRelevant);
 		CalcOut["TaxableSS"] = +SSresult[0];
+
+		// Get the taxable SS amount difference if charitable contributions are added
+		var charityLimitJ = (FilingStatusValue === "MFS") ? 150 : 300 ;
+		var charityLimit = (CalcType === "J") ? charityLimitJ : 150 ;
+		SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
+		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
+			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
+			MFStogetherRelevant);
+		taxableSS_charitydiff = +SSresult[0] - CalcOut["TaxableSS"];
+
 		if (CalcType === "J") {
 			TPMFJ["IRAgap00"] = +SSresult[1];
 			TPMFJ["IRAgap50"] = +SSresult[2];
@@ -908,8 +903,17 @@
 		if (TY == 2020) charlimit = CharityAGI; // +AGI.innerHTML; // CARES ACT
 		CalcOut["CharityTotal"] = Math.min((+CalcIn["Charity"] + +CalcIn["CharityNoncash"]), charlimit);
 
+		// Limit taxes paid if 2018 or later
+		if (TY > 2017) {
+			var taxlimit = (FilingStatusValue === "MFS") ? 5000 : 10000;
+			CalcOut["TaxesPaid"] = Math.min(CalcIn["ActualTaxesPaid"], taxlimit);
+		}
+		else {
+			CalcOut["TaxesPaid"] = CalcIn["ActualTaxesPaid"];
+		}
+
 		// Find the itemized deduction total
-		ItemizedValue = +CalcOut["Medical"] + +CalcIn["TaxesPaid"] + +CalcIn["InterestPaid"] +
+		ItemizedValue = +CalcOut["Medical"] + +CalcOut["TaxesPaid"] + +CalcIn["InterestPaid"] +
 			+CalcOut["CharityTotal"] + +CalcIn["OtherItemized"];
 		// don't use += in the following statement
 		if (+TY < 2018) ItemizedValue = +ItemizedValue + +CalcIn["Miscellaneous"];
@@ -948,11 +952,11 @@
 			// Adjust the charitable standard deduction amount
 			CalcOut["CharityStandard"] = 0;
 			if (! CalcOut["Itemizing"]) {
-				var charityLimitJ = (FilingStatusValue === "MFS") ? 150 : 300 ;
-				var charityLimit = (CalcType === "J") ? charityLimitJ : 150 ;
 				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
+				CalcOut["TaxableSS"] += taxableSS_charitydiff; 
+				CalcOut["Gross"] += taxableSS_charitydiff;
 				CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard"];
-				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"]);
+				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"] + taxableSS_charitydiff);
 			}
 		}
 
@@ -1040,7 +1044,7 @@
 			for (j = 1; j <= 3; j++) {
 				if (EdiList[j].value) {
 					etype = (EdtList[j].checked) ? "AOC" : "LLC";
-					result = _EdCredit(TY, FilingStatus.value, AGI.innerHTML,
+					result = _EdCredit(TY, FilingStatusValue, AGI.innerHTML,
 						etype, EdiList[j].value);
 					// Don't use += below...
 					CalcIn["EducationCost"] = +CalcIn["EducationCost"] + +EdiList[j].value;
@@ -1129,7 +1133,7 @@
 			- +CalcIn["RecoveryCredit"]
 			- +CalcIn["Refundable"]);
 		mustFile = (Math.round(+CalcOut["Tax"] + +CalcOut["SETax"] + +CalcIn["OtherTaxes"]) > 0);
-		if ((FilingStatus.value == "MFJ") && IsDependent.checked && mustFile) {
+		if ((FilingStatusValue == "MFJ") && IsDependent.checked && mustFile) {
 			DependentWarning.innerHTML = "WARNING: You cannot file as MFJ and still be a dependent if filing for other than a refund of withholding.";
 		}
 
@@ -1603,10 +1607,11 @@
 				onkeyup="Input_Change(this.id);" />)</td>
 			<td id="Medical" class="calculated wktc"></td></tr>
 		<tr class="deductions"><td></td>
-			<td>State income tax or sales tax, and property taxes</td>
-			<td><input id="TaxesPaid" type="text" class="wkti"
+			<td>State income tax or sales tax, and property taxes:
+			(Total paid = <input id="ActualTaxesPaid" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
+				onkeyup="Input_Change(this.id);" />)</td>
+			<td id="TaxesPaid" class="calculated wktc"></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Interest paid</td>
 			<td><input id="InterestPaid" type="text" class="wkti"
@@ -1630,7 +1635,7 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions"><td></td>
-			<td>Other miscellaneous deductions (gambling losses)</td>
+			<td>Other miscellaneous deductions (including gambling losses)</td>
 			<td><input id="OtherItemized" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
@@ -1887,7 +1892,9 @@
 		<tr class="deductions"><td id="TPMedical"></td><td id="SPMedical"></td>
 			<td>	<span id="TPActualMedical" class="hidden"></span>
 				<span id="SPActualMedical" class="hidden"></span></td></tr>
-		<tr class="deductions"><td id="TPTaxesPaid"></td><td id="SPTaxesPaid"></td></tr>
+		<tr class="deductions"><td id="TPTaxesPaid"></td><td id="SPTaxesPaid"></td>
+			<td>	<span id="TPActualTaxesPaid" class="hidden"></span>
+				<span id="SPActualTaxesPaid" class="hidden"></span></td></tr>
 		<tr class="deductions"><td id="TPInterestPaid"></td><td id="SPInterestPaid"></td></tr>
 		<tr class="deductions"><td id="TPCharityTotal"></td><td id="SPCharityTotal"></td>
 			<td>	<span id="TPCharity" class="hidden"></span>
