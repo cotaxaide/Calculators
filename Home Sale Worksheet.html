@@ -189,9 +189,13 @@
 	//	Mark Riley
 	//	Allan Goldberg
 	//	Bill Zlobik
+	//	Ben Seidman
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.06, 1/24/2021)";
+	VERSION = "(Version 1.07, 3/3/2021)";
+	//	Corrected basis due to death of spouse
+	//	Added missing basis adjustment for TS worksheet
+	//VERSION = "(Version 1.06, 1/24/2021)";
 	//	Added rounding to all inputs with number type
 	//	Corrected basis calculation and adjustment due to purchase costs
 	//		(prior calc still produced the correct end result)
@@ -649,7 +653,10 @@ function Basis_Calc(changingId) {
 		break;
 	case SPDiedY.checked:
 		if (SPDiedCommunityPropertyState.checked)  basis = +DiedBasis.value;
-		else basis = +PurchasePrice.value + Math.round(50 * +DiedBasis.value) / 100;
+		else {
+			basis = Math.round(50 * (+PurchasePrice.value + +DiedBasis.value)) / 100;
+			TSIncreases.innerHTML = Math.round(basis - +PurchasePrice.value);
+		}
 		break;
 	default:
 		basis = +PurchasePrice.value;
