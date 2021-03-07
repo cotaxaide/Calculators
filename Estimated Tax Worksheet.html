@@ -7,7 +7,7 @@
 
 <style type="text/css">
 	html { background-color: #ccccaa; }
-	body { background-color: #ccccaa; font-family: sans-serif; font-size: 0.9em; padding: 0 2.5% 0 2.5%; overflow-x: visible; }
+	body { background-color: #ccccaa; font-family: sans-serif; font-size: 0.9em; padding: 0 2.5% 0 2.5%; }
 	button { cursor: pointer; background-color: lightgreen; }
 	table { background-color: #eeeeaa; border-collapse:collapse; width: 100%; }
 	h1 { text-align: left; font-size: 110%; text-decoration: underline}
@@ -55,19 +55,21 @@
 		position:absolute; top:0; right:1em; }
 	#ClearAndPrint button { margin: 2px; }
 	#FilingStatus { width: 8em; }
+	#FilingInfoTbl { width: 100%; }
 	#FilingInfoTbl tr td { vertical-align: top; }
 	//#FilingInfoTbl tr td { border: 1px solid blue; }
-	#FilingInfoTbl tr td:nth-child(1) { width: 9em; min-width: 9em; }
-	#FilingInfoTbl tr td:nth-child(2) { width: 8em; min-width: 8em; }
-	#FilingInfoTbl tr td:nth-child(3) { text-align: left; min-width: 32em; }
-	#FilingInfoTbl tr td:nth-child(4) { text-align: center; }
+	#FilingInfoTbl tr td:nth-child(1) { width: 9em; width: 9em; }
+	#FilingInfoTbl tr td:nth-child(2) { width: 8em; width: 8em; }
+	#FilingInfoTbl tr td:nth-child(3) { text-align: left; min-width: 12em; }
+	#FilingInfoTbl tr td:nth-child(4) { text-align: right; }
 	#TaxYear { width: 6em; }
+	#IncomeTable { width: 100%; }
 	#IncomeTable tr,
 	#MFSTable tr { height: 1.7em; border-bottom: 1px solid grey; }
-	#IncomeTable tr td:first-child { width: 1%; min-width: 1em; font-weight: bold; }
+	#IncomeTable tr td:first-child { min-width: 1em; font-weight: bold; }
 	#IncomeTable tr td:nth-child(3),
 	#IncomeTable tr td:nth-child(4),
-	#IncomeTable tr td:nth-child(5) { width: 6em; text-align: right; }
+	#IncomeTable tr td:nth-child(5) { width: 7em; text-align: right; }
 	#IncomeTable tr:nth-child(even) { background-color: #fefeca; }
 	#HSAText { font-style: italic; }
 	#MFSTable { width: 12em; }
@@ -135,12 +137,13 @@
 			padding: 0;
 			margin: 0;
 			page-break-inside: avoid;
+			width: calc(100% - 1em);
 		}
 		table {
 			width: 100%;
 			background-color: white;
 			font-size: 95%;
-			overflow: hidden;
+			//overflow: hidden;
 		}
 		input[type="number"] { text-align: right; width:4em; }
 		input[type="text"] { text-align: right; width:4em; }
@@ -178,7 +181,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.17, 2/10/2021)";
+	var VERSION = "(Version 3.18, 3/6/2021)";
+	//	Corrected NaN when not using MFJMFS
+	//	Corrected some printing and display formatting issues
+	//	Added comment re negative MFJMFS results
+	//var VERSION = "(Version 3.17, 2/10/2021)";
 	//	Corrected taxes paid limitation for MFJMFS comparison, allowed 10K to TP/SP
 	//var VERSION = "(Version 3.16, 2/2/2021)";
 	//	Taxable Social Security needed adjustment due to charity adjustment
@@ -682,6 +689,7 @@
 		}
 		else {
 			// Do not use "+" to get value below - it may be a minus sign
+			TPMFJ["IRADeduction"] = +TPMFS["IRADeductionJoint"];
 			TPMFS[thisId] =
 			TPMFJ[thisId] = thisElement.value;
 			Do_Calcs("J", TPMFJ);
@@ -1201,8 +1209,8 @@
 		}
 
 		// MFJ/MFS Comparison results
-		MFJResult.innerHTML = TaxDue.innerHTML;
-		MFSResult.innerHTML = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
+		MFJResult.innerHTML = R1 = TaxDue.innerHTML;
+		MFSResult.innerHTML = R2 = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
 		DiffResult.innerHTML = +MFJResult.innerHTML - +MFSResult.innerHTML;
 		BestResultIsMFS = (+MFJResult.innerHTML > +MFSResult.innerHTML);
 		ItemizedIsBest = (MFJMFSItemized["Standard"] > MFJMFSItemized["Itemize"]);
@@ -1210,6 +1218,10 @@
 		if (BestResultIsMFS) {
 			ResultMessage += "<br />and " + ( (ItemizedIsBest) ? "" : "not" ) + " itemizing.";
 		}
+		if ((R1 < 0) || (R2 < 0)) {
+			ResultMessage += "<br /><br />(Negative result indicates a refund)";
+		}
+
 		TextResult.innerHTML = ResultMessage;
 	}
 
@@ -1342,9 +1354,9 @@
 		<tr>
 			<td>Taxpayer&apos;s Name:</td>
 			<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td>
-			<td rowspan="2" style="text-align: center; vertical-align: top;">
+			<td style="text-align: right; vertical-align: top;">
 				<a href="http://www.aarp.org/work/retirement-planning/required_minimuum_distribution_calculator/" 
-					target="_blank">Click here for the<br />AARP RMD Calculator</a></td></tr>
+					target="_blank">Click here for the AARP RMD Calculator</a></td></tr>
 		<tr>
 			<td>Filing Status:</td>
 			<td>
@@ -1355,7 +1367,7 @@
 					<option value="HOH">HOH</option>
 					<option value="WID">Widow(er)</option></select>
 			</td>
-			<td>
+			<td colspan="2">
 				TP is
 				<input id="TP50" type="checkbox" title="Taxpayer is age 50 - 64" onclick="if (TP50.checked) TP65.checked = false;" /> 50 - 64
 				<input id="TP65" type="checkbox" title="Taxpayer is age 65 or older" onclick="if (TP65.checked) TP50.checked = false;" /> 65 or older
@@ -1402,7 +1414,7 @@
 			<td><span id="CTCDependentsMFS1">TP: </span>
 				<input id="CTCDependents" size="2" value="0" />
 				<span id="CTCDependentsMFS2">, SP: <input id="SPCTCDependents" size="2" value="0" /></span></td>
-			<td title="Check to show MFS columns" style="text-align: center;" >
+			<td title="Check to show MFS columns" style="text-align: right;" >
 				<input id="MFJMFS" type="checkbox" onchange="MFJMFS_Change();" />
 				Check box for MFJ/MFS comparison
 				</td></tr>
