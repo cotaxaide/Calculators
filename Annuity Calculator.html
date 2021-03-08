@@ -280,10 +280,13 @@
 	//	Deb Fisher
 	//	Frank Krider
 	//	Paul Renard
+	//	John Arenberg
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.23, 1/20/2020)";
+		var VERSION = "(version 10.23a, 3/7/2021)";
+		//	Clarification of 7/2/1986 message
+		//var VERSION = "(version 10.23, 1/20/2020)";
 		//	Corrected display of disabled PSO medical exclusion
 		//	Allow 0 for after-tax contributions
 		//	Restored display of non-taxable checkbox instruction
@@ -1923,8 +1926,10 @@
 				TPGROSS.style.display = "none";
 				SPGROSS.style.display = "none";
 				FYR_MO.innerHTML = "";
-				var MESSAGE = "Annuities starting prior to July 2, 1986 have used their exclusion if they used the 3-year method.";
-				MESSAGE += "\n\nIf they have been using the General Method, it is out of scope.";
+				var MESSAGE = "Annuities starting before July 2, 1986 must use either the General Method or the 3-year method."
+				MESSAGE += "\n\n - If they have been using the General Method, it is out of scope.";
+				MESSAGE += "\n - If they used the 3-year method, they have recovered their contributions.";
+				MESSAGE += "\n\nThe distribution is fully taxable.";
 				alert(MESSAGE);
 				return; 
 			}
@@ -2004,6 +2009,9 @@
 		// New_TAX_YR = New tax year to populate the TS worksheets with
 		// This function calculates the values for fields 4-7 in the Exclusion Worksheet
 		//----------------------------------------------------------------------------------------
+			//ANN_410 = new Date() ;
+			//alert ("10/" + (New_TAX_YR - 35));
+
 			if (New_TAX_YR < ANN_YR) {
 				message = "Annuity exclusion doesn't start until " + ANN_YR ;
 				message += " so there is no contribution exclusion.";
