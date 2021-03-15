@@ -109,10 +109,17 @@
 // --------------------------------------------------------------------------------
 // Contributors:
 //	Steve Conary
+//	Kenny Hayes
 // --------------------------------------------------------------------------------
 
 var VERSION = 0;
-VERSION = "(Version 1.06a, 9/30/2020)";
+VERSION = "(Version 1.06c, 2/12/2021)";
+//	Minor text change in DISCLAIMER note
+//	Added heading to 2020 amended summary table for clarification
+//	Added 2021 amended summary table
+//VERSION = "(Version 1.06b, 11/2/2020)";
+//	Added pension plans to eligible retirement plans
+//VERSION = "(Version 1.06a, 9/30/2020)";
 //	Added manual change indicator on 2021 and 2022 AGI entries
 //	Some fields not clearing properly when data is invalid
 //VERSION = "(Version 1.06, 9/14/2020)";
@@ -327,6 +334,7 @@ function Tax_Calc(field) {
 			Refund1_2020.innerHTML = (Refund1_2020.refund) ? (Refund1_2020.refund + " <sup>&dagger;</sup>") : "0";
 			Refund1_2021.innerHTML = +Tax1_2021.innerHTML - +NewTax1B_2021.innerHTML;
 			Refund1_2022.innerHTML = +Tax1_2022.innerHTML - +NewTax1B_2022.innerHTML;
+			Yr1_3_2021.innerHTML = Refund1_2021.innerHTML;
 			Dist_refund = +Distribution.value - +Payback_total;
 			IRA_part = Math.floor(Dist_refund / 3);
 			AGI3B_2020.refund = Math.max(0, AGI_Base + IRA_part);
@@ -361,6 +369,7 @@ function Tax_Calc(field) {
 			NewTax3B_2021.innerHTML = Tax3B_2021.refund;
 			Refund3_2021.refund = +Tax3B_2021.new - +Tax3B_2021.refund;
 			Refund3_2021.innerHTML = (Refund3_2021.refund) ? (Refund3_2021.refund + " <sup>&Dagger;</sup>") : "0";
+			Yr3_3_2021.innerHTML = Refund3_2021.refund;
 			if (! Refund3_2021.refund) Tax3B_2021.original = Tax3B_2021.new;
 			Tax3B_2021.innerHTML = Tax3B_2021.original;
 			break;
@@ -534,7 +543,8 @@ function Clear_Values(start) {
 		<br />
 		<br />
 		Qualified individuals may spread the taxable portion of one or more distributions
-		(up to $100,000 in total) from a retirement plan (IRA, 401(k), 403(b), 457(b))
+		(up to $100,000 in total) from a retirement plan (qualified pension, profit-sharing,
+		stock bonus plan, IRA, 401(k), 403(b), 457(b))
 		across three years if taken between 1/1/2020 and 12/30/2020.
 		See Pub 4012 for the definition of &quot;qualified individual&quot;.
 		(TABLE A below)
@@ -564,8 +574,8 @@ function Clear_Values(start) {
 		<b>DISCLAIMER:</b> This worksheet is for discussion purposes only.
 		Resulting tax amounts do not incorporate many aspects of the tax code
 		(special taxation, credits, etc.) and may not match the results from the tax software.
-		Tax rates for 2021 and 2022 are not yet known but have been adjusted to be similar
-		to the 2020 changes.
+		Tax rates for 2022 are not yet known but have been adjusted to be similar
+		to the 2020 and 2021 changes.
 		A simple tax computation on ordinary income is made based on the amounts entered.
 	</div>
 
@@ -720,15 +730,21 @@ function Clear_Values(start) {
 			<sup>&dagger;</sup>
 			The 2020 tax return will need to be amended to recover the excess tax paid in that year.
 			<table id="AmendTable">
+				<tr><td></td><td colspan="3">Amount recovered during year amended:</td></tr>
 				<tr class="borderbottom"><td>Year 2020 is amended:</td><th>2021</th><th>and 2022</th><th>only 2022</th></tr>
-				<tr><td>1-year option:</td><td id="Yr1_1_2020"></td><td id="Yr1_2_2020"><td id="Yr1_3_2020"></tr>
-				<tr><td>3-year option:</td><td id="Yr3_1_2020"></td><td id="Yr3_2_2020"><td id="Yr3_3_2020"></tr>
-				</table>
-			
+				<tr><td>1-year option:</td><td id="Yr1_1_2020"></td><td id="Yr1_2_2020"></td><td id="Yr1_3_2020"></td></tr>
+				<tr><td>3-year option:</td><td id="Yr3_1_2020"></td><td id="Yr3_2_2020"></td><td id="Yr3_3_2020"></td></tr>
+			</table>
 			<span id="Amend_2021">
 				<br /><sup>&Dagger;</sup>
 				The 2021 tax return will need to be amended to recover the excess tax paid in that year.
+				<table id="AmendTable">
+					<tr class="borderbottom"><td>Year 2021 is amended:</td><th>2022</th></tr>
+					<tr><td>1-year option:</td><td id="Yr1_3_2021"></td></tr>
+					<tr><td>3-year option:</td><td id="Yr3_3_2021"></td></tr>
+				</table>
 			</span>
+			
 		</span>
 
 		<br />
