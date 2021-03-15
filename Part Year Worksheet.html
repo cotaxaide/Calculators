@@ -109,7 +109,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.09, 3/25/2020)";
+	var VERSION = "(Version 1.10, 1/12/2020)";
+	//	Removed tests for >= 2017 since now at 2017 or beyond
+	//	Added 2020 to 2019 RRB adjustments needed
+	//var VERSION = "(Version 1.09, 3/25/2020)";
 	//	Corrected tax free non-CO interest to distribute vs all to CO
 	//var VERSION = "(Version 1.08a, 3/12/2020)";
 	//	Added W-2 and 1099 clarification note in instructions
@@ -276,7 +279,7 @@
 			if (TPAgeList[j].checked) TPMilitaryLimit = TPAnnuityLimit = +TPAgeList[j].value;
 			if (SPAgeList[j].checked) SPMilitaryLimit = SPAnnuityLimit = +SPAgeList[j].value;
 		}
-		if (+TaxYear.value >= 2019) { // this will fail in 2015 and will need to be fixed
+		if (+TaxYear.value >= 2019) { // this will fail in 2025 and will need to be fixed
 			if (TPMilitaryLimit == 0) TPMilitaryLimit = MilitaryLimit[+TaxYear.value - 2019];
 			if (SPMilitaryLimit == 0) SPMilitaryLimit = MilitaryLimit[+TaxYear.value - 2019];
 		}
@@ -882,7 +885,7 @@
 			TSMessageDiv.style.display = "block";
 		}
 
-		else if ((TaxYear.value == 2019)
+		else if ((TaxYear.value >= 2019)
 			&& (SFItotal > (TPAnnuityLimit + SPAnnuityLimit))) {
 			var message = "<h1>TaxSlayer cannot produce an accurate partial year return for Colorado for this taxpayer.</h1>";
 			message += "<ol>";
@@ -913,9 +916,10 @@
 			message += "</ul></li>";
 			message += "<li>CO form 104:";
 			message += "<ul>";
-			message += "<li>change line 5 to $<b>" + SFItotal + "</b>.</li>";
-			message += "<li>adjust the amount in line 6.</li>";
-			message += "<li>change line 7 with the new CO tax from 104PN.</li>";
+			subline = (TaxYear.value >= 2020) ? 8 : 5 ;
+			message += "<li>change line " + (subline) + " to $<b>" + SFItotal + "</b>.</li>";
+			message += "<li>adjust the amount in line " + (subline + 1) + ".</li>";
+			message += "<li>change line " + (subline + 2) + " with the new CO tax from 104PN.</li>";
 			message += "<li>adjust the math in the ensuing lines as needed.</li>";
 			message += "</ul></li>";
 			message += "<li>Paper file the Colorado tax return.</li></ol>";
@@ -925,11 +929,11 @@
 		}
 
 		else {
-			COSubtractDiv.style.display = (TaxYear.value >= 2017) ? "none" : "block";
+			COSubtractDiv.style.display = "none";
 			TSMessageDiv.style.display = "none";
 		}
 
-		TSError1.style.display = (TaxYear.value >= 2017) ? "none" : "inline";
+		TSError1.style.display = "none";
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -961,7 +965,7 @@
 		Add_Option(newgrp, "Dividend", "Dividend income");
 		Add_Option(newgrp, "Dividend-CO_or_gov_adjust", "Colorado or government dividend income subtraction");
 		Add_Option(newgrp, "Interest", "Interest from savings or investment accounts");
-		Add_Option(newgrp, "Interest-CO_1st_Time_Home", "Interest from a Colorado first time homebuyer savings account (2017 and later)");
+		Add_Option(newgrp, "Interest-CO_1st_Time_Home", "Interest from a Colorado first time homebuyer savings account");
 		Add_Option(newgrp, "Interest-gov", "Government bond savings or investment interest");
 		Add_Option(newgrp, "Interest-tax-free_non-CO", "Tax free interest from non-Colorado bonds.");
 		Add_Option(newgrp, "Other", "Other income");
@@ -1000,7 +1004,7 @@
 		Add_Option(newgrp, "CO_Capital_gain_subtraction", "Capital gain on Colorado investments");
 		Add_Option(newgrp, "College_tuition_contribution", "Contribution to one of the state's college 529 plans");
 		Add_Option(newgrp, "PERA/DPSRS_subtraction", "Non-taxable PERA/DPSRS retirement benefits");
-		Add_Option(nogrp, "Interest-CO_1st_Time_Home2", "Interest from a Colorado first time homebuyer savings account (2017 and later)");
+		Add_Option(nogrp, "Interest-CO_1st_Time_Home2", "Interest from a Colorado first time homebuyer savings account");
 		Add_Option(nogrp, "RRB_Tier1_subtraction", "RR Tier 1 benefits exclusion from state tax");
 		Add_Option(nogrp, "RRB_Tier2_subtraction", "RR Tier 2 benefits exclusion from state tax");
 		Add_Option(nogrp, "Taxpayer_Military_pension_exclusion", "Taxpayer military pension exclusion from state tax");
@@ -1203,7 +1207,7 @@
 </center>
 
 <div id="ClearAndPrint" class="noPrint">
-	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </div>
 
