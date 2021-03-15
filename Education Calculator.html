@@ -180,7 +180,11 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.4, 8/8/2020";
+	var VERSION = "Version 3.5, 3/15/2021";
+	//	Added test for 2020 to not pay back APTC excess
+	//var VERSION = "Version 3.4a, 10/26/2020";
+	//	Removed another link to extinct Education Cookbook
+	//var VERSION = "Version 3.4, 8/8/2020";
 	//	Modified optimizer to use adj to income amounts to increase taxable scholarships
 	//		before invoking the kiddie tax
 	//var VERSION = "Version 3.3a, 2/20/2020";
@@ -268,7 +272,8 @@
 	//	Gina Kritchevsky	Hans Jahns		Betsy Robertson
 	//	Dick Sramek		Bob Wells		Jay Wiedwald
 	//	Edie Loughmiller	Harold Rowe		Brad Kirby
-	//	Stephen Enk		Roger Metzler
+	//	Stephen Enk		Roger Metzler		Arlene Green
+	//	Joanne Hill
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -2147,6 +2152,10 @@
 		result.PTCNet = Math.max(0,(PTCMaximum - PTCAdvance));
 		var PTCExcessMax = PTCData[3] * ((FilingStatus.value == "MFS") ? 1 : 2);
 		result.APTC = Math.round(Math.min(PTCExcessMax, Math.max(0, (PTCAdvance - PTCMaximum))));
+
+		// APTC does not need to be repaid in 2020
+		if (+TaxYear.value == 2020) result.APTC = 0;
+
 		return (result);
 	}
 
@@ -3457,7 +3466,6 @@
 	<div class="noPrint">
 		<br />This worksheet provides a place for comparing the various education options.
 		<br />You can also use the Optimizer tab's Worksheet although it has limitations.
-		<br />For additional guidance, especially for work-related education benefits, see Deb Fisher's <a href="http://docs.cotaxaide.org/Education Cookbook.pdf" target="_blank">Education Cookbook</a>.
 		<br />
 		<br />
 		Education credits are entered in TaxSlayer at: Federal Section &gt; Deductions &gt; Credits Menu &gt; Education Credits (Form 1098-T)
