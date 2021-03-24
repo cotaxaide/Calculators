@@ -182,7 +182,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.19, 3/15/2021)";
+	var VERSION = "(Version 3.21, 3/24/2021)";
+	//	Corrected 2020 UCE SS and IRA deduction calculations per IRS
+	//var VERSION = "(Version 3.20, 3/20/2021)";
+	//	Corrected doubling of non-itemized charitable amount
+	//var VERSION = "(Version 3.19, 3/15/2021)";
 	//	Added 2020 Unemployment compensation exclusion (UCE)
 	//	Added a line for prior year estimated payment from refund
 	//var VERSION = "(Version 3.18, 3/6/2021)";
@@ -546,7 +550,7 @@
 			EdInputBox.style.left = pos.x + "px";
 			EdInputBox.style.top = pos.y + "px";
 		}
-		else if ((MFJMFS.checked) || (thisId == "Unemployment")) {
+		else if (MFJMFS.checked || (thisId == "Unemployment")) {
 			MFSInputBox.style.display = "block";
 			EdInputBox.style.display = "none";
 			TPInput.focus();
@@ -803,7 +807,7 @@
 		IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Scholar"] + +CalcIn["Interest"]
 			+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
 			+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["Alimony"]
-			+ +CalcIn["Unemployment"] + +CalcOut["OtherIncome"];
+			+ +CalcIn["Unemployment"] + +CalcOut["OtherIncome"] + MFJUCE;
 		// Get the taxable Social Security amount
 		MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
@@ -835,7 +839,7 @@
 		CalcOut["AGI"] = Math.max(0, TrueAGI);
 
 		// Add the IRA comment and limit the amount entered
-		var MAGI = CalcOut["AGI"] + +CalcIn["IRADeduction"];
+		var MAGI = CalcOut["AGI"] + +CalcIn["IRADeduction"] + MFJUCE;
 		var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcOut["SETaxCredit"]);
 		var IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["Alimony"];
 		if (CalcType === "J") {
@@ -881,6 +885,7 @@
 		// Recalculate if UCE can be used
 		UCElimit = (FilingStatusValue === "MFS") ? 75000 : 150000;
 		if ((TaxYear.value == 2020) && (! AllowUCE) && (CalcOut["AGI"] < UCElimit)) {
+			CalcOut["CharityStandard"] = 0; // prevents doubling
 			Do_Calcs(CalcType, CalcIn, true)
 			}
 
