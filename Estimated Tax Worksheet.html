@@ -182,7 +182,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.21, 3/24/2021)";
+	var VERSION = "(Version 3.22, 3/26/2021)";
+	//	Corrected 2020 UCE Gross and AGI calculations
+	//	Corrected non-itemized charitable contributions not limited by AGI
+	//var VERSION = "(Version 3.21, 3/24/2021)";
 	//	Corrected 2020 UCE SS and IRA deduction calculations per IRS
 	//var VERSION = "(Version 3.20, 3/20/2021)";
 	//	Corrected doubling of non-itemized charitable amount
@@ -819,6 +822,7 @@
 		// Get the taxable SS amount difference if charitable contributions are added
 		var charityLimitJ = (FilingStatusValue === "MFS") ? 150 : 300 ;
 		var charityLimit = (CalcType === "J") ? charityLimitJ : 150 ;
+		charityLimit = Math.min(charityLimit, (IncomeNoSS + +SSresult[0]));
 		SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
@@ -832,7 +836,7 @@
 		}
 
 		// Total the income
-		CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"]);
+		CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"] - MFJUCE);
 
 		// Figure the AGI
 		var TrueAGI = Math.round(+CalcOut["Gross"] - +AdjustmentsValue);
@@ -943,7 +947,7 @@
 		if (CalcOut["CharityStandard"] === undefined) CalcOut["CharityStandard"] = 0;
 		CharityAGI = Math.max(0, TrueAGI + +CalcOut["CharityStandard"]);
 		charlimit = Math.round(CharityAGI * ((TY >= 2018) ? 0.6 : 0.5));
-		if (TY == 2020) charlimit = CharityAGI; // +AGI.innerHTML; // CARES ACT
+		if (TY == 2020) charlimit = CharityAGI; //  CARES ACT removes limit for 2020
 		CalcOut["CharityTotal"] = Math.min((+CalcIn["Charity"] + +CalcIn["CharityNoncash"]), charlimit);
 
 		// Limit taxes paid if 2018 or later
@@ -993,8 +997,8 @@
 
 		if (+TaxYear.value >= 2020) {
 			// Adjust the charitable standard deduction amount
-			CalcOut["CharityStandard"] = 0;
-			if (! CalcOut["Itemizing"]) {
+			// CalcOut["CharityStandard"] = 0;
+			if ((! CalcOut["Itemizing"]) && (CalcOut["CharityStandard"] == 0)) {
 				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
 				CalcOut["TaxableSS"] += taxableSS_charitydiff; 
 				CalcOut["Gross"] += taxableSS_charitydiff;
