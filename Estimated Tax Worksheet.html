@@ -177,12 +177,14 @@
 	//	Pete Burgner		Bob Schroer		Richar Staub
 	//	Arlene Green		Bob Janesak		Fred Marker
 	//	Henry Geisser		Bob Schroer		Chuck Sherman
-	//	Ron Bower		Barry Schwarz
+	//	Ron Bower		Barry Schwarz		Erica Adams
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.22, 3/26/2021)";
+	var VERSION = "(Version 3.23, 4/4/2021)";
+	//	Added CTC changes for 2021 as best we know it now
+	//var VERSION = "(Version 3.22, 3/26/2021)";
 	//	Corrected 2020 UCE Gross and AGI calculations
 	//	Corrected non-itemized charitable contributions not limited by AGI
 	//var VERSION = "(Version 3.21, 3/24/2021)";
@@ -403,9 +405,11 @@
 			FilingStatus.disabled = true;
 			MFStogether.checked = true;
 			PayChoice.style.display =
+			Dependents0MFS1.style.display =
 			DependentsMFS1.style.display =
 			CTCDependentsMFS1.style.display =
 			EICDependentsMFS1.style.display = 
+			Dependents0MFS2.style.display =
 			DependentsMFS2.style.display =
 			CTCDependentsMFS2.style.display =
 			EICDependentsMFS2.style.display = "inline";
@@ -417,9 +421,11 @@
 			MFSInfo.style.display = "none";
 			IncomeInfo.style.gridColumn = "1 / 3";
 			PayChoice.style.display =
+			Dependents0MFS1.style.display =
 			DependentsMFS1.style.display =
 			CTCDependentsMFS1.style.display =
 			EICDependentsMFS1.style.display =
+			Dependents0MFS2.style.display =
 			DependentsMFS2.style.display =
 			CTCDependentsMFS2.style.display =
 			EICDependentsMFS2.style.display = "none";
@@ -457,6 +463,7 @@
 		ItemizeRequiredOption.style.display = (FilingStatus.value === "MFS") ? "inline" : "none";
 		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
 		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
+		Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
 		if (IsDependent.checked) {
 			DependentsRow.style.display = "none";
 			EICRow.style.display = "none";
@@ -727,6 +734,9 @@
 		var DependentsValue = +Dependents.value;
 		var EICDependentsValue = +EICDependents.value;
 		var CTCDependentsValue = +CTCDependents.value;
+			CTCDependentsValue += 0.01 * Dependents0.value;
+		var SPCTCDependentsValue = +SPCTCDependents.value;
+			SPCTCDependentsValue += 0.01 * SPDependents0.value;
 		if (MFJMFS.checked) switch (CalcType) {
 			case "T":
 				if (MFJMFS.checked) FilingStatusValue = "MFS";
@@ -734,13 +744,12 @@
 			case "J":
 				DependentsValue += +SPDependents.value;
 				EICDependentsValue += +SPEICDependents.value;
-				CTCDependentsValue += +SPCTCDependents.value;
+				CTCDependentsValue += +SPCTCDependentsValue;
 				break;
 			case "S":
 				DependentsValue = +SPDependents.value;
 				EICDependentsValue = +SPEICDependents.value;
-				CTCDependentsValue = +SPCTCDependents.value;
-				if (MFJMFS.checked) FilingStatusValue = "MFS";
+				CTCDependentsValue = +SPCTCDependentsValue;
 				break;
 		}
 
@@ -1133,7 +1142,12 @@
 		CalcOut["CTCreditUsed"] = FTCUsed + NRUsedTemp;
 		
 		// ACTC
-		ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
+		if (TY == 2021) {
+			ACTCAmount = ACTCLimit;
+		}
+		else {
+			ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
+		}
 		CalcOut["ACTCredit"] = ACTCAmount;
 
 		// Residential and other credits
@@ -1440,6 +1454,13 @@
 			<td><span id="DependentsMFS1">TP: </span>
 				<input id="Dependents" size="2" value="0" />
 				<span id="DependentsMFS2">, SP: <input id="SPDependents" size="2" value="0" /></span>
+				</td>
+			<td></td></tr>
+		<tr id="Dependents0Row" title="Number of dependents under age 6.">
+			<td colspan="2">Dependents under age 6:
+			<td><span id="Dependents0MFS1">TP: </span>
+				<input id="Dependents0" size="2" value="0" />
+				<span id="Dependents0MFS2">, SP: <input id="SPDependents0" size="2" value="0" /></span>
 				</td>
 			<td></td></tr>
 		<tr id="EICRow" title="Number of dependents in the tax family age under age 18 (or 24 if a full time student or any age if disabled).">

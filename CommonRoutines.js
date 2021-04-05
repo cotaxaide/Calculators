@@ -243,7 +243,8 @@ function _TaxLookup(	// Tax table lookup
 function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
-	childDependents, // number of children/disabled eligible for CTC
+	childDependents, // total number of children/disabled eligible for CTC
+			// for 2020, the decimal indicates number under 6 (eg 3.01)
 	totalDependents, // number of total dependents (including child/disabled)
 	earnedIncome,	// Wages + SE income
 	AGI,		// AGI
@@ -266,18 +267,31 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	var ACTCRate = _CTCLimits[taxYear + ":ACTCRate"];
 	var ACTCThresh = _CTCLimits[taxYear + ":ACTCThreshold"];
 
-	var CTCAmount = CTCRate * +childDependents;
+	var cD = Math.floor(+childDependents);
+	var CTCAmount = CTCRate * cD;
 	var CTCAmount = Math.max(0, (CTCAmount - CTCReduction));
-	var FTCAmount = FTCRate * (+totalDependents - +childDependents);
-	var ACTCLimit = Math.round(Math.min(
-				ACTCRate * +childDependents,
-				Math.max(
-					0,
-					0.15 * (earnedIncome - ACTCThresh),
-					SocSecOffset
-					)
-				));
-	var CTCresult = [CTCAmount, FTCAmount, ACTCLimit];
+	if (taxYear == 2021) { // additional 1000 or 1300 per child
+		var CTC0Rate = _CTCLimits[taxYear + ":CTC0Rate"];
+		var CTC6Rate = _CTCLimits[taxYear + ":CTC6Rate"];
+		var CTC0Limit = _CTCLimits[taxYear + ":AGI0Cap"].split(",");
+		var CTC0Reduction = Math.max(0, (+AGI - +CTC0Limit[+_CTCLimits[filingStatus]]));
+			CTC0Reduction = 50 * (Math.ceil(CTC0Reduction/1000));
+		var cD0 = Math.round((childDependents - cD) * 100);
+			cD0 = Math.min(cD, cD0); // All under 6 may not qualify
+		var cD6 = Math.max(0, (cD - cD0));
+		var ACTC0Amount = CTC0Rate * cD0;
+		var ACTCLimit = (CTC6Rate * cD6) + ACTC0Amount;
+		ACTCLimit = Math.max(0, ACTCLimit - CTC0Reduction);
+		// all refundable
+		ACTCLimit += CTCAmount;
+		CTCAmount = 0;
+	}
+	else {
+		var ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
+		ACTCLimit = Math.min(ACTCRate * +childDependents, ACTCLimit);
+	}
+	var FTCAmount = FTCRate * (+totalDependents - cD);
+	var CTCresult = [CTCAmount, FTCAmount, Math.round(ACTCLimit)];
 	return (CTCresult);
 }
 

@@ -136,11 +136,10 @@
                 // MFJ,SNG,HOH,WID,MFS	
                 _CTCLimits["MFJ"] = 0;
                 _CTCLimits["SNG"] = 1;
-                _CTCLimits["HOH"] = 1;
                 _CTCLimits["WID"] = 1;
                 _CTCLimits["MFS"] = 2;
-                //_CTCLimits[_TY] = "110000,75000,55000";
-                _CTCLimits[_TY+":AGICap"] = "110000,75000,55000";
+                _CTCLimits["HOH"] = 3;
+                _CTCLimits[_TY+":AGICap"] = "110000,75000,55000,75000";
 		_CTCLimits[_TY+":CTCRate"] = 1000;
 		_CTCLimits[_TY+":FTCRate"] = 0;
 		_CTCLimits[_TY+":ACTCRate"] = 1000;
