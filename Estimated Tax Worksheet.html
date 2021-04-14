@@ -178,11 +178,14 @@
 	//	Arlene Green		Bob Janesak		Fred Marker
 	//	Henry Geisser		Bob Schroer		Chuck Sherman
 	//	Ron Bower		Barry Schwarz		Erica Adams
+	//	Fred Marker
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.23, 4/4/2021)";
+	var VERSION = "(Version 3.24, 4/14/2021)";
+	//	Corrected MFJ/MFS spouse standard deduction
+	//var VERSION = "(Version 3.23, 4/4/2021)";
 	//	Added CTC changes for 2021 as best we know it now
 	//var VERSION = "(Version 3.22, 3/26/2021)";
 	//	Corrected 2020 UCE Gross and AGI calculations
@@ -739,7 +742,7 @@
 			SPCTCDependentsValue += 0.01 * SPDependents0.value;
 		if (MFJMFS.checked) switch (CalcType) {
 			case "T":
-				if (MFJMFS.checked) FilingStatusValue = "MFS";
+				FilingStatusValue = "MFS";
 				break;
 			case "J":
 				DependentsValue += +SPDependents.value;
@@ -747,6 +750,7 @@
 				CTCDependentsValue += +SPCTCDependentsValue;
 				break;
 			case "S":
+				FilingStatusValue = "MFS";
 				DependentsValue = +SPDependents.value;
 				EICDependentsValue = +SPEICDependents.value;
 				CTCDependentsValue = +SPCTCDependentsValue;
