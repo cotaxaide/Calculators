@@ -159,6 +159,9 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2014.js"></script>
+<script src="Tax_Data/IRS_2015.js"></script>
+<script src="Tax_Data/IRS_2016.js"></script>
 <script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
@@ -184,6 +187,8 @@
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
 	var VERSION = "(Version 3.24, 4/14/2021)";
+	//	Minor HTML corrections
+	//var VERSION = "(Version 3.24, 4/14/2021)";
 	//	Corrected MFJ/MFS spouse standard deduction
 	//var VERSION = "(Version 3.23, 4/4/2021)";
 	//	Added CTC changes for 2021 as best we know it now
@@ -328,7 +333,7 @@
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
 		var tyOptIndex = 0;
-		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+		for (var ty = _StartYear-2; ty <= _StopYear; ty++) {
 			var tyopti = document.createElement("option");
 			tyopti.text = tyopti.value = ty;
 			TaxYear.add(tyopti,tyOptIndex++);
@@ -1516,7 +1521,7 @@
 			<td class="indent">Tax-exempt interest expected</td>
 			<td><input id="TaxExempt" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
 			<td>Ordinary dividends</td><td></td>
 			<td><input id="Dividends" type="text" class="wkti"
@@ -1542,13 +1547,13 @@
 			<td><input id="TotalIRAs" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
-			<td id="IRAs" class="calculated wktc"></tr>
+			<td id="IRAs" class="calculated wktc"></td></tr>
 		<tr class="income"><td></td>
 			<td>Pensions and annuities</td>
 			<td><input id="TotalPensions" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
-			<td id="Pensions" class="calculated wktc"></tr>
+			<td id="Pensions" class="calculated wktc"></td></tr>
 		<tr class="income"><td></td>
 			<td>Amount of social security expected</td>
 			<td><input id="SS" type="text" class="wkti"
@@ -1601,13 +1606,13 @@
 			<td></td>
 			<td><input id="EdExpenses" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Health savings account <span id="HSAText"></span></td>
 			<td></td>
 			<td><input id="HSADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Deductible part of self-employment tax (1/2 of SE tax shown below)</td>
 			<td></td>
@@ -1617,7 +1622,7 @@
 			<td></td>
 			<td><input id="SESEP" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment" id="SEHIRow"><td></td>
 			<td colspan="2">Self-employment health insurance deduction
 			(Total health insurance: <input id="SEInsurance" type="text" class="wkti"
@@ -1630,35 +1635,35 @@
 			<td></td>
 			<td><input id="SavingsPenalty" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Alimony paid (if deductible)</td>
 			<td></td>
 			<td><input id="AlimonyPaid" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Traditional IRA deduction <i><span id="IRAComment"></span></i></td>
 			<td><span style="hidden"><input id="IRADeductionJoint" type="text" class="wkti hidden"></span></td>
 			<td><input id="IRADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Student loan interest <i>(2500 per TP/SP)</i></td>
 			<td></td>
 			<td><input id="StudentLoan" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Other adjustments expected (Forms 2106 &amp; 3903)</td>
 			<td></td>
 			<td><input id="OtherCredits" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></tr>
+				onkeyup="Input_Change(this.id);" /></td></tr>
 
 		<tr id="CharityStandardRow"><td></td>
 			<td colspan="2">Charitable contributions if using standard deduction <i>(enter under Deductions below)</i></td>
-			<td id="CharityStandard" type="text" class="calculated wktc"></tr>
+			<td id="CharityStandard" type="text" class="calculated wktc"></td></tr>
 
 		<tr><td></td>
 			<td>Total adjustments
@@ -1782,7 +1787,7 @@
 					onfocus="Get_Inputs(this.id);"
 					onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Foreign" class="calculated wktc"></td>
-			<td id="ForeignUsed" class="calculated wktc"></tr>
+			<td id="ForeignUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>Child and dependent care expenses
 			<span class="floatright">
@@ -1790,7 +1795,7 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="ChildCare" class="calculated wktc"></td>
-			<td id="ChildCareUsed" class="calculated wktc"></tr>
+			<td id="ChildCareUsed" class="calculated wktc"></td></tr>
 <!--
 		<tr><td>  </td>
 			<td>Credit for elderly or disabled
@@ -1799,7 +1804,7 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Elderly" class="calculated wktc"></td>
-			<td id="ElderlyUsed" class="calculated wktc"></tr>
+			<td id="ElderlyUsed" class="calculated wktc"></td></tr>
 -->
 		<tr><td>  </td>
 			<td>Education credits
@@ -1808,7 +1813,7 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Education" class="calculated wktc"></td>
-			<td id="EducationUsed" class="calculated wktc"></tr>
+			<td id="EducationUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>Retirement savings contributions credit <i>(2000 per TP/SP)</i>
 			<span class="floatright">
@@ -1816,17 +1821,17 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></span></td>
 			<td id="Retirement" class="calculated wktc"></td>
-			<td id="RetirementUsed" class="calculated wktc"></tr>
+			<td id="RetirementUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>Child <span id="Note2018b">and Family</span> Tax Credit</td>
 			<td id="CTCredit" class="calculated wktc"></td>
-			<td id="CTCreditUsed" class="calculated wktc"></tr>
+			<td id="CTCreditUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>Residential energy and other credits</td>
 			<td><input id="Residential" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
-			<td id="ResidentialUsed" class="calculated wktc"></tr>
+			<td id="ResidentialUsed" class="calculated wktc"></td></tr>
 		<tr><td></td>
 			<td colspan="3">Total Nonrefundable credits:</td>
 			<td id="Nonrefundable" class="calculated wktc"></td></tr>
