@@ -186,8 +186,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.24, 4/14/2021)";
+	var VERSION = "(Version 3.25, 5/15/2021)";
 	//	Minor HTML corrections
+	//	Exemption rate not printing for returns prior to 2018
+	//	Added number of exemptions to exemption rate line
+	//	Added data files back to 2015
 	//var VERSION = "(Version 3.24, 4/14/2021)";
 	//	Corrected MFJ/MFS spouse standard deduction
 	//var VERSION = "(Version 3.23, 4/4/2021)";
@@ -333,7 +336,8 @@
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
 		var tyOptIndex = 0;
-		for (var ty = _StartYear-2; ty <= _StopYear; ty++) {
+		_StartYear = 2015;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
 			var tyopti = document.createElement("option");
 			tyopti.text = tyopti.value = ty;
 			TaxYear.add(tyopti,tyOptIndex++);
@@ -1029,17 +1033,22 @@
 
 		// Calculate exemptions
 		CalcOut["PreExemptAmount"] = Math.round(Math.max(0, +CalcOut["AGI"] - Deductions));
-		var exemptAmt = +_Standard[TY].split(",")[_Standard["Exemption"]];
-		CalcOut["ExemptRate"] = exemptAmt;
-		CalcOut["ExemptAmount"] = exemptAmt * (((FilingStatusValue == "MFJ") ? 2 : 1) + +DependentsValue);
+		var exemptRate = +_Standard[TY].split(",")[_Standard["Exemption"]];
+		var exemptCount = (((FilingStatusValue == "MFJ") ? 2 : 1) + +DependentsValue);
+		var exemptAmt = exemptRate * exemptCount;
+		CalcOut["ExemptAmount"] = exemptAmt;
+		document.getElementById("ExemptCount").innerHTML =
+			exemptCount + " exemption" + ((exemptCount == 1) ? "" : "s") + " times " + exemptRate;
+		//document.getElementById("ExemptAmount").innerHTML = exemptAmt;
 		var elist = document.getElementsByClassName("exemptions");
 		if (CalcType === "J") for (elistno = 0; elistno < elist.length; elistno++) {
 			elist[elistno].style.display = (exemptAmt) ? "table-row" : "none";
 		}
-		var PostExemptAmount = Math.round(Math.max(0, +CalcOut["PreExemptAmount"] - +CalcOut["ExemptAmount"]));
+		var PostExemptAmount = Math.round(Math.max(0, +CalcOut["PreExemptAmount"] - exemptAmt));
 
 		// QBI Calc
 		var QBIDeduction = 0;
+		QBILine.style.display = MFJMFSQBILine.style.display = "none";
 		if (_LineNo[TY + ":QBI"]) {
 			QBILine.style.display = MFJMFSQBILine.style.display = "table-row";
 			var SENetIncome = +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"] - +CalcOut["SEHI"];
@@ -1747,7 +1756,8 @@
 			<td id="PreExemptAmount" class="calculated wktc">0</td></tr>
 		<tr class="exemptions"><td colspan="5">Exemptions:</td>
 		<tr class="exemptions"><td></td>
-			<td colspan="2">Exemptions times <span id="ExemptRate">TBD</span></td>
+			<td colspan="2">
+				<span id="ExemptCount">0</span></td>
 			<td id="ExemptAmount" class="calculated wktc">0</td></tr>
 		<tr id="QBILine"><td></td>
 			<td colspan="2">Qualified Business Income deduction
