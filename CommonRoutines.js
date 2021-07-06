@@ -14,6 +14,9 @@
 //	_IRADeduction		IRA Deduction as an income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.09 7/6/2021
+// 	Added a totalDependent count check to _CTCLookup
+// 	Prevent returning a negative CTC amount
 // Version 1.08 12/19/2020
 // 	Added IRA Deduction
 // Version 1.07 7/18/2020
@@ -256,6 +259,7 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	) {
 // returns an array: [CTCAmount, FTCAmount, ACTCLimit]
 //----------------------------------------------------------------------------------------
+	if (totalDependents == 0) return [0,0,0];
 	if (isNaN(SocSecOffset)
 		|| (childDependents < 3)
 		|| (SocSecOffset < 0)) SocSecOffset = 0;
@@ -290,7 +294,7 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 		var ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
 		ACTCLimit = Math.min(ACTCRate * +childDependents, ACTCLimit);
 	}
-	var FTCAmount = FTCRate * (+totalDependents - cD);
+	var FTCAmount = FTCRate * (Math.max(0, +totalDependents - cD));
 	var CTCresult = [CTCAmount, FTCAmount, Math.round(ACTCLimit)];
 	return (CTCresult);
 }
