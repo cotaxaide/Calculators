@@ -173,7 +173,12 @@ var VERSION;
 //	Deb Fisher
 //	Sue Alza
 // --------------------------------------------------------------------------------
-VERSION = "(Version 2.00, 5/8/2021)";
+VERSION = "(Version 2.01, 5/15/2021)";
+//	Added calc of monthly payment for an interest-only mortgage
+//VERSION = "(Version 2.00a, 5/9/2021)";
+//	Changed all "equity debt" text to "home equity debt"
+//	Minor text corrections
+//VERSION = "(Version 2.00, 5/8/2021)";
 //	Major revision and restructure
 //----------------------------------------------------------------------------------------
 
@@ -442,7 +447,7 @@ function Input_Change(e) {
 	if (New_Date.value < "1987-10-14") { // Grandfathered mortgage
 		New_Original.checked = true;
 		New_Term_Row.style.display = "table-row";
-		New_Equity_Label.innerHTML = "Equity debt amount:";
+		New_Equity_Label.innerHTML = "Home equity debt amount:";
 		New_Equity_Note.style.display = "none";
 		GrandEndDate = Mortgage_Expires(New_Date.value, New_Term.value);
 		gq = +New_Equity.value;
@@ -471,7 +476,7 @@ function Input_Change(e) {
 			// Non-grandfathered mortgage - refinanced)
 			Ref_Orig_Row.style.display = "table-row";
 			New_Equity_Note.style.display = "inline";
-			New_Equity_Label.innerHTML = "New equity debt amount:";
+			New_Equity_Label.innerHTML = "New home equity debt amount:";
 			nq = +New_Equity.value;
 			Orig_Date.style.backgroundColor = "";
 			if (Orig_Date < New_Date) {
@@ -650,6 +655,9 @@ function Determine_Balances() {
 				Payment1.style.backgroundColor = "hotpink";
 				MortgageBalance.style.backgroundColor = "hotpink";
 			}
+		}
+		if (+MortgageBalance.value == +New_Mort.value) { // interest-only mortgage
+			rate.innerHTML = +InterestPaid.value / (lastMo - firstMo) / +MortgageBalance.value;
 		}
 		if (rate.innerHTML === "") {
 			rate.innerHTML = +InterestPaid.value / mb6;
@@ -1132,7 +1140,7 @@ function Print_Pages() {
 	But DO use this worksheet if either:
 	<ul>
 		<li>Average monthly balance of all home acquisition debt incurred before 12/16/2017 is greater than $1,000,000 (or $500,000 MFS).</li>
-		<li>Average monthly balance of all home acquisition debt incured on or after 12/16/2017 is greater than $750,0000 (or $375,000 MFS).</li>
+		<li>Average monthly balance of all home acquisition debt incured on or after 12/16/2017 is greater than $750,000 (or $375,000 MFS).</li>
 	</ul>
 	<br /><b>Acquisition debt</b> - <i>the amount taken to buy, build, or substantially improve
 	a qualified home (your main or second ome) and secured by that home.</i>
@@ -1140,16 +1148,16 @@ function Print_Pages() {
 	and any cost to build or substantially improve the home within 24 months before
 	the date of the mortgage.
 	The deduction will be limited if the average monthly balance exeeds certain amounts.
-	<br /><b>Grandfathered debt</b> - <i>the amount of a mortgage prior to October 14, 1987
+	<br /><br /><b>Grandfathered debt</b> - <i>the amount of a mortgage prior to October 14, 1987
 	secured by a qualified home.</i>
 	Interest on this mortgage is fully deductible for the duration of the term of the
 	original loan, regardless of use, even if refinanced after that date.
 	The deduction will be limited if the average monthly balance is $1,000,000 or more.
-	<br /><b>Home equity debt</b> - <i>the amount of a mortgage secured by a qualified home
+	<br /><br /><b>Home equity debt</b> - <i>the amount of a mortgage secured by a qualified home
 	but <u>not</u> used to build or substantially improve the home.</i>
 	Such amount might have been used to purchase a car or pay credit card debt, for example.
 	The deduction will be limited due to home equity debt unless grandfathered.
-	<br /><b>Substantial improvement</b> - An improvement is substantial if it
+	<br /><br /><b>Substantial improvement</b> - An improvement is substantial if it
 	adds to the value of your home, prolongs your home&apos;s useful life,
 	or adapts your home to new uses.
 </div> <!-- InstructionDiv -->
@@ -1190,21 +1198,21 @@ function Print_Pages() {
 						<td>Initial amount of earlier mortgage:</td>
 						<td> $<input id="Orig_Mort" type="number" class="wkti" /></td></tr>
 					<tr id="Orig_Equity_Row">
-						<td style="margin-left: 2em;">Amount that was equity debt:</td>
+						<td style="margin-left: 2em;">Amount that was home equity debt:</td>
 						<td> $<input id="Orig_Equity" type="number" class="wkti" /></td></tr>
 					<tr>	<td>Balance of earlier mortgage when refinanced: </td>
 						<td> $<input id="Orig_Balance" type="number" class="wkti" /></td></tr>
-					<tr>	<td>Remaining equity debt when refinanced: </td>
+					<tr>	<td>Remaining home equity debt when refinanced: </td>
 						<td> $<input id="Equity_Balance" type="number" class="wkti" disabled /></td></tr>
 				</table>
 			</td></tr>
 		<tr>	<td>New mortgage inital amount:</td>
 			<td>$<input id="New_Mort" type="number" class="wkti" /></td></tr>
 		<tr id="New_Equity_Row">
-			<td id="New_Equity_Label">Equity debt amount:</td>
+			<td id="New_Equity_Label">Home equity debt amount:</td>
 			<td> $<input id="New_Equity" type="number" class="wkti" />
 				<span id="New_Equity_Note">
-					<i>(Enter <u>additional</u> equity debt amount when refinanced)</i>
+					<i>(Enter <u>additional</u> home equity debt amount when refinanced)</i>
 				</span>
 				</td></tr>
 		<tr>	<td>Debt classification:</td>
@@ -1219,7 +1227,7 @@ function Print_Pages() {
 						<td>Grandfathered acquisition debt amount:</td>
 						<td id="Class_GrandAcq" class="right wkto" style="padding-right: 5em;" >0</td></tr>
 					<tr id="Class_GrandEquity_Row" class="xhidden">	
-						<td>Grandfathered equity debt amount:</td>
+						<td>Grandfathered home equity debt amount:</td>
 						<td id="Class_GrandEquity" class="right wkto" style="padding-right: 5em;" >0</td></tr>
 					<tr id="Class_Equity_Row">
 						<td>Home equity debt amount:</td>
@@ -1238,7 +1246,7 @@ function Print_Pages() {
 		<br />
 		<span class="comment">
 			In the table below, enter each end-of-month mortgage balance.
-			The equity debt, if any, is reduced first.
+			The home equity debt, if any, is reduced first.
 			The result will be shown in the next section.
 		</span>
 		Select your data entry option:
@@ -1265,7 +1273,7 @@ function Print_Pages() {
 					</select>
 					</span>
 			to fill the table.
-			<br /><input id="Method3" name="Methods" type="radio" /> Enter each monthly mortgage balance from statements:</td>
+			<br /><input id="Method3" name="Methods" type="radio" /> Enter each monthly mortgage balance from statements or make adjustments to balances.</td>
 		<td>
 	</td></tr>
 		</table>
@@ -1277,7 +1285,7 @@ function Print_Pages() {
 				<th>Interest<br />APR: <span id="rate"></span>%</th>
 				<th>Acquisition debt</th>
 				<th>Grandfathered debt</th>
-				<th>Equity debt</th>
+				<th>Home equity debt</th>
 				<th>Qualified interest</th></tr>
 			<tr>	<td>Mortgage balance on</td>
 				<td id="Date0" class="wkto">TBD</td>
@@ -1401,7 +1409,7 @@ function Print_Pages() {
 				<th class="right">Mortgage balance</th>
 				<th class="right">Acquisition debt</th>
 				<th class="right">Grandfathered debt</th>
-				<th class="right">Equity debt</th>
+				<th class="right">Home equity debt</th>
 				<th>Qualified interest</th></tr>
 			<tr id="m1">
 				<td id="Lender1"></td>

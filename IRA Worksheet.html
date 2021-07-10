@@ -119,10 +119,10 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
+<script src="Tax_Data/IRS_2021.js"></script>
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
 	// Contributors:
@@ -140,7 +140,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.07, 2/1/2020)";
+	var VERSION = "(Version 1.07a, 7/9/2021)";
+	//	Added 2021 data
+	//var VERSION = "(Version 1.07, 2/1/2020)";
 	//	Restored the TS calculation option - not fixed (broke again?)
 	//var VERSION = "(Version 1.06, 12/16/2020)";
 	//	Commented out the TS calculation option since TS appears to have fixed it
@@ -373,7 +375,7 @@
 				<li>For <u>distributions</u>, do not include distribution amounts for
 				rollovers, qualified charitable distributions,
 				a one-time distribution to fund an HSA, or
-				distribution that have been repaid or recharacterizations from a ROTH IRA.</li>
+				distributions that have been repaid or recharacterizations from a ROTH IRA.</li>
 				<li>Enter a ROTH conversion in its own column. Do not include it as a distribution.</li>
 				<li>For distributions and conversions from the same IRA account, you may opt to put each on
 				separate lines to get their respective taxable amounts, but only enter the IRA value once.</li>
@@ -425,6 +427,7 @@
 </div> <!-- FilingInfo -->
 <br />
 
+<!--
 <div>
 	<h1>Adjustment to income for TaxSlayer:</h1>
 	(Federal Section > Deductions > Adjustments > IRA Deduction)
@@ -437,6 +440,7 @@
 	</table>
 </div>
 <br />
+-->
 
 <div id="IncomeInfo">
 	<h1>Form 8606 input for TaxSlayer:</h1>
