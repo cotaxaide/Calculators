@@ -18,6 +18,7 @@ h1 {
 div {
 	width: 100%;
 	margin: auto;
+	text-align: center;
 }
 button {
 	margin: 0.5em;
@@ -49,13 +50,14 @@ button {
 }
 #EINTable tr td {
 	border-bottom: 1px solid #cdd;
+	text-align: left;
 }
 #EINTAble tr td:nth-child(2) {
 	width: 15em;
 }
 </style>
 
-<script src="EIN.js"></script>
+<script src="Tax_Data/EIN.js"></script>
 <script>
 
 EIN_Row = [];
@@ -124,13 +126,17 @@ function Show_list() {
 <h1>Colorado EIN database</h1>
 <div>
 	<div id="warning">CAUTION: Do not use as a primary source for EINs!</div>
+
 	<table id="optionTable">
 		<tr><td>Search for Name:</td><td><input id="searchName" type="text" /> (try partial name too)</td></tr>
 		<tr><td>or EIN:</td><td><input id="searchEIN" type="text" />
 			with up to <input id="searchErr" type="number" value="2" /> mismatched digits</td></tr>
 	</table>
-	<center><button onclick="Show_list();">Start Search</button>
-		<button onclick="Clear_all();">Reset</button></center>
+	<div><button onclick="Show_list();">Start Search</button>
+		<button onclick="Clear_all();">Reset</button></div>
+	<div>If this database doesn&apos;t help, try
+		<a href="https://eintaxid.com" target="_blank">eintaxid.com</a> or
+		<a href="https://www.brightscope.com/" target="_blank">brightscope.com</a></div>
 </div>
 <hr />
 <div id="EINDiv">
