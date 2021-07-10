@@ -60,6 +60,7 @@
 	#FItable tr td:nth-child(4) { width: 40%; }
 	#TPName { width: 20em; }
 	#Dependents,
+	#Dependents0,
 	#EICDependents,
 	#CTCDependents { width: 3em; }
 	#SItable tr td:first-child { width: 50%; }
@@ -161,7 +162,7 @@
 		table tr td,
 		table tr td span { background-color: white; !important }
 		select,
-		input { font-size: 80% }
+		input { font-size: 100% }
 		table tr td select,
 		table input[type="number"] { font-size: 70%; }
 		.noPrint { display: none; !important }
@@ -171,16 +172,19 @@
 
 <script src="Tax_Data/IRS_2000.js"></script>
 <!-- Keep current plus 4 prior years (for ACA) -->
-<script src="Tax_Data/IRS_2016.js"></script>
 <script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
+<script src="Tax_Data/IRS_2021.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.5, 3/15/2021";
+	var VERSION = "Version 3.6 draft, 7/5/2021";
+	//	Modified for new Chld Tax Credit for 2021
+	//	Added NoEIC checked for TP the student under 25.
+	//var VERSION = "Version 3.5, 3/15/2021";
 	//	Added test for 2020 to not pay back APTC excess
 	//var VERSION = "Version 3.4a, 10/26/2020";
 	//	Removed another link to extinct Education Cookbook
@@ -347,6 +351,7 @@
 	var StudKiddieTNF = [];
 	var ScholarReduction = 0;
 	var ScholarReductionMax = 0;
+	var NoEICAutoCheck = false;
 
 	//----------------------------------------------------------------------------------------
 	// This function initializes options when the application is first loaded
@@ -544,6 +549,9 @@
 		F8962FLineNoA.innerHTML = F8962FLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962F"];
 		//F8962MAGILineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962MAGI"];
 
+		// Child Tax Credit change in 2021
+		Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
+
 		// Child (and Family) Tax Credit name change in 2018
 		OTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
 
@@ -604,6 +612,7 @@
 		Exemptions += +Dependents.value;
 
 		// Show Claimed questions if not a dependent
+		StudentIsAdult = StudentAge24.checked || StudentAge25.checked;
 		if (whatChanged == "DependentYes") StudentAge19.checked = true;
 		if (whatChanged == "DependentNo") {
 			StudentAge24.checked = true;
@@ -613,9 +622,9 @@
 			F8962FTax.disabled = ACAMonths.disabled = DependentNo.checked && ClaimedYes.checked;
 
 		IncomeLessYes.disabled =
-		IncomeLessNo.disabled = StudentAge16.checked || StudentAge17.checked || StudentAge24.checked;
+		IncomeLessNo.disabled = StudentAge16.checked || StudentAge17.checked || StudentIsAdult;
 		if (IncomeLessYes.disabled) IncomeLessYes.checked = true;
-		ParentAliveYes.disabled = ParentAliveNo.disabled = StudentAge24.checked;
+		ParentAliveYes.disabled = ParentAliveNo.disabled = StudentIsAdult;
 
 		var cqlist = document.getElementsByClassName("ClaimedQuestion");
 		for (var cqi = 0; cqi < cqlist.length; cqi++) {
@@ -677,7 +686,7 @@
 		// Show AOC Refund questions if not claimed
 		var aocqlist = document.getElementsByClassName("AOCRefundQuestions");
 		for (var aocqi = 0; aocqi < aocqlist.length; aocqi++) {
-			aocqlist[aocqi].style.display = (ClaimedYes.checked || StudentAge24.checked) ? "none" : "inline";
+			aocqlist[aocqi].style.display = (ClaimedYes.checked || StudentIsAdult) ? "none" : "inline";
 		}
 		// Suppress the same question asked earlier (if it was) and copy the response
 		if (ParentAlive2Row.style.display == "inline") {
@@ -770,7 +779,7 @@
 		TPScholarIncome.style.display = (DependentNo.checked) ? "table-row" : "none";
 
 		// Refresh the expense section
-		BudgetChange();
+		BudgetChange(whatChanged);
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -919,15 +928,15 @@
 			}
 
 			//if ((unearnedMargin < 0) || (earnedMargin < 0) || (grossMargin < 0)) { // must file
-			if ((unearnedMargin < 0) || (grossMargin < 0)) { // must file NEW
+			if ((unearnedMargin < 0) || (grossMargin < 0)) { // must file NEW in v 3.4
 				taxableLimit = Math.min(KiddieFileMargin, taxableLimit);
 			}
 			else { // dont have to file yet
-				//taxableLimit = Math.min(StudentFileMargin, taxableLimit); (this was commented out)
-				taxableLimit = StudentFileMargin; // NEW
+				taxableLimit = Math.min(StudentFileMargin, taxableLimit); // (this was commented out in v3.4)
+				// taxableLimit = StudentFileMargin; // NEW in v 3.4 // commented out in v3.6
 			}
 
-			if (ScholarTaxable.value > taxableLimit) {
+			if (ScholarTaxable.value > StudentFileMargin) { // StudentFileMargin was taxableLimit pre v3.6
 				if (! Optimizing) alert("CAUTION!\x0DYou are exceeding the taxable amount to your dependent child that makes the taxpayer \"kiddie tax\" come into effect for the taxpayer. You don't want to do that.");
 				ScholarTaxable.value = "";
 			}
@@ -935,9 +944,10 @@
 
 		// Limit taxable to dependent relative to prevent a filing requirement (thus no longer dependent)
 		RelativeViolation = false;
-		if (DependentYes.checked && StudentAge24.checked && (! Disabled.checked)) { // dependent relative limit
+		if (DependentYes.checked && StudentIsAdult && (! Disabled.checked)) { // dependent relative limit
 			// Get the student's current AGI (not quite accurate - should be total income)
-			taxableLimit = +StudAGITax.value;
+			// taxableLimit = +StudAGITax.value; // rmv in v4.6
+			taxableLimit = Math.min(+StudAGITax.value, taxableLimit); // added in v4.6
 			var exemptionLimit = _Standard[TaxYear.value].split(",")[+_Standard["DepAsRel"]];
 			if (taxableLimit > exemptionLimit) {
 				message = "The student you are designating as a dependant has an AGI";
@@ -1380,7 +1390,7 @@
 			CareTax.innerHTML = result.Care;
 			LLCTax.value = result.Ed;
 			RetireTax.innerHTML = result.Retire;
-			CTCTax.innerHTML = result.CTC + result.OTC;
+			CTCTax.innerHTML = +result.CTC + +result.OTC;
 			ACTCTax.innerHTML = result.ACTC;
 
 		// Calculate Education and AOC nonrefundable credits for the taxpayer
@@ -1405,6 +1415,10 @@
 		}
 
 		// Calculate Earned Income Credits
+			if ( DependentNo.checked
+				&& (EICDependents.value == 0)
+				&& ((! StudentAge25.checked) || TP65.checked)) NoEICAutoCheck = NoEIC.checked = true;
+			else if (NoEICAutoCheck) NoEIC.checked = false;
 		if ((NoEIC.checked) || (ClaimedYes.checked)) {
 			// Probable high investment income, NR Alien, or dependent
 			EICTax.innerHTML = "";
@@ -2238,12 +2252,13 @@
 			case "LLC": earnedCTC = EarnedLLC.innerHTML - +ScholarLLC.innerHTML; break;
 			case "TNF": earnedCTC = EarnedTNF.innerHTML - +ScholarTNF.innerHTML; break;
 		}
-		CTCAmount = OTCAmount = ACTCLimit = 0;
+		CTCAmount = OTCAmount = ACTCAmount = 0;
 		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value,
-			CTCDependents.value, Dependents.value, earnedCTC, testAGI, 0);
+			+CTCDependents.value + (+Dependents0.value * 0.01),
+			Dependents.value, earnedCTC, testAGI, 0);
 		CTCAmount = +CTCresult[0];
 		OTCAmount = +CTCresult[1];
-		ACTCLimit = +CTCresult[2];
+		ACTCAmount = +CTCresult[2];
 
 		// Current assumption is that OTC is used before CTC
 		// Space for OTC
@@ -2255,7 +2270,7 @@
 		result.CTC = Math.min(CTCAmount, availableNRC);
 		availableNRC -= result.CTC;
 		result.NRC += result.CTC;
-		result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCLimit));
+		result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCAmount));
 
 		// Space for Energy and Sched R amounts?
 		if (type == "TAX") {
@@ -2958,12 +2973,16 @@
 		<tr title="Number of dependents in the tax family. Do not include those you could claim but did not claim.">
 			<td>Total dependents claimed:</td>
 			<td><input id="Dependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
-		<tr title="Number of dependents who qualify for Earned Income Credit.">
-			<td>Dependents claimed for EIC:</td>
-			<td><input id="EICDependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
 		<tr title="Number of dependents who qualify for Child Tax Credit.">
-			<td>Dependents claimed for CTC:</td>
+		<tr title="Number of dependents who qualify for Earned Income Credit.">
+			<td>Dependents qualified for EIC:</td>
+			<td><input id="EICDependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
+		<tr title="Number of dependents who qualify for Child Tax Credit (including those under age 6).">
+			<td>Dependents qualified for CTC:</td>
 			<td><input id="CTCDependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
+		<tr id="Dependents0Row" title="Number of dependents who are under age 6 and are eligible for CTC.">
+			<td>&nbsp;&nbsp;&nbsp;Dependents under age 6:</td>
+			<td colspan="2"><input id="Dependents0" value="0" type="number" onkeyup="ChangeInfo(this.id)" /> (if qualified for CTC)</td><td></td></tr>
 </table></div>
 	<br />
 	<hr />
@@ -2992,7 +3011,8 @@
 				<input name="StudentAge" id="StudentAge17" type="radio" /> 17
 				<input name="StudentAge" id="StudentAge18" type="radio" /> 18 
 				<input name="StudentAge" id="StudentAge19" type="radio" checked /> 19-23 
-				<input name="StudentAge" id="StudentAge24" type="radio" > 24+
+				<input name="StudentAge" id="StudentAge24" type="radio" > 24
+				<input name="StudentAge" id="StudentAge25" type="radio" > 25+
 				<input id="Disabled" type="checkbox" /> Disabled </td> </tr>
 		<tr title="If the student files a return, what would be the the student's filing status?">
 			<td><span class="DependentQuestion">&nbsp;&nbsp;What is the dependent student&apos;s filing status?</span></td>
@@ -3919,6 +3939,7 @@
 					onmouseout="EICInfoText.style.display='none';">
 					Not qualified if any of the following:
 					<ul>
+						<li>TP is student and age less than 25 or greater than 64 and no children</li>
 						<li>Investment income (Interest + Tax-free interest + Dividends + Capital gains) more than $<span id="EICInvest">limit</span></li>
 						<li>Married filing seperately</li>
 						<li>TP or SP not have a SSN that allows to work and valid for EIC</li>

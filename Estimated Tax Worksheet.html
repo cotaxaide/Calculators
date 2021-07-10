@@ -9,11 +9,11 @@
 	html { background-color: #ccccaa; }
 	body { background-color: #ccccaa; font-family: sans-serif; font-size: 0.9em; padding: 0 2.5% 0 2.5%; }
 	button { cursor: pointer; background-color: lightgreen; }
-	table { background-color: #eeeeaa; border-collapse:collapse; width: 100%; }
+	table { background-color: #eeeeaa; border-collapse: collapse; width: 100%; }
 	h1 { text-align: left; font-size: 110%; text-decoration: underline}
 	tr { vertical-align: middle; }
-	input[type="number"] { text-align: right; width:6em; }
-	input[type="text"] { text-align: right; width:6em; }
+	input[type="number"] { text-align: right; width: 6em; }
+	input[type="text"] { text-align: right; width: 6em; }
 	input, select { background-color: white; }
 	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
 	.title { font-size:125%; font-weight: bold; }
@@ -22,6 +22,7 @@
 	.calculated { text-align: right; cursor: not-allowed; }
 	.tablebreak { max-height: 5px !important; }
 	.hidden { display: none; }
+	.small { width: 3em !important;}
 	.indent { padding-left: 1.5em; }
 	.floatright { float: right; font-weight: normal; }
 	.grid-container {
@@ -38,8 +39,8 @@
 		border:1px solid black;
 	}
 	#FilingInfo { grid-column: 1 / 3; }
-	#IncomeInfo { grid-column: 1 / 2; min-width: 58em; }
-	#MFSInfo { grid-column: 2 / 3; width: 12em; display: none; }
+	#IncomeInfo { grid-column: 1 / 3; min-width: 58em; }
+	#MFSInfo { grid-column: 2 / 3; min-width: 12em; display: none; }
 	#IRADist { grid-column: 1 / 3; }
 	#About { grid-column: 1 / 3; }
 	#Preliminary { color: red; }
@@ -72,12 +73,7 @@
 	#IncomeTable tr td:nth-child(5) { width: 7em; text-align: right; }
 	#IncomeTable tr:nth-child(even) { background-color: #fefeca; }
 	#HSAText { font-style: italic; }
-	#MFSTable { width: 12em; }
-	#MFSTable tr:nth-child(2) {
-		text-align: center;
-		text-decoration: underline;
-		font-weight: bold;
-	}
+	#MFSTable { min-width: 12em; }
 	#MFSTable tr td:nth-child(1),
 	#MFSTable tr td:nth-child(2) {
 		text-align: right;
@@ -143,7 +139,11 @@
 			width: 100%;
 			background-color: white;
 			font-size: 95%;
-			//overflow: hidden;
+			overflow: hidden;
+			white-space: nowrap;
+		}
+		table tr {
+			height: 1.8em !important;
 		}
 		input[type="number"] { text-align: right; width:4em; }
 		input[type="text"] { text-align: right; width:4em; }
@@ -425,7 +425,7 @@
 			DependentsMFS2.style.display =
 			CTCDependentsMFS2.style.display =
 			EICDependentsMFS2.style.display = "inline";
-			PayChange("payJ");
+			Pay_Change("payJ");
 		}
 		else {
 			FilingStatus.disabled = false;
@@ -468,9 +468,9 @@
 		if (SPBlind.disabled) SPBlind.checked = false;
 		MFJMFS.disabled = (IsDependent.checked || (FilingStatus.value !== "MFJ"));
 		if (MFJMFS.disabled) MFJMFS.checked = false;
-		ChildCareCost.disabled = ((Dependents.value == 0) || (FilingStatus.value === "MFS"));
-		EducationCost.disabled = (FilingStatus.value === "MFS");
+		ChildCareCost.disabled = (FilingStatus.value === "MFS");
 		if (ChildCareCost.disabled) ChildCareCost.value = "";
+		EducationCost.disabled = (FilingStatus.value === "MFS");
 		LYAGI.innerHTML = (FilingStatus.value === "MFS") ? 75:150;
 		ItemizeRequiredOption.style.display = (FilingStatus.value === "MFS") ? "inline" : "none";
 		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
@@ -532,6 +532,10 @@
 		CharityStandardRow.style.display = (TY > 2019) ? "table-row" : "none";
 		MFJMFSRecoveryCreditRow.style.display =
 		RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
+
+		// 2021 tax form changes
+		MFJMFSACCCreditRow.style.display =
+		ACCCreditRow.style.display = (TY == 2021) ? "table-row" : "none";
 
 		if (MFJMFS.checked) {
 			TPInput.value = TPMFS["IRADeductionJoint"];
@@ -1090,28 +1094,21 @@
 		WorkingTax -= NRUsed;
 
 		// Limit Child Care Cost
-		var cclimit = (DependentsValue  > 1) ? 6000 : 3000;
-		if (FilingStatusValue == "MFS") cclimit = 0;
-		cccost = Math.min(+CalcIn["ChildCareCost"], cclimit);
-		switch (CalcType) {
-			case "J":
-				CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
-				CC2Earned = 0; // Other partner
-				break;
-			case "T":
-				CCEarned = +TPMFS["Wages"] + +TPMFS["SEIncome"] - +TPMFS["SETaxCredit"];
-				CC2Earned = +SPMFS["Wages"] + +SPMFS["SEIncome"] - +SPMFS["SETaxCredit"];
-				break;
-			case "S":
-				CCEarned = +SPMFS["Wages"] + +SPMFS["SEIncome"] - +SPMFS["SETaxCredit"];
-				CC2Earned = +TPMFS["Wages"] + +TPMFS["SEIncome"] - +TPMFS["SETaxCredit"];
-				break;
+		CalcOut["ChildCare"] = CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
+		CalcOut["ACCCredit"] = 0; // 2021 only
+		if ((FilingStatusValue != "MFS") && (+CCDependents.value > 0)) {
+			var cclimit = (+CCDependents.value  > 1) ? 6000 : 3000;
+			if (TY == 2021) cclimit = (+CCDependents.value  > 1) ? 16000 : 8000;
+			cccost = Math.min(+CalcIn["ChildCareCost"], cclimit);
+			CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
+			CC2Earned = 0; // Other partner
+			CalcOut["ChildCare"] = Math.round(_ChildCare(TY, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
+			CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
+			if (TY == 2021) CalcOut["ACCCredit"] = CalcOut["ChildCare"] - CalcOut["ChildCareUsed"];
 		}
-		CalcOut["ChildCare"] = Math.round(_ChildCare(TY, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
-		if (FilingStatusValue == "MFS") CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
-		else CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
 		WorkingTax -= NRUsedTemp;
 		NRUsed += NRUsedTemp;
+
 		// Determine education expenses and credits
 		CalcIn["EducationCost"] = CalcOut["Education"] = CalcOut["AOCCredit"] = "";
 		if ((FilingStatusValue !== "MFS") && (EdiList.length)) {
@@ -1160,12 +1157,7 @@
 		CalcOut["CTCreditUsed"] = FTCUsed + NRUsedTemp;
 		
 		// ACTC
-		if (TY == 2021) {
-			ACTCAmount = ACTCLimit;
-		}
-		else {
-			ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
-		}
+		ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
 		CalcOut["ACTCredit"] = ACTCAmount;
 
 		// Residential and other credits
@@ -1336,23 +1328,29 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function PayChange(id) {
+	function Pay_Change(id) {
 	//----------------------------------------------------------------------------------------
 		payJ.style.fontWeight =
 		payT.style.fontWeight =
 		payS.style.fontWeight = "normal";
+		payJ.style.backgroundColor =
+		payT.style.backgroundColor =
+		payS.style.backgroundColor = "lightgreen";
 		switch (id) {
 		case ("payJ"): 
 			payOption = "J";
 			payJ.style.fontWeight = "bold"
+			payJ.style.backgroundColor = "green";
 			break;
 		case ("payT"):
 			payOption = "T";
 			payT.style.fontWeight = "bold"
+			payT.style.backgroundColor = "green";
 			break;
 		case ("payS"):
 			payOption = "S";
 			payS.style.fontWeight = "bold"
+			payS.style.backgroundColor = "green";
 		       break;
 		}
 		Do_Pay();
@@ -1470,33 +1468,34 @@
 		<tr id="DependentsRow" title="Total number of dependents in the tax family claimed.">
 			<td colspan="2">Total Dependents claimed:
 			<td><span id="DependentsMFS1">TP: </span>
-				<input id="Dependents" size="2" value="0" />
-				<span id="DependentsMFS2">, SP: <input id="SPDependents" size="2" value="0" /></span>
-				</td>
-			<td></td></tr>
-		<tr id="Dependents0Row" title="Number of dependents under age 6.">
-			<td colspan="2">Dependents under age 6:
-			<td><span id="Dependents0MFS1">TP: </span>
-				<input id="Dependents0" size="2" value="0" />
-				<span id="Dependents0MFS2">, SP: <input id="SPDependents0" size="2" value="0" /></span>
+				<input id="Dependents" type="number" class="small" value="0" />
+				<span id="DependentsMFS2">, SP: <input id="SPDependents" type="number" class="small" value="0" /></span>
 				</td>
 			<td></td></tr>
 		<tr id="EICRow" title="Number of dependents in the tax family age under age 18 (or 24 if a full time student or any age if disabled).">
 			<td colspan="2">Dependents qualified for EIC:</td>
 			<td><span id="EICDependentsMFS1">TP: </span>
-			<input id="EICDependents" size="2" value="0" />
-				<span id="EICDependentsMFS2">, SP: <input id="SPEICDependents" size="2" value="0" /></span>
+			<input id="EICDependents" type="number" class="small" value="0" />
+				<span id="EICDependentsMFS2">, SP: <input id="SPEICDependents" type="number" class="small" value="0" /></span>
 				</td>
 			<td></td></tr>
-		<tr id="CTCRow" title="Number of dependents in the tax family under age 17.">
+		<tr id="CTCRow" title="Total number of dependents in the tax family under age 17.">
 			<td colspan="2">Dependents qualified for CTC:</td>
 			<td><span id="CTCDependentsMFS1">TP: </span>
-				<input id="CTCDependents" size="2" value="0" />
-				<span id="CTCDependentsMFS2">, SP: <input id="SPCTCDependents" size="2" value="0" /></span></td>
+				<input id="CTCDependents" type="number" class="small" value="0" />
+				<span id="CTCDependentsMFS2">, SP: <input id="SPCTCDependents" type="number" class="small" value="0" /></span></td>
 			<td title="Check to show MFS columns" style="text-align: right;" >
 				<input id="MFJMFS" type="checkbox" onchange="MFJMFS_Change();" />
 				Check box for MFJ/MFS comparison
 				</td></tr>
+		<tr id="Dependents0Row" title="Number of dependents under age 6.">
+			<td colspan="2">&nbsp;&nbsp;&nbsp;Dependents under age 6:</td>
+			<td colspan="2"><span id="Dependents0MFS1">TP: </span>
+				<input id="Dependents0" type="number" class="small" value="0" />
+				<span id="Dependents0MFS2">, SP: <input id="SPDependents0" type="number" class="small" value="0" /></span>
+				(who qualify for CTC)
+				</td>
+			</tr>
 		</table>
 
 
@@ -1577,8 +1576,8 @@
 				onkeyup="Input_Change(this.id, true);" /></td></tr>
 		<tr class="income"><td></td>
 			<td style="height: 3.2em;">Capital gains/loss
-				<span style="text-align: right; display: inline-block; float: right; right: 3px;">Short term gain/loss:
-					<br />Long term gain/loss:</span></td>
+				<span style="text-align: right; display: inline-block; float: right; right: 3px;">
+					Short term gain/loss:<br />Long term gain/loss:</span></td>
 			<!-- Get_Inputs true parameter allows negative input -->
 			<td><input id="STCapGains" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id, true);"
@@ -1799,7 +1798,9 @@
 			<td id="Foreign" class="calculated wktc"></td>
 			<td id="ForeignUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
-			<td>Child and dependent care expenses
+			<td>Child and dependent care expenses for
+				<input id="CCDependents" type="number" class="small"
+				onchange="File_Change();" /> dependents
 			<span class="floatright">
 				<input id="ChildCareCost" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
@@ -1873,6 +1874,9 @@
 		<tr><td>  </td>
 			<td>Additional Child Tax Credit</td>
 			<td id="ACTCredit" class="calculated wktc"></td></tr>
+		<tr id="ACCCreditRow"><td>  </td>
+			<td>Additional Child Care Credit</td>
+			<td id="ACCCredit" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>American Opportunity Credit (enter cost in Nonrefundable Credits line)</td>
 			<td id="AOCCredit" class="calculated wktc"></td></tr>
@@ -1894,9 +1898,9 @@
 		<tr><td colspan="5">Estimated Payments Needed:
 			<span id="PayChoice">
 				by: 
-				<button id="payJ" onclick="PayChange(this.id)">Joint</button>
-				<button id="payT" onclick="PayChange(this.id)">TP</button>
-				<button id="payS" onclick="PayChange(this.id)">SP</button>
+				<button id="payJ" onclick="Pay_Change(this.id)">Joint</button>
+				<button id="payT" onclick="Pay_Change(this.id)">TP</button>
+				<button id="payS" onclick="Pay_Change(this.id)">SP</button>
 			</span></td>
 		<tr><td>  </td>
 			<td colspan="2">90% of estimated total tax
@@ -1942,9 +1946,9 @@
 <!-- ****************************************** MFS/MFJ WORKSHEET ****************************************** -->
 <div id="MFSInfo" class="grid-item" >
 	<h1>MFS comparison:</h1>
-	<table id="MFSTable">
-		<tr><td></td><td></td></tr> <!-- 3rd column stores hidden variables for indexing -->
-		<tr><th>Taxpayer</th><th>Spouse</th></tr>
+	<table id="MFSTable"> <!-- 3rd column in each row stores hidden variables -->
+		<tr><th>Taxpayer</th><th>Spouse</th><th></th></tr>
+		<tr><th colspan="2">Income:</th></tr>
 		<tr class="income"><td id="TPWages"></td><td id="SPWages"></td></tr>
 		<tr class="income"><td id="TPScholar"></td><td id="SPScholar"></td></tr>
 		<tr class="income"><td id="TPInterest"></td><td id="SPInterest"></td></tr>
@@ -1964,7 +1968,7 @@
 			<td>	<span id="TPSS" class="hidden"></span>
 				<span id="SPSS" class="hidden"></span></td></tr>
 		<tr class="income"><td id="TPSEIncome"></td><td id="SPSEIncome"></td></tr>
-		<tr class="income" style="height: 3.3em;"><td id="TPCapGains"></td><td id="SPCapGains"></td>
+		<tr class="income" style="height: 3.3em !important;"><td id="TPCapGains"></td><td id="SPCapGains"></td>
 			<td>	<span id="TPSTCapGains" class="hidden"></span>
 				<span id="SPSTCapGains" class="hidden"></span>
 				<span id="TPLTCapGains" class="hidden"></span>
@@ -2038,6 +2042,8 @@
 		<tr><td id="TPChildCareUsed"></td><td id="SPChildCareUsed"></td>
 			<td>	<span id="TPChildCare" class="hidden"></span>
 				<span id="SPChildCare" class="hidden"></span>
+				<span id="TPCCDependents" class="hidden"></span>
+				<span id="SPCCDependents" class="hidden"></span>
 				<span id="TPChildCareCost" class="hidden"></span>
 				<span id="SPChildCareCost" class="hidden"></span></td></tr>
 <!--
@@ -2075,6 +2081,7 @@
 		<tr><th colspan="2">Refundable Credits:</th></tr>
 		<tr><td id="TPEICCredit"></td><td id="SPEICCredit"></td></tr>
 		<tr><td id="TPACTCredit"></td><td id="SPACTCredit"></td></tr>
+		<tr id="MFJMFSACCCreditRow"><td id="TPACCCredit">0</td><td id="SPACCCredit">0</td></tr>
 		<tr><td id="TPAOCCredit"></td><td id="SPAOCCredit"></td></tr>
 		<tr id="MFJMFSRecoveryCreditRow"><td id="TPRecoveryCredit"></td><td id="SPRecoveryCredit"></td></tr>
 		<tr><td id="TPRefundable"></td><td id="SPRefundable"></td></tr>

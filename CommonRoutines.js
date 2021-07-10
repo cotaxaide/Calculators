@@ -14,6 +14,9 @@
 //	_IRADeduction		IRA Deduction as an income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.10 7/9/2021
+// 	Added 2021 rates to _ChildCare
+// 	Fixed problem where MFJ had 0 for spouse income
 // Version 1.09 7/6/2021
 // 	Added a totalDependent count check to _CTCLookup
 // 	Prevent returning a negative CTC amount
@@ -281,14 +284,13 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 		var CTC0Reduction = Math.max(0, (+AGI - +CTC0Limit[+_CTCLimits[filingStatus]]));
 			CTC0Reduction = 50 * (Math.ceil(CTC0Reduction/1000));
 		var cD0 = Math.round((childDependents - cD) * 100);
-			cD0 = Math.min(cD, cD0); // All under 6 may not qualify
+			cD0 = Math.min(cD, cD0); // Data error check
 		var cD6 = Math.max(0, (cD - cD0));
-		var ACTC0Amount = CTC0Rate * cD0;
-		var ACTCLimit = (CTC6Rate * cD6) + ACTC0Amount;
-		ACTCLimit = Math.max(0, ACTCLimit - CTC0Reduction);
-		// all refundable
-		ACTCLimit += CTCAmount;
-		CTCAmount = 0;
+		var CTC0Amount = CTC0Rate * cD0;
+		var CTC6Amount = CTC6Rate * cD6;
+		CTCAmount += (CTC0Amount + CTC6Amount);
+		// all CTC refundable
+		ACTCLimit = CTCAmount;
 	}
 	else {
 		var ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
@@ -422,9 +424,12 @@ function _ChildCare (	// Form 2441
 // Form 2441 line numbers
 //----------------------------------------------------------------------------------------
 	
-	if (filingStatus === "MFJ") line6 = Math.min(+amountPaid, +TPEarnedIncome, +SPEarnedIncome);
+	if (filingStatus === "MFJ") line6 = Math.min(+amountPaid, +TPEarnedIncome + +SPEarnedIncome);
 	else line6 = Math.min(+amountPaid, +TPEarnedIncome);
 	var line8 = (35 - (Math.ceil(Math.min(Math.max(0, (AGI - 15000)/2000), 15)))) / 100;
+	if (+taxYear == 2021) {
+		line8 = (50 - (Math.ceil(Math.min(Math.max(0, (AGI - 125000)/2000), 15)))) / 100;
+	}
 	return Math.max(0, line6 * line8);
 }
 
