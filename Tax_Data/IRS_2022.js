@@ -153,6 +153,13 @@
 		_CTCLimits[_TY+":ACTCRate"] = 1400;			// Needs update
 		_CTCLimits[_TY+":ACTCThreshold"] = 2500;		// Needs update
 
+       	// var CareRates = [];
+		// Source: Pub 503
+		_CareLimits[_TY+":RateMax"] = 50;
+		_CareLimits[_TY+":RateMin"] = 35;
+		_CareLimits[_TY+":AGICap"] = 125000;
+		_CareLimits[_TY+":AGICap"] = 125000;
+
         // var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)
 		// In 1040 instructions, see the EIC table footnotes for limits

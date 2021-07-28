@@ -11,6 +11,7 @@ var _CGRates = []; // Capital gains rates
 var _MedicalExclusion = [];
 var _RetireLimits = [];
 var _CTCLimits = [];
+var _CareLimits = [];
 var _EICRates = [];
 var _FPL = []; // Federal Poverty Line
 var _PTCFactorVal = [];

@@ -136,6 +136,13 @@
 		_CTCLimits[_TY+":ACTCRate"] = 1000;
 		_CTCLimits[_TY+":ACTCThreshold"] = 3000;
 
+	// var CareRates = [];
+		// Source: Pub 503
+		_CareLimits[_TY+":RateMax"] = 35;
+		_CareLimits[_TY+":RateMin"] = 20;
+		_CareLimits[_TY+":AGICap"] = 15000;
+		_CareLimits[_TY+":AGICap"] = 15000;
+
         // var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)
 		// AGISNG and AGIMFJ are the amounts above which AGI must also be tested

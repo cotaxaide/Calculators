@@ -74,7 +74,7 @@
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, WID)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
         
-		_EdExpenseLimits[_TY+":TNF"] = " 4000, 66000, 2000,  80000,       0";		// Needs update
+		_EdExpenseLimits[_TY+":TNF"] = "    0,     0,    0,       0,      0";
 		_EdExpenseLimits[_TY+":LLC"] = "10000, 59000, 69000, 118000, 138000";		// Needs update
 		_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";		// Needs update
 		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 82350, 96100, 123550, 151600";	// Tentative	// Needs update
@@ -155,6 +155,13 @@
 		_CTCLimits[_TY+":FTCRate"] = 500;			// Needs update
 		_CTCLimits[_TY+":ACTCRate"] = 1000000;	// not limited
 		_CTCLimits[_TY+":ACTCThreshold"] = 0;
+
+       	// var CareRates = [];
+		// Source: Pub 503
+		_CareLimits[_TY+":RateMax"] = 50;
+		_CareLimits[_TY+":RateMin"] = 35;
+		_CareLimits[_TY+":AGICap"] = 125000;
+		_CareLimits[_TY+":AGICap"] = 125000;
 
         // var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)

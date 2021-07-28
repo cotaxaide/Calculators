@@ -1,0 +1,619 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Tax Credit Plotter</title>
+
+<style type="text/css">
+	body { background-color: #ccbbcc; font-family: sans-serif; }
+	div {
+		background-color: #eeeeee;
+		padding: 1em;
+		border: 1px solid black;
+		margin: 1rem;
+		width: calc(100% - 4rem);
+	}
+	.title { font-size: 125%; font-weight: bold; }
+	.bold { font-weight: bold; }
+	.center { text-align: center; }
+	#canvasdiv {
+		position: fixed;
+		width: calc(100% - 3rem);
+		top: 14rem;
+		height: calc(100vh - 14rem);
+		padding: 0;
+		background-color: white;
+	}
+	#optionTable {
+		width: 100%;
+	}
+	#optionTable tr td {
+		vertical-align: top;
+	}
+	#optionTable tr td:first-child {
+		border-left: 1px solid black;
+	}
+	#optionTable tr td:first-child,
+	#optionTable tr td:nth-child(2) {
+		width: 5rem;
+		min-width: 5rem;
+		border-top: 1px solid black;
+		border-bottom: 1px solid black;
+	}
+	#optionTable tr td:nth-child(3) {
+		border-left: 1px solid black;
+		width: 6.5rem;
+		min-width: 6.5rem;
+	}
+	#optionTable tr td:nth-child(4) {
+		white-space: nowrap;
+	}
+	#optionTable tr td:nth-child(5) {
+		white-space: nowrap;
+		overflow: hidden;
+	}
+	
+	/*
+	@media print { 
+		.doPrint { display: inline; }
+		.noPrint { display: none; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
+		input, select, option { font-size: 0.8em; }
+		table { width: 100%; background-color: white; }
+	}
+	*/
+</style>
+
+<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2018.js"></script>
+<script src="Tax_Data/IRS_2019.js"></script>
+<script src="Tax_Data/IRS_2020.js"></script>
+<script src="Tax_Data/IRS_2021.js"></script>
+<script src="CommonRoutines.js"></script>
+<script>
+	var VERSION;
+	//----------------------------------------------------------------------------------------
+	// CHANGE HISTORY:
+	VERSION = "(Version 1.01, 7/27/2021)";
+	//	Added student option row to reduce confusion
+	//	Added Child Care graph
+	//VERSION = "(Version 1.00, 7/22/2021)";
+	//----------------------------------------------------------------------------------------
+
+	// --------------------------------------------------------------------------------
+	// Contributors:
+	// --------------------------------------------------------------------------------
+
+	var Color = 0;
+	var ColorList = [];
+	var TYElement = []; // TaxYear
+	var TYChecked = [];
+	var CHChecked = []; // Children
+	var STChecked = []; // Students
+	var FilingList = ["SNG", "MFJ", "MFS", "HOH", "WID"];
+	var FSElement = []; // Filing Status
+	var FSChecked = [];
+	var PlotCanv;
+	var PlotHeight = 0;
+	var PlotMarginT = 15; // margin above plot
+	var PlotMarginB = 65; // margin below plot
+	var PlotWidth = 0;
+	var PlotMarginR = 20; // margin right of plot
+	var PlotMarginL = 150; // margin left of plot
+	var PlotFactorX = 1;	// pixels/AGI$
+	var PlotFactorY = 1;	// pixels/Credit$
+	var WideLineColor = -1;
+	var Legend = [];
+	var LegendFontSize = 20; // pixels
+	var LegendX = 0;
+	var LegendY = 0;
+
+	//----------------------------------------------------------------------------------------
+	function Initialize() {
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		var tyIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			var tybox = document.createElement("input");
+			tybox.type = "checkbox"
+			tybox.id = "TY" + ty;
+			tybox.class = "TYClass";
+			if (ty == _DefaultYear) tybox.checked = true;
+			TYList.appendChild(tybox);
+			var tytext = document.createElement("span");
+			tytext.innerHTML = ty + "&nbsp;&nbsp;"
+			TYList.appendChild(tytext);
+			TYElement[tyIndex++] = tybox;
+		}
+		FSElement = document.getElementsByClassName("FSClass");
+
+		// Make a color list
+		cInc = ["00", "FF", "80", "C0", "40"];
+		cri = [0, 1,  8,  64,  512];
+		cgi = [0, 2, 16, 128, 1028];
+		cbi = [0, 4, 32, 256, 2048];
+		for (c = 0 ; c < 4012 ; c++) ColorList[c] = "#?";
+		for (c1 = 0 ; c1 < 5 ; c1++) {
+			for (c2 = 0 ; c2 < 5 ; c2++) {
+				for (c3 = 0 ; c3 < 5 ; c3++) {
+					cr = cInc[c1];
+					cg = cInc[c2];
+					cb = cInc[c3];
+					c = cri[c1] + cgi[c2] + cbi[c3];
+					if (c == 7) continue; // White, not a good color to graph
+					ColorList[c] = "#" + cr + cg + cb;
+				}
+			}
+		}
+
+		// The above leaves gaps (i.e. 9, 65, 72, etc, so compress gaps)
+		for (ci = 0 ; ci < ColorList.length ; ci++) {
+			if (ColorList[ci] === "#?") {
+				ColorList.splice(ci, 1);
+				ci--; // back up one
+			}
+		}
+
+		Change_Options();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Change_Options() {
+	//----------------------------------------------------------------------------------------
+
+		// Create the canvas
+		PlotCanv = Mycanvas.getContext('2d');
+		var CanvasWidth = Mycanvas.width = canvasdiv.clientWidth;
+		var CanvasHeight = Mycanvas.height = canvasdiv.clientHeight;
+		PlotWidth = CanvasWidth - PlotMarginL - PlotMarginR;
+		PlotHeight = CanvasHeight - PlotMarginT - PlotMarginB;
+		PlotMax = PlotMarginL + PlotWidth;
+		var PlotCenterH = PlotMarginL + PlotWidth/2;
+		var PlotCenterV = PlotMarginT + PlotHeight/2;
+	
+
+		// Initial plot parameters
+		AGIMax = 0;
+		Color = 0;
+		CreditMax = 0;
+		PlotSteps = 200;
+		PlotCanv.font = "10pt sans-serif";
+		PlotCanv.lineWidth = 1;
+
+		// Get the data limits
+		CHChecked = [Children0.checked, Children1.checked, Children2.checked, Children3.checked, Children4.checked];
+		STChecked = [Students0.checked, Students1.checked, Students2.checked, Students3.checked, Students4.checked, Students5.checked];
+		for (Children = 4 ; Children >= -1 ; Children--) { if (CHChecked[Children]) break; }
+		for (Students = 5 ; Students >= -1 ; Students--) { if (STChecked[Students]) break; }
+		for (TYi = 0 ; TYi < TYElement.length ; TYi++) {
+			TYChecked[TYi] = TYElement[TYi].checked;
+			if (! TYChecked[TYi]) continue;
+			TY = +_StartYear + TYi;
+			for (FSi = 0 ; FSi < 5 ; FSi++) {
+				FSChecked[FSi] = FSElement[FSi].checked;
+				if (! FSChecked[FSi]) continue;
+				FS = FilingList[FSi];
+				if (EIC.checked) {
+					var FSx = (FS == "MFJ") ? "MFJ" : "SNG";
+					if (Children == -1) continue;
+					EICChildren = Math.min(Children, 3);
+					var EICMaxY = _EICRates[TY + ":MAX"].split(",")[EICChildren];
+					var EICMaxX = _EICRates[TY + ":" + FSx].split(",")[EICChildren];
+					AGIMax = Math.max(AGIMax, EICMaxX);
+					CreditMax = Math.max(CreditMax, EICMaxY);
+				}
+				if (CTC.checked) {
+					if (Children < 1) continue;
+					var CTCMaxY = +_CTCLimits[TY + ":CTCRate"];
+					var CTCMaxX = +_CTCLimits[TY + ":AGICap"].split(",")[_CTCLimits[FS]];
+					AGIMax = Math.max(AGIMax, CTCMaxX + (20 * CTCMaxY * Children));
+					if (TY == 2021) CTCMaxY += (+_CTCLimits[TY + ":CTC0Rate"]);
+					CreditMax = Math.max(CreditMax, CTCMaxY * Children);
+				}
+				if (CARE.checked) {
+					if (Children < 1) continue;
+					CCChildren = Math.min(Children, 2);
+					CCPaid = 3000 * CCChildren;
+					var CCRateDiff = _CareLimits[TY + ":RateMax"] - _CareLimits[TY + ":RateMin"];
+					var CCMaxX = _CareLimits[TY + ":AGICap"];
+					var CCMaxY = _ChildCare(TY, FS, CCMaxX, (3000 * CCChildren), CCMaxX, 0);
+					var CCMaxX = CCMaxX + (2000 * CCRateDiff); // where reduction ends
+					AGIMax = Math.max(AGIMax, CCMaxX);
+					CreditMax = Math.max(CreditMax, CCMaxY);
+				}
+				if (AOC.checked) {
+					if (Students < 1) continue;
+					AOCLimits = _EdExpenseLimits[TY + ":AOC"].split(",");
+					AGIIndex = (FS === "MFJ") ? 4 : 2 ;
+					AGIMax = Math.max(AGIMax, AOCLimits[AGIIndex]);
+					AOCMaxCred = _EdCredit(TY, FS, 0, "AOC", AOCLimits[0]);
+					AOCMaxY = AOCMaxCred[0] + AOCMaxCred[1];
+					CreditMax = Math.max(CreditMax, AOCMaxY * Students);
+				}
+				if (LLC.checked) {
+					if (Students < 1) continue;
+					LLCLimits = _EdExpenseLimits[TY + ":LLC"].split(",");
+					AGIIndex = (FS === "MFJ") ? 4 : 2 ;
+					AGIMax = Math.max(AGIMax, LLCLimits[AGIIndex]);
+					LLCMaxCred = _EdCredit(TY, FS, 0, "LLC", LLCLimits[0]);
+					CreditMax = Math.max(CreditMax, LLCMaxCred[0] * Students);
+				}
+				if (TNF.checked) {
+					if (Students < 1) continue;
+					if (TY > 2020) continue;
+					TNFLimits = _EdExpenseLimits[TY + ":TNF"].split(",");
+					TNFAGIMax = TNFLimits[3] * ((FS === "MFJ") ? 2 : 1 );
+					AGIMax = Math.max(AGIMax, TNFAGIMax);
+					TNFAGIPeak = TNFLimits[1] * ((FS === "MFJ") ? 2 : 1 );
+					PreTaxCredit = _EdCredit(TY, FS, TNFAGIPeak, "TNF", TNFLimits[0]);
+					StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
+					taxable = Math.max(0, TNFAGIMax - StandardDeduction);
+					tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+					taxable = Math.max(0, TNFAGIMax - StandardDeduction - PreTaxCredit[0]);
+					tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+					TNFMaxCred = tax0 - tax1;
+					CreditMax = Math.max(CreditMax, TNFMaxCred);
+				}
+			}
+		}
+		AGIPlotIncrement = AGIMax / PlotSteps;
+		AGIMax *= 1.02;
+		CreditMax *= 1.02;
+		
+		if (CreditMax) {
+			// size the grid
+			GridDivisionsY = 7;
+			var CreditInterval = GetGridInt(CreditMax, GridDivisionsY);
+			GridDivisionsY = Math.ceil(CreditMax/CreditInterval);
+			CreditMax = CreditInterval * GridDivisionsY;
+			PlotFactorY = PlotHeight/CreditMax;
+			GridDivisionsX = 8;
+			AGIInterval = GetGridInt(AGIMax, GridDivisionsX);
+			GridDivisionsX = Math.ceil(AGIMax/AGIInterval);
+			AGIMax = AGIInterval * GridDivisionsX;
+			PlotFactorX = PlotWidth/AGIMax;
+			PlotCanv.fillStyle = "black";
+
+			// make and label the vertical grid lines
+			PlotCanv.textAlign = "right";
+			for (var iGrid = 0; iGrid <= GridDivisionsY; iGrid++) {
+				gridLabel = iGrid * CreditInterval;
+				PlotCanv.beginPath();
+				PlotCanv.strokeStyle = "#E0E0E0";
+				LabelPosition = AddPlot(AGIMax, gridLabel, 0, gridLabel);
+				PlotCanv.strokeStyle = "black";
+				PlotCanv.fillText(gridLabel, (LabelPosition.x - 8), (LabelPosition.y + 8));
+			}	
+			PlotCanv.textAlign = "left";
+			PlotCanv.fillText("CREDIT AMOUNT", 10, (PlotCenterV - 16));
+	
+			// make and label the horizontal grid
+			PlotCanv.textAlign = "center";
+			for (iGrid = 0; iGrid <= GridDivisionsX+1; iGrid++) {
+				gridLabel = iGrid * AGIInterval;
+				PlotCanv.beginPath();
+				PlotCanv.strokeStyle = "#E0E0E0";
+				LabelPosition = AddPlot(gridLabel, CreditMax, gridLabel, 0);
+				PlotCanv.strokeStyle = "black";
+				PlotCanv.fillText(gridLabel, LabelPosition.x, (LabelPosition.y + 16));
+			}	
+			PlotCanv.fillText("INCOME / AGI AMOUNT", PlotCenterH, (LabelPosition.y + 32));
+		}
+
+		// Add the data
+		Color = 0;
+		for (TYi = 0 ; TYi < TYElement.length ; TYi++) {
+			TYChecked[TYi] = TYElement[TYi].checked;
+			if (! TYChecked[TYi]) continue;
+			TY = +_StartYear + TYi;
+			for (FSi = 0 ; FSi < 5 ; FSi++) {
+				FSChecked[FSi] = FSElement[FSi].checked;
+				if (! FSChecked[FSi]) continue;
+				FS = FilingList[FSi];
+				StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
+				if (EIC.checked) {
+					for (child = 0 ; child < 5 ; child++) {
+						if (Children3.checked && (child == 4)) continue;
+						if (CHChecked[child]) {
+							PlotCanv.beginPath();
+							PlotCanv.moveTo(0, 0);
+							Add_To_Legend("EIC", TY, FS, child + "CH");
+							PlotCanv.strokeStyle = ColorList[Color++];
+							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
+								income = AGI;
+								credit = _EICLookup(TY, FS, child, income, 0, AGI, false, false);
+								x1 = (income) ? "" : credit;
+								AddPlot("", x1, income, credit);
+							}
+						}
+					}
+				}
+				if (CTC.checked) {
+					if (Children < 0) continue;
+					for (child = 1 ; child < 5 ; child++) {
+						if (CHChecked[child]) {
+							PlotCanv.beginPath();
+							PlotCanv.moveTo(0, 0);
+							Add_To_Legend("CTC", TY, FS, child + "CH");
+							PlotCanv.strokeStyle = ColorList[Color++];
+							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
+								income = AGI;
+								var taxable = Math.max(0, AGI - StandardDeduction);
+								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								credits = _CTCLookup(TY, FS, child, child, income, AGI, 0);
+								var creditUsed = Math.min(tax, credits[0]);
+								var creditLeft = credits[0] - creditUsed; 
+								var ACTC = Math.min(credits[2], creditLeft);
+								credit = creditUsed + ACTC;
+								x1 = (income) ? "" : credit;
+								AddPlot("", x1, income, credit);
+							}
+						}
+					}
+				}
+				if (CARE.checked) {
+					if (Children < 0) continue;
+					for (child = 0 ; child < 5 ; child++) {
+						CCChildren = Math.min(child, 2);
+						CCPaid = 3000 * CCChildren;
+						if (CHChecked[child]) {
+							PlotCanv.beginPath();
+							PlotCanv.moveTo(0, 0);
+							Add_To_Legend("CARE", TY, FS, child + "CH");
+							PlotCanv.strokeStyle = ColorList[Color++];
+							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
+								income = AGI;
+								credit = _ChildCare(TY, FS, AGI, CCPaid, income, 0);
+								x1 = (income) ? "" : credit;
+								AddPlot("", x1, income, credit);
+							}
+						}
+					}
+				}
+				if (AOC.checked) {
+					if (Students < 0) continue;
+					for (student = 1 ; student < 6 ; student++) {
+						if (STChecked[student]) {
+							PlotCanv.beginPath();
+							PlotCanv.moveTo(0, 0);
+							Add_To_Legend("AOC", TY, FS, student + "ST");
+							PlotCanv.strokeStyle = ColorList[Color++];
+							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
+								income = AGI;
+								var taxable = Math.max(0, AGI - StandardDeduction);
+								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								credits = _EdCredit(TY, FS, AGI, "AOC", AOCLimits[0]);
+								var AOCNonrefundable = Math.min(tax, (credits[0] * student));
+								var creditLeft = credits[0] - creditUsed; 
+								var AOCRefundable = credits[1] * student;
+								credit = AOCNonrefundable + AOCRefundable;
+								x1 = (income) ? "" : credit;
+								AddPlot("", x1, income, credit);
+							}
+						}
+					}
+				}
+				if (LLC.checked) {
+					if (Students < 0) continue;
+					for (student = 1 ; student < 6 ; student++) {
+						if (STChecked[student]) {
+							PlotCanv.beginPath();
+							PlotCanv.moveTo(0, 0);
+							Add_To_Legend("LLC", TY, FS, student + "ST");
+							PlotCanv.strokeStyle = ColorList[Color++];
+							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
+								income = AGI;
+								var taxable = Math.max(0, AGI - StandardDeduction);
+								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								credits = _EdCredit(TY, FS, AGI, "LLC", LLCLimits[0]);
+								credit = Math.min(tax, (credits[0] * student));
+								x1 = (income) ? "" : credit;
+								AddPlot("", x1, income, credit);
+							}
+						}
+					}
+				}
+				if (TNF.checked) {
+					if (Students < 0) continue;
+					if (TY > 2020) continue;
+					//for (student = 1 ; student < 6 ; student++) {
+						//if (STChecked[student]) {
+							PlotCanv.beginPath();
+							PlotCanv.moveTo(0, 0);
+							Add_To_Legend("TNF", TY, FS, "");
+							PlotCanv.strokeStyle = ColorList[Color++];
+							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
+								income = AGI;
+								var PreTaxCredit = _EdCredit(TY, FS, AGI, "TNF", TNFLimits[0]);
+								var taxable = Math.max(0, AGI - StandardDeduction);
+								var tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								var taxable = Math.max(0, AGI - StandardDeduction - PreTaxCredit[0]);
+								var tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								credit = tax0 - tax1;
+								x1 = (income) ? "" : credit;
+								AddPlot("", x1, income, credit);
+							}
+						//}
+					//}
+				}
+			}
+		}
+
+		// Display the color legend
+		Show_Legend();	
+
+		// Draw a boundary box
+		PlotCanv.lineWidth = 3;
+		PlotCanv.strokeStyle = "black";
+		PlotCanv.strokeRect(PlotMarginL, PlotMarginT, PlotWidth, PlotHeight);
+
+		WideLineColor = -1; // turn off the mouse color click
+	}
+
+	//----------------------------------------------------------------------------------------
+	// This function calculates the grid intervals
+	function GetGridInt(
+		span,	// value range (max - min)
+		count	// number of axis intervals preferred
+		) {
+	// returns: distance between grid lines
+	//----------------------------------------------------------------------------------------
+		if (span < 1) return (span); // protect against nonsense
+		var interval = span/count;
+		var mux = 1;
+		var base = 1;
+		while ((interval < span) && (interval > (base * mux))) { // 1,2,2.5,5,10,20,25,50,etc
+			switch (mux) {
+				case 1  : mux = 2; break;
+				case 2  : mux = 2.5; break;
+				case 2.5: mux = 5; break;
+				case 5  : base *= 10; mux = 1; break;
+			}
+		}
+		return (base * mux);
+	}
+
+	//----------------------------------------------------------------------------------------
+	// This function adds a line to the plot
+	function AddPlot(
+		startX,		// x starting point if specified
+		startY,		// y starting point if specified
+		endX,		// x ending point
+		endY		// y ending point
+		) {
+	//	result.x	 // ending x position
+	//	result.y	 // ending y position
+	//----------------------------------------------------------------------------------------
+		// if not specified, begin where the previous line ended
+		var result = [];
+		if ((startX + startY) !== "") {
+			var x = PlotMarginL + (startX * PlotFactorX);
+			var y = PlotMarginT + ((CreditMax - +startY) * PlotFactorY);
+			PlotCanv.moveTo(x, y);
+		}
+
+		// plot the line
+		if (WideLineColor == Color) PlotCanv.lineWidth = 5;
+		var x = PlotMarginL + (endX * PlotFactorX);
+		var y = PlotMarginT + ((CreditMax - +endY) * PlotFactorY);
+		PlotCanv.lineTo(x, y);
+		PlotCanv.stroke();
+		PlotCanv.lineWidth = 1;
+		result.x = x;
+		result.y = y;
+		return result; // Coordinates for a label
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Show_Data(e) {
+	//----------------------------------------------------------------------------------------
+		// Assure mouse is within the plot area
+		var mouseX = e.x - canvasdiv.offsetLeft - 1;
+		var valX = mouseX - PlotMarginL;
+		if ((valX < 0) || (valX > PlotWidth)) return;
+		var mouseY = e.y - canvasdiv.offsetTop - 1;
+		var valY = PlotMarginT + PlotHeight - mouseY;
+		if ((valY < 0) || (valY > PlotHeight)) return;
+
+		// Get the data points
+		MouseAGI.innerHTML = Math.round(valX / PlotFactorX);
+		MouseCredit.innerHTML = Math.round(valY / PlotFactorY);
+
+		// Set the wide line variable
+		WideLineColor = -1;
+		if (mouseX > LegendX) {
+			WideLineColor = Math.ceil(((mouseY + LegendFontSize) / LegendFontSize) - 2);
+			if (WideLineColor > Legend.length) { WideLineColor = -1; return; }
+			Change_Options();
+		}
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Add_To_Legend(L_CR, L_TY, L_FS, L_CH) {
+	//----------------------------------------------------------------------------------------
+		Legend[Color] = "";
+		Legend[Color] += L_CR;
+		Legend[Color] += (((Legend[Color]) ? ", " : "") + L_TY);
+		Legend[Color] += (((Legend[Color]) ? ", " : "") + L_FS);
+		Legend[Color] += (((Legend[Color]) ? ", " : "") + L_CH);
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Show_Legend() {
+	//----------------------------------------------------------------------------------------
+		for (j = 0 ; j < Color ; j++) {
+			LegendX = PlotMarginL + PlotWidth - (11 * LegendFontSize);
+			LegendY = (2 * LegendFontSize) + (j * LegendFontSize);
+			PlotCanv.textAlign = "left";
+			PlotCanv.font = LegendFontSize + "px Arial";
+			PlotCanv.fillStyle = ColorList[j];
+			PlotCanv.fillText(Legend[j], LegendX, LegendY);
+		}
+	}
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body onload="Initialize();" onresize="Change_Options();">
+
+<center>
+	<span class="title">Tax Credit Plotter</span>
+	<br /><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+</center>
+
+<div id="main" onchange="Change_Options();">
+	<h2 class="center">Check the credits and options you wish to plot</h2>
+	<table id="optionTable">
+		<tr>	<td>	<input id="EIC" type="checkbox" title="Earned Income Tax Credit" /> EIC
+				<br /><input id="CTC" type="checkbox" title="Child Tax Credit" /> CTC
+				<br /><input id="CARE" type="checkbox" title="Child Tax Credit" /> CARE
+			</td>	
+			<td>	<input id="AOC" type="checkbox" title="American Opportunity Credit" /> AOC
+				<br /><input id="LLC" type="checkbox" title="Lifetime Learning Credit" /> LLC
+				<br /><input id="TNF" type="checkbox" title="Tuition and Fees Credit" /> TNF
+			</td>
+			<td>	&nbsp;Tax Year:
+				<br />&nbsp;Filing Status:
+				<br />&nbsp;Children:
+				<br />&nbsp;Students:
+			</td>
+			<td>	<span id="TYList"></span>
+				<br />	<input type="checkbox" id="SNG" class="FSClass" value="0" />SNG
+					<input type="checkbox" id="MFJ" class="FSClass" value="0" />MFJ
+					<input type="checkbox" id="MFS" class="FSClass" value="0" />MFS
+					<input type="checkbox" id="HOH" class="FSClass" value="0" />HOH
+					<input type="checkbox" id="WID" class="FSClass" value="0" />WID
+				<br />	<input type="checkbox" id="Children0" class="ChildClass" value="0" />0
+					<input type="checkbox" id="Children1" class="ChildClass" value="1" />1
+					<input type="checkbox" id="Children2" class="ChildClass" value="2" />2
+					<input type="checkbox" id="Children3" class="ChildClass" value="3" />3
+					<input type="checkbox" id="Children4" class="ChildClass" value="4" />4
+				<br />	<input type="checkbox" id="Students0" class="ChildClass" value="0" />0
+					<input type="checkbox" id="Students1" class="ChildClass" value="1" />1
+					<input type="checkbox" id="Students2" class="ChildClass" value="2" />2
+					<input type="checkbox" id="Students3" class="ChildClass" value="2" />3
+					<input type="checkbox" id="Students4" class="ChildClass" value="2" />4
+					<input type="checkbox" id="Students5" class="ChildClass" value="2" />5
+			</td>
+			<td colspan="4">
+					&bull;&nbsp;Click mouse on graph for coordinates:
+					<br />&nbsp;&nbsp;&nbsp;&nbsp;AGI = <span id="MouseAGI"></span>, Credit = <span id="MouseCredit"></span>
+					<br />&bull;&nbsp;Click mouse on legend to highlight that curve.
+				</ul>
+			</td>
+		</tr>
+	</table>
+</div>
+
+<div id="canvasdiv">
+	<canvas id="Mycanvas" onclick="Show_Data(event);"></canvas>
+</div>
+
+</body>
+</html>
