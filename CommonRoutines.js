@@ -14,6 +14,11 @@
 //	_IRADeduction		IRA Deduction as an income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.12 7/27/2021
+// 	TNF not returning 0 if filing MFS
+// Version 1.11 7/18/2021
+// 	Fixed CTC additional 1K not being reduced after 150000
+// 	Added TNF to _EdCredit
 // Version 1.10 7/9/2021
 // 	Added 2021 rates to _ChildCare
 // 	Fixed problem where MFJ had 0 for spouse income
@@ -288,8 +293,7 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 		var cD6 = Math.max(0, (cD - cD0));
 		var CTC0Amount = CTC0Rate * cD0;
 		var CTC6Amount = CTC6Rate * cD6;
-		CTCAmount += (CTC0Amount + CTC6Amount);
-		// all CTC refundable
+		CTCAmount += (Math.max(0, CTC0Amount + CTC6Amount - CTC0Reduction));
 		ACTCLimit = CTCAmount;
 	}
 	else {
@@ -297,8 +301,7 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 		ACTCLimit = Math.min(ACTCRate * +childDependents, ACTCLimit);
 	}
 	var FTCAmount = FTCRate * (Math.max(0, +totalDependents - cD));
-	var CTCresult = [CTCAmount, FTCAmount, Math.round(ACTCLimit)];
-	return (CTCresult);
+	return ([CTCAmount, FTCAmount, Math.round(ACTCLimit)]);
 }
 
 //----------------------------------------------------------------------------------------
@@ -426,10 +429,11 @@ function _ChildCare (	// Form 2441
 	
 	if (filingStatus === "MFJ") line6 = Math.min(+amountPaid, +TPEarnedIncome + +SPEarnedIncome);
 	else line6 = Math.min(+amountPaid, +TPEarnedIncome);
-	var line8 = (35 - (Math.ceil(Math.min(Math.max(0, (AGI - 15000)/2000), 15)))) / 100;
-	if (+taxYear == 2021) {
-		line8 = (50 - (Math.ceil(Math.min(Math.max(0, (AGI - 125000)/2000), 15)))) / 100;
-	}
+	var RateMin = _CareLimits[taxYear + ":RateMin"];
+	var RateMax = _CareLimits[taxYear + ":RateMax"];
+	var AGICap = _CareLimits[taxYear + ":AGICap"];
+	var RateReduction = Math.ceil(Math.max(0, (AGI - AGICap)/2000));
+	var line8 = (RateMax - (Math.min(RateReduction, (RateMax - RateMin)))) / 100; // rate
 	return Math.max(0, line6 * line8);
 }
 
@@ -460,7 +464,7 @@ function _EdCredit (	// Form 8863
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
 	AGI,		// AGI
-	etype,		// AOC, LLC
+	etype,		// AOC, LLC, TNF
 	expenses	// Education expenses
 		) {
 // does not test for eligibility (dependent, claimed, kiddie tax, etc)
@@ -468,6 +472,8 @@ function _EdCredit (	// Form 8863
 // 			[1] = refundable credit
 //----------------------------------------------------------------------------------------
 	var result = [];
+	if (filingStatus == "MFS") return[0, 0];
+
 	var limits = _EdExpenseLimits[taxYear + ":" + etype].split(",");
 	expenses = Math.min(limits[0], expenses);
 	switch (etype) {
@@ -478,6 +484,13 @@ function _EdCredit (	// Form 8863
 		case "LLC":
 			limit = 0.2 * expenses;
 			break;
+		case "TNF":
+			limit = expenses;
+			AGIfactor = (filingStatus === "MFJ") ? 2 : 1 ;
+			if (+AGI > (limits[1] * AGIfactor)) limit = Math.min(expenses, limits[2]);
+			if (+AGI > (limits[3] * AGIfactor)) return [0, 0];
+			return [limit, 0];
+			break;
 		default:
 			limit = 0;
 	}
@@ -487,9 +500,6 @@ function _EdCredit (	// Form 8863
 	switch (filingStatus) {
 		case "MFJ":
 			if (+AGI >= +limits[3]) AGIfactor = Math.max(0, (+limits[4] - +AGI) / (+limits[4] - +limits[3]));
-			break;
-		case "MFS":
-			AGIfactor = 0;
 			break;
 		default:
 			if (+AGI >= +limits[1]) AGIfactor = Math.max(0, (+limits[2] - +AGI) / (+limits[2] - +limits[1]));
