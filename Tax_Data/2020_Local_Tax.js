@@ -109,7 +109,7 @@ City_Tax['Carbondale:2020'] = '3.5::RTA=1::';
 City_Tax['Castle Pines:2020'] = '2.75::::';
 City_Tax['Castle Rock:2020'] = '4::RTD=0:CD=0:';
 City_Tax['Cedaredge:2020'] = '2::::';
-City_Tax['Centennial:2020'] = '2.5:A:::';
+City_Tax['Centennial:2020'] = '2.5::::';
 City_Tax['Center/Rio Grande:2020'] = '4::::'; // 2020 change
 City_Tax['Center/Saguache:2020'] = '4::::'; // 2020 change
 City_Tax['Central City:2020'] = '6::::'; // 2019 change
@@ -205,14 +205,14 @@ City_Tax['La Salle:2020'] = '3.5::::';
 City_Tax['La Veta:2020'] = '3.5::::';
 City_Tax['Lafayette:2020'] = '3.5::::';
 City_Tax['Lakeside:2020'] = '3.6::::'; // 2020 change
-City_Tax['Lakewood:2020'] = '3:A::';
+City_Tax['Lakewood:2020'] = '3:B::';
 City_Tax['Lamar:2020'] = '3::::';
 City_Tax['Larkspur:2020'] = '4::CD=0::';
 City_Tax['Las Animas:2020'] = '3::::';
 City_Tax['Limon:2020'] = '2::::';
 City_Tax['Littleton/Arapahoe:2020'] = '3::::';
 City_Tax['Littleton/Douglas:2020'] = '3::::';
-City_Tax['Littleton/Jefferson:2020'] = '3:B:::';
+City_Tax['Littleton/Jefferson:2020'] = '3::::';
 City_Tax['Lochbuie/Adams:2020'] = '4::::';
 City_Tax['Lochbuie/Weld:2020'] = '4::::';
 City_Tax['Log Lane Village:2020'] = '3::::';

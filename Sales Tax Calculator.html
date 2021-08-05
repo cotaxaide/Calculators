@@ -32,15 +32,16 @@ var countyIdx;
 var See_City = [];
 var cityIdx;
 var Other_Tax = [];
+var Showing_All = false;
 var d = new Date(); // set cookie expiration date
     d.setTime(d.getTime() + (10*366*24*60*60*1000)); // 10 years
     var expires = "expires="+d.toUTCString()+";";
 </script>
 <script src="Tax_Data/2000_City_County.js"></script>
-<script src="Tax_Data/2017_Local_Tax.js"></script>
 <script src="Tax_Data/2018_Local_Tax.js"></script>
 <script src="Tax_Data/2019_Local_Tax.js"></script>
 <script src="Tax_Data/2020_Local_Tax.js"></script>
+<script src="Tax_Data/2021_Local_Tax.js"></script>
 <script>
 //***************************************************************************************************
 //                                Revision history
@@ -240,6 +241,12 @@ function AddCity(cityIdx2) {
 	}
 }
 
+function Select_All() {
+	for (countyIdx in See_County) { CountySelect(countyIdx); }
+	Showing_All = ! Showing_All;
+	SelectAll.innerHTML = (Showing_All) ? "Revert to prior" : "Select All";
+}
+
 function AddCounty(countyIdx2) {
 	trElem = document.createElement("tr");
 	cityListBodyElem.appendChild(trElem);
@@ -404,12 +411,13 @@ function AddData(trElem,text,title) {
 			<table class='countylisttable' id='countylisttable'>
 			<thead class='countylisthead' id='countylisthead'></thead>
 			<tr><td style="text-align:center;"><span style="font-weight:bold;">Counties&nbsp;Selected</span>
-					<br />(Click to unselect)</td></tr>
+					<br />(Click to unselect)
+					<br \/><button id="SelectAll" onclick="Select_All();">Select all</button></td></tr>
 				<tbody><tr><td class='countylistbody' id='countylistbody'>(None selected)</td></tr></tbody>
 			</table>
 			<p>For cities not listed, use the county numbers at the bottom of the table</p>
 			<p>Hover over the "Tax&nbsp;%" figure for sales tax amounts included</p>
-			<p>If you're trying to figure out what a client's earlier year's sales tax amount was to determine taxable amount for a state refund, use the <a href="http://apps.irs.gov/app/stdc/" target="_blank">IRS Sales Tax Deduction calculation page</a>.</p>
+			<p>If you're trying to figure out what a client's earlier year's sales tax amount was to determine taxable amount for a state refund, use the <a href="https://apps.irs.gov/app/stdc/" target="_blank">IRS Sales Tax Deduction calculation page</a>.</p>
 			<p><b>TaxSlayer Note:</b><br />
 			TaxSlayer uses the zip code to determine the letter code for the local sales tax table and is not always correct.
 			If the taxpayer&apos;s zip code corresponds to a city with a letter code that is different than the county
