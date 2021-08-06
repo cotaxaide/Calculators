@@ -76,7 +76,10 @@
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.01, 7/27/2021)";
+	VERSION = "(Version 1.02, 8/6/2021)";
+	//	LLC scale too large due to low tax to be offset
+	//	Don't plot 0 children for CARE and CTC
+	//VERSION = "(Version 1.01, 7/27/2021)";
 	//	Added student option row to reduce confusion
 	//	Added Child Care graph
 	//VERSION = "(Version 1.00, 7/22/2021)";
@@ -178,7 +181,7 @@
 		AGIMax = 0;
 		Color = 0;
 		CreditMax = 0;
-		PlotSteps = 200;
+		PlotSteps = 500;
 		PlotCanv.font = "10pt sans-serif";
 		PlotCanv.lineWidth = 1;
 
@@ -195,6 +198,7 @@
 				FSChecked[FSi] = FSElement[FSi].checked;
 				if (! FSChecked[FSi]) continue;
 				FS = FilingList[FSi];
+				StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
 				if (EIC.checked) {
 					var FSx = (FS == "MFJ") ? "MFJ" : "SNG";
 					if (Children == -1) continue;
@@ -237,8 +241,11 @@
 					LLCLimits = _EdExpenseLimits[TY + ":LLC"].split(",");
 					AGIIndex = (FS === "MFJ") ? 4 : 2 ;
 					AGIMax = Math.max(AGIMax, LLCLimits[AGIIndex]);
+					taxable = Math.max(0, AGIMax - StandardDeduction);
+					tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
 					LLCMaxCred = _EdCredit(TY, FS, 0, "LLC", LLCLimits[0]);
-					CreditMax = Math.max(CreditMax, LLCMaxCred[0] * Students);
+					LLCMaxY = Math.min(tax, LLCMaxCred[0] * Students);
+					CreditMax = Math.max(CreditMax, LLCMaxY);
 				}
 				if (TNF.checked) {
 					if (Students < 1) continue;
@@ -354,8 +361,8 @@
 					}
 				}
 				if (CARE.checked) {
-					if (Children < 0) continue;
-					for (child = 0 ; child < 5 ; child++) {
+					if (Children < 1) continue;
+					for (child = 1 ; child < 5 ; child++) {
 						CCChildren = Math.min(child, 2);
 						CCPaid = 3000 * CCChildren;
 						if (CHChecked[child]) {
