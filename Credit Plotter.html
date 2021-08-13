@@ -76,7 +76,9 @@
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.02, 8/6/2021)";
+	VERSION = "(Version 1.03, 8/13/2021)";
+	//	Added Retirement Savings Credit
+	//VERSION = "(Version 1.02, 8/6/2021)";
 	//	LLC scale too large due to low tax to be offset
 	//	Don't plot 0 children for CARE and CTC
 	//VERSION = "(Version 1.01, 7/27/2021)";
@@ -263,6 +265,11 @@
 					TNFMaxCred = tax0 - tax1;
 					CreditMax = Math.max(CreditMax, TNFMaxCred);
 				}
+				if (RET.checked) {
+					RETMax = _RETIRE[TY + ":" + FS].split(",")[2];
+					AGIMax = Math.max(AGIMax, +RETMax);
+					CreditMax = Math.max(CreditMax, 1000);
+				}
 			}
 		}
 		AGIPlotIncrement = AGIMax / PlotSteps;
@@ -377,6 +384,20 @@
 								AddPlot("", x1, income, credit);
 							}
 						}
+					}
+				}
+				if (RET.checked) {
+					PlotCanv.beginPath();
+					PlotCanv.moveTo(0, 0);
+					Add_To_Legend("RET", TY, FS, "");
+					PlotCanv.strokeStyle = ColorList[Color++];
+					for (AGI = 0 ; AGI < AGIMax ; AGI += (AGIPlotIncrement * 2)) {
+						income = AGI;
+						var taxable = Math.max(0, AGI - StandardDeduction);
+						var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						credit = _Retirement(TY, FS, AGI, 2000, 0);
+						x1 = (income) ? "" : credit;
+						AddPlot("", x1, income, credit);
 					}
 				}
 				if (AOC.checked) {
@@ -579,7 +600,8 @@
 	<table id="optionTable">
 		<tr>	<td>	<input id="EIC" type="checkbox" title="Earned Income Tax Credit" /> EIC
 				<br /><input id="CTC" type="checkbox" title="Child Tax Credit" /> CTC
-				<br /><input id="CARE" type="checkbox" title="Child Tax Credit" /> CARE
+				<br /><input id="CARE" type="checkbox" title="Child Care Credit" /> CARE
+				<br /><input id="RET" type="checkbox" title="Retirement Savings Credit" /> RET
 			</td>	
 			<td>	<input id="AOC" type="checkbox" title="American Opportunity Credit" /> AOC
 				<br /><input id="LLC" type="checkbox" title="Lifetime Learning Credit" /> LLC
