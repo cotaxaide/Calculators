@@ -129,16 +129,6 @@
 	// StateTaxCap
 		_SALT[_TY] = 10000;	// Needs update
 
-        // var RetireLimits = [];
-                // Source: 1040 instructions for line 51
-                // MFJ,SNG,HOH,WID,MFS
-                _RetireLimits["SNG"] = 0;
-                _RetireLimits["WID"] = 0;
-                _RetireLimits["MFS"] = 0;
-                _RetireLimits["HOH"] = 1;
-                _RetireLimits["MFJ"] = 2;
-                _RetireLimits[_TY] = "31500, 47250, 63000"; 		// Needs update
-
         // var CTCLimits = [];
                 // Source: 1040 instructions for line 52 and Form 8812
                 // MFJ,SNG,HOH,WID,MFS
@@ -245,11 +235,11 @@
 
 	// Retirement Savings Contribution (Form 8880)
 		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";
-		_RETIRE[_TY+":MFJ"] = "38500,	41500,	64000";		// Needs update
-		_RETIRE[_TY+":HOH"] = "28875,	31125,	48000";		// Needs update
-		_RETIRE[_TY+":SNG"] =
-		_RETIRE[_TY+":WID"] =
-		_RETIRE[_TY+":MFS"] = "19250,	20750,	32000";		// Needs update
+		_RETIRE[_TY+":MFJ"] = "39000,	42500,	65000";	// Needs update
+		_RETIRE[_TY+":HOH"] = "29250,	31875,	48750";	// Needs update
+		_RETIRE[_TY+":SNG"] = 
+		_RETIRE[_TY+":WID"] = 
+		_RETIRE[_TY+":MFS"] = "19500,	21250,	32500";	// Needs update
 
 	// IRA Adjustment limits
 		_IRALimits[_TY+":AGE"] = 50;	// Needs update

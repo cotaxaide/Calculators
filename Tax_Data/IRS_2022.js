@@ -129,16 +129,6 @@
 	// StateTaxCap
 		_SALT[_TY] = 10000;			// New tax law	// Needs update
 
-        // var RetireLimits = [];
-                // Source: 1040 instructions for line 51
-                // MFJ,SNG,HOH,WID,MFS
-                _RetireLimits["SNG"] = 0;			// Needs update
-                _RetireLimits["WID"] = 0;			// Needs update
-                _RetireLimits["MFS"] = 0;			// Needs update
-                _RetireLimits["HOH"] = 1;			// Needs update
-                _RetireLimits["MFJ"] = 2;			// Needs update
-                _RetireLimits[_TY] = "31500, 47250, 63000"; 		// Needs update
-
         // var CTCLimits = [];
                 // Source: 1040 instructions for line 52 and Form 8812
                 // MFJ,SNG,HOH,WID,MFS

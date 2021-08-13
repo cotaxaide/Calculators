@@ -9,7 +9,6 @@ var _ItemLimit = []; // Pease limit on itemized deductions
 var _TaxRates = []; // Tax rate schedule
 var _CGRates = []; // Capital gains rates
 var _MedicalExclusion = [];
-var _RetireLimits = [];
 var _CTCLimits = [];
 var _CareLimits = [];
 var _EICRates = [];
