@@ -12,6 +12,7 @@
 //	_Retirement		Retirement Savings Contributions deduction
 //	_EdCredit		AOC or LLC Credit
 //	_IRADeduction		IRA Deduction as an income adjustment
+//	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
 //
 // Version 1.12 7/27/2021
@@ -609,5 +610,35 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 	Result["TPamount"] = Math.min(TP_DedMax, +earned);
 	Result["SPamount"] = Math.min(SP_DedMax, +earned);
 	Result["amount"] = Math.min(Result["TPamount"] + ((filingStatus === "MFJ") ? Result["SPamount"] : 0 ), earned);
+	return (Result);
+}
+
+//----------------------------------------------------------------------------------------
+function _StudLoanInt (	// Pub 970
+	taxYear,	// tax year tables to use
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	MAGI,		// AGI without Student Loan Interest deduction
+	IntPaid		// Student Loan Interest Paid
+		) {
+//	Returns an array with amount and percent
+//----------------------------------------------------------------------------------------
+	var Result = [];
+
+	// Not allowed if MFS
+	if (filingStatus == "MFS") {
+		Result["amount"] = 0;
+		return Result;
+	}
+	
+	// Get MAGI where phaseout starts
+	var EdIntRates = _EdExpenseLimits[taxYear + ":INT"].split(",");
+	var SLIMax = +EdIntRates[0] * ((filingStatus == "MFJ") ? 2 : 1 );
+	var PhaseOutIndex = +_EdExpenseLimits["SNG"];
+	var PhaseOutStart = +EdIntRates[PhaseOutIndex] * ((filingStatus == "MFJ") ? 2 : 1 );
+	var PhaseOutEnd = +EdIntRates[PhaseOutIndex + 1] * ((filingStatus == "MFJ") ? 2 : 1 );
+	var PhaseOutLength = PhaseOutEnd - PhaseOutStart;
+	Result["percent"] = Math.max(0, +MAGI - PhaseOutStart) / PhaseOutLength;
+	IntPaid = Math.min(SLIMax, +IntPaid);
+	Result["amount"] = Math.round(+IntPaid - (IntPaid * Result["percent"]));
 	return (Result);
 }
