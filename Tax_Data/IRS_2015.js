@@ -59,7 +59,7 @@
 		_EdExpenseLimits["SNG2"] = 2; // AGI phase out (SNG, WID, HOH)
 		_EdExpenseLimits["MFJ1"] = 3; // AGI max for first limit (MFJ)
 		_EdExpenseLimits["MFJ2"] = 4; // AGI phase out (MFJ)
-		// For SAV:
+		// For SAV/INT:
 		_EdExpenseLimits["N/A"]  = 0; // N/A
 		_EdExpenseLimits["SNG"]  = 1; // SAV phase out starts (SNG, HOH)
 		_EdExpenseLimits["N/A"]  = 2; // SAV gone (SNG, HOH)
@@ -70,6 +70,7 @@
                 _EdExpenseLimits[_TY+":LLC"] = "10000,55000,65000,109000,129000";
                 _EdExpenseLimits[_TY+":AOC"] = "4000,80000,90000,160000,180000";
 		_EdExpenseLimits[_TY+":SAV"] = "N/A,76000,91000,113950,143950"; //not verified
+		_EdExpenseLimits[_TY+":INT"] = "2500, 65000,80000,130000,160000";
 
         // var Standard = []; // Exemption and standard deductions
                 _Standard["Exemption"] = 0; // per person
@@ -111,16 +112,6 @@
 
 	// StateTaxCap
 		_SALT[_TY] = 0; // unlimited
-
-        // var RetireLimits = [];
-                // Source: 1040 instructions
-                // MFJ,SNG,HOH,WID,MFS
-                _RetireLimits["SNG"] = 0;
-                _RetireLimits["WID"] = 0;
-                _RetireLimits["MFS"] = 0;
-                _RetireLimits["HOH"] = 1;
-                _RetireLimits["MFJ"] = 2;
-                _RetireLimits[_TY] = "30500,45750,61000";
 
         // var CTCLimits = [];
                 // Source: 1040 instructions

@@ -67,17 +67,24 @@
 		_EdExpenseLimits["SNG2"] = 2;	// AGI phase out (SNG, WID, HOH)
 		_EdExpenseLimits["MFJ1"] = 3;	// AGI max for first limit (MFJ)
 		_EdExpenseLimits["MFJ2"] = 4;	// AGI phase out (MFJ)
-		// For SAV:
+		// For SAV: (Use of savings bonds)
 		_EdExpenseLimits["N/A"]  = 0;	// N/A
 		_EdExpenseLimits["SNG"]  = 1;	// SAV phase out starts (SNG, HOH)
 		_EdExpenseLimits["N/A"]  = 2;	// SAV gone (SNG, HOH)
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, WID)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
+		// For INT: (Student loan interest)
+		_EdExpenseLimits["N/A"]  = 0;	// N/A
+		_EdExpenseLimits["INT"]  = 1;	// INT phase out starts (SNG, HOH)
+		_EdExpenseLimits["N/A"]  = 2;	// INT gone (SNG, HOH)
+		_EdExpenseLimits["N/A"]  = 3;	// INT phase out starts (MFJ, WID)
+		_EdExpenseLimits["N/A"]  = 4;	// INT gone (MFJ, WID)
         
 		_EdExpenseLimits[_TY+":TNF"] = " 4000, 66000, 2000,  80000,       0";	
 		_EdExpenseLimits[_TY+":LLC"] = "10000, 59000, 69000, 118000, 138000";	
 		_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";	
-		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 82350, 96100, 123550, 151600";	// Tentative
+		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 82350, 97350, 123550, 153550";
+		_EdExpenseLimits[_TY+":INT"] = " 2500, 70000, 85000, 140000, 170000";
 
         // var Standard = [];	// Exemption and standard deductions
                 _Standard["Exemption"] = 0;
@@ -202,11 +209,11 @@
 
 	// var Qualified Business Income Deduction
 		_QBILimits[_TY+":Rate"] = "0.2";
-		_QBILimits[_TY+":SNG"] = "163300";		
 		_QBILimits[_TY+":MFJ"] = "326600";		
-		_QBILimits[_TY+":MFS"] = "163300";		
-		_QBILimits[_TY+":HOH"] = "163300";		
 		_QBILimits[_TY+":WID"] = "326600";		
+		_QBILimits[_TY+":SNG"] = 
+		_QBILimits[_TY+":MFS"] = 
+		_QBILimits[_TY+":HOH"] = "163300";		
 
 	// Net Investment Income Tax
 		_NIITLimits[_TY+":Rate"] = "0.038";		

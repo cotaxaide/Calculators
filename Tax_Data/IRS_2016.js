@@ -70,6 +70,7 @@
                 _EdExpenseLimits[_TY+":LLC"] = "10000,55000,65000,111000,131000";
                 _EdExpenseLimits[_TY+":AOC"] = "4000,80000,90000,160000,180000";
 		_EdExpenseLimits[_TY+":SAV"] = "N/A,77550,92550,116300,146300";
+		_EdExpenseLimits[_TY+":INT"] = "2500, 65000, 80000, 130000, 160000";
 	
         // var Standard = []; // Exemption and standard deductions	
                 _Standard["Exemption"] = 0; // per person
@@ -111,16 +112,6 @@
 
 	// StateTaxCap
 		_SALT[_TY] = 0; // unlimited
-
-        // var RetireLimits = [];	
-                // Source: 1040 instructions	
-                // MFJ,SNG,HOH,WID,MFS	
-                _RetireLimits["SNG"] = 0;
-                _RetireLimits["WID"] = 0;
-                _RetireLimits["MFS"] = 0;
-                _RetireLimits["HOH"] = 1;
-                _RetireLimits["MFJ"] = 2;
-                _RetireLimits[_TY] = "30750,46125,61500";
 	
         // var CTCLimits = [];	
                 // Source: 1040 instructions	

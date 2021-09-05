@@ -15,7 +15,12 @@
 	input[type="number"] { text-align: right; width: 6em; }
 	input[type="text"] { text-align: right; width: 6em; }
 	input, select { background-color: white; }
-	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	input:disabled,
+	select:disabled {
+		background-color: lightgrey;
+		font-weight: bold;
+		cursor: not-allowed;
+	}
 	.title { font-size:125%; font-weight: bold; }
 	.instruction { text-align: right; text-decoration: italic; }
 	.comment { font-style:italic; }
@@ -66,7 +71,7 @@
 	#TaxYear { width: 6em; }
 	#IncomeTable { width: 100%; }
 	#IncomeTable tr,
-	#MFSTable tr { height: 1.7em; border-bottom: 1px solid grey; }
+	#MFSTable tr { height: 1.75em; border-bottom: 1px solid grey; }
 	#IncomeTable tr td:first-child { min-width: 1em; font-weight: bold; }
 	#IncomeTable tr td:nth-child(3),
 	#IncomeTable tr td:nth-child(4),
@@ -167,6 +172,7 @@
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
@@ -186,7 +192,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.25, 5/15/2021)";
+	var VERSION = "(Version 3.26, 9/4/2021)";
+	//	Added link to 2022 data
+	//	Added phaseout of Student Loan Interest adjustment
+	//var VERSION = "(Version 3.25, 5/15/2021)";
 	//	Minor HTML corrections
 	//	Exemption rate not printing for returns prior to 2018
 	//	Added number of exemptions to exemption rate line
@@ -475,7 +484,6 @@
 		ItemizeRequiredOption.style.display = (FilingStatus.value === "MFS") ? "inline" : "none";
 		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
 		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
-		Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
 		if (IsDependent.checked) {
 			DependentsRow.style.display = "none";
 			EICRow.style.display = "none";
@@ -534,6 +542,7 @@
 		RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
 
 		// 2021 tax form changes
+		Dependents0Row.style.display = (TaxYear.value >= 2021) ?  "table-row" : "none";
 		MFJMFSACCCreditRow.style.display =
 		ACCCreditRow.style.display = (TY == 2021) ? "table-row" : "none";
 
@@ -805,15 +814,15 @@
 		// Limit IRA Contribution Deduction will be done later after AGI is known
 
 		// Limit Student Loan Payment Deduction
-		var sllimit = (FilingStatusValue === "MFJ") ? 5000 : 2500;
-		CalcIn["StudentLoan"] = Math.min(+CalcIn["StudentLoan"], sllimit);
+		var SLMAGI = +AGI.innerHTML + +SLInterest.innerHTML;
+		CalcOut["SLInterest"] = _StudLoanInt(TY, FilingStatusValue, SLMAGI, +CalcIn["StudentLoan"])["amount"];
 
 		// Total the adjustments, not including charitable contribution
 		var SSAdjustments = +CalcIn["EdExpenses"] + +CalcIn["HSADeduction"]
 			+ +CalcOut["SETaxCredit"] + +CalcIn["SESEP"] + +CalcOut["SEHI"]
 			+ +CalcIn["AlimonyPaid"] + +CalcIn["IRADeduction"]
 			+ +CalcIn["SavingsPenalty"] + +CalcIn["OtherCredits"];
-		var AdjustmentsValue = SSAdjustments + +CalcIn["StudentLoan"];
+		var AdjustmentsValue = SSAdjustments + +CalcOut["SLInterest"];
 		CalcOut["Adjustments"] = AdjustmentsValue;
 
 		// Capital gains
@@ -1657,11 +1666,11 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
-			<td>Student loan interest <i>(2500 per TP/SP)</i></td>
-			<td></td>
+			<td>Student loan interest</td>
 			<td><input id="StudentLoan" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
+				onkeyup="Input_Change(this.id);" /></td>
+			<td id="SLInterest" class="wktc">0</td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Other adjustments expected (Forms 2106 &amp; 3903)</td>
 			<td></td>
@@ -1782,7 +1791,7 @@
 			<td colspan="3">Total tax amounts</td>
 			<td id="PreWorkingTax" class="calculated wktc">0</td></tr>
 		<tr><td colspan="2">Nonrefundable Credits:
-				<span class="floatright" style="padding-right: 1em;"><i>actual cost:</i></span></td>
+				<span class="floatright" style="padding-right: 1em;"><i>actual amount:</i></span></td>
 			<td style="text-align: right;"><i>max available:</i></td>
 			<td style="text-align: right;"><i>will use:</i></td>
 		<tr><td></td>
@@ -1994,7 +2003,9 @@
 		<tr class="adjustment"><td id="TPIRADeduction"></td><td id="SPIRADeduction"></td>
 			<td>	<span id="TPIRADeductionJoint" class="hidden"></span>
 				<span id="SPIRADeductionJoint" class="hidden"></span></td></tr>
-		<tr class="adjustment"><td id="TPStudentLoan"></td><td id="SPStudentLoan"></td></tr>
+		<tr class="adjustment"><td id="TPSLInterest"></td><td id="SPSLInterest"></td>
+			<td>	<span id="TPStudentLoan" class="hidden"></span>
+				<span id="SPStudentLoan" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPOtherCredits"></td><td id="SPOtherCredits"></td></tr>
 		<tr id="MFJMFSCSRow"><td id="TPCharityStandard"></td><td id="SPCharityStandard"></td></tr>
 		<tr><td id="TPAdjustments"></td><td id="SPAdjustments"></td></tr>

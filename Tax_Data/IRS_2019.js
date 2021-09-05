@@ -70,7 +70,8 @@
         	_EdExpenseLimits[_TY+":TNF"] = " 4000, 66000, 2000,  80000,       0";
         	_EdExpenseLimits[_TY+":LLC"] = "10000, 58000, 68000, 116000, 136000";
         	_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";
-			_EdExpenseLimits[_TY+":SAV"] = "  N/A, 81100, 96100, 121600, 151600";
+		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 81100, 96100, 121600, 151600";
+		_EdExpenseLimits[_TY+":INT"] = " 2500, 70000, 85000, 140000, 170000";
 
         // var Standard = [];	// Exemption and standard deductions
                 _Standard["Exemption"] = 0;

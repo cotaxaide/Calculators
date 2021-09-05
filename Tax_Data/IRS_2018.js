@@ -67,11 +67,11 @@
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, WID)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
 	
-                _EdExpenseLimits[_TY+":TNF"] = "4000,65000,2000,80000,0";	// Need update!
-                //_EdExpenseLimits[_TY+":TNF"] = "0,0,0,0,0";
+                _EdExpenseLimits[_TY+":TNF"] = "4000,65000,2000,80000,0";
                 _EdExpenseLimits[_TY+":LLC"] = "10000,57000,67000,114000,134000";
                 _EdExpenseLimits[_TY+":AOC"] = "4000,80000,90000,160000,180000";
-		_EdExpenseLimits[_TY+":SAV"] = "N/A,77550,92550,116300,146300";	//Needs update	// Need update!
+		_EdExpenseLimits[_TY+":SAV"] = "N/A,79550,94550,119300,149300";
+		_EdExpenseLimits[_TY+":INT"] = " 2500, 65000, 80000, 135000, 165000";
 
         // var Standard = [];	// Exemption and standard deductions
                 _Standard["Exemption"] = 0;

@@ -91,16 +91,6 @@
 	// var MedicalExclusion = [];
 		_MedicalExclusion[_TY] = "0.100, 0.075";
 
-        // var RetireLimits = [];
-                // Source: 1040 instructions
-                // MFJ,SNG,HOH,WID,MFS
-                _RetireLimits["SNG"] = 0;
-                _RetireLimits["WID"] = 0;
-                _RetireLimits["MFS"] = 0;
-                _RetireLimits["HOH"] = 1;
-                _RetireLimits["MFJ"] = 2;
-                _RetireLimits[_TY] = "30000,45000,60000";
-
         // var CTCLimits = [];
                 // Source: 1040 instructions
                 // MFJ,SNG,HOH,WID,MFS
