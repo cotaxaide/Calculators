@@ -35,6 +35,7 @@
                 _LineNo[_TY+":AOC"] = "17c";
                 _LineNo[_TY+":NetPTC"] = "S5-70";
                 _LineNo[_TY+":SALT"] = "5d"; // Sched A
+                _LineNo[_TY+":CashContrib"] = "11"; // Sched A
                 _LineNo[_TY+":ItemDed"] = "17"; // Sched A
 		_LineNo[_TY+":UseSchedA"] = "18"; // Sched A
 	        _LineNo[_TY+":F8962A"] = "11a";

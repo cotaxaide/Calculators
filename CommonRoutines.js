@@ -299,8 +299,10 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	}
 	else {
 		var ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
+		childDependents = Math.floor(childDependents); // programming error protection
 		ACTCLimit = Math.min(ACTCRate * +childDependents, ACTCLimit);
 	}
+	totalDependents = Math.floor(totalDependents); // programming error protection
 	var FTCAmount = FTCRate * (Math.max(0, +totalDependents - cD));
 	return ([CTCAmount, FTCAmount, Math.round(ACTCLimit)]);
 }

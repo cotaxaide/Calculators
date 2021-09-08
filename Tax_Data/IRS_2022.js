@@ -44,6 +44,7 @@
 	        _LineNo[_TY+":StateWH"] = "5a"; 	// Needs update
 	        _LineNo[_TY+":Property"] = "5b"; 	// Needs update
 		_LineNo[_TY+":SALT"] = "5d";	// Needs update
+                _LineNo[_TY+":CashContrib"] = "11";	// Needs update
                 _LineNo[_TY+":ItemDed"] = "17";	// Needs update
 		_LineNo[_TY+":UseSchedA"] = "18";	// Needs update
 		// Form 2555	// Needs update

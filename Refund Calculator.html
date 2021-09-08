@@ -221,11 +221,11 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2016.js"></script>
 <script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
+<script src="Tax_Data/IRS_2021.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	var VERSION;
@@ -233,7 +233,12 @@
 	// To Do:
 	//	Provide for use of Schedule D
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.13c, 4/9/2020)";
+	VERSION = "(Version 2.14, 9/9/2021)";
+	//	Removed optional data and styling for 2017
+	//	Added 2021 CTC for age under 6
+	//	Added 2020 cash contributions when not itemizing
+	//	Corrected nonrefundable tax credit calc (QBI was missing)
+	//VERSION = "(Version 2.13c, 4/9/2020)";
 	//	Added a warning message on results box if any data is needed
 	//VERSION = "(Version 2.13b, 1/13/2020)";
 	//	AGI variable error at CTCAGA
@@ -435,62 +440,38 @@
 		}
 		else CYStandard.innerHTML = "TBD";
 	
-
+		CTC0CountRow.style.display = (NY >= 2022) ?  "inline" : "none" ;
+		CashContribRow.style.display = (NY >= 2021) ? "table-row" : "none" ;
+		if (NY < 2021) CashContrib.value = "";
 		if (NY >= 2019) {
 			DependentsRow.style.display =
 			DependentsNumber.style.display = "none";
 			ODCCountRow.style.display = "inline";
+			CTC0Count.value = 0;
 			Dependents.value = "";
 			TaxableStateLabel.innerHTML = "Schedule 1 line 1";
 			TaxableSalesLabel.innerHTML = "Schedule 1 line 8";
 		}
-		else if (NY == 2018) {
+		else { // 2018
 			DependentsRow.style.display =
 			DependentsNumber.style.display = "inline"
 			ODCCountRow.style.display = "none";
+			CTC0Count.value = 0;
 			TaxableStateLabel.innerHTML = "Schedule 1 line 10";
 			TaxableSalesLabel.innerHTML = "Schedule 1 line 21";
 		}
-		else {
-			DependentsRow.style.display =
-			DependentsNumber.style.display =
-			ODCCountRow.style.display = "none";
-			TaxableStateLabel.innerHTML = "1040 line 10";
-			TaxableSalesLabel.innerHTML = "1040 line 21";
-		}
 
-
-		if (CY >= 2018) {
-			PostCreditLineNo.innerHTML = "1040 line 13";
-			SalesTaxText.style.display = "none";
-			ODC.style.display = "inline";
-			EnergyRow.style.display = "none";
-			StateWHBox.style.display = "none";
-			StateWHRow.style.display = "table-row";
-			StateWHText.innerHTML = "to indicate sales tax used";
-			SalesTaxUsedBox.style.display = "inline";
-			PersonalRow.style.display = "table-row";
-			PropertyRow.style.display = "table-row";
-			SALTRow.style.display = "table-row";
-			NonTaxableQBIDRow.style.display = "table-row";
-		}
-		else {
-			PostCreditLineNo.innerHTML = "1040 line 56";
-			SalesTaxText.style.display = "inline";
-			//QBITestSkip.checked = true; // v 2.07
-			ODC.style.display = "none";
-			ODCCount.value = 0;
-			EnergyRow.style.display = "table-row";
-			StateWHLabel.innerHTML = "5a.<br />5b."
-			StateWHBox.style.display = "inline";
-			StateWHRow.style.display = (+StateWH.value + +SalesTax.value) ? "table-row" : "none" ;
-			PropertyRow.style.display = (PropertyTaxRefund.value) ? "table-row" : "none" ;
-			PersonalRow.style.display = "none";
-			SALTRow.style.display = "none";
-			SalesTaxUsedBox.style.display = "none";
-			StateWHText.innerHTML = "";
-			NonTaxableQBIDRow.style.display = "none";
-		}
+		PostCreditLineNo.innerHTML = "1040 line 13";
+		SalesTaxText.style.display = "none";
+		EnergyRow.style.display = "none";
+		StateWHBox.style.display = "none";
+		StateWHRow.style.display = "table-row";
+		StateWHText.innerHTML = "to indicate sales tax used";
+		SalesTaxUsedBox.style.display = "inline";
+		PersonalRow.style.display = "table-row";
+		PropertyRow.style.display = "table-row";
+		SALTRow.style.display = "table-row";
+		NonTaxableQBIDRow.style.display = "table-row";
 
 		// Update lines containing dates
 
@@ -521,6 +502,7 @@
 		SALTLimit.innerHTML = _SALT[CY] / ((FilingStatus.value == "MFS") ? 2 : 1);
 		ItemizedLineNo.innerHTML = _LineNo[CY + ":ItemDed"];
 		UseSchedALineNo.innerHTML = _LineNo[CY + ":UseSchedA"];
+		CashContribLineNo.innerHTML = _LineNo[CY + ":CashContrib"];
 		CTCAGIText.innerHTML = 
 		AGILineNo.innerHTML =
 		QBIAGILineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":AGI"];
@@ -600,6 +582,8 @@
 		Property.style.backgroundColor = "";
 		if (isNaN(Property.value) || (+Personal.value < 0)) Personal.value = "";
 		Personal.style.backgroundColor = "";
+		if (isNaN(CashContrib.value) || (+CashContrib.value < 0)) CashContrib.value = "";
+		CashContrib.style.backgroundColor = "";
 		if (isNaN(Itemized.value) || (+Itemized.value < 0)) Itemized.value = "";
 		Itemized.style.backgroundColor = "";
 		if (isNaN(Salary.value) || (+Salary.value < 0)) Salary.value = "";
@@ -650,6 +634,8 @@
 		CTCAGI.style.backgroundColor = "";
 		if (isNaN(CTCCount.value) || (+CTCCount.value < 0)) CTCCount.value = "";
 		CTCCount.style.backgroundColor = "";
+		if (isNaN(CTC0Count.value) || (+CTC0Count.value < 0)) CTC0Count.value = "";
+		CTC0Count.style.backgroundColor = "";
 		if (isNaN(ODCCount.value) || (+ODCCount.value < 0)) ODCCount.value = "";
 		ODCCount.style.backgroundColor = "";
 		if (isNaN(Energy.value) || (+Energy.value < 0)) Energy.value = "";
@@ -907,14 +893,21 @@
 			}
 			else {
 				// Check the input data
+				if ((CY >= 2020) && CashContrib.value == "") {
+					NeedData++;
+					CashContrib.style.backgroundColor = "yellow";
+					CashContrib.focus();
+				}
+				if (NeedData) return;
+	
 				if (Itemized.value == "") {
 					NeedData++;
 					Itemized.style.backgroundColor = "yellow";
 					Itemized.focus();
 				}
 				if (NeedData) return;
-	
-				if (Itemized.value < (+SALT.value + +Medical.value)) {
+
+				if (Itemized.value < (+SALT.value + +Medical.value + +CashContrib.value)) {
 					NeedData++;
 					Itemized.style.backgroundColor = "hotpink";
 					alert("Itemized deduction total seems too low.");
@@ -922,7 +915,8 @@
 				if (NeedData) return;
 		
 				// OK to calculate
-				ItemizedDiff = Math.max(0, Itemized.value - StandardDeduction.value);
+				NonSchedAContrib = Math.min((150 * ((FilingStatus.value == "MFJ") ? 2 : 1 )), +CashContrib.value);
+				ItemizedDiff = Math.max(0, +Itemized.value - +StandardDeduction.value - NonSchedAContrib);
 				NewTotalTaxable = Math.min(ItemizedDiff, TotalTaxable);
 				NewTotalPct = NewTotalTaxable / TotalTaxable;
 
@@ -948,10 +942,11 @@
 		}
 		else {
 			RevisedItemized.value = 
-			RevisedDeduction = Math.max((+Itemized.value - TotalTaxable), +StandardDeduction.value);
+			RevisedDeduction = Math.max((+Itemized.value - TotalTaxable), (+StandardDeduction.value + NonSchedAContrib));
 		}
 		
 		if (Status_Test("SchedAResult")) return;
+
 
 	//----------------------------------------------------------------------------------------
 		// Test for QBI adjustment
@@ -1269,10 +1264,14 @@
 				else if (QBIAGI.value != "") CTCAGI.value = QBIAGI.value;
 
 				// Calculate the CTC if the data is available
-				CTCCalc = (CTCAGI.value != "") && (CTCCount.value != "") && (ODCCount.value != "");
+				CTCCalc = (CTCAGI.value != "")
+					&& (CTCCount.value != "")
+					&& (CTC0Count.value != "")
+					&& (ODCCount.value != "");
 				if (CTCCalc) {
+					CTCChild = +CTCCount.value + (+CTC0Count.value / 100);
 					CTCReturn = _CTCLookup(CY, FilingStatus.value,
-							CTCCount.value, (+CTCCount.value + +ODCCount.value),
+							CTCChild, (+CTCCount.value + +ODCCount.value),
 							0, CTCAGI.value, 0);
 					CTC.value = +CTCReturn[0] + +CTCReturn[1];
 				}
@@ -1292,6 +1291,18 @@
 						NeedData++;
 						CTCCount.style.backgroundColor = "yellow";
 						CTCCount.focus();
+					}
+					if (NeedData) return;
+					else if (CTC0Count.value == "") {
+						CTC.value = "";
+						NeedData++;
+						CTC0Count.style.backgroundColor = "yellow";
+						CTC0Count.focus();
+					}
+					if (+CTC0Count.value > +CTCCount.value) {
+						alert("The number of children under 6 cannot be larger than the number of children under 17");
+						CTC0Count.style.backgroundColor = "hotpink";
+						return;
 					}
 					if (NeedData) return;
 					else if (ODCCount.value == "") {
@@ -1348,7 +1359,8 @@
 
 				// OldCredits bring the tax to 0, so NewCredits will determine the deduction
 				// Figure the tax bracket and taxable amount increase allowed
-				var NewTaxable = Math.max(0, +CTCAGI.value - RevisedDeduction + +Exemption.value);
+				var NewQBID = +QBIDCurrent.value + +QBIDAdditional.value;
+				var NewTaxable = Math.max(0, +CTCAGI.value - RevisedDeduction - NewQBID + +Exemption.value);
 				NewTax = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, NewTaxable, 0, true);
 				NewCredits.value = Math.min(NewTax, +NewCredits.value);
 				var additionalForCredits = +Brackets(OldCredits.value, NewCredits.value);
@@ -1378,6 +1390,7 @@
 				Retirement.value = "";
 				CTCAGI.value = "";
 				CTCCount.value = "";
+				CTC0Count.value = "";
 				ODCCount.value = "";
 				CTC.value = "";
 				Energy.value = "";
@@ -1670,6 +1683,7 @@
 			<li>The effect of the state and local tax (&quot;SALT&quot;) deduction limitation in tax years 2018 and later.</li>
 			<li>The total itemized deductions which exceeded the standard deduction.</li>
 			<li>The extent to which itemized deductions were limited (Not considered due to high income required)</li>
+			<li>The amount of a cash contribution deduction available due to potential reduced itemized deductions (TaxSlayer does not consider this).</li>
 			<li>The amount of additional QBI deduction available due to potential reduced itemized deductions (TaxSlayer does not consider this).</li>
 			<li>The amount of a taxable amount that was negative (TaxSlayer does not consider this).</li>
 			<li>Nonrefundable tax credits that were available but not fully used to reduce tax (TaxSlayer does not consider this).</li>
@@ -1757,6 +1771,9 @@
 				<td><span id="SALTLineNo">TBD</span>. State &amp; Local tax total:</td>
 				<td><input id="SALT" type="myinput" disabled="true"/></td>
 				<td>&quot;SALT&quot; total prior to <span id="SALTLimit"></span> limit</td></tr>
+			<tr id="CashContribRow"><td><span id="CashContribLineNo">TBD</span>. Cash contributions:</td>
+				<td><input id="CashContrib" type="myinput" /></td>
+				<td></td></tr>
 			<tr id="ItemizedRow"><td><span id="ItemizedLineNo">TBD</span>. Total itemized deductions:</td>
 				<td><input id="Itemized" type="myinput" /></td>
 				<td><input id="UseSchedA" type="checkbox" />
@@ -1764,9 +1781,9 @@
 					(Standard deduction = <span id="CYStandard"></span>)</td></tr>
 			<tr id="RevisedItemizedRow"><td>Revised deductions:</td>
 				<td><input id="RevisedItemized" type="myinput" disabled="true" /></td>
-				<td>(Calculated)</tr>
+				<td>(Calculated)</td></tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after last test: 
+				<td class="test_results">Taxable amount of the refund after this test: 
 					<span id="SchedAResult">TBD</span></td></tr>
 		</table>
 		<button id="SchedAButton" class="hidden">Next</button>
@@ -1839,7 +1856,7 @@
 				<td><input id="QBIDAdditional" type="myinput" disabled="true" /></td>
 				<td id="QBIDAdditionalText"></td></tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after last test: 
+				<td class="test_results">Taxable amount of the refund after this test: 
 					<span id="QBIResult">TBD</span></td></tr>
 		</table>
 	</div> <!-- QBIDiv -->
@@ -1865,7 +1882,7 @@
 				<td><input id="NonTaxableQBID" type="myinput" disabled="true" /></td>
 				<td>(Calculated from business and 199A dividend income)</tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after last test: 
+				<td class="test_results">Taxable amount of the refund after this test: 
 					<span id="NonTaxableResult">TBD</span></td></tr>
 		</table>
 		<button id="NonTaxableButton" class="hidden">Next</button>
@@ -1920,18 +1937,25 @@
 			<tr id="CTCRow">
 				<td>&nbsp;&nbsp;Child/dependent tax credit:</td>
 				<td><input id="CTC" type="myinput" disabled="true" /></td>
-				<td><span id="CTCTable">
-					AGI:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-					<input id="CTCAGI" type="myinput" />
-					From <span id="CTCAGIText"></span>
-					<br />Dep &lt; 17:
-					<input id="CTCCount" type="myinput" />
-					Number of dependents aged 16 or less, or disabled
-					<span id="ODC">
-					<span id="ODCCountRow">
-					<br />Dep &gt; 16:
-					<input id="ODCCount" type="myinput" />
-					Number of other dependents</span></span></span>
+				<td>	<span id="CTCTable">
+						AGI:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<input id="CTCAGI" type="myinput" />
+						From <span id="CTCAGIText"></span>
+						<br />Dep &lt; 17:
+						<input id="CTCCount" type="myinput" />
+						Number of dependents aged 16 or less, or disabled
+						<span id="CTC0CountRow">
+							(including < age 6)
+							<br />Dep &lt; 6:&nbsp;&nbsp;
+							<input id="CTC0Count" type="myinput" />
+							Number of dependents under 6, or disabled
+						</span>
+						<span id="ODCCountRow">
+							<br />Dep &gt; 16:
+							<input id="ODCCount" type="myinput" />
+							Number of other dependents
+						</span>
+					</span></tr>
 			<tr>	<td style="border-top:2px solid black;">
 					New total non-refundable credits:</td>
 				<td style="border-top:2px solid black;">
@@ -1944,7 +1968,7 @@
 				<td><input id="TaxBracketGain" type="myinput" disabled="true" /></td>
 				<td id="TaxBracket"></td></tr>
 			<tr>	<td></td><td></td>
-				<td class="test_results">Taxable amount of the refund after last test: 
+				<td class="test_results">Taxable amount of the refund after this test: 
 					<span id="NonRefundableResult">TBD</span></td></tr>
 		</table>
 		<button id="NonRefundableButton" class="hidden">Next</button>
