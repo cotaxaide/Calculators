@@ -6,24 +6,24 @@
 	<title>Railroad Retirement Worksheet</title>
 
 <style type="text/css">
-	html {background-color: #cccccc;}
-	body {background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%;}
-	button {cursor: pointer; background-color: lightgreen;}
-	table {background-color: #eeeeee; border-collapse:collapse;}
-	div {background-color: #eeeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 99%;}
-	h1 {text-align: center; font-size: 110%; text-decoration: underline}
-	tr {vertical-align: top;}
-	th {background-color: #c7c7c7;}
-	input {text-align: left;}
-	input, select {background-color: white;}
-	input[type="number"] {width: 4em;}
-	input:disabled, select:disabled {background-color: lightgrey; font-weight: bold;}
-	.bold {font-weight: bold;}
-	.center {text-align: center;}
-	.tblHeader {font-size:110%; font-weight:bold; text-decoration:underline;}
-	.title {font-size:125%; font-weight:bold;}
-	.instruction {font-style: italic; float: right;}
-	.comment {font-style:italic;}
+	html { background-color: #cccccc; }
+	body { background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%; }
+	button { cursor: pointer; background-color: lightgreen; }
+	table { background-color: #eeeeee; border-collapse:collapse; }
+	div { background-color: #eeeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 99%; }
+	h1 { text-align: center; font-size: 110%; text-decoration: underline}
+	tr { vertical-align: top; }
+	th { background-color: #c7c7c7; }
+	input { text-align: left; }
+	input, select { background-color: white; }
+	input[type="number"] { width: 4em; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.bold { font-weight: bold; }
+	.center { text-align: center; }
+	.tblHeader { font-size:110%; font-weight:bold; text-decoration:underline; }
+	.title { font-size:125%; font-weight:bold; }
+	.instruction { font-style: italic; float: right; }
+	.comment { font-style:italic; }
 		#TPName {
 		text-align: left;
 		width: auto;
@@ -34,31 +34,33 @@
 	#TPNameDiv {
 		width: 99%;
 	}
-	#ClearAndPrint {text-align: center; float:right; z-level:2; position: absolute; top: 0.5em; right: 1em;}
-	#CalcButton {font-size: 120%;}
-	#IncomeTable {border: 1px solid black; width: 100%}
-	#IncomeTable td, th {padding-right: 1em;}
-	#IncomeTable tr:first-child {border-bottom: 1px solid black}
-	#IncomeTable tr:nth-child(5) {border-top: 1px solid black;}
-	#IncomeTable tr:nth-child(8) {border-top: 1px solid black;}
-	#IncomeTable input {text-align: right; width: 6em;}
-	#ShowColor {background-color: HotPink;}
+	#ClearAndPrint { text-align: center; float: right; z-level: 2; position: absolute; top: 0.5em; right: 1em; }
+	#CalcButton { font-size: 120%; }
+	#IncomeTable { border: 1px solid black; width: 100%}
+	#IncomeTable td, th { padding-right: 1em; }
+	#IncomeTable tr td:nth-child(4),
+	#IncomeTable tr td:nth-child(5) { text-align: center; }
+	#IncomeTable tr:first-child { border-bottom: 1px solid black; }
+	#IncomeTable tr:nth-child(5) { border-top: 1px solid black; }
+	#IncomeTable tr:nth-child(8) { border-top: 1px solid black; }
+	#IncomeTable input { text-align: right; width: 6em; }
+	#ShowColor { background-color: HotPink; }
 	
 	@media print {
-		.doPrint {display:inline;}
-		.noPrint {display:none;}
-		html {background-color: white; font-size: 0.8em;}
-		body {font-size: 0.8em; background-color: white; padding:0; margin:0;}
-		input, select, option {font-size: 0.8em;}
-		table {width: 100%; background-color: white;}
+		.doPrint { display:inline; }
+		.noPrint { display:none; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
+		input, select, option { font-size: 0.8em; }
+		table { width: 100%; background-color: white; }
 	}
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
+<script src="Tax_Data/IRS_2021.js"></script>
 <script type="text/javascript">
 	var VERSION;
 	// --------------------------------------------------------------------------------
@@ -67,7 +69,9 @@
 	//	Nancy or Don Metzger
 	// --------------------------------------------------------------------------------
 
-	VERSION = "Version 1.06, 1/27/2019";
+	VERSION = "Version 1.07, 9/9/2021";
+	//	Added TaxSlayer bug treatment
+	//VERSION = "Version 1.06, 1/27/2019";
 	//	Corrected RR exclusion - TS adjusts to what's already there (vs replace)
 	//VERSION = "(Version 1.05, 1/26/2019)";
 	//	Modified to match TaxSlayer treatment of Tier II
@@ -115,8 +119,7 @@
 		COSubtractRR.value = "";
 		COSubtractMessageRR.innerHTML = "";
 		ShowError.style.display = "none";
-		Tier2FixA.style.display = (+TaxYear.value < 2018) ? "inline" : "none";
-		Income_Check();
+		//Income_Check();
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -192,6 +195,13 @@
 	//----------------------------------------------------------------------------------------
 		Income_Check();
 
+		// TaxSlayer error:
+		// Entering  a Pension/Annuity Income doesn't change retirement exclusion
+		TaxSlayerError = (+TaxYear.value >= 2019); // T/F
+		CTRow1.style.display =
+		CTRow2.style.display =
+		CTRow3.style.display = (TaxSlayerError) ? "none" : "table-row" ;
+
 		// Determine taxable amounts of SS and Tier1
 		Tier1Total = +Tier1TP.value + +Tier1SP.value;
 		SSTotal = +SSTP.value + +SSSP.value;
@@ -252,15 +262,33 @@
 		}
 
 		if (RRTP || RRSP) {
-			COSubtractRR.value = Math.round(T1TaxableTP + T1TaxableSP 
-				+ ((+TaxYear.value < 2018) ? (+Tier2TP.value + +Tier2SP.value) : 0));
-			COSubtractMessageRR.innerHTML = "";
+			var Tier1Subtract = T1TaxableTP + T1TaxableSP;
+			if (TaxSlayerError) {
+				var TPSPAdjustment = PensionTP + PensionSP;
+				var AllowedExclusion = +COAllowedTP.value + +COAllowedSP.value;
+				var TPSPReduction = Math.max(0, AllowedExclusion - TPSPAdjustment);
+				if (TPSPReduction) { //Reduction doesn't work, so take from RR
+					if (TPSPReduction > Tier1Subtract) { // Not enough Tier1
+						var message = "TaxSlayer cannot create a valid CO return";
+						COSubtractRR.value = 0;
+						COSubtractMessageRR.innerHTML = "message";
+						alert(message)
+					}
+					else {
+						COSubtractRR.value = Math.round(Tier1Subtract - TPSPReduction);
+						COSubtractMessageRR.innerHTML = "";
+					}
+				}
+			}
+			else {
+				COSubtractRR.value = Math.round(Tier1Subtract);
+				COSubtractMessageRR.innerHTML = "";
+			}
 		}
 		else {
 			COSubtractRR.value = "";
 			COSubtractMessageRR.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
 		}
-
 	}
 
 </script>
@@ -279,7 +307,7 @@
 </center>
 
 <span id="ClearAndPrint" class="noPrint">
-	<button onclick="window.location.reload()">Clear and reset calculator</button>
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </span>
 	
@@ -296,9 +324,7 @@
 		TaxSlayer incorrectly includes RR retirement benefits in the retirement exclusion.
 		But RR retirement benefits are not taxable in any state, thus has its own exclusion line.
 		Consequently, other retirement exclusions are capped at the 20K/24K limit prematurely.
-		This calculator removes the taxable portions of Tier 1
-		<span id="Tier2FixA">and Tier 2</span>
-		RR benefits from the CO retirement
+		This calculator removes the taxable portions of Tier 1 RR benefits from the CO retirement
 		amount and totals those RR retirement amounts, all to be entered on the CO &quot;Subtractions from income&quot; page.
 		<br /><br />
 		<b>NOTE: If the person(s) with RR retirement benefits have not reached the maximum pension exclusion (see the CO Pension Exclusion Worksheet), the outcome will be correct, no change is necessary and you do not need to use this worksheet.</b>
@@ -348,11 +374,11 @@
 		<br />
 		<br />
 		<table id="CorrectionTable">
-			<tr><td>Enter in <u>Pension/Annuity Income</u> page:</td></tr>
-			<tr><td>&nbsp;&nbsp;&nbsp;Taxpayer:</td>
+			<tr id="CTRow1"><td>Enter in <u>Pension/Annuity Income</u> page:</td></tr>
+			<tr id="CTRow2"><td>&nbsp;&nbsp;&nbsp;Taxpayer:</td>
 				<td><input id="COSubtractTP" class="output" readonly /></td>
 				<td><span id="COSubtractMessageTP"></span></td></tr>
-			<tr><td>&nbsp;&nbsp;&nbsp;Spouse:</td>
+			<tr id="CTRow3"><td>&nbsp;&nbsp;&nbsp;Spouse:</td>
 				<td><input id="COSubtractSP" class="output" readonly /></td>
 				<td><span id="COSubtractMessageSP"></span></td></tr>
 			<tr><td>&nbsp;</td></tr>
