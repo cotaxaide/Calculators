@@ -76,7 +76,9 @@
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.03, 8/13/2021)";
+	VERSION = "(Version 1.04, 9/8/2021)";
+	//	Changed CTC to age under 6 for 2021
+	//VERSION = "(Version 1.03, 8/13/2021)";
 	//	Added Retirement Savings Credit
 	//VERSION = "(Version 1.02, 8/6/2021)";
 	//	LLC scale too large due to low tax to be offset
@@ -215,7 +217,7 @@
 					var CTCMaxY = +_CTCLimits[TY + ":CTCRate"];
 					var CTCMaxX = +_CTCLimits[TY + ":AGICap"].split(",")[_CTCLimits[FS]];
 					AGIMax = Math.max(AGIMax, CTCMaxX + (20 * CTCMaxY * Children));
-					if (TY == 2021) CTCMaxY += (+_CTCLimits[TY + ":CTC0Rate"]);
+					if (TY >= 2021) CTCMaxY += (+_CTCLimits[TY + ":CTC0Rate"]);
 					CreditMax = Math.max(CreditMax, CTCMaxY * Children);
 				}
 				if (CARE.checked) {
@@ -356,7 +358,7 @@
 								income = AGI;
 								var taxable = Math.max(0, AGI - StandardDeduction);
 								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
-								credits = _CTCLookup(TY, FS, child, child, income, AGI, 0);
+								credits = _CTCLookup(TY, FS, child * 1.01, child, income, AGI, 0);
 								var creditUsed = Math.min(tax, credits[0]);
 								var creditLeft = credits[0] - creditUsed; 
 								var ACTC = Math.min(credits[2], creditLeft);
