@@ -21,6 +21,11 @@
 		font-weight: bold;
 		cursor: not-allowed;
 	}
+	textarea {
+		width: calc(100% - 5px);
+		max-width: calc(100% - 5px);
+		height: 1em;
+	}
 	.title { font-size:125%; font-weight: bold; }
 	.instruction { text-align: right; text-decoration: italic; }
 	.comment { font-style:italic; }
@@ -65,6 +70,7 @@
 	#FilingInfoTbl tr td { vertical-align: top; }
 	//#FilingInfoTbl tr td { border: 1px solid blue; }
 	#FilingInfoTbl tr td:nth-child(1) { width: 9em; width: 9em; }
+	#FilingInfoTbl tr:first-child { height: 0 }
 	#FilingInfoTbl tr td:nth-child(2) { width: 8em; width: 8em; }
 	#FilingInfoTbl tr td:nth-child(3) { text-align: left; min-width: 12em; }
 	#FilingInfoTbl tr td:nth-child(4) { text-align: right; }
@@ -72,6 +78,7 @@
 	#IncomeTable { width: 100%; }
 	#IncomeTable tr,
 	#MFSTable tr { height: 1.75em; border-bottom: 1px solid grey; }
+	#IncomeTable tr:first-child { height: 0 }
 	#IncomeTable tr td:first-child { min-width: 1em; font-weight: bold; }
 	#IncomeTable tr td:nth-child(3),
 	#IncomeTable tr td:nth-child(4),
@@ -187,12 +194,18 @@
 	//	Arlene Green		Bob Janesak		Fred Marker
 	//	Henry Geisser		Bob Schroer		Chuck Sherman
 	//	Ron Bower		Barry Schwarz		Erica Adams
-	//	Fred Marker
+	//	Fred Marker		Kathleen Quinn
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.26, 9/4/2021)";
+	var VERSION = "(Version 3.28, 9/13/2021)";
+	//	Added a place for scenario notes
+	//	Replaced "last year" text with actual year
+	//	Dependents under 6 row was not hidden when TP is a dependent
+	//var VERSION = "(Version 3.27, 9/10/2021)";
+	//	Increased nonitemizing charity to 300/600
+	//var VERSION = "(Version 3.26, 9/4/2021)";
 	//	Added link to 2022 data
 	//	Added phaseout of Student Loan Interest adjustment
 	//var VERSION = "(Version 3.25, 5/15/2021)";
@@ -460,6 +473,7 @@
 
 		// Change tax year?
 		TaxYear3.innerHTML = TaxYear2.innerHTML = TY = TaxYear.value;
+		LY1.innerHTML = LY2.innerHTML = LY3.innerHTML = LY4.innerHTML = (+TaxYear.value - 1);
 		Preliminary.style.display = (_Preliminary[TY]) ? "inline" : "none";
 		MFSoptionText.innerHTML = (TY == _StopYear) ? "will be living" : "lived with" ;
 
@@ -486,12 +500,14 @@
 		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
 		if (IsDependent.checked) {
 			DependentsRow.style.display = "none";
+			Dependents0Row.style.display = "none";
 			EICRow.style.display = "none";
 			CTCRow.style.display = "none";
 			if ( (! TP65.checked) && (! SP65.checked)) DependentAgeRow.style.display = "table-row";
 		}
 		else {
 			DependentsRow.style.display = "table-row";
+			Dependents0Row.style.display = (TaxYear.value >= 2021) ?  "table-row" : "none";
 			EICRow.style.display = "table-row";
 			CTCRow.style.display = "table-row";
 			DependentAgeRow.style.display = "none";
@@ -542,7 +558,6 @@
 		RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
 
 		// 2021 tax form changes
-		Dependents0Row.style.display = (TaxYear.value >= 2021) ?  "table-row" : "none";
 		MFJMFSACCCreditRow.style.display =
 		ACCCreditRow.style.display = (TY == 2021) ? "table-row" : "none";
 
@@ -857,6 +872,7 @@
 		// Get the taxable SS amount difference if charitable contributions are added
 		var charityLimitJ = (FilingStatusValue === "MFS") ? 150 : 300 ;
 		var charityLimit = (CalcType === "J") ? charityLimitJ : 150 ;
+		if (TY >= 2021) charityLimit *= 2; // increase to 300/600
 		charityLimit = Math.min(charityLimit, (IncomeNoSS + +SSresult[0]));
 		SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
@@ -1217,6 +1233,8 @@
 			DependentWarning.innerHTML = "WARNING: You cannot file as MFJ and still be a dependent if filing for other than a refund of withholding.";
 		}
 
+		RefundComment.style.display = (taxdue < 0) ? "inline" : "none" ;
+
 		return (CalcOut);
 	}
 
@@ -1307,7 +1325,7 @@
 		WHAmount.style.backgroundColor = (WHAmount.value < 0) ? "hotpink" : "white";
 		OverrideAmount.style.backgroundColor = (OverrideAmount.value < 0) ? "hotpink" : "white";
 
-		var taxdue = TaxDue.innerHTML;
+		var taxdue = Math.max(0, TaxDue.innerHTML);
 
 		if (TotalTax.innerHTML) MaxIRA.innerHTML = "N/A";
 		else {
@@ -1371,9 +1389,9 @@
 	//----------------------------------------------------------------------------------------
 		// get tax due for payChoice option
 		switch (payOption) {
-		case "T": taxdue = TPTaxDue.innerHTML; break;
-		case "S": taxdue = SPTaxDue.innerHTML; break;
-		default: taxdue = TaxDue.innerHTML; break;
+		case "T": taxdue = Math.max(0, TPTaxDue.innerHTML); break;
+		case "S": taxdue = Math.max(0, SPTaxDue.innerHTML); break;
+		default: taxdue = Math.max(0, TaxDue.innerHTML); break;
 		}
 
 		// How much needs to be paid
@@ -1414,7 +1432,6 @@
 <center>
 	<span class="title"><span id="TaxYear2"></span> Estimated Tax Worksheet</span>
 	<br><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
-	<br />&nbsp;
 </center>
 
 <div id="ClearAndPrint" class="noPrint">
@@ -1513,7 +1530,7 @@
 <!-- ****************************************** INCOME WORKSHEET ****************************************** -->
 <div id="IncomeInfo" class="grid-item" >
 	<h1>Estimated Tax Worksheet:</h1>
-	<table id="IncomeTable">
+	<table id="IncomeTable"> <textarea placeholder="(add scenario notes here)"></textarea>
 		<tr><td></td><td></td><td></td><td></td><td></td></tr>
 		<tr><td colspan="2">Income:
 				(<input type="checkbox" id="IncomeExpand" checked
@@ -1900,7 +1917,8 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td>  </td>
-			<td colspan="3">Estimated total tax</td>
+			<td colspan="3">Estimated total tax
+				<span id="RefundComment">(A negative amount indicates a refund)</span></td>
 			<td id="TaxDue" class="calculated wktc">0</td></tr>
 		<tr class="tablebreak" style="background-color: black;">
 			<td id="DependentWarning" colspan="5" class="blinking"></td></tr>
@@ -1918,9 +1936,9 @@
 			<td id="Tax90" class="calculated">0</td></tr>
 		<tr><td>  </td>
 			<td colspan = "2">
-				Enter 100% of last year&apos;s income tax
+				Enter 100% of <span id="LY1"></span>&apos;s income tax
 				(<input id="HighAGI" type="checkbox" onchange="Do_Estimates();" />
-				Check if AGI last year was > $<span id="LYAGI"></span>K)</td>
+				Check if <span id="LY2"></span>&apos;s AGI was > $<span id="LYAGI"></span>K)</td>
 			<td><input id="TaxLastYear" type="text"
 				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
@@ -1929,11 +1947,11 @@
 			<td colspan="2" class="indent" onchange="Do_Estimates();">
 				<input id="UseSmall" type="radio" name="UseTax" checked="checked"
 				 /> Smaller of above or ...
-				<br /><input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% last year&apos;s amount from the line above.
+				 <br /><input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% of <span id="LY3"></span>&apos;s amount from the line above.
 				<br /><input id="UseTYTax" type="radio" name="UseTax" /> Use 100% of the <span id="TaxYear3"></span> estimated total tax.</td>
 			<td class="calculated" style="vertical-align: bottom;"><span id="EstAmount">0</span></td></tr>
 		<tr><td></td>
-			<td colspan="2">Refund from prior year designated as an estimated payment</td>
+			<td colspan="2">Refund from <span id="LY4"></span> designated as an estimated payment</td>
 			<td><input id="PYAmount" type="text"
 				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
