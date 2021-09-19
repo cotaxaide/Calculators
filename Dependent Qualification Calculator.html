@@ -54,13 +54,15 @@
 //	Ted Fox			Gregory Gendron		Jon Naiman		Sue Stavio
 //	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
-//	Bruce Dumas
+//	Bruce Dumas		Mary Emerson
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.25a 7/9/2021";
+var VERSION = "6.26 9/18/2021";
+//	Modified QCA to allow both TP is parent and No parent will claim boxes to be checked
+//var VERSION = "6.25a 7/9/2021";
 //	Added 2021 tax data
 //var VERSION = "6.25 2/3/2021";
 //	Fixed error where HOH not allowed for TP giving dependent to ex SP
@@ -562,7 +564,7 @@ function PreCalc(Source) {
 			if (OtherTPisParent.checked) ParentGives.checked = false;
 			break;
 		case (103): // No parent claims & other TP has higher AGI
-			if (ParentGives.checked || OtherTPisParent.checked) OtherTPisParent.checked = false;
+			// if (ParentGives.checked || OtherTPisParent.checked) OtherTPisParent.checked = false; // commented out in 6.26
 			break;
 		case (104): // Other TP gives permission to this TP
 			break;
@@ -1204,7 +1206,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 		PermissionToUse.disabled = false;
 
 		// Show other boxes or lines as they apply
-		if (OtherTPisParent.checked) NoParentClaims.checked = false;
+		// if (OtherTPisParent.checked) NoParentClaims.checked = false; // commented out in v 6.26
 		TP_QCA_Applies = (QualChildOfAnother.checked && OtherTPisParent.checked && TP_IsParent) ? true : false;
 		QCA_NoParent.style.display = (TP_QCA_Applies || TP_IsParent) ? "none" : "inline";
 		QCA_ParentGives.style.display = (TP_QCA_Applies || TP_IsParent) ? "inline" : "none";
@@ -1245,6 +1247,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			if (NoParentClaims.checked || TP_IsParent) QCAtest = "TP"; // must precede next test
 			if (OtherTPisParent.checked || ParentGives.checked) QCAtest = "OTHER";
 			if ((! OtherTPisParent.checked) && PermissionGiven.checked) QCAtest = "TP_GIVEN";
+			if (PermissionGiven.checked || NoParentClaims.checked) QCAtest = "TP"; // Added in Version 6.26
 		}
 	}
 	else {
@@ -2388,7 +2391,7 @@ function TestResults() {
 			<center><span class="Label">Enter year of birth:</span>
 			<br /><input id="BirthYear" />
 			<br /><input id="FTStudent" type="checkbox" />
-			<span class="Label">Full-time student for 5+ mo</span>
+			<span class="Label">Full-time student for at least 5 mo</span>
 			<br /><br /><button onclick="Calculate_Age();">OK</button>
 			</center></td></tr>
 	</table>
