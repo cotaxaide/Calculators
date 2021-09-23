@@ -233,7 +233,10 @@
 	// To Do:
 	//	Provide for use of Schedule D
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.14, 9/9/2021)";
+	VERSION = "(Version 2.15, 9/10/2021)";
+	//	Changed nonitemizing charity to 300/600 for 2021
+	//	Corrected test for filing status in nonitemizing charity
+	//VERSION = "(Version 2.14, 9/9/2021)";
 	//	Removed optional data and styling for 2017
 	//	Added 2021 CTC for age under 6
 	//	Added 2020 cash contributions when not itemizing
@@ -915,7 +918,8 @@
 				if (NeedData) return;
 		
 				// OK to calculate
-				NonSchedAContrib = Math.min((150 * ((FilingStatus.value == "MFJ") ? 2 : 1 )), +CashContrib.value);
+				NonSchedAContrib = Math.min((150 * ((FilingStatus.value == "MFS") ? 1 : 2 )), +CashContrib.value);
+				if (CY >= 2021) NonSchedAContrib *= 2;
 				ItemizedDiff = Math.max(0, +Itemized.value - +StandardDeduction.value - NonSchedAContrib);
 				NewTotalTaxable = Math.min(ItemizedDiff, TotalTaxable);
 				NewTotalPct = NewTotalTaxable / TotalTaxable;
