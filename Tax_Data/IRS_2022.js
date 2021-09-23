@@ -167,14 +167,14 @@
 		// INVEST is the max investment limit to qualify for EIC
                 // Columns are: 0, 1, 2, 3 children
 		// Needs update
-                _EICRates[_TY+":AGISNG"] =   "  8970,  19710,  19710,  19710";			// Needs update
-                _EICRates[_TY+":AGIMFJ"] =   " 14960,  25720,  25720,  25720";			// Needs update
-                _EICRates[_TY+":SNG"] =      " 16140,  42560,  48390,  51974";			// Needs update
-                _EICRates[_TY+":MFJ"] =      " 22130,  48570,  54400,  57984";			// Needs update
-                _EICRates[_TY+":MAX"] =      "   548,   3652,   6040,   6796";			// Needs update
-                _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";			// Needs update
-                _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";			// Needs update
-                _EICRates[_TY+":INVEST"] = 3650;		// Tentative	// Needs update
+                _EICRates[_TY+":AGISNG"] =   "  8880,  19520,  19520,  19520";	// Needs update
+                _EICRates[_TY+":AGIMFJ"] =   " 14820,  25470,  25470,  25470";	// Needs update
+                _EICRates[_TY+":SNG"] =      " 21430,  42158,  47915,  51464";	// Needs update
+                _EICRates[_TY+":MFJ"] =      " 27380,  48108,  53865,  57414";	// Needs update
+                _EICRates[_TY+":MAX"] =      "  1502,   3618,   5980,   6728";	// Needs update
+                _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";	// Needs update
+                _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";	// Needs update
+                _EICRates[_TY+":INVEST"] = 10000;		// Tentative	// Needs update
 
 	// var FPL = [];
 		_FPL[_TY+":US"] =     "12880, 4540";	// Needs update

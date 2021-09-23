@@ -169,12 +169,12 @@
 		// Needs update
                 _EICRates[_TY+":AGISNG"] =   "  8880,  19520,  19520,  19520";
                 _EICRates[_TY+":AGIMFJ"] =   " 14820,  25470,  25470,  25470";
-                _EICRates[_TY+":SNG"] =      " 15980,  42158,  47915,  51464";
-                _EICRates[_TY+":MFJ"] =      " 21920,  48108,  53865,  57414";
-                _EICRates[_TY+":MAX"] =      "   543,   3618,   5980,   6728";	
+                _EICRates[_TY+":SNG"] =      " 21430,  42158,  47915,  51464";
+                _EICRates[_TY+":MFJ"] =      " 27380,  48108,  53865,  57414";
+                _EICRates[_TY+":MAX"] =      "  1502,   3618,   5980,   6728";	
                 _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";
                 _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";
-                _EICRates[_TY+":INVEST"] = 3650;		// Tentative	// Needs update
+                _EICRates[_TY+":INVEST"] = 10000;
 
 	// var FPL = [];
 		_FPL[_TY+":US"] =     "12880, 4540";
@@ -192,12 +192,12 @@
 		// 300-400 = 9.5-9.5
 		// col 4 = SNG APTC repayment limit
 
-		_PTCFactorVal[_TY+":0"] =   "133, 2.00, 2.00,  0";		// col 1-3 Needs update
-		_PTCFactorVal[_TY+":133"] = "150, 2.00, 2.00,  0";		// col 1-3 Needs update
-		_PTCFactorVal[_TY+":150"] = "200, 2.00, 2.00,  0";		// col 1-3 Needs update
-		_PTCFactorVal[_TY+":200"] = "250, 2.00, 4.00,  0";		// col 1-3 Needs update
-		_PTCFactorVal[_TY+":250"] = "300, 4.00, 6.00,  0";		// col 1-3 Needs update
-		_PTCFactorVal[_TY+":300"] = "400, 6.00, 8.50,  0";		// col 1-3 Needs update
+		_PTCFactorVal[_TY+":0"] =   "133, 2.06, 2.06,  300"; // Needs update
+		_PTCFactorVal[_TY+":133"] = "150, 3.09, 4.12,  300"; // Needs update
+		_PTCFactorVal[_TY+":150"] = "200, 4.12, 6.49,  300"; // Needs update
+		_PTCFactorVal[_TY+":200"] = "250, 6.49, 8.29,  750"; // Needs update
+		_PTCFactorVal[_TY+":250"] = "300, 8.29, 9.78,  750"; // Needs update
+		_PTCFactorVal[_TY+":300"] = "400, 9.78, 9.78, 1250"; // Needs update
 
 	// var AffordRate = [];
 		_AffordRate[_TY] = 0.0805;		// Needs update
