@@ -29,7 +29,7 @@
 		_LineNo[_TY+":Business"] = "S1-3";		// Needs update
                 _LineNo[_TY+":SEP"] = "S1-15";			// Needs update
                 _LineNo[_TY+":SEHI"] = "S1-16";			// Needs update
-                _LineNo[_TY+":TNF"] = "S1-21";			// Needs update
+                _LineNo[_TY+":TNF"] = "";			// Needs update
                 _LineNo[_TY+":Adjustments"] = "S1-22";		// Needs update
                 _LineNo[_TY+":ExcessAPTC"] = "S2-2";		// Needs update
                 _LineNo[_TY+":Foreign"] = "S3-1";		// Needs update
