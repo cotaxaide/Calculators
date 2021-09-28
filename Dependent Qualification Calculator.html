@@ -60,7 +60,9 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.26 9/18/2021";
+var VERSION = "7.01 9/26/2021";
+//	Broke support into two sections
+//var VERSION = "6.26 9/18/2021";
 //	Modified QCA to allow both TP is parent and No parent will claim boxes to be checked
 //var VERSION = "6.25a 7/9/2021";
 //	Added 2021 tax data
@@ -350,10 +352,9 @@ YesMsg["AOCCredit"] += "<li>Lifetime Learning Credit portion is \"non-refundable
 // Test alert message for those who inadvertantly find the little heart symbol
 var TestMsg = "This is a test function, not designed for casual users.";
 TestMsg += "\n\nThe test will cycle through all combinations of the dependent's";
-TestMsg += " age, relationship, residency, citizenship and support combinations (8400 of them) and";
+TestMsg += " age, relationship, residency, citizenship and support combinations (5040 of them) and";
 TestMsg += " displays the results in tabular form which you can copy and paste into a spreadsheet";
 TestMsg += " to filter and sort for analysis. Other options (except multiple support by others) are preserved.";
-TestMsg += "\n\nUse Chrome, Firefox, Opera or Safari when testing; Internet Explorer is too slow";
 TestMsg += "\n\nIt takes a while; do you wish to proceed?";
 
 // Help box message
@@ -458,6 +459,7 @@ function Initialize() {
 	ResidencyList[ResidencyList.length-1].checked = true; // 12
 	DependentITIN.checked = true;
 	Felony.checked = false;
+	SupportSelfNo.checked = true;
 	SupportList[SupportList.length-1].checked = true; // 100%
 	QualChildOfAnother.checked = false;
 	DepFilingMFJ.checked = false;
@@ -479,6 +481,7 @@ function Initialize() {
 	MarriedBoxContents.innerHTML = MarriedMsg;
 	IncomeBoxContents.innerHTML = IncomeMsg;
 	AlienBoxContents.innerHTML = AlienMsg;
+	SaveSupport = 51;
 	}
 
 //***************************************************************************************************
@@ -511,6 +514,7 @@ function Calculate_Age () {
 		alert("Birth year cannot be later than the tax year.");
 		return;
 	}
+
 	for (j=0; j < AgeList.length; j++) {
 		if (age > AgeList[j].value) continue;
 		if ((j == 5) && (! FTStudent.checked)) continue;
@@ -650,6 +654,14 @@ function CalcStatus(from_age_calc) {
 
 	// Dependant support by Taxpayer and/or others
 	for (j=0; j < SupportList.length; j++) if (SupportList[j].checked) DEP_Support = +SupportList[j].value;
+	if (DEP_Support) SaveSupport = DEP_Support;
+	if (SupportSelfNo.checked) {
+		if (SaveSupport == 10) Support10.checked = true;
+		else if (SaveSupport == 11) Support11.checked = true;
+		else if (SaveSupport == 51) Support51.checked = true;
+		DEP_Support = SaveSupport;
+	}
+	if (SupportSelfYes.checked) DEP_Support = 0;
 	DEP_MultipleTPSupport = Support11.checked && OtherSupport11.checked && Form2120.checked;
 
 	// Dependent residency
@@ -701,16 +713,19 @@ function CalcStatus(from_age_calc) {
 			if (DEP_Residency < 6) TP_Custodial = NO;
 			break;
 		}
-		SupportSelf.disabled = Support10.disabled = Support11.disabled = (! WaiverToNone.checked);
+		SupportSelfYes.disabled = Support10.disabled = Support11.disabled = (! WaiverToNone.checked);
 		if (! WaiverToNone.checked) Support51.checked = true;
 	}
 	else {
 		WaiverToNone.checked = true;
-		SupportSelf.disabled = Support10.disabled = Support11.disabled = false;
-		Support10.disabled = Support11.disabled = SupportSelf.checked;
+		SupportSelfYes.disabled = Support10.disabled = Support11.disabled = false;
+		Support10.disabled = Support11.disabled = Support51.disabled = SupportSelfYes.checked;
 	}
 
-
+	// Clean up support checkmarks
+	if (Support10.disabled) Support10.checked = false;
+	if (Support11.disabled) Support11.checked = false;
+	if (Support51.disabled) Support51.checked = false;
 
 	// Get Taxpayer/Spouse citizenship
 	SP_Citizenship = SPCitizenship.value;
@@ -805,7 +820,8 @@ function CalcStatus(from_age_calc) {
 
 		// Other qualified taxpayer optioms
 		TestFor = "";
-		Support10.disabled = Support11.disabled = ((SupportSelf.checked) || (QualChild.value == YES));
+		//Support10.disabled = Support11.disabled = ((SupportSelfYes.checked) || (QualChild.value == YES)); v 7.01
+		//if (SupportSelfYes.checked) Support51.disabled = true; v 7.01
 
 		// --------------------EITC does not depend on following tests--------------------------
 
@@ -1217,7 +1233,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			if (! (TPRes.checked || SPRes.checked || SameRes.checked)) TPRes.checked = true;
 			PermissionToUse.disabled = (TPRes.checked);
 			if (PermissionToUse.disabled) PermissionToUse.checked = false;
-			PermissionGiven.disabled = (SPRes.checked);
+			PermissionGiven.disabled = (SPRes.checked || Form2120.checked);
 			if (PermissionGiven.disabled) PermissionGiven.checked = false;
 
 			if (SameRes.checked) {
@@ -1239,7 +1255,8 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 		else {
 			TPRes.checked = SPRes.checked = SameRes.checked = false;
 			TPAGI.checked = SPAGI.checked = false;
-			PermissionGiven.disabled = (! TP_IsParent);
+			PermissionGiven.disabled = ((! TP_IsParent) || Form2120.checked) ;
+			if (PermissionGiven.disabled) PermissionGiven.checked = false;
 			PermissionToUse.disabled = true;
 			PermissionToUse.checked = false;
 			QCA_ResTest.style.display = "none";
@@ -1337,7 +1354,8 @@ function ShowMSRBox(OPTION) {
 //***************************************************************************************************
 
 	// Override an option request if the support % is not relevant
-	if (PermissionGiven.checked || (! Support11.checked) || TP_DivorceApplies) {OPTION = "Clear";}
+	//if (PermissionGiven.checked || (! Support11.checked) || TP_DivorceApplies) {OPTION = "Clear";}
+	if ((! Support11.checked) || TP_DivorceApplies) {OPTION = "Clear";}
 
 	// Evaluate the option request
 	switch (OPTION) {
@@ -1772,7 +1790,7 @@ function TestOptions() {
 	TestWindow.document.writeln("<html><head><title>Test results</title></head><body>");
 	TestWindow.document.writeln("<table>");
 	var TestHeader = "<thead><th>Test#</th><th>Age</th><th>Relation</th><th>Support</th><th>Citizenship</th><th>Residency</th>";
-	var TestHeader2 = "<th>QualChild</th><th>QualRelative</th><th>HOH</th><th>Widow(er)</th><th>DependCare</th><th>Medical</th><th>CTC</th><th>EITC</th><th>EdAdjust</th><th>EdCredit</th></thead>";
+	var TestHeader2 = "<th>QualChild</th><th>QualRelative</th><th>HOH</th><th>Widow(er)</th><th>DependCare</th><th>Medical</th><th>CTC</th><th>COD</th><th>EITC</th><th>T&F</th><th>LLC</th><th>AOC</th></thead>";
 	TestWindow.document.writeln(TestHeader + TestHeader2);
 
 	// Basic dependent tests
@@ -1886,7 +1904,7 @@ function TestResults() {
 		<td class="DEPHeader">Dependent age<br />on 12/31</td>
 		<td class="DEPHeader">Relationship<br />to TP</td>
 		<td class="DEPHeader">Residency<br />with TP</td>
-		<td class="DEPHeader">Dependent Support</td>
+		<td class="DEPHeader">Dependent<br />self-support</td>
 		<td class="RESHeader">ELIGIBLE FOR ...</td>
 	</tr>
 	<tr>
@@ -2128,10 +2146,16 @@ function TestResults() {
 		<td class="DEPOptions">
 		<table style="width:100%;">
 			<tr><td>
-				<input id="SupportSelf" name="Support" type="radio" onclick="CalcStatus()" value="0"
+				<input id="SupportSelfNo" name="SupportDep" type="radio" checked="checked" onclick="CalcStatus()" value="0"
+				title="This dependent provided half or less of their own support" />
+				<span class="Label">&lt;= 50% by Depend.</span>
+				<br /><input id="SupportSelfYes" name="SupportDep" type="radio" onclick="CalcStatus()" value="0"
 				title="This dependent provided more than half of their own support" />
-				<span class="Label">> 50% by Depend.</span>
-				<br /><input id="Support10" name="Support" type="radio" onclick="CalcStatus()" value="10"
+				<span class="Label">&gt; 50% by Depend.</span>
+				<br />&nbsp;
+			</td></tr><tr class="DEPHeader"><td style="border:1px solid;">Taxpayer<br />support</td></tr>
+			<tr><td>
+				<input id="Support10" name="Support" type="radio" onclick="CalcStatus()" value="10"
 				title="Taxpayer provided 10% or less of the dependent's support.  Others, including the dependent, may have also provided support, but not more than half." />
 				<span class="Label">0-10% by TP</span>
 				<br /><input id="Support11" name="Support" type="radio" onclick="CalcStatus()" value="11"
@@ -2141,7 +2165,7 @@ function TestResults() {
 				<span class="Label"></span>
 				<br /><input id="Support51" name="Support" type="radio" onclick="CalcStatus()" value="51" checked="checked"
 				title="Taxpayer provided at least half of the dependent's support. (Child did not provide more than half)" />
-				<span class="Label">51-100% by TP/SP</span>
+				<span class="Label">&gt; 50% by TP/SP</span>
 				<br />&nbsp;
 			</td></tr><tr class="DEPHeader"><td style="border:1px solid;">Dependent<br />Tax Status</td></tr>
 	<tr><td>
