@@ -172,8 +172,13 @@ var VERSION;
 //	Debbie Carroll
 //	Deb Fisher
 //	Sue Alza
+//	Don Thorn
 // --------------------------------------------------------------------------------
-VERSION = "(Version 2.01, 5/15/2021)";
+VERSION = "(Version 2.02, 10/5/2021)";
+//	Calc not done properly if new mortgage was taken in December
+//	Adjusted date of prior line when new mortgage taken in current year
+//	Added Delete button for each mortgage
+//VERSION = "(Version 2.01, 5/15/2021)";
 //	Added calc of monthly payment for an interest-only mortgage
 //VERSION = "(Version 2.00a, 5/9/2021)";
 //	Changed all "equity debt" text to "home equity debt"
@@ -253,7 +258,6 @@ function Initialize() {
 		tabs[t].innerHTML = IdleTab;
 		tabs[t].style.bottomBorder = "1px solid black";
 	}
-	Fill_Dates();
 	Change_Tab(1);
 }
 
@@ -282,12 +286,8 @@ function Change_Tab(NewTab) {
 		InputElement[i].value = Mortgage[NewTab][i];
 	}
 
-	// Clear calculated elements so they can be recalculated
-	for (i in CalcElement) {
-		CalcElement[i] = "";
-	}
-
 	// Restore multiple choice check marks with Original as default
+	Fill_Dates();
 	if (newType = New_Type.value) {
 		aa = document.getElementById(newType);
 		aa.checked = true;
@@ -314,11 +314,18 @@ function Change_Tab(NewTab) {
 //----------------------------------------------------------------------------------------
 function Input_Change(e) {
 //----------------------------------------------------------------------------------------
-	// Hide calculation results
+	// Clear calculated elements so they can be recalculated
+	for (i in CalcElement) {
+		CalcElement[i].innerHTML = "";
+	}
 
 	switch (e) {
 		case "TabChange": 
 			WhatChanged = e;
+			break;
+		case "Delete":
+			New_Bank.value = "";
+			WhatChanged = "New_Bank";
 			break;
 		default:
 			WhatChanged = e.target.id;
@@ -342,9 +349,6 @@ function Input_Change(e) {
 					Mortgage[CurrentTab][i] = "";
 					InputElement[i].value = "";
 				}
-				for (i in CalcElement) {
-					CalcElement[i] = "";
-				}
 				Tab[CurrentTab].innerHTML = BlankTab;
 				Res_Element[CurrentTab].Nam.innerHTML = "";
 				Clear_Worksheet();
@@ -362,11 +366,13 @@ function Input_Change(e) {
 		return;
 	case "TabChange":
 		NewDatePart = New_Date.value.split("-");
+		NewDatePart[11] = NewDatePart[1]; // save original month since it may be changed later
 		break;
 	case "New_Date":
 		New_Date.style.backgroundColor = "white";
 		if (e.type == "change") return;
 		NewDatePart = New_Date.value.split("-");
+		NewDatePart[11] = NewDatePart[1]; // save original month since it may be changed later
 		if (NewDatePart[0] < "1950") { // arbitrary year
 			alert("Please check the mortgage date. " + NewDatePart[0] + " seems to be an odd year.");
 			New_Date.style.backgroundColor = "hotpink";
@@ -395,7 +401,7 @@ function Input_Change(e) {
 			Orig_Date.style.backgroundColor = "hotpink";
 			return;
 		}
-		if (OrigDatePart[0] < "1900") { // arbitrary year
+		if ((OrigDatePart[0] > "") && (OrigDatePart[0] < "1900")) { // arbitrary year
 			alert("Please check the mortgage date. " + OrigDatePart[0] + " seems to be an odd year.");
 			Orig_Date.style.backgroundColor = "hotpink";
 			return;
@@ -476,7 +482,7 @@ function Input_Change(e) {
 			// Non-grandfathered mortgage - refinanced)
 			Ref_Orig_Row.style.display = "table-row";
 			New_Equity_Note.style.display = "inline";
-			New_Equity_Label.innerHTML = "New home equity debt amount:";
+			New_Equity_Label.innerHTML = "New home equity debt amt:";
 			nq = +New_Equity.value;
 			Orig_Date.style.backgroundColor = "";
 			if (Orig_Date < New_Date) {
@@ -550,29 +556,38 @@ function Input_Change(e) {
 	else {
 		Input1Last.style.display = "inline" ;
 	}
+
 	if (TaxYear.value == NewDatePart[0]) {
 		Payment1.value = 0; // to be determined
 		Payment1.disabled = true;
-		if (Method1.checked && (+LastMonth.value > 0) && (+LastMonth.value <= +NewDatePart[1])) {
+		//if (Method1.checked && (+LastMonth.value > 0) && (+LastMonth.value <= +NewDatePart[1])) {
+		if (Method1.checked && (+LastMonth.value > 0) && (+LastMonth.value < +NewDatePart[1])) {
 			message = "Sorry, you can't pay off the mortgage before you have the mortgage!";
 			alert(message);
 			LastMonth.value = 12;
+		}
+		if (NewDatePart[1] == NewDatePart[11]) { // adjust starting month
+			Fill_Dates();
+			NewDatePart[1] -= 1;
+			var priorDate = document.getElementById("Date" + NewDatePart[1])
+			var mdy = priorDate.innerHTML.split("/");
+			if (+mdy[0] == 12) { // mortgage started in January
+				mdy[0] = 0;
+				mdy[2] += 1;
+			}
+			priorDate.innerHTML = (+mdy[0] + 1) + "/" + NewDatePart[2] + "/" + mdy[2];
 		}
 	}
 	else {
 		if (Payment1.value == 0) Payment1.value = "";
 		Payment1.disabled = false;
 	}
+
 	if (InterestPaid.value
 		&& ((MortgageBalance.value > 0) || ((MortgageBalance.value === "0") && (+LastMonth.value > 0)))
 		&& (Payment1.value !== "")
 		&& Method_Type.value) {
 		Determine_Balances();
-	}
-	else {
-		for (c in CalcElement) {
-			CalcElement[c].innerHTML = "";
-		}
 	}
 }
 
@@ -657,7 +672,7 @@ function Determine_Balances() {
 			}
 		}
 		if (+MortgageBalance.value == +New_Mort.value) { // interest-only mortgage
-			rate.innerHTML = +InterestPaid.value / (lastMo - firstMo) / +MortgageBalance.value;
+				rate.innerHTML = +InterestPaid.value / (lastMo - firstMo) / +MortgageBalance.value;
 		}
 		if (rate.innerHTML === "") {
 			rate.innerHTML = +InterestPaid.value / mb6;
@@ -985,7 +1000,7 @@ function Clear_Worksheet() {
 //----------------------------------------------------------------------------------------
 function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt) {
 //----------------------------------------------------------------------------------------
-	// Clear if the workshop has been cleared
+	// Clear if the worksheet has been cleared
 	if (totalBal === "clear") {
 		if (New_Bank.value === "") Res_Element[CurrentTab].Pre.innerHTML = "";
 		Res_Element[CurrentTab].Bal.innerHTML = "";
@@ -1173,7 +1188,8 @@ function Print_Pages() {
 	<span class="tblHeader">Mortgage Information:</span>
 	<table id="Mort_Table" onchange="Input_Change(event);">
 		<tr>	<td>Mortgage lender:</td>
-			<td> <input id="New_Bank" class="BankName wkti" /></td></tr>
+			<td> <input id="New_Bank" class="BankName wkti" />
+			<button id="Delete" onclick="Input_Change(this.id);">Delete</button></td></tr>
 		<tr>	<td>Mortgage date:</td>
 			<td><input id="New_Date" type="date" class="wkti" onblur="Input_Change(event);" /></td></tr>
 		<tr id="New_Term_Row">
@@ -1288,7 +1304,7 @@ function Print_Pages() {
 				<th>Home equity debt</th>
 				<th>Qualified interest</th></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date0" class="wkto">TBD</td>
+				<td id="Date0" class="wktx">TBD</td>
 				<td><input id="Balance0" class="wkti" /></td>
 				<td id="Int0"></td>
 				<td id="Acq0" class="wkto">0</td>
@@ -1296,7 +1312,7 @@ function Print_Pages() {
 				<td id="Equity0" class="wkto">0</td>
 				<td id="Qual0" class="wkto"></td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date1" class="wkto">TBD</td>
+				<td id="Date1" class="wktx">TBD</td>
 				<td><input id="Balance1" class="wkti" /></td>
 				<td id="Int1" class="wkto">0</td>
 				<td id="Acq1" class="wkto">0</td>
@@ -1304,7 +1320,7 @@ function Print_Pages() {
 				<td id="Equity1" class="wkto">0</td>
 				<td id="Qual1" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date2" class="wkto">TBD</td>
+				<td id="Date2" class="wktx">TBD</td>
 				<td><input id="Balance2" class="wkti" /></td>
 				<td id="Int2" class="wkto">0</td>
 				<td id="Acq2" class="wkto">0</td>
@@ -1312,7 +1328,7 @@ function Print_Pages() {
 				<td id="Equity2" class="wkto">0</td>
 				<td id="Qual2" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date3" class="wkto">TBD</td>
+				<td id="Date3" class="wktx">TBD</td>
 				<td><input id="Balance3" class="wkti" /></td>
 				<td id="Int3" class="wkto">0</td>
 				<td id="Acq3" class="wkto">0</td>
@@ -1320,7 +1336,7 @@ function Print_Pages() {
 				<td id="Equity3" class="wkto">0</td>
 				<td id="Qual3" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date4" class="wkto">TBD</td>
+				<td id="Date4" class="wktx">TBD</td>
 				<td><input id="Balance4" class="wkti" /></td>
 				<td id="Int4" class="wkto">0</td>
 				<td id="Acq4" class="wkto">0</td>
@@ -1328,7 +1344,7 @@ function Print_Pages() {
 				<td id="Equity4" class="wkto">0</td>
 				<td id="Qual4" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date5" class="wkto">TBD</td>
+				<td id="Date5" class="wktx">TBD</td>
 				<td><input id="Balance5" class="wkti" /></td>
 				<td id="Int5" class="wkto">0</td>
 				<td id="Acq5" class="wkto">0</td>
@@ -1336,7 +1352,7 @@ function Print_Pages() {
 				<td id="Equity5" class="wkto">0</td>
 				<td id="Qual5" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date6" class="wkto">TBD</td>
+				<td id="Date6" class="wktx">TBD</td>
 				<td><input id="Balance6" class="wkti" /></td>
 				<td id="Int6" class="wkto">0</td>
 				<td id="Acq6" class="wkto">0</td>
@@ -1344,7 +1360,7 @@ function Print_Pages() {
 				<td id="Equity6" class="wkto">0</td>
 				<td id="Qual6" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date7" class="wkto">TBD</td>
+				<td id="Date7" class="wktx">TBD</td>
 				<td><input id="Balance7" class="wkti" /></td>
 				<td id="Int7" class="wkto">0</td>
 				<td id="Acq7" class="wkto">0</td>
@@ -1352,7 +1368,7 @@ function Print_Pages() {
 				<td id="Equity7" class="wkto">0</td>
 				<td id="Qual7" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date8" class="wkto">TBD</td>
+				<td id="Date8" class="wktx">TBD</td>
 				<td><input id="Balance8" class="wkti" /></td>
 				<td id="Int8" class="wkto">0</td>
 				<td id="Acq8" class="wkto">0</td>
@@ -1360,7 +1376,7 @@ function Print_Pages() {
 				<td id="Equity8" class="wkto">0</td>
 				<td id="Qual8" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date9" class="wkto">TBD</td>
+				<td id="Date9" class="wktx">TBD</td>
 				<td><input id="Balance9" class="wkti" /></td>
 				<td id="Int9" class="wkto">0</td>
 				<td id="Acq9" class="wkto">0</td>
@@ -1368,7 +1384,7 @@ function Print_Pages() {
 				<td id="Equity9" class="wkto">0</td>
 				<td id="Qual9" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date10" class="wkto">TBD</td>
+				<td id="Date10" class="wktx">TBD</td>
 				<td><input id="Balance10" class="wkti" /></td>
 				<td id="Int10" class="wkto">0</td>
 				<td id="Acq10" class="wkto">0</td>
@@ -1376,7 +1392,7 @@ function Print_Pages() {
 				<td id="Equity10" class="wkto">0</td>
 				<td id="Qual10" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date11" class="wkto">TBD</td>
+				<td id="Date11" class="wktx">TBD</td>
 				<td><input id="Balance11" class="wkti" /></td>
 				<td id="Int11" class="wkto">0</td>
 				<td id="Acq11" class="wkto">0</td>
@@ -1384,7 +1400,7 @@ function Print_Pages() {
 				<td id="Equity11" class="wkto">0</td>
 				<td id="Qual11" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date12" class="wkto">TBD</td>
+				<td id="Date12" class="wktx">TBD</td>
 				<td><input id="Balance12" class="wkti" disabled="disabled" 
 					title='Change the "Remaining balance" above to change this.' /></td>
 				<td id="Int12" class="wkto">0</td>
