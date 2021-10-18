@@ -76,8 +76,8 @@
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, WID)
         
 		_EdExpenseLimits[_TY+":TNF"] = "    0,     0,    0,       0,      0";
-		_EdExpenseLimits[_TY+":LLC"] = "10000, 59000, 69000, 119000, 139000";
-		_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";	// Needs update
+		_EdExpenseLimits[_TY+":LLC"] = "10000, 80000, 90000, 160000, 180000";
+		_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";
 		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 70000, 85000, 140000, 170000";	// Needs update
 		_EdExpenseLimits[_TY+":INT"] = " 2500, 70000, 85000, 140000, 170000";
 
@@ -139,13 +139,13 @@
                 _CTCLimits["WID"] = 1;
                 _CTCLimits["MFS"] = 2;
                 _CTCLimits["HOH"] = 3;
-                _CTCLimits[_TY+":AGICap"]  = "400000, 200000, 200000, 200000";	// Needs update
+                _CTCLimits[_TY+":AGICap"]  = "400000, 200000, 200000, 200000";
 		_CTCLimits[_TY+":CTCRate"] = 2000;
-                _CTCLimits[_TY+":AGI0Cap"] = "150000,  75000,  75000, 112500";	// Needs update
+                _CTCLimits[_TY+":AGI0Cap"] = "150000,  75000,  75000, 112500";
 		_CTCLimits[_TY+":CTC0Rate"] = 1600;
 		_CTCLimits[_TY+":CTC6Rate"] = 1000;
-		_CTCLimits[_TY+":FTCRate"] = 500;			// Needs update
-		_CTCLimits[_TY+":ACTCRate"] = 1000000;	// not limited
+		_CTCLimits[_TY+":FTCRate"] = 500;
+		_CTCLimits[_TY+":ACTCRate"] = 1000000;
 		_CTCLimits[_TY+":ACTCThreshold"] = 0;
 
        	// var CareRates = [];
@@ -192,18 +192,18 @@
 		// 300-400 = 9.5-9.5
 		// col 4 = SNG APTC repayment limit
 
-		_PTCFactorVal[_TY+":0"] =   "133, 2.06, 2.06,  300"; // Needs update
-		_PTCFactorVal[_TY+":133"] = "150, 3.09, 4.12,  300"; // Needs update
-		_PTCFactorVal[_TY+":150"] = "200, 4.12, 6.49,  300"; // Needs update
-		_PTCFactorVal[_TY+":200"] = "250, 6.49, 8.29,  750"; // Needs update
-		_PTCFactorVal[_TY+":250"] = "300, 8.29, 9.78,  750"; // Needs update
-		_PTCFactorVal[_TY+":300"] = "400, 9.78, 9.78, 1250"; // Needs update
+		_PTCFactorVal[_TY+":0"] =   "133, 0.00, 0.00,  325";
+		_PTCFactorVal[_TY+":133"] = "150, 0.00, 2.00,  325";
+		_PTCFactorVal[_TY+":150"] = "200, 2.00, 4.00,  800";
+		_PTCFactorVal[_TY+":200"] = "250, 4.00, 6.00,  800";
+		_PTCFactorVal[_TY+":250"] = "300, 6.00, 8.50,  800";
+		_PTCFactorVal[_TY+":300"] = "400, 8.50, 8.50, 1350";
 
 	// var AffordRate = [];
-		_AffordRate[_TY] = 0.0805;		// Needs update
+		_AffordRate[_TY] = 0.0805;
 
 	// var AffordRateEmployerSelf = [];
-		_AffordRateEmployerSelf[_TY] = 0.0986;		// Needs update
+		_AffordRateEmployerSelf[_TY] = 0.0986;
 
 	// var Qualified Business Income Deduction
 		_QBILimits[_TY+":Rate"] = "0.2";
@@ -214,12 +214,12 @@
 		_QBILimits[_TY+":WID"] = "164900";
 
 	// Net Investment Income Tax
-		_NIITLimits[_TY+":Rate"] = "0.038";			// Needs update
-		_NIITLimits[_TY+":MFJ"] = "250000";			// Needs update
-		_NIITLimits[_TY+":MFS"] = "125000";			// Needs update
+		_NIITLimits[_TY+":Rate"] = "0.038";
 		_NIITLimits[_TY+":SNG"] = 
-		_NIITLimits[_TY+":HOH"] = 
-		_NIITLimits[_TY+":WID"] = "250000";			// Needs update
+		_NIITLimits[_TY+":HOH"] = "200000"
+		_NIITLimits[_TY+":MFJ"] = 
+		_NIITLimits[_TY+":WID"] = "250000";
+		_NIITLimits[_TY+":MFS"] = "125000";
 
 	// Alternative Minimum Tax
 		//                  Exempt  Phaseout
