@@ -60,7 +60,11 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.01 9/26/2021";
+var VERSION = "7.03 10/18/2021";
+//	Added new EITC condition for child when divorced and not filing jointly
+//var VERSION = "7.02 10/7/2021";
+//	Split age 17 and 18 due to 2021 change in CTC age maximum
+//var VERSION = "7.01 9/26/2021";
 //	Broke support into two sections
 //var VERSION = "6.26 9/18/2021";
 //	Modified QCA to allow both TP is parent and No parent will claim boxes to be checked
@@ -509,15 +513,16 @@ function Calculate_Age () {
 		alert("Please enter a 4-digit year.");
 		return;
 	}
-	var age = +TaxYear.value - BirthYear.value;
+	var age = +TaxYear.value - +BirthYear.value;
 	if (age < 0 ) {
 		alert("Birth year cannot be later than the tax year.");
 		return;
 	}
 
 	for (j=0; j < AgeList.length; j++) {
-		if (age > AgeList[j].value) continue;
-		if ((j == 5) && (! FTStudent.checked)) continue;
+		thisAge = +AgeList[j].value;
+		if (age > thisAge) continue;
+		if ((age >= 19) && (age <= 23) && (! FTStudent.checked)) continue;
 		AgeList[j].checked = true;
 		AgeBox.style.display = "none";
 		BirthYear.value = "";
@@ -974,14 +979,15 @@ function CalcStatus(from_age_calc) {
 	CTC.title = "";
 
 		if (BENE_Relation.indexOf("|CTC|") == NOT_A_BENEFIT) SetMessage(CTC,"- Failed relationship test");
-		if (DEP_RealAge > 16) SetMessage(CTC,"- Failed age test");
+		maxCTCAge = (+TaxYear.value == 2021) ? 17 : 16 ;
+		if (DEP_RealAge > maxCTCAge) SetMessage(CTC,"- Failed age test");
 		if ((! TP_DivorceApplies) && (DEP_Residency < 7)) SetMessage(CTC,"- Failed residency test");
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
 			SetMessage(CTC,"- Dependent failed citizenship test");
 		if (TPisQC.checked) SetMessage(CTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(CTC,"- TP or SP cannot be a qualified relative");
 		if (QualChild.value == NO) SetMessage(CTC,"- Not a qualified child");
-		if ((TaxYear.value > 2017) && (! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
+		if ((! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(CTC,"- The dependent must have a valid SSN");
 
 	// ==============================================================
 	
@@ -1011,7 +1017,10 @@ function CalcStatus(from_age_calc) {
 		 	else SetMessage(EITC,"- TP must have an SSN"); // add V6.12
 		}
 		if ((! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
-		if (TP_Filing == "MFS") SetMessage(EITC,"- TP cannot file MFS");
+		if (TP_Filing == "MFS") {
+			if (TP_DivorceApplies) EITC.value = "EITC_DIV";
+			else SetMessage(EITC,"- TP cannot file MFS");
+		}
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		// if (TPisQR.checked) SetMessage(EITC,"- TP or SP cannot be a qualified relative of another taxpayer"); // rm V6.04
 		if (QualChildOfAnother.checked && QCAtest != "TP") SetMessage(EITC, QCAreason);
@@ -1628,6 +1637,11 @@ function ColorCells() {
 	EITC.innerHTML = EITC.value;
 	BenefitColor.EITC = (EITC.value == NO)? ColorNo:ColorYes;
 	if (EITC.value != "NO") ShowCaution = true;
+	if (EITC.value == "EITC_DIV") {
+		EITC.innerHTML = YES;
+		BenefitColor.EITC = ColorWarn;
+		EITC.title += "- If the dependent did not live with the spouse at the end of the year\n";
+	}
 	if (EITC.value == "QC_OF_ANOTHER") {
 		EITC.innerHTML = YES;
 		BenefitColor.EITC = ColorWarn;
@@ -2004,9 +2018,12 @@ function TestResults() {
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="16"
 				title="A dependent aged 14-16 on 12/31" />
 				<span class="Label">14-16</span>
+				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="17"
+				title="A dependent aged 17 on 12/31" />
+				<span class="Label">17</span>
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="18"
-				title="A dependent aged 17 or 18 on 12/31" />
-				<span class="Label">17-18</span>
+				title="A dependent aged 18 on 12/31" />
+				<span class="Label">18</span>
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="23"
 				title="A dependent aged 19-23 on 12/31 and a full-time student for at least 5 months during the year" />
 				<span class="Label">19-23 <abbr title="full-time"><u>FT</u></abbr> student</span>
