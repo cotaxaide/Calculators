@@ -181,11 +181,14 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.7, 8/13/2021";
+	var VERSION = "Version 3.8, 10/7/2021";
+	//	Modified CTC age limits of 19 - no upper for 2021
+	//	Defaulted to MFJ
+	//var VERSION = "Version 3.7, 8/13/2021";
 	//	Modified calc of retirement savings credit
 	//var VERSION = "Version 3.6 draft, 7/5/2021";
 	//	Modified for new Chld Tax Credit for 2021
-	//	Added NoEIC checked for TP the student under 25.
+	//	Added NoEIC checked for TP is the student, age under 25 for 2020.
 	//var VERSION = "Version 3.5, 3/15/2021";
 	//	Added test for 2020 to not pay back APTC excess
 	//var VERSION = "Version 3.4a, 10/26/2020";
@@ -353,7 +356,6 @@
 	var StudKiddieTNF = [];
 	var ScholarReduction = 0;
 	var ScholarReductionMax = 0;
-	var NoEICAutoCheck = false;
 
 	//----------------------------------------------------------------------------------------
 	// This function initializes options when the application is first loaded
@@ -1417,16 +1419,30 @@
 		}
 
 		// Calculate Earned Income Credits
-			if ( DependentNo.checked
-				&& (EICDependents.value == 0)
-				&& ((! StudentAge25.checked) || TP65.checked)) NoEICAutoCheck = NoEIC.checked = true;
-			else if (NoEICAutoCheck) NoEIC.checked = false;
+		switch (+TaxYear.value) { // Age 65 give wrong answer but unlikely to be a student anyway
+		case 2020: // Age 25 - 65
+			EICLower.innerHTML = 25;
+			EICUpper.innerHTML = "or greater than 64";
+			NoDepAge = ((! StudentAge25.checked) || TP65.checked);
+			break;
+		case 2021: // Age 19 - 99
+			EICLower.innerHTML = 19;
+			EICUpper.innerHTML = "";
+			NoDepAge = (StudentAge16.checked || StudentAge17.checked || StudentAge18.checked);
+			break;
+		default: // Age 24 - 65
+			EICLower.innerHTML = 24;
+			EICUpper.innerHTML = "or greater than 64";
+			NoDepAge = ((! (StudentAge25.checked || StudentAge24.checked)) || TP65.checked);
+		}
+		if ( DependentNo.checked && (EICDependents.value == 0) && NoDepAge ) NoEIC.checked = true;
+
 		if ((NoEIC.checked) || (ClaimedYes.checked)) {
-			// Probable high investment income, NR Alien, or dependent
+			// Probable high investment income, NR Alien, underage, retired, or dependent
 			EICTax.innerHTML = "";
 			EICAOC.innerHTML =
 			EICLLC.innerHTML =
-			EICTNF.innerHTML = 0;
+			EICTNF.innerHTML = "";
 		}
 		else {
 			EICInvest.innerHTML = _EICRates[TaxYear.value + ':INVEST'];
@@ -2952,7 +2968,7 @@
 			<td>Filing Status:</td>
 			<td><select id="FilingStatus">
 				<option value="SNG">Single</option>
-				<option value="MFJ">MFJ</option>
+				<option value="MFJ" selected>MFJ</option>
 				<option value="MFS">MFS</option>
 				<option value="HOH">HOH</option>
 				<option value="WID">Widow(er)</option>
@@ -3941,7 +3957,7 @@
 					onmouseout="EICInfoText.style.display='none';">
 					Not qualified if any of the following:
 					<ul>
-						<li>TP is student and age less than 25 or greater than 64 and no children</li>
+						<li>TP is student and age less than <span id="EICLower">25</span> <span id="EICUpper">or greater than 64</span> and no children</li>
 						<li>Investment income (Interest + Tax-free interest + Dividends + Capital gains) more than $<span id="EICInvest">limit</span></li>
 						<li>Married filing seperately</li>
 						<li>TP or SP not have a SSN that allows to work and valid for EIC</li>
