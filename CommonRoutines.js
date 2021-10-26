@@ -15,6 +15,10 @@
 //	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.14 10/24/2021
+// 	Added excess Social Security
+// Version 1.13 10/13/2021
+// 	Corrected percent for student loan interest reduction
 // Version 1.12 7/27/2021
 // 	TNF not returning 0 if filing MFS
 // Version 1.11 7/18/2021
@@ -47,26 +51,39 @@
 //----------------------------------------------------------------------------------------
 function _SETax (	// Self-employment tax
 	taxYear,	// tax year tables to use (not currently needed but here for consistency)
-	SEIncome	// Self-employment income
+	SEIncome,	// Self-employment income
+	wages		// Wages with SS/MC withheld (optional)
 		) {
-// returns an array: [self-employment tax amount, deductible amount]
+// returns an array: [self-employment tax amount, deductible amount,
+// 			"SE_tax", "deductible", "medicare", "socialsecurity", "excessSS"]
 //----------------------------------------------------------------------------------------
+	if (wages === undefined) wages = 0;
+	wagessoc = (Math.min(wages, +_SEMaxWages[TaxYear.value]) * +_SESocSec[TaxYear.value]);
 
-	if (SEIncome == 0) return ([0,0]);
-
+	SEresult = [];
 	var selfamt = +SEIncome;
+	var selfmed = 0;
+	var selfsoc = 0;
 	var selftax = 0;
 	var selftest = selfamt * 0.9235;
 
 	// No tax if less than $400
 	if (selftest > 400) {
-		selftax = selftest * +_SEMedicare[TaxYear.value];
-		selftax += (Math.min(selftest, +_SEMaxWages[TaxYear.value]) * +_SESocSec[TaxYear.value]);
+		selfmed = selftest * +_SEMedicare[TaxYear.value];
+		selfsoc = (Math.min(selftest, +_SEMaxWages[TaxYear.value]) * +_SESocSec[TaxYear.value]);
+		selftax = selfmed + selfsoc;
 	}
 
 	// Deductible amount
-	var deductible = Math.round(selftax/2);
-	var SEresult = [Math.round(selftax), deductible];
+	SEresult["SE_tax"] = SEresult[0] = Math.round(selftax);
+	SEresult["deductible"] = SEresult[1] = Math.round(selftax/2);
+	SEresult["medicare"] = Math.round(selfmed);
+	SEresult["socialsecurity"] = Math.round(selfsoc);
+
+	// Is there excess SS withholding?
+	totalsoc = selfsoc + wagessoc;
+	maxsoc = +_SEMaxWages[TaxYear.value] * +_SESocSec[TaxYear.value];
+	SEresult["excessSS"] = Math.round(Math.max(0, totalsoc - maxsoc));
 
 	return (SEresult);
 }
@@ -180,7 +197,7 @@ function _TaxLookup(	// Tax table lookup
 	var CG_rateList = _CGRates[taxYear + ":PCT"].split(",");
 	var CG_bracketMax = _CGRates[taxYear + ":" + fs].split(","); // maximum for the rate
 
-	// Qualified Dividends and Capital Gains Tax Worksheet:
+	// 1040 Qualified Dividends and Capital Gains Tax Worksheet:
 	if (capitalGains && useSchedD) {
 		var D01 = +taxableAmount;
 		var D06 = +capitalGains;
@@ -256,7 +273,7 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
 	childDependents, // total number of children/disabled eligible for CTC
-			// for 2020, the decimal indicates number under 6 (eg 3.01)
+			// for 2021, the decimal indicates number under 6 (eg 3.01)
 	totalDependents, // number of total dependents (including child/disabled)
 	earnedIncome,	// Wages + SE income
 	AGI,		// AGI
@@ -532,15 +549,18 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 	SP_50,		// T/F, SP is 50+
 	MFStogether	// T/F, filing MFS and living together (optional)
 		) {
-// returns array	[amount, TPamount, SPamount, reason] = IRA deduction limits
+// returns array	["TPdeductible", "SPdeductible", "TPcontribMax", "SPcontribMax", "comment"]
 //----------------------------------------------------------------------------------------
 	if ((filingStatus !== "MFS") || (MFStogether === undefined)) MFStogether = false;
+	if ((filingStatus == "MFS") && (! MFStogether)) filingStatus = "SNG";
 	var Result = [];
 	Result["comment"] = "";
 
 	TP_DedMax = (TP_50) ? _IRALimits[taxYear + ":SRMAX"] : _IRALimits[taxYear + ":MAX"] ;
 	SP_DedMax = (SP_50) ? _IRALimits[taxYear + ":SRMAX"] : _IRALimits[taxYear + ":MAX"] ;
 	MFJ_DedMax = TP_DedMax + SP_DedMax;
+	Result["TPcontribMax"] = Math.min(TP_DedMax, +earned);
+	Result["SPcontribMax"] = Math.min(SP_DedMax, +earned);
 
 	if (TP_RetPlan || SP_RetPlan) { // deduction may be limited
 
@@ -561,12 +581,15 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 
 		// line 6 NO
 		if ((+MAGI >= TP_AGIlimit) && (+MAGI >= SP_AGIlimit)) {
-			Result["amount"] = 0;
+			Result["TPdeductible"] = 0;
+			Result["SPdeductible"] = 0;
 			Result["comment"] = "AGI too high";
 			return (Result);
 		}
 
 		// line 6 YES and 7
+		var retlimit = 0;
+		var multiplier = 0;
 		switch (filingStatus) {
 		case "MFJ":
 			SP_AGIlimit -= +MAGI;
@@ -601,28 +624,26 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 	}
 
 	// Line 8 - 10 is earned
+	// Line 11 (Pub 590-A Worksheet 1-2)
 	if ((filingStatus === "MFJ") && ((TP_DedMax + SP_DedMax) < MFJ_DedMax)) {
 		// May need to figure based on TP/SP earned incomes
 		// Result["comment"] = "May not be accurate";
 	}
 
-	// Line 11 must be done by calling routine
-
 	// Line 12
-	Result["TPamount"] = Math.min(TP_DedMax, +earned);
-	Result["SPamount"] = Math.min(SP_DedMax, +earned);
-	Result["amount"] = Math.min(Result["TPamount"] + ((filingStatus === "MFJ") ? Result["SPamount"] : 0 ), earned);
+	Result["TPdeductible"] = TP_DedMax;
+	Result["SPdeductible"] = SP_DedMax;
 	return (Result);
 }
 
 //----------------------------------------------------------------------------------------
-function _StudLoanInt (	// Pub 970
+function _StudLoanInt (	// 1040 Sched 1
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
 	MAGI,		// AGI without Student Loan Interest deduction
 	IntPaid		// Student Loan Interest Paid
 		) {
-//	Returns an array with amount and percent
+//	Returns an array ["deductible", "percent"]
 //----------------------------------------------------------------------------------------
 	var Result = [];
 
@@ -639,8 +660,8 @@ function _StudLoanInt (	// Pub 970
 	var PhaseOutStart = +EdIntRates[PhaseOutIndex] * ((filingStatus == "MFJ") ? 2 : 1 );
 	var PhaseOutEnd = +EdIntRates[PhaseOutIndex + 1] * ((filingStatus == "MFJ") ? 2 : 1 );
 	var PhaseOutLength = PhaseOutEnd - PhaseOutStart;
-	Result["percent"] = Math.max(0, +MAGI - PhaseOutStart) / PhaseOutLength;
-	IntPaid = Math.min(SLIMax, +IntPaid);
-	Result["amount"] = Math.round(+IntPaid - (IntPaid * Result["percent"]));
+	Result["percent"] = Math.min(1, Math.max(0, +MAGI - PhaseOutStart) / PhaseOutLength);
+	var IntPaid = Math.min(SLIMax, +IntPaid);
+	Result["deductible"] = Math.round(+IntPaid - (IntPaid * Result["percent"]));
 	return (Result);
 }

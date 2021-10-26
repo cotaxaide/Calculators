@@ -1,6 +1,6 @@
         //----------------------------------------------------------------------------------------
         var _TY = _StopYear = "2021"; // Tax parameters
-	_Preliminary[_TY] = true; // Preliminary information
+	_Preliminary[_TY] = false; // Preliminary information
         //----------------------------------------------------------------------------------------
 
         // Form line numbers
@@ -243,13 +243,15 @@
 		_RETIRE[_TY+":WID"] = 
 		_RETIRE[_TY+":MFS"] = "19500,	21250,	32500";
 
-	// IRA Adjustment limits
-		_IRALimits[_TY+":AGE"] = 50;	// Needs update
-		_IRALimits[_TY+":MAX"] = 6000;	// Needs update
-		_IRALimits[_TY+":SRMAX"] = 7000;	// Needs update
+	// IRA Adjustment limits and phase-out
+		_IRALimits[_TY+":AGE"] = 50;
+		_IRALimits[_TY+":MAX"] = 6000;
+		_IRALimits[_TY+":SRMAX"] = 7000;
+
 		_IRALimits[_TY+":SNG"] = 
 		_IRALimits[_TY+":MFS"] = 
-		_IRALimits[_TY+":HOH"] = "76000";	// Needs update
-		_IRALimits[_TY+":WID"] = "125000";	// Needs update
-		// Col 1 = ret plan, Col 2 = no ret plan
-		_IRALimits[_TY+":MFJ"] = "125000, 209000";	// Needs update
+		_IRALimits[_TY+":HOH"] = "76000";
+		_IRALimits[_TY+":WID"] = "125000";
+		// Col 1 = ret plan, Col 2 = no ret plan, final phase out
+		// start of phase out is 20000 less
+		_IRALimits[_TY+":MFJ"] = "125000, 208000";
