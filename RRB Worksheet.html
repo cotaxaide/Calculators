@@ -69,7 +69,9 @@
 	//	Nancy or Don Metzger
 	// --------------------------------------------------------------------------------
 
-	VERSION = "Version 1.07, 9/9/2021";
+	VERSION = "Version 1.08, 11/2/2021";
+	//	TaxSlayer bug has been fixed, no special treatment required now
+	//VERSION = "Version 1.07, 9/9/2021";
 	//	Added TaxSlayer bug treatment
 	//VERSION = "Version 1.06, 1/27/2019";
 	//	Corrected RR exclusion - TS adjusts to what's already there (vs replace)
@@ -197,7 +199,7 @@
 
 		// TaxSlayer error:
 		// Entering  a Pension/Annuity Income doesn't change retirement exclusion
-		TaxSlayerError = (+TaxYear.value >= 2019); // T/F
+		TaxSlayerError = false; // (+TaxYear.value >= 2019); // T/F
 		CTRow1.style.display =
 		CTRow2.style.display =
 		CTRow3.style.display = (TaxSlayerError) ? "none" : "table-row" ;
@@ -212,8 +214,8 @@
 		T1TaxableTP = +Tier1TP.value * SSPercent;
 		T1TaxableSP = +Tier1SP.value * SSPercent;
 
-		RRTP = T1TaxableTP + ((TaxYear.value < 2018) ? +Tier2TP.value : 0);
-		RRSP = T1TaxableSP + ((TaxYear.value < 2018) ? +Tier2SP.value : 0);
+		RRTP = T1TaxableTP;
+		RRSP = T1TaxableSP;
 
 		// Do we need to make adjustments?
 		if (((RRTP == 0) || (+COPensionTP.value == +COAllowedTP.value))
