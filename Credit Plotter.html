@@ -67,6 +67,7 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
+<script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
@@ -76,7 +77,9 @@
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.04, 9/8/2021)";
+	VERSION = "(Version 1.04, 11/2/2021)";
+	//	Added FPL
+	//VERSION = "(Version 1.04, 9/8/2021)";
 	//	Changed CTC to age under 6 for 2021
 	//VERSION = "(Version 1.03, 8/13/2021)";
 	//	Added Retirement Savings Credit
@@ -116,6 +119,8 @@
 	var LegendFontSize = 20; // pixels
 	var LegendX = 0;
 	var LegendY = 0;
+	var ThisRegion = "US";
+	var FedPovertyLine = "";
 
 	//----------------------------------------------------------------------------------------
 	function Initialize() {
@@ -135,6 +140,14 @@
 			TYElement[tyIndex++] = tybox;
 		}
 		FSElement = document.getElementsByClassName("FSClass");
+
+		// Read any cookies
+		switch (test = _Read_Cookie("Region")) {
+			case "US"    : ThisRegion = "US"    ; break;
+			case "Alaska": ThisRegion = "Alaska"; break;
+			case "Hawaii": ThisRegion = "Hawaii"; break;
+			default: ThisRegion = "US";
+		}
 
 		// Make a color list
 		cInc = ["00", "FF", "80", "C0", "40"];
@@ -188,6 +201,7 @@
 		PlotSteps = 500;
 		PlotCanv.font = "10pt sans-serif";
 		PlotCanv.lineWidth = 1;
+		MaxTY = 0;
 
 		// Get the data limits
 		CHChecked = [Children0.checked, Children1.checked, Children2.checked, Children3.checked, Children4.checked];
@@ -198,6 +212,7 @@
 			TYChecked[TYi] = TYElement[TYi].checked;
 			if (! TYChecked[TYi]) continue;
 			TY = +_StartYear + TYi;
+			MaxTY = Math.max(MaxTY, TY);
 			for (FSi = 0 ; FSi < 5 ; FSi++) {
 				FSChecked[FSi] = FSElement[FSi].checked;
 				if (! FSChecked[FSi]) continue;
@@ -446,27 +461,37 @@
 					}
 				}
 				if (TNF.checked) {
-					if (Students < 0) continue;
-					if (TY > 2020) continue;
-					//for (student = 1 ; student < 6 ; student++) {
-						//if (STChecked[student]) {
-							PlotCanv.beginPath();
-							PlotCanv.moveTo(0, 0);
-							Add_To_Legend("TNF", TY, FS, "");
-							PlotCanv.strokeStyle = ColorList[Color++];
-							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
-								income = AGI;
-								var PreTaxCredit = _EdCredit(TY, FS, AGI, "TNF", TNFLimits[0]);
-								var taxable = Math.max(0, AGI - StandardDeduction);
-								var tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
-								var taxable = Math.max(0, AGI - StandardDeduction - PreTaxCredit[0]);
-								var tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
-								credit = tax0 - tax1;
-								x1 = (income) ? "" : credit;
-								AddPlot("", x1, income, credit);
-							}
-						//}
-					//}
+					if ((Students > 0) && (TY <= 2020)) {
+						PlotCanv.beginPath();
+						PlotCanv.moveTo(0, 0);
+						Add_To_Legend("TNF", TY, FS, "");
+						PlotCanv.strokeStyle = ColorList[Color++];
+						for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
+							income = AGI;
+							var PreTaxCredit = _EdCredit(TY, FS, AGI, "TNF", TNFLimits[0]);
+							var taxable = Math.max(0, AGI - StandardDeduction);
+							var tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+							var taxable = Math.max(0, AGI - StandardDeduction - PreTaxCredit[0]);
+							var tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+							credit = tax0 - tax1;
+							x1 = (income) ? "" : credit;
+							AddPlot("", x1, income, credit);
+						}
+					}
+				}
+				if (FPL.checked) {
+					var FPLi = (MaxTY - 1) + ":" + ThisRegion;
+					FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (Children * +_FPL[FPLi].split(",")[1]);
+					FSChecked[FSi] = FSElement[FSi].checked;
+					if (! FSChecked[FSi]) continue;
+					FS = FilingList[FSi];
+					if (FS == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
+					PlotCanv.beginPath();
+					Add_To_Legend("FPL", TY, FS, Children);
+					PlotCanv.strokeStyle = ColorList[Color++];
+					var result = AddPlot(FedPovertyLine, 0, FedPovertyLine, CreditMax);
+					PlotCanv.textAlign = "left";
+					PlotCanv.font = LegendFontSize + "px Arial";
 				}
 			}
 		}
@@ -608,6 +633,7 @@
 			<td>	<input id="AOC" type="checkbox" title="American Opportunity Credit" /> AOC
 				<br /><input id="LLC" type="checkbox" title="Lifetime Learning Credit" /> LLC
 				<br /><input id="TNF" type="checkbox" title="Tuition and Fees Credit" /> TNF
+				<br /><input id="FPL" type="checkbox" title="Federal Poverty Line for lastest year" /> FPL
 			</td>
 			<td>	&nbsp;Tax Year:
 				<br />&nbsp;Filing Status:
