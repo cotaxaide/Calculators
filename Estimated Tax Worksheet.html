@@ -24,7 +24,9 @@
 	textarea {
 		width: calc(100% - 5px);
 		max-width: calc(100% - 5px);
-		height: 1em;
+		height: 1.2em;
+		resize: none;
+		overflow: hidden;
 	}
 	.title { font-size:125%; font-weight: bold; }
 	.instruction { text-align: right; text-decoration: italic; }
@@ -199,7 +201,20 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.28, 9/13/2021)";
+	var VERSION = "(Version 3.30, 10/26/2021)";
+	//	Student loan interest not calculating for non-MFJ
+	//var VERSION = "(Version 3.29, 10/24/2021)";
+	//	Added excess Social Security withholding
+	//	Revised calculation of IRA contribution deductibility
+	//	Prevent bad input from calculating (produces NaNs)
+	//var VERSION = "(Version 3.28c, 10/15/2021)";
+	//	Added CTC age change to input title
+	//	Prevented CC dependents from being negative
+	//var VERSION = "(Version 3.28b, 10/7/2021)";
+	//	Moved scenario notes to info section and adjusted editing and resizing
+	//var VERSION = "(Version 3.28a, 9/21/2021)";
+	//	Limited scenario notes to 1em height due to MFS/MFS spacing
+	//var VERSION = "(Version 3.28, 9/13/2021)";
 	//	Added a place for scenario notes
 	//	Replaced "last year" text with actual year
 	//	Dependents under 6 row was not hidden when TP is a dependent
@@ -287,15 +302,15 @@
 	var TY = 0;
 	var IncomeNoSS = 0;
 	var Deductions = 0;
-	var TPMFJ = [];
-	var SPMFJ = [];
-	var TPMFS = [];
-	var SPMFS = [];
+	var IRAActualMax = 0;
+	var TPMFJ = []; // saves joint input data for MFJ/MFS comparison
+	var TPMFS = []; // saves taxpayer input data for MFJ/MFS comparison
+	var SPMFS = []; // saves spouse input data for MFJ/MFS comparison
 	var CalcOut = [];
 	var MFJMFSError = false;
 	var MFJMFSItemized = [];
-	var TPMFJiList = [];
-	var TPMFJcList = [];
+	var TPMFJiList = []; // array of input elements
+	var TPMFJcList = []; // array of calculated elements
 	var EdtList = [];
 	var EdiList = [];
 	var payOption = "J";
@@ -510,12 +525,16 @@
 			Dependents0Row.style.display = (TaxYear.value >= 2021) ?  "table-row" : "none";
 			EICRow.style.display = "table-row";
 			CTCRow.style.display = "table-row";
+			CTCage = (TY >= 2021) ? 18 : 17;
+			CTCRow.title = "Total number of dependents in the tax family under age " +  CTCage;
 			DependentAgeRow.style.display = "none";
 		}
 		if (! MFJMFS.checked) MFSInputBox.style.display = "none";
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
 		if ((FilingStatus.value != "MFS") && (! MFJMFS.checked)) ItemizeRequired.checked = false;
-		SP65Option.style.display = (FilingStatus.value === "MFJ") ? "inline" : "none";
+		var NeedSPRow = ((FilingStatus.value === "MFJ") || ((FilingStatus.value === "MFS") && MFStogether.checked));
+		SP65Option.style.display = (NeedSPRow) ? "inline" : "none";
+		if (! NeedSPRow) SPPlan.checked = false;
 		HSAText.innerHTML = "("+ _HSA[TY + ":IND"] + " personal, " + _HSA[TY + ":FAM"] + " family)";
 
 		
@@ -559,7 +578,7 @@
 
 		// 2021 tax form changes
 		MFJMFSACCCreditRow.style.display =
-		ACCCreditRow.style.display = (TY == 2021) ? "table-row" : "none";
+		ACCCreditRow.style.display = (TY >= 2021) ? "table-row" : "none";
 
 		if (MFJMFS.checked) {
 			TPInput.value = TPMFS["IRADeductionJoint"];
@@ -567,7 +586,9 @@
 			MFSInputId.innerHTML = "IRADeduction";
 			Do_Inputs("MFJMFS");
 		}
-		else Input_Change("Wages");
+		else {
+			Input_Change("NoInput");
+		}
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -600,7 +621,7 @@
 			EdInputBox.style.left = pos.x + "px";
 			EdInputBox.style.top = pos.y + "px";
 		}
-		else if (MFJMFS.checked || (thisId == "Unemployment")) {
+		else if (MFJMFS.checked || ((thisId == "Unemployment") && (TY == 2020))) {
 			MFSInputBox.style.display = "block";
 			EdInputBox.style.display = "none";
 			TPInput.focus();
@@ -675,6 +696,7 @@
 				if (thisId === "IRADeduction") {
 					TPMFS["IRADeductionJoint"] = +TPInput.value;
 					SPMFS["IRADeductionJoint"] = +SPInput.value;
+					TPMFJ["IRADeductionJoint"] = +TPInput.value + +SPInput.value;
 				}
 				TPMFJiList[thisId].value = TPMFJ[thisId] = +TPInput.value + +SPInput.value;
 				MFSInputId.innerHTML = "";
@@ -700,10 +722,24 @@
 		// Check input validity
 		thisElement = TPMFJiList[thisId];
 		var tev = thisElement.value;
-		thisElement.style.backgroundColor = ( (isNaN(tev) && (tev !== "-"))
-			|| ((! allowNegative) && ((tev < 0) || tev === "-")) ) ? "hotpink" : "white";
-		QualDividends.style.backgroundColor = (+QualDividends.value > +Dividends.value) ? "hotpink" : "white";
-		QBIDividends.style.backgroundColor = (+QBIDividends.value > +Dividends.value) ? "hotpink" : "white";
+		if (thisId == "IRADeduction") {
+			TPMFJ["IRADeductionJoint"] = tev;
+		}
+		if (thisId == "Notes") {
+			notesCRLF = Notes.value.indexOf("\n");
+			if (notesCRLF >= 0) Notes.value = Notes.value.substr(0,notesCRLF);
+			return;
+		}
+		thisElement.style.backgroundColor = "white";
+		if (allowNegative && (tev === "-")) return;
+		if ((! allowNegative) && ((tev < 0) || tev === "-")) { thisElement.style.backgroundColor = "hotpink"; return; }
+		if (isNaN(tev)) { thisElement.style.backgroundColor = "hotpink"; return; }
+
+		// Check inconsistencies
+		QualDividends.style.backgroundColor = "white";
+		if (+QualDividends.value > +Dividends.value) { QualDividends.style.backgroundColor ="hotpink"; } //return; }
+		QBIDividends.style.backgroundColor = "white";
+		if (+QBIDividends.value > +Dividends.value) { QBIDividends.style.backgroundColor = "hotpink"; } //return; }
 		SEInsurance.disabled = SESEP.disabled = (+SEIncome.value == 0);
 		if (SEInsurance.disabled) SEInsurance.value = "";
 		NoInsurance.style.display = (+SEInsurance.value) ? "inline" : "none";
@@ -742,13 +778,13 @@
 				File_Change();
 			}
 
-			TPMFJ["IRADeduction"] = +TPMFS["IRADeductionJoint"];
+			TPMFJ["IRADeduction"] = +TPMFJ["IRADeductionJoint"];
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
 		else {
 			// Do not use "+" to get value below - it may be a minus sign
-			TPMFJ["IRADeduction"] = +TPMFS["IRADeductionJoint"];
+			TPMFJ["IRADeduction"] = +TPMFJ["IRADeductionJoint"];
 			if (thisId != "Unemployment") {
 				TPMFS[thisId] = TPMFJ[thisId] = thisElement.value;
 			}
@@ -768,7 +804,7 @@
 
 		// Initialize output array
 		CalcOut = [];
-		IRAMax = [];
+		IRAResults = [];
 
 		var FilingStatusValue = FilingStatus.value;
 		var DependentsValue = +Dependents.value;
@@ -795,9 +831,49 @@
 		}
 
 		// Get self-employment tax
-		SEresult = _SETax(TY, +CalcIn["SEIncome"]);
-		CalcOut["SETax"] = +SEresult[0];
-		CalcOut["SETaxCredit"] = +SEresult[1];
+		SEresult = _SETax(TY, +CalcIn["SEIncome"], CalcIn["Wages"]);
+		CalcOut["SETax"] = +SEresult["SE_tax"];
+		CalcOut["SETaxCredit"] = +SEresult["deductible"];
+		excessSStotal = 0;
+		SSexcess.innerHTML = "";
+		if (+SEresult["excessSS"]) {
+			if (MFJMFS.checked) {
+				if (CalcType === "T") TPRefundable.innerHTML = TPMFS["Refundable"] = TPMFS["SSRefundable"] = SEresult["excessSS"];
+				if (CalcType === "S") SPRefundable.innerHTML = SPMFS["Refundable"] = SPMFS["SSRefundable"] = SEresult["excessSS"];
+				if (CalcType === "J") Refundable.value = TPMFJ["SSRefundable"] = +SPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
+			}
+			else { // not MFJMFS
+				if (FilingStatusValue !== "MFJ") { // create the info message
+					SSexcess.innerHTML = "(include excess SS WH of " + SEresult["excessSS"] + ")";
+					Refundable.style.backgroundColor = (Refundable.value < +SEresult["excessSS"]) ? "hotpink" : "white" ;
+				}
+				else {
+					SSexcess.innerHTML = "(possible excess SS withholding, try MFJ/MFS option)";
+				}
+			}
+		}
+		else { // no excessSS
+				if (CalcType === "T") TPMFS["SSRefundable"] = 0;
+				if (CalcType === "S") SPMFS["SSRefundable"] = 0;
+			if (MFJMFS.checked) {
+				if (CalcType === "J") TPMFJ["SSRefundable"] = +TPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
+			}
+			else { // not MFJMFS
+				if (CalcType === "J") TPMFJ["SSRefundable"] = 0;
+			}
+		}
+		if (MFJMFS.checked && (+TPMFS["SSRefundable"] || +SPMFS["SSRefundable"])) {
+			if (FilingStatusValue === "MFJ") { // create the info message
+				SSmessage = "(include excess SS WH of ";
+				if (TPMFS["SSRefundable"]) SSmessage += (TPMFS["SSRefundable"] + " (TP)");
+				if (SPMFS["SSRefundable"] && TPMFS["Refundable"]) SSmessage += " and ";
+				if (SPMFS["SSRefundable"]) SSmessage += (SPMFS["SSRefundable"] + " (SP)");
+				SSexcess.innerHTML = SSmessage + ")";
+				Refundable.click();
+				SAVEButton.click();
+				Refundable.style.backgroundColor = (Refundable.value < +TPMFJ["SSRefundable"]) ? "hotpink" : "none" ;
+			}
+		}
 
 		// Total the adjustments
 		CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
@@ -827,22 +903,23 @@
 		CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], edlimit);
 		
 		// Limit IRA Contribution Deduction will be done later after AGI is known
+		CalcOut["IRADeductionAvailable"] = CalcIn["IRADeduction"];
 
-		// Limit Student Loan Payment Deduction
-		var SLMAGI = +AGI.innerHTML + +SLInterest.innerHTML;
-		CalcOut["SLInterest"] = _StudLoanInt(TY, FilingStatusValue, SLMAGI, +CalcIn["StudentLoan"])["amount"];
+		// Add Student Loan Payment Deduction without limit - limit will be done later
+		if (FilingStatusValue !== "MFS") CalcOut["SLInterest"] = CalcIn["StudentLoan"];
+		else CalcOut["SLInterest"] = (CalcIn["StudentLoan"]) ? 0 : "" ;
 
 		// Total the adjustments, not including charitable contribution
 		var SSAdjustments = +CalcIn["EdExpenses"] + +CalcIn["HSADeduction"]
 			+ +CalcOut["SETaxCredit"] + +CalcIn["SESEP"] + +CalcOut["SEHI"]
-			+ +CalcIn["AlimonyPaid"] + +CalcIn["IRADeduction"]
+			+ +CalcIn["AlimonyPaid"] + +CalcOut["IRADeductionAvailable"]
 			+ +CalcIn["SavingsPenalty"] + +CalcIn["OtherCredits"];
 		var AdjustmentsValue = SSAdjustments + +CalcOut["SLInterest"];
 		CalcOut["Adjustments"] = AdjustmentsValue;
 
 		// Capital gains
 		var CGLossLimit = (FilingStatusValue == "MFS") ? -1500 : -3000;
-		CalcOut["CapGains"] = Math.max( (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]) , CGLossLimit);
+		CalcOut["CapGains"] = Math.round(Math.max( (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]) , CGLossLimit));
 
 		// Unemployment and Other Income adustments for 2020
 		var MFJUCE = 0;
@@ -868,12 +945,11 @@
 			MFStogetherRelevant);
 		CalcOut["TaxableSS"] = +SSresult[0];
 
-
 		// Get the taxable SS amount difference if charitable contributions are added
 		var charityLimitJ = (FilingStatusValue === "MFS") ? 150 : 300 ;
 		var charityLimit = (CalcType === "J") ? charityLimitJ : 150 ;
 		if (TY >= 2021) charityLimit *= 2; // increase to 300/600
-		charityLimit = Math.min(charityLimit, (IncomeNoSS + +SSresult[0]));
+		charityLimit = Math.min(charityLimit, Math.max(0, (IncomeNoSS + +SSresult[0])));
 		SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
@@ -894,48 +970,49 @@
 		CalcOut["AGI"] = Math.max(0, TrueAGI);
 
 		// Add the IRA comment and limit the amount entered
-		var MAGI = CalcOut["AGI"] + +CalcIn["IRADeduction"] + MFJUCE;
+		var MAGI = +CalcOut["AGI"] + +CalcOut["IRADeductionAvailable"] + +CalcOut["SLInterest"] + MFJUCE;
 		var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcOut["SETaxCredit"]);
 		var IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["Alimony"];
 		if (CalcType === "J") {
-			IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
-			Comment = "(Maximum deduction is " + IRAMax["amount"] + ")";
-			if (IRAMax["comment"]) Comment += (", " + IRAMax["comment"]);
-			IRAComment.innerHTML = Comment;
-			if (MFJMFS.checked) {
-				IRAJoint = Math.min(+TPMFS["IRADeductionJoint"] + +SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
-			}
-			else {
-				IRAJoint = Math.min(+IRAMax["amount"], +CalcIn["IRADeduction"]);
-			}
+			IRAResults = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
+			IRAActualMax = Math.min(+IRAResults["TPcontribMax"] + ((FilingStatusValue == "MFJ") ? +IRAResults["SPcontribMax"] : 0 ), IRAEarned);
+			IRADeduction.style.backgroundColor = (CalcIn["IRADeduction"] > IRAActualMax) ? "hotpink" : "white" ;
+			IRAComment.innerHTML = "(Maximum contribution is " + IRAActualMax + ")";
+			IRAActual = Math.min(+IRAResults["TPdeductible"] + ((FilingStatusValue == "MFJ") ? +IRAResults["SPdeductible"] : 0 ), IRAEarned);
+			IRAActual = Math.min(+TPMFJ["IRADeduction"], IRAActual, IRAEarned);
 		}
 		if (CalcType === "T") {
-			IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), false, false, MFStogetherRelevant);
-			IRAJoint = Math.min(+TPMFS["IRADeductionJoint"], +IRAMax["amount"]);
+			IRAResults = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, false, MFStogetherRelevant);
+			IRAActual = Math.min(+TPMFS["IRADeduction"], +IRAResults["TPdeductible"]);
+			//CalcOut["IRADeductionAvailable"] = IRAActual;
+			IRAContribMax = Math.min(IRAResults["TPcontribMax"], IRAEarned);
+			TPIRADeductionAvailable.title = "Contribution can be no more than " + IRAContribMax + " if filing MFS";
+			TPIRADeductionAvailable.style.backgroundColor = (CalcIn["IRADeduction"] > IRAEarned) ? "hotpink" : "" ;
 		}
-		if (CalcType === "S") {
-			IRAMax = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, SPPlan.checked, (SP50.checked || SP65.checked), false, false, MFStogetherRelevant);
-			IRAJoint = Math.min(+SPMFS["IRADeductionJoint"], +IRAMax["amount"]);
+		if (CalcType === "S") { // Spouse is now the taxpayer for IRADeduction function
+			IRAResults = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, SPPlan.checked, (SP50.checked || SP65.checked), TPPlan.checked, false, MFStogetherRelevant);
+			IRAActual = Math.min(+SPMFS["IRADeduction"], +IRAResults["TPdeductible"], IRAEarned); // TP here is not an error
+			//CalcOut["IRADeductionAvailable"] = IRAActual;
+			IRAContribMax = Math.min(IRAResults["TPcontribMax"], IRAEarned); // TP here is not an error
+			SPIRADeductionAvailable.title = "Contribution can be no more than " + IRAContribMax + " if filing MFS";
+			SPIRADeductionAvailable.style.backgroundColor = (CalcIn["IRADeduction"] > IRAEarned) ? "hotpink" : "" ;
 		}
 
 		// Make adjustments to calculations already made
-		if (CalcIn["IRADeduction"] > +IRAMax["amount"]) { // Deduction limited
-			IRAAdjust = +CalcIn["IRADeduction"] - +IRAMax["amount"];
-			IRADeduction.value -= IRAAdjust;
-			CalcIn["IRADeduction"] -= IRAAdjust;
+		IRAAdjust = +CalcOut["IRADeductionAvailable"] - IRAActual;
+		if (IRAAdjust) { // Deduction limited
+			CalcOut["IRADeductionAvailable"] -= IRAAdjust;
 			CalcOut["Adjustments"] -= IRAAdjust;
 			TrueAGI = TrueAGI + IRAAdjust; // may still be negative
 			CalcOut["AGI"] = Math.max(0, TrueAGI);
 		}
-		else { // Adjust due to an increase in age
-			IRAAdjust = IRAJoint - +CalcIn["IRADeduction"];
-			CalcIn["IRADeduction"] = +CalcIn["IRADeduction"] + IRAAdjust;
+		else { // Adjust due to a change in AGI
+			IRAAdjust = IRAActual - +CalcOut["IRADeductionAvailable"];
+			CalcOut["IRADeductionAvailable"] = +CalcOut["IRADeductionAvailable"] + IRAAdjust;
 			CalcOut["Adjustments"] += IRAAdjust;
 			TrueAGI = TrueAGI - IRAAdjust; // may go negative
 			CalcOut["AGI"] = Math.max(0, TrueAGI);
 		}
-		if (CalcType === "T") TPIRADeduction.innerHTML = CalcOut["IRADeduction"] = CalcIn["IRADeduction"];
-		if (CalcType === "S") SPIRADeduction.innerHTML = CalcOut["IRADeduction"] = CalcIn["IRADeduction"];
 
 		// Recalculate if UCE can be used
 		UCElimit = (FilingStatusValue === "MFS") ? 75000 : 150000;
@@ -943,6 +1020,15 @@
 			CalcOut["CharityStandard"] = 0; // prevents doubling
 			Do_Calcs(CalcType, CalcIn, true)
 			}
+
+		// Limit Student Loan Payment Deduction
+		if (FilingStatusValue !== "MFS") {
+			var SLMAGI = +CalcOut["AGI"] + +CalcOut["SLInterest"];
+			CalcOut["SLInterest"] = _StudLoanInt(TY, FilingStatusValue, SLMAGI, +CalcIn["StudentLoan"])["deductible"];
+			SLAdjust = Math.max(0, (CalcIn["StudentLoan"] - CalcOut["SLInterest"]));
+			CalcOut["Adjustments"] -= SLAdjust;
+			CalcOut["AGI"] += SLAdjust;
+		}
 
 		// Calculate standard deduction
 		var StdEarned = +CalcIn["Wages"] + +CalcIn["Scholar"]
@@ -1121,15 +1207,16 @@
 		// Limit Child Care Cost
 		CalcOut["ChildCare"] = CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
 		CalcOut["ACCCredit"] = 0; // 2021 only
+		if (+CCDependents.value < 0) CCDependents.value = "";
 		if ((FilingStatusValue != "MFS") && (+CCDependents.value > 0)) {
 			var cclimit = (+CCDependents.value  > 1) ? 6000 : 3000;
-			if (TY == 2021) cclimit = (+CCDependents.value  > 1) ? 16000 : 8000;
+			if (TY >= 2021) cclimit = (+CCDependents.value  > 1) ? 16000 : 8000;
 			cccost = Math.min(+CalcIn["ChildCareCost"], cclimit);
 			CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
 			CC2Earned = 0; // Other partner
 			CalcOut["ChildCare"] = Math.round(_ChildCare(TY, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
 			CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
-			if (TY == 2021) CalcOut["ACCCredit"] = CalcOut["ChildCare"] - CalcOut["ChildCareUsed"];
+			if (TY >= 2021) CalcOut["ACCCredit"] = CalcOut["ChildCare"] - CalcOut["ChildCareUsed"];
 		}
 		WorkingTax -= NRUsedTemp;
 		NRUsed += NRUsedTemp;
@@ -1260,7 +1347,7 @@
 		for (j = 0; j < TPMFJcList.length; j++) {
 			TagId = TPMFJcList[j].id;
 			TagVal = CalcOut[TagId];
-			//if (isNaN(TagVal)) TagVal = "";
+			if (! isNaN(TagVal)) TagVal = Math.round(TagVal);
 			switch (resultType) {
 			case "J":
 				TPMFJcList[j].innerHTML = TPMFJ[TagId] = TagVal;
@@ -1520,8 +1607,10 @@
 				<input id="Dependents0" type="number" class="small" value="0" />
 				<span id="Dependents0MFS2">, SP: <input id="SPDependents0" type="number" class="small" value="0" /></span>
 				(who qualify for CTC)
-				</td>
-			</tr>
+				</td></tr>
+		<tr>	<td colspan="4">
+				<textarea id="Notes" placeholder="(add scenario notes here)" onkeyup="Input_Change(this.id)"></textarea>
+			</td></tr>
 		</table>
 
 
@@ -1530,15 +1619,17 @@
 <!-- ****************************************** INCOME WORKSHEET ****************************************** -->
 <div id="IncomeInfo" class="grid-item" >
 	<h1>Estimated Tax Worksheet:</h1>
-	<table id="IncomeTable"> <textarea placeholder="(add scenario notes here)"></textarea>
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
+	<table id="IncomeTable">
+		<tr style="height:1.75em;"><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
 		<tr><td colspan="2">Income:
 				(<input type="checkbox" id="IncomeExpand" checked
 				onchange="File_Change();" /><i>Expand to enter details.)</i></td>
 			<td colspan="3"><i>Enter Form 1040 expected amounts:</i></td></tr>
 		<tr class="income"><td></td>
 			<td colspan="2">Wages, salaries, tips, etc from W-2s</td>
-			<td><input id="Wages" type="text" class="wkti"
+			<td>	<input id="NoInput" type="text" class="wkti hidden" />
+				<span id="TPNoInput"></span><span id="SPNoInput"></span>
+				<input id="Wages" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
@@ -1677,17 +1768,18 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="adjustment"><td></td>
-			<td>Traditional IRA deduction <i><span id="IRAComment"></span></i></td>
-			<td><span style="hidden"><input id="IRADeductionJoint" type="text" class="wkti hidden"></span></td>
+			<td>Traditional IRA deduction <i><span id="IRAComment"></span></i>
+			<input id="IRADeductionJoint" type="text" class="wkti hidden" /></td>
 			<td><input id="IRADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
+				onkeyup="Input_Change(this.id);" /></td>
+			<td id="IRADeductionAvailable" type="text" class="calculated wktc" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Student loan interest</td>
 			<td><input id="StudentLoan" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
-			<td id="SLInterest" class="wktc">0</td></tr>
+			<td id="SLInterest" class="calculated wktc">0</td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Other adjustments expected (Forms 2106 &amp; 3903)</td>
 			<td></td>
@@ -1904,7 +1996,7 @@
 			<td>Additional Child Care Credit</td>
 			<td id="ACCCredit" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
-			<td>American Opportunity Credit (enter cost in Nonrefundable Credits line)</td>
+			<td>American Opportunity Credit (enter cost in Nonrefundable Ed credits line)</td>
 			<td id="AOCCredit" class="calculated wktc"></td></tr>
 		<tr id="RecoveryCreditRow"><td>  </td>
 			<td>Recovery Rebate Credit</td>
@@ -1912,7 +2004,7 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
-			<td>Other refundable credits</td>
+			<td>Other refundable credits <span id="SSexcess"></span></td>
 			<td><input id="Refundable" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
@@ -2018,9 +2110,11 @@
 				<span id="SPSEInsurance" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPSavingsPenalty"></td><td id="SPSavingsPenalty"></td></tr>
 		<tr class="adjustment"><td id="TPAlimonyPaid"></td><td id="SPAlimonyPaid"></td></tr>
-		<tr class="adjustment"><td id="TPIRADeduction"></td><td id="SPIRADeduction"></td>
+		<tr class="adjustment"><td id="TPIRADeductionAvailable"></td><td id="SPIRADeductionAvailable"></td>
 			<td>	<span id="TPIRADeductionJoint" class="hidden"></span>
-				<span id="SPIRADeductionJoint" class="hidden"></span></td></tr>
+				<span id="SPIRADeductionJoint" class="hidden"></span>
+				<span id="TPIRADeduction" class="hidden"></span>
+				<span id="SPIRADeduction" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPSLInterest"></td><td id="SPSLInterest"></td>
 			<td>	<span id="TPStudentLoan" class="hidden"></span>
 				<span id="SPStudentLoan" class="hidden"></span></td></tr>
