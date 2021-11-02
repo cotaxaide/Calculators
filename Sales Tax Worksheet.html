@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
-	<title>General Sales Tax Deduction Income Worksheet</title>
+	<title>Sales Tax Deduction Worksheet</title>
 
 <style type="text/css">
 	html { background-color: #cccccc; }
@@ -35,7 +35,7 @@
 	#ResultTable tr td { text-align: right; }
 	#ResultTable tr: first-child { font-size: 110%; font-weight: bold; }
 	#Name { width: 25em; }
-	#Exemptions { width: 3em; }
+	#Dependents { width: 3em; }
 	#Year, #Zip ,#Local, #State { width: 30%; }
 	#TotalSalesTax { width: 8em; }
 	#IncomeTable, #LargeTaxTable { border: 1px solid black; }
@@ -82,9 +82,14 @@
 	//	Barbara Smith-Thomas
 	//	Diana Kenning
 	//	Gina Kritchevsky
+	//	John Heim
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.09, 1/24/2021)";
+	VERSION = "(Version 1.09b, 10/27/2021)";
+	//	Minor title and wording changes
+	//VERSION = "(Version 1.09a, 9/7/2021)";
+	//	Spelling correction
+	//VERSION = "(Version 1.09, 1/24/2021)";
 	//	Added 2020 EIP line
 	//	Grouped subtractions with totals on same table line
 	//VERSION = "(Version 1.08c, 11/4/2020)";
@@ -253,7 +258,7 @@
 <body>
 
 <center>
-	<span class="title">General Sales Tax Deduction Income Worksheet</span>
+	<span class="title">Sales Tax Deduction Worksheet</span>
 	<br><a href="https://www.irs.gov/credits-deductions/individuals/sales-tax-deduction-calculator" target="_blank">(for use with IRS Sales Tax Calculator)</a>
 	<br /><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
 </center>
@@ -269,13 +274,13 @@
 		<table id="TPNameTable">
 			<tr><td>Taxpayer&apos;s Name: <input id="Name" /></td>
 				<td>Tax Year: <input id="Year" /></td></tr>
-			<tr><td>Number of Exemptions (line 6d): <input id="Exemptions" /></td>
+			<tr><td>Number of dependents: <input id="Dependents" /></td>
 				<td>Zip Code: <input id="Zip" /></td>
 		</table>
 	</div>
 
 	<div id="IncomeWorksheet">
-		<span class="tblHeader">Income Worksheet:</span>
+		<span class="tblHeader">Income:</span>
 		<br />
 		<span class="instruction">(Enter all numbers as positive numbers)</span>
 		<table id="IncomeTable" onkeyup="IncomeCalc();" onchange="IncomeCheck();">
@@ -366,14 +371,14 @@
 	</div>
 
 	<div>
-		<span class="tblHeader">Large Item Sales Tax Worksheet:</span>
+		<span class="tblHeader">Large Item Sales Tax Paid:</span>
 		<br />
 		<br />
 		<table id="LargeTaxTable" onkeyup="LargeTaxCalc();" onchange="LargeTaxCalc();">
 			<tr><th>Sales Tax on Large Item Purchases</th><th>Source</th><th>Tax</th></tr>
 			<tr><td>Motor Vehicle (including RVs, ATVs, etc.)</td><td>Taxpayer</td><td><input id="Large01" type="nunber" /></td></tr>
 			<tr><td>Watercraft or Aircraft</td><td>Taxpayer</td><td><input id="Large02" type="nunber" /></td></tr>
-			<tr style="vertical-align:middle;"><td>Building Materials for home contruction or remodel (if identified separately)</td><td>Taxpayer</td><td><input id="Large03" type="nunber" /></td></tr>
+			<tr style="vertical-align:middle;"><td>Building Materials for home construction or remodel (if identified separately)</td><td>Taxpayer</td><td><input id="Large03" type="nunber" /></td></tr>
 			<tr><td>House (if general sales tax applies)</td><td>Taxpayer</td><td><input id="Large04" type="nunber" /></td></tr>
 			<tr><th colspan="2" style="text-align: left;">Additional Sales Tax on Specified Items for <a href="https://apps.irs.gov/app/stdc/stdc.html" target="_blank">IRS Sales Tax Calculator</a></th><th style="text-align: left;"><input id="Large99" type="nunber" /></th></tr>
 		</table>
