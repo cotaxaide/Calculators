@@ -233,7 +233,9 @@
 	// To Do:
 	//	Provide for use of Schedule D
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.15, 9/10/2021)";
+	VERSION = "(Version 2.16, 11/6/2021)";
+	//	Corrected for change in non-itemizing charitable deduction
+	//VERSION = "(Version 2.15, 9/10/2021)";
 	//	Changed nonitemizing charity to 300/600 for 2021
 	//	Corrected test for filing status in nonitemizing charity
 	//VERSION = "(Version 2.14, 9/9/2021)";
@@ -918,8 +920,9 @@
 				if (NeedData) return;
 		
 				// OK to calculate
-				NonSchedAContrib = Math.min((150 * ((FilingStatus.value == "MFS") ? 1 : 2 )), +CashContrib.value);
-				if (CY >= 2021) NonSchedAContrib *= 2;
+				NonSchedAContrib = 0;
+				if (CY == 2020) NonSchedAContrib = Math.min(((FilingStatus.value == "MFS") ? 150 : 300 )), +CashContrib.value);
+				if (CY == 2021) NonSchedAContrib = Math.min(((FilingStatus.value == "MFJ") ? 600 : 300 )), +CashContrib.value);
 				ItemizedDiff = Math.max(0, +Itemized.value - +StandardDeduction.value - NonSchedAContrib);
 				NewTotalTaxable = Math.min(ItemizedDiff, TotalTaxable);
 				NewTotalPct = NewTotalTaxable / TotalTaxable;
