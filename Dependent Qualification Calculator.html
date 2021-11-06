@@ -54,13 +54,15 @@
 //	Ted Fox			Gregory Gendron		Jon Naiman		Sue Stavio
 //	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
-//	Bruce Dumas		Mary Emerson
+//	Bruce Dumas		Mary Emerson		Kenny Hayes
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.03 10/18/2021";
+var VERSION = "7.04 11/3/2021";
+//	Correction to EITC with divorce/separation
+//var VERSION = "7.03 10/18/2021";
 //	Added new EITC condition for child when divorced and not filing jointly
 //var VERSION = "7.02 10/7/2021";
 //	Split age 17 and 18 due to 2021 change in CTC age maximum
@@ -279,6 +281,7 @@ var SP_Citizenship;
 var TP_Citizenship;
 var TP_Custodial;
 var TP_DivorceApplies;
+var EITC_DivorceApplies;
 var TP_QCA_Applies;
 var TP_Filing;
 var TP_IsParent;
@@ -689,6 +692,7 @@ function CalcStatus(from_age_calc) {
 	TP_Filing = "Single";
 	if (TPisMarried.checked) TP_Filing = "MFS";
 	if (TPfilingMFJ.checked) TP_Filing = "MFJ";
+	//TPfilingHOH.disabled = (! HHCost.checked);
 	if (TPfilingHOH.checked) TP_Filing = "HOH";
 
 	// Taxpayer divorce and Form 8322 waivers
@@ -697,6 +701,7 @@ function CalcStatus(from_age_calc) {
 		LivedWith.checked = JointSupport.checked = false;
 	}
 	TP_DivorceApplies = (TPDivorced.checked && LivedWith.checked && JointSupport.checked && (DEP_Age < 24) && TP_IsParent && (! Emancipated.checked));
+	EITC_DivorceApplies = (TPDivorced.checked && LivedWith.checked && (DEP_Age < 24) && TP_IsParent && (! Emancipated.checked));
 	WaiverToTP.disabled = WaiverToSP.disabled = WaiverToNone.disabled = ! TP_DivorceApplies;
 	TP_Custodial = YES; // Assume yes for now
 	if (TP_DivorceApplies) {
@@ -1018,7 +1023,7 @@ function CalcStatus(from_age_calc) {
 		}
 		if ((! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
 		if (TP_Filing == "MFS") {
-			if (TP_DivorceApplies) EITC.value = "EITC_DIV";
+			if (EITC_DivorceApplies) EITC.value = "EITC_DIV";
 			else SetMessage(EITC,"- TP cannot file MFS");
 		}
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
@@ -1079,7 +1084,8 @@ function CheckMultiUseBoxes() {
 //***************************************************************************************************
 
 	// ------------------------Spouse of TP-------------------------------
-	TPfilingHOH.disabled = TPfilingMFJ.disabled = TPrefund.disabled = SPCitizenship.disabled = (! TPisMarried.checked);
+	TPfilingHOH.disabled = (! TPisMarried.checked) || (! HHCost.checked);
+	TPfilingMFJ.disabled = TPrefund.disabled = SPCitizenship.disabled = (! TPisMarried.checked);
 
 	// if there's a value for SPCitizenship, change it if it's N/A
 	var newval = (SPCitizenship.value == "N/A") ? "USA" : SPCitizenship.value;
@@ -1115,7 +1121,7 @@ function CheckMultiUseBoxes() {
 	else {
 		TPrefund.checked = false;
 		TPrefund.disabled = true;
-		if (TPDivorced.checked) {
+		if ( (TPDivorced.checked) && (HHCost.checked) ) {
 			TPfilingHOH.disabled = false;
 		}
 		else {
@@ -1640,7 +1646,7 @@ function ColorCells() {
 	if (EITC.value == "EITC_DIV") {
 		EITC.innerHTML = YES;
 		BenefitColor.EITC = ColorWarn;
-		EITC.title += "- If the dependent did not live with the spouse at the end of the year\n";
+		EITC.title += "- If the dependent did not live in the same household as the spouse at the end of the year\n";
 	}
 	if (EITC.value == "QC_OF_ANOTHER") {
 		EITC.innerHTML = YES;
@@ -1652,12 +1658,12 @@ function ColorCells() {
 			if (TPfilingHOH.checked) {
 				if (HOH.innerHTML == "NO") {
 					BenefitColor.EITC = ColorWarn;
-					EITC.title += "- This dependent does not qualify the TP for HOH as selected.  EITC is allowed if there is another dependent that does.";
+					EITC.title += "- This dependent does not qualify the TP for HOH as selected but OK if there is another dependent that does.";
 				}
 			}
 			else {
 				BenefitColor.EITC = ColorWarn;
-				EITC.title += "- If ex-spouse does not claim even if also qualified";
+				EITC.title += "- If the dependent did not live in the same household as the spouse at the end of the year\n";
 			}
 		}
 	}
