@@ -201,7 +201,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.30, 10/26/2021)";
+	var VERSION = "(Version 3.31, 11/6/2021)";
+	//	Corrected for change in non-itemizing charitable contribution
+	//var VERSION = "(Version 3.30, 10/26/2021)";
 	//	Student loan interest not calculating for non-MFJ
 	//var VERSION = "(Version 3.29, 10/24/2021)";
 	//	Added excess Social Security withholding
@@ -946,9 +948,13 @@
 		CalcOut["TaxableSS"] = +SSresult[0];
 
 		// Get the taxable SS amount difference if charitable contributions are added
-		var charityLimitJ = (FilingStatusValue === "MFS") ? 150 : 300 ;
-		var charityLimit = (CalcType === "J") ? charityLimitJ : 150 ;
-		if (TY >= 2021) charityLimit *= 2; // increase to 300/600
+		var charityLimit = 0;
+		if (TY == 2020) { // 300 unless MFS, then 150
+			charityLimit = (FilingStatusValue === "MFS") ? 150 : 300 ;
+		}
+		if (TY == 2021) { // 300 unless MFJ, then 600
+			charityLimit = (FilingStatusValue === "MFJ") ? 600 : 300 ;
+		}
 		charityLimit = Math.min(charityLimit, Math.max(0, (IncomeNoSS + +SSresult[0])));
 		SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
