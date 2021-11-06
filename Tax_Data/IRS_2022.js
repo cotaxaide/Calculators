@@ -140,20 +140,20 @@
                 _CTCLimits["MFS"] = 2;
                 _CTCLimits["HOH"] = 3;
                 _CTCLimits[_TY+":AGICap"]  = "400000, 200000, 200000, 200000";	// Needs update
-		_CTCLimits[_TY+":CTCRate"] = 2000;
+		_CTCLimits[_TY+":CTCRate"] = 2000;	// Needs update
                 _CTCLimits[_TY+":AGI0Cap"] = "150000,  75000,  75000, 112500";	// Needs update
-		_CTCLimits[_TY+":CTC0Rate"] = 1600;
-		_CTCLimits[_TY+":CTC6Rate"] = 1000;
+		_CTCLimits[_TY+":CTC0Rate"] = 0;	// Needs update
+		_CTCLimits[_TY+":CTC6Rate"] = 1000;	// Needs update
 		_CTCLimits[_TY+":FTCRate"] = 500;			// Needs update
-		_CTCLimits[_TY+":ACTCRate"] = 1000000;	// not limited
-		_CTCLimits[_TY+":ACTCThreshold"] = 0;
+		_CTCLimits[_TY+":ACTCRate"] = 1400;			// Needs update
+		_CTCLimits[_TY+":ACTCThreshold"] = 2500;			// Needs update
 
        	// var CareRates = [];
 		// Source: Pub 503
-		_CareLimits[_TY+":RateMax"] = 50;
-		_CareLimits[_TY+":RateMin"] = 35;
-		_CareLimits[_TY+":AGICap"] = 125000;
-		_CareLimits[_TY+":AGICap"] = 125000;
+		_CareLimits[_TY+":RateMax"] = 35;	// Needs update
+		_CareLimits[_TY+":RateMin"] = 20;	// Needs update
+		_CareLimits[_TY+":AGICap"] = 15000;	// Needs update
+		_CareLimits[_TY+":AGICap"] = 15000;	// Needs update
 
         // var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)
