@@ -85,7 +85,9 @@
 	//	John Heim
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.09b, 10/27/2021)";
+	VERSION = "(Version 1.10, 11/7/2021)";
+	//	Correct Social Security not subtracting taxable amount
+	//VERSION = "(Version 1.09b, 10/27/2021)";
 	//	Minor title and wording changes
 	//VERSION = "(Version 1.09a, 9/7/2021)";
 	//	Spelling correction
@@ -209,7 +211,7 @@
 			//alert("Taxable IRA Distributions cannot be greater than Total IRA Distributions.");
 		}
 		Income99v += +Income08.value;
-		Income99v -= (Income03.style.textDecoration == "line-through") ? 0 : +Income07.value;
+		Income99v -= (Income07.style.textDecoration == "line-through") ? 0 : +Income07.value;
 	}
 	Income99v += +Income09.value;
 	Income99v += +Income10.value;
