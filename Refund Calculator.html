@@ -233,7 +233,9 @@
 	// To Do:
 	//	Provide for use of Schedule D
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.16, 11/6/2021)";
+	VERSION = "(Version 2.17, 11/8/2021)";
+	//	Fixed coding error that caused app from functioning
+	//VERSION = "(Version 2.16, 11/6/2021)";
 	//	Corrected for change in non-itemizing charitable deduction
 	//VERSION = "(Version 2.15, 9/10/2021)";
 	//	Changed nonitemizing charity to 300/600 for 2021
@@ -921,8 +923,8 @@
 		
 				// OK to calculate
 				NonSchedAContrib = 0;
-				if (CY == 2020) NonSchedAContrib = Math.min(((FilingStatus.value == "MFS") ? 150 : 300 )), +CashContrib.value);
-				if (CY == 2021) NonSchedAContrib = Math.min(((FilingStatus.value == "MFJ") ? 600 : 300 )), +CashContrib.value);
+				if (CY == 2020) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFS") ? 150 : 300 ), +CashContrib.value );
+				if (CY == 2021) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFJ") ? 600 : 300 ), +CashContrib.value );
 				ItemizedDiff = Math.max(0, +Itemized.value - +StandardDeduction.value - NonSchedAContrib);
 				NewTotalTaxable = Math.min(ItemizedDiff, TotalTaxable);
 				NewTotalPct = NewTotalTaxable / TotalTaxable;
@@ -1780,7 +1782,7 @@
 				<td>&quot;SALT&quot; total prior to <span id="SALTLimit"></span> limit</td></tr>
 			<tr id="CashContribRow"><td><span id="CashContribLineNo">TBD</span>. Cash contributions:</td>
 				<td><input id="CashContrib" type="myinput" /></td>
-				<td></td></tr>
+				<td>Also include out-of-pocket expenses and mileage if any.</td></tr>
 			<tr id="ItemizedRow"><td><span id="ItemizedLineNo">TBD</span>. Total itemized deductions:</td>
 				<td><input id="Itemized" type="myinput" /></td>
 				<td><input id="UseSchedA" type="checkbox" />
