@@ -172,8 +172,8 @@
                 _EICRates[_TY+":SNG"] =      " 21430,  42158,  47915,  51464";
                 _EICRates[_TY+":MFJ"] =      " 27380,  48108,  53865,  57414";
                 _EICRates[_TY+":MAX"] =      "  1502,   3618,   5980,   6728";	
-                _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";
-                _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";
+                _EICRates[_TY+":RATEUP"] =   " 0.153,   0.34,    0.4,   0.45";
+                _EICRates[_TY+":RATEDOWN"] = " 0.153,  0.160, 0.2106, 0.2106";
                 _EICRates[_TY+":INVEST"] = 10000;
 
 	// var FPL = [];
