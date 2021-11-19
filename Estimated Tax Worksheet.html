@@ -201,7 +201,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.31, 11/6/2021)";
+	var VERSION = "(Version 3.33, 11/13/2021)";
+	//	Fixed problem where unemployment amount gets deleted
+	//var VERSION = "(Version 3.32, 11/12/2021)";
+	//	Removed non-itemizing charitable deduction from SS taxable calc
+	//var VERSION = "(Version 3.31, 11/6/2021)";
 	//	Corrected for change in non-itemizing charitable contribution
 	//var VERSION = "(Version 3.30, 10/26/2021)";
 	//	Student loan interest not calculating for non-MFJ
@@ -787,9 +791,7 @@
 		else {
 			// Do not use "+" to get value below - it may be a minus sign
 			TPMFJ["IRADeduction"] = +TPMFJ["IRADeductionJoint"];
-			if (thisId != "Unemployment") {
-				TPMFS[thisId] = TPMFJ[thisId] = thisElement.value;
-			}
+			TPMFS[thisId] = TPMFJ[thisId] = thisElement.value;
 			Do_Calcs("J", TPMFJ);
 			Show_Results("J");
 		}
@@ -960,7 +962,7 @@
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
 			MFStogetherRelevant);
-		taxableSS_charitydiff = +SSresult[0] - CalcOut["TaxableSS"];
+		taxableSS_charitydiff = 0; // +SSresult[0] - CalcOut["TaxableSS"];
 
 		if (CalcType === "J") {
 			TPMFJ["IRAgap00"] = +SSresult[1];
