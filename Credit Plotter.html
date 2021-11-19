@@ -77,7 +77,9 @@
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.04, 11/2/2021)";
+	VERSION = "(Version 1.05, 11/10/2021)";
+	//	Allow FPL to print by itself
+	//VERSION = "(Version 1.04, 11/2/2021)";
 	//	Added FPL
 	//VERSION = "(Version 1.04, 9/8/2021)";
 	//	Changed CTC to age under 6 for 2021
@@ -220,71 +222,83 @@
 				StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
 				if (EIC.checked) {
 					var FSx = (FS == "MFJ") ? "MFJ" : "SNG";
-					if (Children == -1) continue;
-					EICChildren = Math.min(Children, 3);
-					var EICMaxY = _EICRates[TY + ":MAX"].split(",")[EICChildren];
-					var EICMaxX = _EICRates[TY + ":" + FSx].split(",")[EICChildren];
-					AGIMax = Math.max(AGIMax, EICMaxX);
-					CreditMax = Math.max(CreditMax, EICMaxY);
+					if (Children > -1) {
+						EICChildren = Math.min(Children, 3);
+						var EICMaxY = _EICRates[TY + ":MAX"].split(",")[EICChildren];
+						var EICMaxX = _EICRates[TY + ":" + FSx].split(",")[EICChildren];
+						AGIMax = Math.max(AGIMax, EICMaxX);
+						CreditMax = Math.max(CreditMax, EICMaxY);
+					}
 				}
 				if (CTC.checked) {
-					if (Children < 1) continue;
-					var CTCMaxY = +_CTCLimits[TY + ":CTCRate"];
-					var CTCMaxX = +_CTCLimits[TY + ":AGICap"].split(",")[_CTCLimits[FS]];
-					AGIMax = Math.max(AGIMax, CTCMaxX + (20 * CTCMaxY * Children));
-					if (TY >= 2021) CTCMaxY += (+_CTCLimits[TY + ":CTC0Rate"]);
-					CreditMax = Math.max(CreditMax, CTCMaxY * Children);
+					if (Children > 0) {
+						var CTCMaxY = +_CTCLimits[TY + ":CTCRate"];
+						var CTCMaxX = +_CTCLimits[TY + ":AGICap"].split(",")[_CTCLimits[FS]];
+						AGIMax = Math.max(AGIMax, CTCMaxX + (20 * CTCMaxY * Children));
+						if (TY >= 2021) CTCMaxY += (+_CTCLimits[TY + ":CTC0Rate"]);
+						CreditMax = Math.max(CreditMax, CTCMaxY * Children);
+					}
 				}
 				if (CARE.checked) {
-					if (Children < 1) continue;
-					CCChildren = Math.min(Children, 2);
-					CCPaid = 3000 * CCChildren;
-					var CCRateDiff = _CareLimits[TY + ":RateMax"] - _CareLimits[TY + ":RateMin"];
-					var CCMaxX = _CareLimits[TY + ":AGICap"];
-					var CCMaxY = _ChildCare(TY, FS, CCMaxX, (3000 * CCChildren), CCMaxX, 0);
-					var CCMaxX = CCMaxX + (2000 * CCRateDiff); // where reduction ends
-					AGIMax = Math.max(AGIMax, CCMaxX);
-					CreditMax = Math.max(CreditMax, CCMaxY);
+					if (Children > 0) {
+						CCChildren = Math.min(Children, 2);
+						CCPaid = 3000 * CCChildren;
+						var CCRateDiff = _CareLimits[TY + ":RateMax"] - _CareLimits[TY + ":RateMin"];
+						var CCMaxX = _CareLimits[TY + ":AGICap"];
+						var CCMaxY = _ChildCare(TY, FS, CCMaxX, (3000 * CCChildren), CCMaxX, 0);
+						var CCMaxX = CCMaxX + (2000 * CCRateDiff); // where reduction ends
+						AGIMax = Math.max(AGIMax, CCMaxX);
+						CreditMax = Math.max(CreditMax, CCMaxY);
+					}
 				}
 				if (AOC.checked) {
-					if (Students < 1) continue;
-					AOCLimits = _EdExpenseLimits[TY + ":AOC"].split(",");
-					AGIIndex = (FS === "MFJ") ? 4 : 2 ;
-					AGIMax = Math.max(AGIMax, AOCLimits[AGIIndex]);
-					AOCMaxCred = _EdCredit(TY, FS, 0, "AOC", AOCLimits[0]);
-					AOCMaxY = AOCMaxCred[0] + AOCMaxCred[1];
-					CreditMax = Math.max(CreditMax, AOCMaxY * Students);
+					if (Students > 0) {
+						AOCLimits = _EdExpenseLimits[TY + ":AOC"].split(",");
+						AGIIndex = (FS === "MFJ") ? 4 : 2 ;
+						AGIMax = Math.max(AGIMax, AOCLimits[AGIIndex]);
+						AOCMaxCred = _EdCredit(TY, FS, 0, "AOC", AOCLimits[0]);
+						AOCMaxY = AOCMaxCred[0] + AOCMaxCred[1];
+						CreditMax = Math.max(CreditMax, AOCMaxY * Students);
+					}
 				}
 				if (LLC.checked) {
-					if (Students < 1) continue;
-					LLCLimits = _EdExpenseLimits[TY + ":LLC"].split(",");
-					AGIIndex = (FS === "MFJ") ? 4 : 2 ;
-					AGIMax = Math.max(AGIMax, LLCLimits[AGIIndex]);
-					taxable = Math.max(0, AGIMax - StandardDeduction);
-					tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
-					LLCMaxCred = _EdCredit(TY, FS, 0, "LLC", LLCLimits[0]);
-					LLCMaxY = Math.min(tax, LLCMaxCred[0] * Students);
-					CreditMax = Math.max(CreditMax, LLCMaxY);
+					if (Students > 0) {
+						LLCLimits = _EdExpenseLimits[TY + ":LLC"].split(",");
+						AGIIndex = (FS === "MFJ") ? 4 : 2 ;
+						AGIMax = Math.max(AGIMax, LLCLimits[AGIIndex]);
+						taxable = Math.max(0, AGIMax - StandardDeduction);
+						tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						LLCMaxCred = _EdCredit(TY, FS, 0, "LLC", LLCLimits[0]);
+						LLCMaxY = Math.min(tax, LLCMaxCred[0] * Students);
+						CreditMax = Math.max(CreditMax, LLCMaxY);
+					}
 				}
 				if (TNF.checked) {
-					if (Students < 1) continue;
-					if (TY > 2020) continue;
-					TNFLimits = _EdExpenseLimits[TY + ":TNF"].split(",");
-					TNFAGIMax = TNFLimits[3] * ((FS === "MFJ") ? 2 : 1 );
-					AGIMax = Math.max(AGIMax, TNFAGIMax);
-					TNFAGIPeak = TNFLimits[1] * ((FS === "MFJ") ? 2 : 1 );
-					PreTaxCredit = _EdCredit(TY, FS, TNFAGIPeak, "TNF", TNFLimits[0]);
-					StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
-					taxable = Math.max(0, TNFAGIMax - StandardDeduction);
-					tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
-					taxable = Math.max(0, TNFAGIMax - StandardDeduction - PreTaxCredit[0]);
-					tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
-					TNFMaxCred = tax0 - tax1;
-					CreditMax = Math.max(CreditMax, TNFMaxCred);
+					if ( (TY < 2021) && (Students > 0) ) {
+						TNFLimits = _EdExpenseLimits[TY + ":TNF"].split(",");
+						TNFAGIMax = TNFLimits[3] * ((FS === "MFJ") ? 2 : 1 );
+						AGIMax = Math.max(AGIMax, TNFAGIMax);
+						TNFAGIPeak = TNFLimits[1] * ((FS === "MFJ") ? 2 : 1 );
+						PreTaxCredit = _EdCredit(TY, FS, TNFAGIPeak, "TNF", TNFLimits[0]);
+						StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
+						taxable = Math.max(0, TNFAGIMax - StandardDeduction);
+						tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						taxable = Math.max(0, TNFAGIMax - StandardDeduction - PreTaxCredit[0]);
+						tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						TNFMaxCred = tax0 - tax1;
+						CreditMax = Math.max(CreditMax, TNFMaxCred);
+					}
 				}
 				if (RET.checked) {
 					RETMax = _RETIRE[TY + ":" + FS].split(",")[2];
 					AGIMax = Math.max(AGIMax, +RETMax);
+					CreditMax = Math.max(CreditMax, 1000);
+				}
+				if (FPL.checked) {
+					var FPLPeople = Math.max(0, Children) + ( (FS === "MFJ") ? 1 : 0 );
+					var FPLi = (MaxTY - 1) + ":" + ThisRegion;
+					FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (FPLPeople * +_FPL[FPLi].split(",")[1]);
+					AGIMax = Math.max(AGIMax, FedPovertyLine * 1.5);
 					CreditMax = Math.max(CreditMax, 1000);
 				}
 			}
@@ -461,7 +475,7 @@
 					}
 				}
 				if (TNF.checked) {
-					if ((Students > 0) && (TY <= 2020)) {
+					if ( (Students > 0) && (TY < 2021) ) {
 						PlotCanv.beginPath();
 						PlotCanv.moveTo(0, 0);
 						Add_To_Legend("TNF", TY, FS, "");
@@ -480,18 +494,17 @@
 					}
 				}
 				if (FPL.checked) {
-					var FPLi = (MaxTY - 1) + ":" + ThisRegion;
-					FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (Children * +_FPL[FPLi].split(",")[1]);
 					FSChecked[FSi] = FSElement[FSi].checked;
 					if (! FSChecked[FSi]) continue;
 					FS = FilingList[FSi];
 					if (FS == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
 					PlotCanv.beginPath();
-					Add_To_Legend("FPL", TY, FS, Children);
+					Add_To_Legend("FPL", TY, FS, FPLPeople);
 					PlotCanv.strokeStyle = ColorList[Color++];
 					var result = AddPlot(FedPovertyLine, 0, FedPovertyLine, CreditMax);
 					PlotCanv.textAlign = "left";
 					PlotCanv.font = LegendFontSize + "px Arial";
+					PlotCanv.fillText("FPL", FedPovertyLine, CreditMax);
 				}
 			}
 		}
