@@ -284,7 +284,9 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.24, 11/14/2021)";
+		var VERSION = "(version 10.25, 11/15/2021)";
+		//	Reverted back to rounding monthly exclusion
+		//var VERSION = "(version 10.24, 11/14/2021)";
 		//	Dropped rounding of monthly exclusion to align with TS
 		//var VERSION = "(version 10.23c, 7/9/2021)";
 		//	Updated imported yearly data (added 2021) 
@@ -1455,7 +1457,9 @@
 		
 			CONTR.value = Math.round(CONTR.value);
 		
-			MO_EX.innerHTML = (Math.round((CONTR.value / NO_MO.innerHTML))); // * 100)/100).toFixed(2);
+			//MO_EX.innerHTML = (Math.round((CONTR.value / NO_MO.innerHTML) * 100)/100).toFixed(2); // v 10.23
+			//MO_EX.innerHTML = (Math.round((CONTR.value / NO_MO.innerHTML)); // v 10.24
+			MO_EX.innerHTML = (CONTR.value / NO_MO.innerHTML); //.toFixed(2); // v 10.25
 			//FYR_EX.innerHTML = Math.min(Math.max(1,Math.round(FYR_MO.innerHTML * MO_EX.innerHTML)), GROSS_TOTAL);
 			//RYR_EX.innerHTML = Math.min(Math.max(1,Math.round(12 * MO_EX.innerHTML)), GROSS_TOTAL);
 			FYR_EX.innerHTML = Math.min(Math.round(FYR_MO.innerHTML * MO_EX.innerHTML), GROSS_TOTAL);
