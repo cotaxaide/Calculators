@@ -77,7 +77,9 @@
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.05, 11/10/2021)";
+	VERSION = "(Version 1.06, 11/23/2021)";
+	//	Revisions to Child Care and FPL
+	//VERSION = "(Version 1.05, 11/10/2021)";
 	//	Allow FPL to print by itself
 	//VERSION = "(Version 1.04, 11/2/2021)";
 	//	Added FPL
@@ -247,6 +249,7 @@
 						var CCMaxX = _CareLimits[TY + ":AGICap"];
 						var CCMaxY = _ChildCare(TY, FS, CCMaxX, (3000 * CCChildren), CCMaxX, 0);
 						var CCMaxX = CCMaxX + (2000 * CCRateDiff); // where reduction ends
+						if (TY >= 2021) CCMaxX = 438000;
 						AGIMax = Math.max(AGIMax, CCMaxX);
 						CreditMax = Math.max(CreditMax, CCMaxY);
 					}
@@ -497,7 +500,9 @@
 					FSChecked[FSi] = FSElement[FSi].checked;
 					if (! FSChecked[FSi]) continue;
 					FS = FilingList[FSi];
-					if (FS == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
+					FPLPeople = Math.max(0, Children) + ( (FS === "MFJ") ? 1 : 0 );
+					FPLi = (TY - 1) + ":" + ThisRegion;
+					FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (FPLPeople * +_FPL[FPLi].split(",")[1]);
 					PlotCanv.beginPath();
 					Add_To_Legend("FPL", TY, FS, FPLPeople);
 					PlotCanv.strokeStyle = ColorList[Color++];
@@ -646,7 +651,7 @@
 			<td>	<input id="AOC" type="checkbox" title="American Opportunity Credit" /> AOC
 				<br /><input id="LLC" type="checkbox" title="Lifetime Learning Credit" /> LLC
 				<br /><input id="TNF" type="checkbox" title="Tuition and Fees Credit" /> TNF
-				<br /><input id="FPL" type="checkbox" title="Federal Poverty Line for lastest year" /> FPL
+				<br /><input id="FPL" type="checkbox" title="Federal Poverty Line" /> FPL
 			</td>
 			<td>	&nbsp;Tax Year:
 				<br />&nbsp;Filing Status:

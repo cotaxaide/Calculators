@@ -143,7 +143,6 @@
 		_CareLimits[_TY+":RateMax"] = 35;
 		_CareLimits[_TY+":RateMin"] = 20;
 		_CareLimits[_TY+":AGICap"] = 15000;
-		_CareLimits[_TY+":AGICap"] = 15000;
 
 	// var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)

@@ -329,7 +329,7 @@ function _EICLookup(	// Earned Income Credit table lookup
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
 	EICdependents,	// number of dependents eligible for EIC
-	earnedIncome,	// wages + self-employment
+	earnedIncome,	// net taxable wages + self-employment
 	investedIncome,	// capital gains + dividends + interest + tax-free interest
 	AGI,		// AGI
 	TP65,		// true/false
@@ -440,19 +440,36 @@ function _ChildCare (	// Form 2441
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
 	AGI,		// AGI
-	amountPaid,	// max $3000 for 1, $6000 for 2 or more
+	amountPaid,	// max $3000 for 1, $6000 for 2 or more limited to lowest TP/SP earned income
 	TPEarnedIncome,	// 
 	SPEarnedIncome	// 
 		) {
 // Form 2441 line numbers
 //----------------------------------------------------------------------------------------
 	
-	if (filingStatus === "MFJ") line6 = Math.min(+amountPaid, +TPEarnedIncome + +SPEarnedIncome);
-	else line6 = Math.min(+amountPaid, +TPEarnedIncome);
+	if (filingStatus === "MFJ") {
+		if (+SPEarnedIncome == 0) { // Don't know SP earned income
+			line6 = Math.min(+amountPaid, +TPEarnedIncome + +SPEarnedIncome);
+		}
+		else { // Limit amountPaid by losest earned income
+			line6 = Math.min(+amountPaid, +TPEarnedIncome, +SPEarnedIncome);
+		}
+	}
+	else { // SNG, HOH, MFS, WID
+		line6 = Math.min(+amountPaid, +TPEarnedIncome);
+	}
 	var RateMin = _CareLimits[taxYear + ":RateMin"];
 	var RateMax = _CareLimits[taxYear + ":RateMax"];
 	var AGICap = _CareLimits[taxYear + ":AGICap"];
+	var AGICap2 = _CareLimits[taxYear + ":AGICap2"];
 	var RateReduction = Math.ceil(Math.max(0, (AGI - AGICap)/2000));
+	if (+taxYear > 2020) {
+		if (AGI >= 400000) {
+			RateReduction = Math.ceil(Math.max(0, (AGI - AGICap2)/2000));
+			RateMax = RateMin;
+			RateMin = 0;
+		}
+	}
 	var line8 = (RateMax - (Math.min(RateReduction, (RateMax - RateMin)))) / 100; // rate
 	return Math.max(0, line6 * line8);
 }

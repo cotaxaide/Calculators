@@ -152,11 +152,12 @@
 		_CTCLimits[_TY+":ACTCThreshold"] = 2500;	
 
 	// var CareRates = [];
-		// Source: Pub 503
+		// Source: Pub 503, Form 2441 for AGILimit
+		// AGICap = beginning of credit reduction
 		_CareLimits[_TY+":RateMax"] = 35;
 		_CareLimits[_TY+":RateMin"] = 20;
 		_CareLimits[_TY+":AGICap"] = 15000;
-		_CareLimits[_TY+":AGICap"] = 15000;
+		_CareLimits[_TY+":AGILimit"] = 10000000; // no limit
 
         // var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)
