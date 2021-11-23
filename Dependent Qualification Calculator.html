@@ -60,7 +60,9 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.04 11/3/2021";
+var VERSION = "7.04a 11/19/2021";
+//	Remove non-refundable comment from Child Care pop-up for 2021
+//var VERSION = "7.04 11/3/2021";
 //	Correction to EITC with divorce/separation
 //var VERSION = "7.03 10/18/2021";
 //	Added new EITC condition for child when divorced and not filing jointly
@@ -328,7 +330,7 @@ YesMsg["Widow"] = "<li>None identified</li>";
 YesMsg["DependCare"] = "<li>Taxpayer must have earned income</li>";
 YesMsg["DependCare"] += "<li>Care must be for work or look for work</li>";
 YesMsg["DependCare"] += "<li>Income amount may reduce or exclude the benefit</li>";
-YesMsg["DependCare"] += "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
+if (+TaxYear.value != 2021) YesMsg["DependCare"] += "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
 YesMsg["DependCare"] += "<li>If MFJ, spouse must be working, a student, or incapable of self-care</li>";
 YesMsg["DependCare"] += "<li>Qualified payments must be to a qualified person</li>";
 YesMsg["DependCare"] += "<li>TP must have the tax id number of the care provider or show due diligence in an attempt to obtain it</li>";
