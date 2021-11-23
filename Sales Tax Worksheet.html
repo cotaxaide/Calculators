@@ -85,7 +85,9 @@
 	//	John Heim
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.10, 11/7/2021)";
+	VERSION = "(Version 1.10a, 11/22/2021)";
+	//	Added 2021 to EIP line
+	//VERSION = "(Version 1.10, 11/7/2021)";
 	//	Correct Social Security not subtracting taxable amount
 	//VERSION = "(Version 1.09b, 10/27/2021)";
 	//	Minor title and wording changes
@@ -275,7 +277,7 @@
 		<br />
 		<table id="TPNameTable">
 			<tr><td>Taxpayer&apos;s Name: <input id="Name" /></td>
-				<td>Tax Year: <input id="Year" /></td></tr>
+				<td>Tax Year: <input id="TaxYear" /></td></tr>
 			<tr><td>Number of dependents: <input id="Dependents" /></td>
 				<td>Zip Code: <input id="Zip" /></td>
 		</table>
@@ -362,7 +364,7 @@
 				</td>
 			</tr>
 			<tr><td>Supplemental Social Security Benefits</td><td>Taxpayer</td><td>+</td><td><input id="Income21" type="nunber" /></td></tr>
-			<tr><td>2020 Economic Impact Payments</td><td>Taxpayer</td><td>+</td><td><input id="Income22" type="nunber" /></td></tr>
+			<tr><td>2020/2021 Economic Impact Payments</td><td>Taxpayer</td><td>+</td><td><input id="Income22" type="nunber" /></td></tr>
 			<tr><td>Any Other Nontaxable Income<sup>3</sup></td><td>Taxpayer</td><td>+</td><td><input id="Income23" type="nunber" /></td></tr>
 			<tr><th colspan="2" style="text-align: left;">Income for <a href="https://www.irs.gov/credits-deductions/individuals/sales-tax-deduction-calculator" target="_blank">IRS Sales Tax Calculator</a></th><th></th><th style="text-align: left;"><input id="Income99" type="nunber" /></th></tr>
 		</table>
