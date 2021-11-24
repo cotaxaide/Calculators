@@ -201,7 +201,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.33, 11/13/2021)";
+	var VERSION = "(Version 3.34, 11/23/2021)";
+	//	Modified Child Care result based on 2021 documentation
+	//var VERSION = "(Version 3.33, 11/13/2021)";
 	//	Fixed problem where unemployment amount gets deleted
 	//var VERSION = "(Version 3.32, 11/12/2021)";
 	//	Removed non-itemizing charitable deduction from SS taxable calc
@@ -1223,8 +1225,13 @@
 			CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
 			CC2Earned = 0; // Other partner
 			CalcOut["ChildCare"] = Math.round(_ChildCare(TY, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
-			CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
-			if (TY >= 2021) CalcOut["ACCCredit"] = CalcOut["ChildCare"] - CalcOut["ChildCareUsed"];
+			if (TY >= 2021) {
+				CalcOut["ACCCredit"] = CalcOut["ChildCare"];
+				CalcOut["ChildCare"] = 0;
+			}
+			else {
+				CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
+			}
 		}
 		WorkingTax -= NRUsedTemp;
 		NRUsed += NRUsedTemp;
@@ -2001,7 +2008,7 @@
 			<td>Additional Child Tax Credit</td>
 			<td id="ACTCredit" class="calculated wktc"></td></tr>
 		<tr id="ACCCreditRow"><td>  </td>
-			<td>Additional Child Care Credit</td>
+			<td>Refundable Child Care Credit (enter cost in Nonrefundable credits line)</td>
 			<td id="ACCCredit" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>American Opportunity Credit (enter cost in Nonrefundable Ed credits line)</td>
