@@ -21,7 +21,7 @@
                 _LineNo[_TY+":TaxAmount"] = "16";
                 _LineNo[_TY+":CTC"] = "19";
                 _LineNo[_TY+":COD"] = "19";
-                _LineNo[_TY+":NRCredit"] = "20";
+                _LineNo[_TY+":NRCredit"] = "21";
                 _LineNo[_TY+":EIC"] = "27";
                 _LineNo[_TY+":ACTC"] = "28";
                 _LineNo[_TY+":AOC"] = "29";
@@ -30,7 +30,7 @@
                 _LineNo[_TY+":SEP"] = "S1-16";
                 _LineNo[_TY+":SEHI"] = "S1-17";
                 _LineNo[_TY+":TNF"] = "";
-                _LineNo[_TY+":Adjustments"] = "S1-24";
+                _LineNo[_TY+":Adjustments"] = "S1-25";
                 _LineNo[_TY+":ExcessAPTC"] = "S2-2";
                 _LineNo[_TY+":Foreign"] = "S3-1";
                 _LineNo[_TY+":Care"] = "S3-2";
@@ -41,18 +41,18 @@
 		// Qualified dividends and cap gains worksheet
                 _LineNo[_TY+":QDCG"] = "12";	// Needs update
 		// Schedule A
-	        _LineNo[_TY+":StateWH"] = "5a"; 	// Needs update
-	        _LineNo[_TY+":Property"] = "5b"; 	// Needs update
-		_LineNo[_TY+":SALT"] = "5d";	// Needs update
-                _LineNo[_TY+":CashContrib"] = "11";	// Needs update
-                _LineNo[_TY+":ItemDed"] = "17";	// Needs update
-		_LineNo[_TY+":UseSchedA"] = "18";	// Needs update
-		// Form 2555	// Needs update
-	        _LineNo[_TY+":F2555"] = "45 & 50";	// Needs update
+	        _LineNo[_TY+":StateWH"] = "5a"; 
+	        _LineNo[_TY+":Property"] = "5b"; 
+		_LineNo[_TY+":SALT"] = "5e";
+                _LineNo[_TY+":CashContrib"] = "11";
+                _LineNo[_TY+":ItemDed"] = "17";	
+		_LineNo[_TY+":UseSchedA"] = "18";
+		// Form 2555
+	        _LineNo[_TY+":F2555"] = "45 & 50";
 		// Form 8962
-	        _LineNo[_TY+":F8962A"] = "11a";			// Needs update
-	        _LineNo[_TY+":F8962B"] = "11b";			// Needs update
-	        _LineNo[_TY+":F8962F"] = "11f";			// Needs update
+	        _LineNo[_TY+":F8962A"] = "11a";	
+	        _LineNo[_TY+":F8962B"] = "11b";	
+	        _LineNo[_TY+":F8962F"] = "11f";	
 
         // var EdExpenseLimits = [];
 		// Source: Pub 970 or Form 8863 (AOC & LLC)
