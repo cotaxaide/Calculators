@@ -181,7 +181,10 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.8, 10/7/2021";
+	var VERSION = "Version 3.9, 11/28/2021";
+	//	Fixed hang problem due to ACA 0 rate change
+	//	Added tests to prevent negative dependent entries
+	//var VERSION = "Version 3.8, 10/7/2021";
 	//	Modified CTC age limits of 19 - no upper for 2021
 	//	Defaulted to MFJ
 	//var VERSION = "Version 3.7, 8/13/2021";
@@ -569,8 +572,14 @@
 		FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (+Dependents.value * +_FPL[FPLi].split(",")[1]);
 		if (FilingStatus.value == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
 
+		// Check dependent entries
+		if (Dependents.value < 0) Dependents.value = 0;
+		if (EICDependents.value < 0) EICDependents.value = 0;
+		if (CTCDependents.value < 0) CTCDependents.value = 0;
+		if (Dependents0.value < 0) Dependents0.value = 0;
+
 		// Assume all dependents are claimed for EIC until changed, prior to 2018
-		Dependents.value = Math.max(EICDependents.value, CTCDependents.value, Dependents.value);
+		Dependents.value = Math.max(EICDependents.value, CTCDependents.value, Dependents.value, Dependents0.value);
 		if (whatChanged == "Dependents") {
 			if (+TaxYear.value < 2018) EICDependents.value = Dependents.value;
 		}
@@ -2161,11 +2170,14 @@
 		var PTCFactor = 0;
 		var PTCRange = 0;
 		var PTCData = [];
-		while ((PTCFactor == 0) && (PTCRange < 400)){
+		while (PTCRange < 400) {
 			PTCRangeIndex = TaxYear.value + ":" + PTCRange;
 			PTCData = _PTCFactorVal[PTCRangeIndex].split(",");
-			if (PTCData[0] > FPLPercent) PTCFactor = +PTCData[1];
-			else PTCRange = +PTCData[0];
+			if (PTCData[0] > FPLPercent) { // found it
+				PTCFactor = +PTCData[1];
+				break;
+			}
+			else PTCRange = +PTCData[0]; // keep looking
 		}
 		if (PTCRange == 400) {
 			PTCFactor = +PTCData[2];
