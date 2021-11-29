@@ -60,7 +60,9 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.04a 11/19/2021";
+var VERSION = "7.05 11/29/2021";
+//	Clear birth year when closing age calc window if > current tax year
+//var VERSION = "7.04a 11/19/2021";
 //	Remove non-refundable comment from Child Care pop-up for 2021
 //var VERSION = "7.04 11/3/2021";
 //	Correction to EITC with divorce/separation
@@ -521,6 +523,7 @@ function Calculate_Age () {
 	var age = +TaxYear.value - +BirthYear.value;
 	if (age < 0 ) {
 		alert("Birth year cannot be later than the tax year.");
+		BirthYear.value = "";
 		return;
 	}
 
@@ -2435,7 +2438,7 @@ function TestResults() {
 	<table style="border:5px solid; width:100%">
 		<tr class="centerbold">
 			<td class="RESHeader" style="width:100%">Age calculator</td>
-			<td class="RESHeader" style="cursor:default;" onclick="AgeBox.style.display='none';">&nbsp;X&nbsp;</td></tr>
+			<td class="RESHeader" style="cursor:default;" onclick="Calculate_Age();">&nbsp;X&nbsp;</td></tr>
 		<tr><td class="RESOptions" colspan="2">
 			<center><span class="Label">Enter year of birth:</span>
 			<br /><input id="BirthYear" />
