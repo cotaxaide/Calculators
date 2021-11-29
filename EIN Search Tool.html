@@ -42,7 +42,7 @@ button {
 	text-align: right;
 }
 #searchErr {
-	width: 2em;
+	width: 3em;
 }
 #EINTable {
 	margin: auto;
@@ -90,6 +90,21 @@ function Clear_all() {
 	Show_list();
 }
 
+function Format_EIN() {
+	sEIN = searchEIN.value.replace( /\D/g, "" );
+	if ( sEIN.length > 2 ) {
+		searchEIN.value = sEIN = sEIN.slice( 0, 2 ) + "-" + sEIN.slice( 2 );
+	}
+	if ( sEIN.length > 10 ) {
+		searchEIN.value = sEIN.slice(0 , 10);
+	}
+}
+
+function Format_Err() {
+	if ( searchErr.value > 10 ) searchErr.value = 10;
+	if ( searchErr.value < 0 ) searchErr.value = 0;	
+}
+
 function Show_list() {
 	for ( j = 0 ; j < EIN_count; j++ ) {
 		switch (true) {
@@ -129,8 +144,10 @@ function Show_list() {
 
 	<table id="optionTable">
 		<tr><td>Search for Name:</td><td><input id="searchName" type="text" /> (try partial name too)</td></tr>
-		<tr><td>or EIN:</td><td><input id="searchEIN" type="text" />
-			with up to <input id="searchErr" type="number" value="2" /> mismatched digits</td></tr>
+		<tr><td>or EIN:</td><td><input id="searchEIN" type="text" placeholder="12-3456789"
+				onkeyup="Format_EIN();" />
+			with up to <input id="searchErr" type="number" value="2"
+				onchange="Format_Err();"/> mismatched digits</td></tr>
 	</table>
 	<div><button onclick="Show_list();">Start Search</button>
 		<button onclick="Clear_all();">Reset</button></div>
