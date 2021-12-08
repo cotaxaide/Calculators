@@ -232,16 +232,16 @@
 		_AMT[_TY+":KIDDIE"]="7950,   510300";		// (Exempt + earned) up to SNG rate
 		
 	// Health Savings Account (HSA)
-		_HSA[_TY+":IND"] = 5300;
-		_HSA[_TY+":FAM"] = 10700;
+		_HSA[_TY+":IND"] = 3600;
+		_HSA[_TY+":FAM"] = 7150;
 
 	// Retirement Savings Contribution (Form 8880)
 		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";
-		_RETIRE[_TY+":MFJ"] = "39000,	42500,	65000";
-		_RETIRE[_TY+":HOH"] = "29250,	31875,	48750";
+		_RETIRE[_TY+":MFJ"] = "39500,	43000,	66000";
+		_RETIRE[_TY+":HOH"] = "29625,	33250,	49500";
 		_RETIRE[_TY+":SNG"] = 
 		_RETIRE[_TY+":WID"] = 
-		_RETIRE[_TY+":MFS"] = "19500,	21250,	32500";
+		_RETIRE[_TY+":MFS"] = "19750,	21500,	33000";
 
 	// IRA Adjustment limits and phase-out
 		_IRALimits[_TY+":AGE"] = 50;
