@@ -60,7 +60,11 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.05 11/29/2021";
+var VERSION = "7.06 12/10/2021";
+//	Added scheme to save 11-50% options for relative support so they can be restored
+//	Made TP support for relative section inactive if qualified as child
+//	Moved Care info message which changed for 2021 to refundable (causing undefined (?) messages)
+//var VERSION = "7.05 11/29/2021";
 //	Clear birth year when closing age calc window if > current tax year
 //var VERSION = "7.04a 11/19/2021";
 //	Remove non-refundable comment from Child Care pop-up for 2021
@@ -279,6 +283,8 @@ var DEP_RealAge;
 var DEP_Relation;
 var DEP_RelativeQualForBenefits;
 var DEP_Residency;
+var DEP_Support;
+var DEP_SaveSupport;
 
 // TP variables are taxpayer related
 var SP_Citizenship;
@@ -332,7 +338,6 @@ YesMsg["Widow"] = "<li>None identified</li>";
 YesMsg["DependCare"] = "<li>Taxpayer must have earned income</li>";
 YesMsg["DependCare"] += "<li>Care must be for work or look for work</li>";
 YesMsg["DependCare"] += "<li>Income amount may reduce or exclude the benefit</li>";
-if (+TaxYear.value != 2021) YesMsg["DependCare"] += "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
 YesMsg["DependCare"] += "<li>If MFJ, spouse must be working, a student, or incapable of self-care</li>";
 YesMsg["DependCare"] += "<li>Qualified payments must be to a qualified person</li>";
 YesMsg["DependCare"] += "<li>TP must have the tax id number of the care provider or show due diligence in an attempt to obtain it</li>";
@@ -492,7 +497,7 @@ function Initialize() {
 	MarriedBoxContents.innerHTML = MarriedMsg;
 	IncomeBoxContents.innerHTML = IncomeMsg;
 	AlienBoxContents.innerHTML = AlienMsg;
-	SaveSupport = 51;
+	DEP_SaveSupport = 51;
 	}
 
 //***************************************************************************************************
@@ -667,12 +672,30 @@ function CalcStatus(from_age_calc) {
 
 	// Dependant support by Taxpayer and/or others
 	for (j=0; j < SupportList.length; j++) if (SupportList[j].checked) DEP_Support = +SupportList[j].value;
-	if (DEP_Support) SaveSupport = DEP_Support;
-	if (SupportSelfNo.checked) {
-		if (SaveSupport == 10) Support10.checked = true;
-		else if (SaveSupport == 11) Support11.checked = true;
-		else if (SaveSupport == 51) Support51.checked = true;
-		DEP_Support = SaveSupport;
+	if (DEP_Support) { // Support for relatives is active
+		if (DEP_Support == 11) {
+			if (OtherSupport11.checked) DEP_Support = 12;
+			if (Form2120.checked) DEP_Support = 21;
+			if (OtherSupport51.checked) DEP_Support = 13;
+		}
+		DEP_SaveSupport = DEP_Support;
+	}
+	if (SupportSelfNo.checked) { // restore saved support information
+		switch (DEP_SaveSupport) {
+		case 10: Support10.checked = true; break;
+		case 11: Support11.checked = true;
+			 OtherSupportNone.checked = true;
+			 break;
+		case 21: Form2120.checked = true;
+		case 12: Support11.checked = true;
+			 OtherSupport11.checked = true;
+			 break;
+		case 13: Support11.checked = true;
+			 OtherSupport51.checked = true;
+			 break;
+		case 51: Support51.checked = true; break;
+		}
+		DEP_Support = DEP_SaveSupport;
 	}
 	if (SupportSelfYes.checked) DEP_Support = 0;
 	DEP_MultipleTPSupport = Support11.checked && OtherSupport11.checked && Form2120.checked;
@@ -835,8 +858,30 @@ function CalcStatus(from_age_calc) {
 
 		// Other qualified taxpayer optioms
 		TestFor = "";
-		//Support10.disabled = Support11.disabled = ((SupportSelfYes.checked) || (QualChild.value == YES)); v 7.01
-		//if (SupportSelfYes.checked) Support51.disabled = true; v 7.01
+		hideRelativeSupportOptions = ((SupportSelfYes.checked) || (QualChild.value == YES)); // v 7.01, v 7.06
+		Support51.disabled = Support10.disabled = Support11.disabled = hideRelativeSupportOptions; // v 7.06
+		if (hideRelativeSupportOptions) { // v 7.06
+			Support51.checked = Support10.checked = Support11.checked = false;
+		}
+		else { // v 7.06
+			if (DEP_Support == 10) Support10.checked = true;
+			switch (DEP_SaveSupport) {
+			case 10: Support10.checked = true; break;
+			case 11: Support11.checked = true;
+			 	OtherSupportNone.checked = true;
+			 	break;
+			case 21: Form2120.checked = true;
+			case 12: Support11.checked = true;
+			 	OtherSupport11.checked = true;
+			 	break;
+			case 13: Support11.checked = true;
+			 	OtherSupport51.checked = true;
+			 	break;
+			case 51: Support51.checked = true; break;
+			}
+		}
+		//if (SupportSelfYes.checked) Support51.disabled = true; // v 7.01, v 7.06
+		DEP_ChildQualForEITC = QualChild.value; // v 7.06
 
 		// --------------------EITC does not depend on following tests--------------------------
 
@@ -1369,7 +1414,7 @@ function ShowMSRBox(OPTION) {
 // OPTION = "Display" to show the box
 //	"Reopen" to show the box after options have been set
 //	"Reset" to reset the box options to initial state
-//	"Clear" to Reset and Close the box (no longer a valid option)
+//	"Clear" to Reset and Close the box
 //	"Close" to hide the box
 //***************************************************************************************************
 
@@ -1411,7 +1456,9 @@ function ShowMSRBox(OPTION) {
 		if (Support11.checked) {
 			MSRButton.style.display = "inline";
 			MSRButtonLabel.innerHTML = "";
-			if ((MSRBox.style.visibility == "hidden") && (! MSRBoxActive)) {MSRBox.style.visibility = "visible";}
+			if ((MSRBox.style.visibility == "hidden") && (! MSRBoxActive)) {
+				MSRBox.style.visibility = "visible";
+			}
 		}
 	}
 
@@ -1651,7 +1698,7 @@ function ColorCells() {
 	if (EITC.value == "EITC_DIV") {
 		EITC.innerHTML = YES;
 		BenefitColor.EITC = ColorWarn;
-		EITC.title += "- If the dependent did not live in the same household as the spouse at the end of the year\n";
+		EITC.title += "- If the taxpayer did not live in the same household as the spouse at the end of the year\n";
 	}
 	if (EITC.value == "QC_OF_ANOTHER") {
 		EITC.innerHTML = YES;
@@ -1668,7 +1715,7 @@ function ColorCells() {
 			}
 			else {
 				BenefitColor.EITC = ColorWarn;
-				EITC.title += "- If the dependent did not live in the same household as the spouse at the end of the year\n";
+				EITC.title += "- If the taxpayer did not live in the same household as the spouse at the end of the year\n";
 			}
 		}
 	}
@@ -1785,7 +1832,11 @@ function ShowReason(BenefitID,BenefitName,BenefitText) {
 	// Add any additional useful information
 	if (YesMsg[BenefitID] > "") {
 		BenefitMessage += "<span class='BeneBox1'>" + Other + " reasons why this benefit might be disallowed:</span>"
-		BenefitMessage += "<ul>" + YesMsg[BenefitID] + "</ul>";
+		BenefitMessage += "<ul>" + YesMsg[BenefitID];
+		if ((+TaxYear.value != 2021) && (BenefitID == "DependCare")) {
+		       BenefitMessage += "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
+		}
+		BenefitMessage += "</ul>";
 	}
 
 	// Show the message
@@ -2181,7 +2232,7 @@ function TestResults() {
 				title="This dependent provided more than half of their own support" />
 				<span class="Label">&gt; 50% by Depend.</span>
 				<br />&nbsp;
-			</td></tr><tr class="DEPHeader"><td style="border:1px solid;">Taxpayer<br />support</td></tr>
+		</td></tr><tr class="DEPHeader"><td style="border:1px solid;">Taxpayer support<br />for relative</td></tr>
 			<tr><td>
 				<input id="Support10" name="Support" type="radio" onclick="CalcStatus()" value="10"
 				title="Taxpayer provided 10% or less of the dependent's support.  Others, including the dependent, may have also provided support, but not more than half." />
