@@ -174,7 +174,11 @@ var VERSION;
 //	Sue Alza
 //	Don Thorn
 // --------------------------------------------------------------------------------
-VERSION = "(Version 2.02, 10/5/2021)";
+VERSION = "(Version 2.03, 12/11/2021)";
+//	Calc not done properly if new mortgage was taken in January
+//	Acquisition debt amount incorrect
+//	Changing tax year did not throw error if earlier than mortgage year
+//VERSION = "(Version 2.02, 10/5/2021)";
 //	Calc not done properly if new mortgage was taken in December
 //	Adjusted date of prior line when new mortgage taken in current year
 //	Added Delete button for each mortgage
@@ -333,6 +337,13 @@ function Input_Change(e) {
 
 	switch (WhatChanged) {
 	case "TaxYear":
+		New_Date.style.backgroundColor = "white";
+		NewDatePart = New_Date.value.split("-");
+		if (NewDatePart[0] > TaxYear.value) {
+			alert("The mortgage date cannot be later than current tax year.");
+			New_Date.style.backgroundColor = "hotpink";
+			return;
+		}
 		Fill_Dates();
 		break;
 	case "Name":
@@ -520,7 +531,7 @@ function Input_Change(e) {
 			}
 			else {
 				nq += remainingEquityPart;
-				na = Math.max(0, na - nq); // remainingAcqPart; // 
+				//na = Math.max(0, na - nq); // remainingAcqPart; // del v2.03
 				ga = 0;
 				gq = 0;
 				GrandEndDate.year = "0000";
@@ -557,6 +568,7 @@ function Input_Change(e) {
 		Input1Last.style.display = "inline" ;
 	}
 
+	Fill_Dates();
 	if (TaxYear.value == NewDatePart[0]) {
 		Payment1.value = 0; // to be determined
 		Payment1.disabled = true;
@@ -567,13 +579,12 @@ function Input_Change(e) {
 			LastMonth.value = 12;
 		}
 		if (NewDatePart[1] == NewDatePart[11]) { // adjust starting month
-			Fill_Dates();
 			NewDatePart[1] -= 1;
 			var priorDate = document.getElementById("Date" + NewDatePart[1])
 			var mdy = priorDate.innerHTML.split("/");
 			if (+mdy[0] == 12) { // mortgage started in January
 				mdy[0] = 0;
-				mdy[2] += 1;
+				mdy[2] = +mdy[2] + 1;
 			}
 			priorDate.innerHTML = (+mdy[0] + 1) + "/" + NewDatePart[2] + "/" + mdy[2];
 		}
@@ -643,7 +654,8 @@ function Determine_Balances() {
 			return;
 		}
 		var lastMo = LastMonth.value;
-		if (firstMo) { // Mortgage was taken out this year on this month
+		if (mortYear == TaxYear.value) { // Mortgage was taken out this year on this month
+		//if (firstMo) { // Mortgage was taken out this year on this month
 			mb0 = +New_Mort.value;
 			mb6 = (+New_Mort.value / 2) + (+MortgageBalance.value / 2);
 			mortPaid = +New_Mort.value - +MortgageBalance.value;
@@ -651,7 +663,7 @@ function Determine_Balances() {
 			Payment1.disabled = true;
 		}
 		else {
-			var totalPaid = (lastMo - firstMo) * +Payment1.value;
+			var totalPaid = ((lastMo - firstMo) * +Payment1.value);
 			mb0 = Math.max(0, +MortgageBalance.value + (totalPaid) - +InterestPaid.value);
 			mb6 = Math.max(0, +MortgageBalance.value + (totalPaid / 2) - (+InterestPaid.value / 2));
 			if ((mb0 == 0) || (mb6 == 0)) {
@@ -1059,7 +1071,7 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt) {
 	// Pub 936 Table 1 Part 2
 	line12 = line01 + line02 + line07;
 	line13 = +Res_Element[0].Int.innerHTML;
-	line14 = line11 / line12;
+	line14 = line11 / ( (line12) ? line12 : 1 );
 	line15 = line14 * line13;
 	Deductible.innerHTML = Math.round(line15);
 }
