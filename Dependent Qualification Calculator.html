@@ -54,13 +54,15 @@
 //	Ted Fox			Gregory Gendron		Jon Naiman		Sue Stavio
 //	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
-//	Bruce Dumas		Mary Emerson		Kenny Hayes
+//	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.06 12/10/2021";
+var VERSION = "7.07 12/22/2021";
+//	EITC indicated as YES for older daughter, not a qualified child or relative
+//var VERSION = "7.06 12/10/2021";
 //	Added scheme to save 11-50% options for relative support so they can be restored
 //	Made TP support for relative section inactive if qualified as child
 //	Moved Care info message which changed for 2021 to refundable (causing undefined (?) messages)
@@ -1079,7 +1081,7 @@ function CalcStatus(from_age_calc) {
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		// if (TPisQR.checked) SetMessage(EITC,"- TP or SP cannot be a qualified relative of another taxpayer"); // rm V6.04
 		if (QualChildOfAnother.checked && QCAtest != "TP") SetMessage(EITC, QCAreason);
-		if (! DEP_ChildQualForEITC) SetMessage(EITC,"- Not a qualified child");
+		if (DEP_ChildQualForEITC == "NO") SetMessage(EITC,"- Not a qualified child");
 		else {
 			if ((DEP_Married == YES) && (QualChild.value == NO)) SetMessage( EITC,"- Dependent must be single or an exemption");
 		}
