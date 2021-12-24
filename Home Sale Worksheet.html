@@ -13,11 +13,12 @@
 	h1 { text-align: center; font-size: 110%; text-decoration: underline}
 	tr { vertical-align: top; }
 	th { background-color: #c7c7c7; }
-	select { width: 9em; font-size: 100%; }
+	select { width: 9em; font-size: 95%; }
 	input { text-align: left; font-size: 100%; }
 	input, select { background-color: white; }
 	input[type="number"] { width: 9em; text-align: right; }
-	input[type="radio"] { margin-left: 1em; }
+	input[type="radio"] { margin-left: 1em; cursor: pointer; }
+	input[type="checkbox"] { cursor: pointer; }
 	input:disabled, select:disabled {
 		background-color: transparent;
 		font-weight: bold;
@@ -57,6 +58,7 @@
 		padding: 10px 0;
 		position: relative;
 		top: 0;
+		cursor: pointer;
 	}
 	#HomeDiv,
 	#InfoDiv,
@@ -183,16 +185,17 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// Contributors:
-	//	Kenny Hayes
-	//	Maggie Barrington
-	//	Bob Goings
-	//	Mark Riley
-	//	Allan Goldberg
-	//	Bill Zlobik
-	//	Ben Seidman
+	//	Kenny Hayes 		Maggie Barrington		Bob Goings
+	//	Mark Riley		Allan Goldberg			Bill Zlobik
+	//	Ben Seidman		Brian McCann
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.07, 3/3/2021)";
+	VERSION = "(Version 1.08, 12/23/2021)";
+	//	Removed 1/1 default sale date
+	//	Corrected adjustment expanation coding - new code segment
+	//	Fixed some adjustment loss calc errors and detail comments
+	//	Changed handling of input of sale and purchase dates
+	//VERSION = "(Version 1.07, 3/3/2021)";
 	//	Corrected basis due to death of spouse
 	//	Added missing basis adjustment for TS worksheet
 	//VERSION = "(Version 1.06, 1/24/2021)";
@@ -230,12 +233,16 @@
 	var SPExclusionApplies = true;
 	var PartialExclusionApplies = false;
 	var OutOfScope = false;
-	var ChangingSaleDate = false;
 	var ImproveElement = [];
 	var HasSpouse = false;
 	var SpouseApplies = false;
 	var InheritMessage = "Verify the date inherited.\n\nIt may not be the date of death\n\n(See Pubs 523 and 4895)";
 	var InheritMessageShown = false;
+	var Sale_Date = [];
+	var Purchased_Date = [];
+	var SaleDateDays = 0;
+	var PurchDateDays = 0;
+	var SkipInfoDiv = false;
 
 function noop() {return}
 
@@ -244,31 +251,76 @@ function Initialize() {
 // This function adds tax year options to the Filing Information section
 //----------------------------------------------------------------------------------------
 	// Set some defaults
-	SaleDate.value = _DefaultYear + "-01-01";
+	SaleDate.value = "";
 	ErrorMessage.innerHTML = "Please enter Date sold and Date obtained";
 	ErrorMessage.style.display = "block";
 	Add_Improvement();
 	Tab_Click("InfoDiv");
-	Basis_Calc("init");
 }
 
 //----------------------------------------------------------------------------------------
 function Basis_Calc(changingId) {
 //	ignore = null for changes in other than SaleDate input
 //----------------------------------------------------------------------------------------
+
 	switch (changingId) {
-	case "init": break;
+	case "FilingStatus":
+		SkipInfoDiv = true;
+		if (SaleDate.value == "") return;
+		if (PurchasedDate.value == "") return;
+		break;
+	case "InfoTable":
+		SkipInfoDiv = true;
+		break;
+	case "InfoDiv":
+		// Prevents second pass-through due to nested "onchanges"
+		if (SkipInfoDiv) { SkipInfoDiv = false; return; }
+		break;
 	case "SaleDate":
-		ChangingSaleDate = true;
-		return;
-	default:
-		if (SaleDate.value == _DefaultYear + "-01-01") {
-			alert ("Please enter the home sale date first.");
-			ChangingSaleDate = false;
+		SkipInfoDiv = true;
+		if (SaleDate.value == "") return;
+		Sale_Date = SaleDate.value.split("-");
+		Mo = +Sale_Date[1];
+		Dy = +Sale_Date[2];
+		Yr = +Sale_Date[0];
+		if (Yr < (+_ThisYear - 5)) return;
+		if (Yr > +_ThisYear) return;
+		SaleDateDays = new Date(Sale_Date);
+		TSSaleDate.innerHTML =
+		DateSold.innerHTML = Mo + "/" + Dy + "/" + Yr;
+		SPDateDied.innerHTML =
+		LookbackTwoYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 2);
+		OwnFiveYears.innerHTML = 
+		SPFiveYears.innerHTML =
+		TPFiveYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 5);
+		// no break;
+	case "PurchasedDate":
+		SkipInfoDiv = true;
+		if (PurchasedDate.value == "") return;
+		Purchased_Date = PurchasedDate.value.split("-");
+		Mo = +Purchased_Date[1];
+		Dy = +Purchased_Date[2];
+		Yr = +Purchased_Date[0];
+		if (+Yr < 1900)  return;
+		if (+Yr > (+_ThisYear + 1)) return;
+		PurchDateDays = new Date(Purchased_Date);
+		TSPurchasedDate.innerHTML =
+		DateAcquired.innerHTML = Mo + "/" + Dy + "/" + Yr;
+		break;
+	default: break;
+	}
+		if (SaleDate.value == "") {
+			alert ("Please enter the date sold first.");
+			//ChangingSaleDate = false;
 			Tab_Click("InfoDiv");
 			return;
 		}
-	}
+		if (PurchasedDate.value == "") {
+			alert ("Please enter the date obtained.");
+			//ChangingPurchasedDate = false;
+			Tab_Click("InfoDiv");
+			return;
+		}
 
 	// Initialize variables
 	OutOfScope = false;
@@ -279,7 +331,6 @@ function Basis_Calc(changingId) {
 	TPPartialExclusionApplies = false;
 	SPPartialExclusionApplies = false;
 	PartialExclusionApplies = false;
-	ChangingSaleDate = false;
 
 	FileMFS = (FilingStatus.value === "MFS");
 	SaleMFSNotice.style.display = (FileMFS) ? "block" : "none" ;
@@ -292,27 +343,6 @@ function Basis_Calc(changingId) {
 	// Taxpayer information section -----------------------------------------------
 
 	// Set relevant dates based on date of sale
-	var Sale_Date = [];
-	Sale_Date = SaleDate.value.split("-");
-	SaleDateDays = 0;
-	if (Sale_Date) {
-		Yr = +Sale_Date[0];
-		if (Yr > +_ThisYear) { // input doesn't always limit to 4 digits
-			alert ("Please verify the year sold");
-			Sale_Date[0] = Yr = _ThisYear;
-			SaleDate.value = Yr + "-" + Sale_Date[1] + "-" + Sale_Date[2]; 
-		}
-		Mo = +Sale_Date[1];
-		Dy = +Sale_Date[2];
-		SaleDateDays = new Date(SaleDate.value);
-		TSSaleDate.innerHTML =
-		DateSold.innerHTML = Mo + "/" + Dy + "/" + Yr;
-		SPDateDied.innerHTML =
-		LookbackTwoYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 2);
-		OwnFiveYears.innerHTML = 
-		SPFiveYears.innerHTML =
-		TPFiveYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 5);
-	}
 
 	DaysOwned.innerHTML = "";
 	if (PurchasedDate.value > SaleDate.value) {
@@ -320,22 +350,7 @@ function Basis_Calc(changingId) {
 		DaysOwned.innerHTML = "Date error";
 		return;
 	}
-	PurchDateDays = 0;
-	var Purchased_Date = [];
-	Purchased_Date = PurchasedDate.value.split("-");
-	if (Purchased_Date){
-		Yr = +Purchased_Date[0];
-		if (Yr < 1900) return;
-		if (Yr > +_ThisYear) { // input doesn't always limit to 4 digits
-			alert ("Please verify the year purchased");
-			Purchased_Date[0] = Yr = _ThisYear;
-			Purchased_Date.value = Yr + "-" + Purchased_Date[1] + "-" + Purchased_Date[2]; 
-		}
-		Mo = +Purchased_Date[1];
-		Dy = +Purchased_Date[2];
-		PurchDateDays = new Date(Purchased_Date);
-		TSPurchasedDate.innerHTML =
-		DateAcquired.innerHTML = Mo + "/" + Dy + "/" + Yr;
+	if (Purchased_Date) {
 
 		// Calculate how many days the property was owned
 		OwnedDays = Math.round((SaleDateDays.valueOf() - PurchDateDays.valueOf()) / (1000 * 24 * 60 * 60))
@@ -366,19 +381,21 @@ function Basis_Calc(changingId) {
 		else PointsBySeller.value = "";
 
 		// Special situation if inherited in 2010
-		inherit2010 = ((Yr == 2010) && (Inherit.checked));
+		inherit2010 = ((+Purchased_Date[0] == 2010) && (Inherit.checked));
 		if ((inherit2010) && (! InheritMessageShown)) {
 			alert(InheritMessage);
 			InheritMessageShown = true;
 		}
 
 		// First-time homebuyer questions
-		ShowFTHB = ((Yr > 2007) && (Yr < 2012));
+		ShowFTHB = ((+Purchased_Date[0] > 2007) && (+Purchased_Date[0] < 2012));
 		TSHBCredit.innerHTML = (ShowFTHB) ? "Check if true" : "No" ;
 		for (j = 0 ; j < FTHBList.length ; j++) {
 			FTHBList[j].style.display = (ShowFTHB) ? "table-row" : "none" ;
 		}
 	}
+	
+	// Purchase options
 	switch (true) {
 	case LikeKind.checked:
 		TPExclusionApplies = SPExclusionApplies = false;
@@ -704,6 +721,7 @@ function Basis_Calc(changingId) {
 	UseExclusionOption.style.display = "none";
 	TSInputDiv.style.display = "block";
 
+	// Check for errors
 	if (OutOfScope) {
 		if ((! TPExclusionApplies) && (! SPExclusionApplies)) {
 			QualificationMessage.innerHTML = "You do not qualify for an exclusion";
@@ -746,9 +764,11 @@ function Basis_Calc(changingId) {
 		QualificationMessage.innerHTML = "You do not qualify for an exclusion but you may continue to determine taxability";
 		QualificationMessage.style.display = "block";
 	}
-	ExclAmt = 0;
+
+	// Determine the exclusion amount available
+	MaxExclAmt = 0;
 	if (TPExclusionApplies) {
-		ExclAmt += TPExclusion;
+		MaxExclAmt += TPExclusion;
 		TSTPQualifies.innerHTML = (TPPartialExclusionApplies) ?  "(Partial)" : "Yes";
 		TSUseExclusion.innerHTML = "No";
 	}
@@ -757,7 +777,7 @@ function Basis_Calc(changingId) {
 	}
 
 	if (SPExclusionApplies) {
-		ExclAmt += SPExclusion;
+		MaxExclAmt += SPExclusion;
 		TSSPQualifies.innerHTML = (SPPartialExclusionApplies) ?  "(Partial)" : "Yes";
 		TSUseExclusion.innerHTML = "No";
 	}
@@ -766,84 +786,96 @@ function Basis_Calc(changingId) {
 	}
 
 	ExcludableGain = Math.max(0, SaleGain); // 7, 12
-	MaximumExclusion = ExclAmt // 13
-	ExclAmt = Math.min(ExclAmt, ExcludableGain); //14
-	ExclusionApplies = (ExclAmt) ? true : false ;
+	MaximumExclusion = MaxExclAmt // 13
+	MaxExclAmt = Math.min(MaxExclAmt, ExcludableGain); //14
+	ExclusionApplies = (MaxExclAmt) ? true : false ;
 	ExclusionMessage.style.display = "none";
+
+	// Display exclusion messages
 	if (SaleGain >= 0) {
 		if (ExclusionApplies) {
-			ExclusionMessage.innerHTML = "An exclusion of $" + ExclAmt + " is available for this home sale";
-			ExclusionMessage.style.display = "block";
+			ExclusionMessage.innerHTML = "An exclusion of $" + MaxExclAmt + " is available for this home sale";
 			UseExclusionOption.style.display = "block";
 		}
+		else {
+			ExclusionMessage.innerHTML = "No exclusion is needed for this home sale";
+		}
+		ExclusionMessage.style.display = "block";
 	}
 	else {
-		ExclusionMessage.innerHTML = "This sale resulted in a nondeductible loss of $" + -SaleGain;
+		ExclusionMessage.innerHTML = "This sale resulted in a nondeductible loss of $" + Math.abs(SaleGain + SaleExpenses);
 		ExclusionMessage.style.display = "block";
 		TSUseExclusion.innerHTML = "No";
 		TSChoices.style.display = "inline";
 	}
 
+	// Determine the breakdown and coding for the adjustment
 	AdjustmentDetail.innerHTML = "";
-	switchCode = (UseExclusionY.checked) ? "Y" : "" ;
-	switchCode += (SaleGain > 0) ? "G" : "" ; // if Gain is 0, don't indicate as a home sale
-	switchCode += (SaleGain < 0) ? "L" : "" ;
-	switchCode += (ExclusionApplies) ? "X" : "" ;
-	switch (switchCode) {
-	case "YGX":
-		AdjReason = "H";
-		Adjustments.innerHTML = -ExclAmt - SaleExpenses;
-		AdjustmentDetail.innerHTML = "(Exclusion = " + ExclAmt + ", Sale Expenses = " + SaleExpenses + ")";
-		AdjustmentReason.innerHTML = AdjReason;
-		GainOrLoss.innerHTML = SaleGain - ExclAmt;
-		TSUseExclusion.innerHTML = "Yes";
-		//UseWorksheet.disabled = ""; // this may be redundant
-		break;
-	case "YLX":
-		AdjReason = "L";
-		Adjustments.innerHTML = -SaleGain - SaleExpenses;
-		AdjustmentDetail.innerHTML = "(Exclusion = " + ExclAmt + ", Sale Expenses = " + SaleExpenses + ")";
-		AdjustmentReason.innerHTML = AdjReason;
-		GainOrLoss.innerHTML = 0;
-		TSUseExclusion.innerHTML = "No";
-		ExclAmt = 0;
-		break;
-	case "YL":
-	case "LX":
-	case "L":
-		AdjustmentDetail.innerHTML = "(Adjustment to remove the loss)";
-		AdjustmentReason.innerHTML = "H";
-		Adjustments.innerHTML = AdjustedBasis - SellingPrice;
-		TSUseExclusion.innerHTML = "No";
-		GainOrLoss.innerHTML = 0
-		ExclAmt = 0;
-		break;
-	case "YG":
-	case "G":
-	case "GX":
-		AdjustmentReason.innerHTML = "(none)";
-		Adjustments.innerHTML = -SaleExpenses;
-		TSUseExclusion.innerHTML = "No";
-		GainOrLoss.innerHTML = SellingPrice - AdjustedBasis - SaleExpenses;
-		ExclAmt = 0;
-		break;
-	default:
+	var AdjReason = "";
+	var AdjAmount = 0;
+	var ExclAmount = 0;
+	var HDetail = "";
+	var EDetail = "";
+	var AdjDetail = "";
+
+	if (SaleExpenses) {
+		AdjReason = "E";
+		EDetail = "Sale Expenses = " + SaleExpenses;
+		AdjAmount = -Math.min(SaleExpenses, SaleGain);
 	}
+
+	if ( MainY.checked && UseExclusionY.checked ) {
+		AdjReason += "H";
+		ExclAmount = MaxExclAmt;
+		if (ExclAmount) HDetail = "Exclusion = " + ExclAmount;
+		TSUseExclusion.innerHTML = "Yes";
+	}
+
+	AdjAmount = ExclAmount + SaleExpenses;
+	AdjDetail = HDetail + ( (SaleExpenses && ExclAmount) ? ", " : "" ) + EDetail;
+
+	if (SaleGain > 0) { // Gain
+		GainOrLoss.innerHTML = Math.max(0, SaleGain - ExclAmount);
+	}
+
+	if (SaleGain < 0) { // Loss
+
+		AdjAmount = -(SaleGain + SaleExpenses);
+
+		if (SaleExpenses < AdjAmount) {
+			AdjDetail = "Adjustment to remove the nondeductible loss";
+			AdjReason = "L";
+		}
+		else {
+			AdjDetail = "Sale Expenses = " + Math.abs(AdjAmount);
+		}
+
+		AdjAmount = -AdjAmount;
+		GainOrLoss.innerHTML = 0;
+	}
+
+	AdjustmentDetail.innerHTML = (AdjDetail) ? ( "(" + AdjDetail + ")" ) : "" ;
+	Adjustments.innerHTML = -AdjAmount;
+	AdjustmentReason.innerHTML = AdjReason;
 
 	// Determine what TaxSlayer entry tables to display
 	UWOptionText.style.color = "black";
 	UseWorksheet.disabled = false;
 	UWOptionText.style.textDecoration = "none";
+
 	if (! ExclusionApplies) UseExclusionN.checked = true;
+
 	if (UseExclusionN.checked) {
 		UseWorksheet.disabled = true;
 		UWOptionText.style.textDecoration = "line-through";
 		UseSchedD.checked = true;
 	}
+
 	TSChoices.style.display = "inline";
 	TSNoNeedToEnter.style.display = "none";
 	switchCode = (F1099SY.checked) ? "F" : "";
-	switchCode += (SaleGain > ExclAmt) ? "T" : ""; // Taxable
+	switchCode += (SaleGain > MaxExclAmt) ? "T" : ""; // Taxable
+
 	switch (switchCode) {
 	case "":
 		if ((ExclusionApplies) || (SaleGain < 0)) TSNoNeedToEnter.style.display = "block";
@@ -885,6 +917,7 @@ function Tab_Click(id) {
 	CostDivTabElement.style.top = "0";
 	HomeDivElement.style.display = "none";
 	HomeDivTabElement.style.top = "0";
+
 	if ((id !== "InfoDiv") && (SaleDate.value == "")) {
 		alert ("Please enter the home sale date first.");
 		Tab_Click("InfoDiv");
@@ -920,6 +953,7 @@ function Tab_Click(id) {
 
 //----------------------------------------------------------------------------------------
 function Add_Improvement() {
+	// Adds a new row to the home improvement list when the last one is used
 //----------------------------------------------------------------------------------------
 	new_tr = document.createElement("tr");
 	HomeTableElement.appendChild(new_tr);
@@ -975,7 +1009,7 @@ function Add_Improvement() {
 		</tr></table>
 	</div>
 
-	<div id="InfoDiv" class="section doPrint" onchange="Basis_Calc();">
+	<div id="InfoDiv" class="section doPrint" onchange="Basis_Calc(this.id);">
 		<span class="tblHeader">Taxpayer Information:</span>
 		<br />
 		<br />
@@ -985,7 +1019,9 @@ function Add_Improvement() {
 			<td colspan="2"><input id="TPName" class="TPName" /></td></tr>
 		<tr><td>Filing status this year:</td>
 			<td style="text-align:top">
-				<select id="FilingStatus" title="Select the taxpayer's filing status.">
+				<select id="FilingStatus"
+					onchange="Basis_Calc(this.id)";
+					title="Select the taxpayer's filing status.">
 					<option value="SNG">Single</option>
 					<option value="MFJ" selected>MFJ</option>
 					<option value="MFS">MFS</option>
@@ -996,9 +1032,9 @@ function Add_Improvement() {
 			<td><input id="SaleDate" type="date" onchange="Basis_Calc(this.id);" /></td>
 			<td><b>&#9754; Enter this before answering questions below!</b></td></tr>
 		</table>
-		<table class="tblLayout" onchange="Basis_Calc(this.id);">
+		<table id="InfoTable" class="tblLayout" onchange="Basis_Calc(this.id);">
 		<tr><td id="CostType1">Date obtained:</td>
-			<td><input id="PurchasedDate" type="date" /></td>
+			<td><input id="PurchasedDate" type="date" onchange="Basis_Calc(this.id);" /></td>
 			<td><span id="DaysOwned"></span></td></tr>
 		<tr><td>How did you obtain the home:</td>
 			<td colspan="2"><input id="Purchase" name="Inherit" type="radio" checked /> Purchase
