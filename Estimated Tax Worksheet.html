@@ -1,4 +1,3 @@
-<!DOCTYPE HTML>
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -51,8 +50,8 @@
 		border:1px solid black;
 	}
 	#FilingInfo { grid-column: 1 / 3; }
-	#IncomeInfo { grid-column: 1 / 3; min-width: 58em; }
-	#MFSInfo { grid-column: 2 / 3; min-width: 12em; display: none; }
+	#IncomeInfo { grid-column: 1 / 3; min-width: 63em; }
+	#MFSInfo { grid-column: 2 / 3; min-width: 13em; display: none; }
 	#IRADist { grid-column: 1 / 3; }
 	#About { grid-column: 1 / 3; }
 	#Preliminary { color: red; }
@@ -201,7 +200,13 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.34, 11/23/2021)";
+	var VERSION = "(Version 3.36, 1/4/2022)";
+	//	Added line-through on TP and SP columns if not itemizing
+	//	Moved non-itemized charitable deduction line after AGI for 2021 and later
+	//	Added a total deductions line
+	//var VERSION = "(Version 3.35, 12/29/2021)";
+	//	2021 Refundable Child Care credit not subtracting from tax due
+	//var VERSION = "(Version 3.34, 11/23/2021)";
 	//	Modified Child Care result based on 2021 documentation
 	//var VERSION = "(Version 3.33, 11/13/2021)";
 	//	Fixed problem where unemployment amount gets deleted
@@ -333,6 +338,7 @@
 		InTitle["QCD"] = "Amount of non-taxable QCD included in the IRA distribution";
 		InTitle["TotalIRAs"] = "IRA distributions";
 		InTitle["TotalPensions"] = "Pensions and annuities";
+		InTitle["TotalDeductions"] = "Total deductions";
 		InTitle["SS"] = "Social Security expected";
 		InTitle["SEIncome"] = "Business income";
 		InTitle["LTCapGains"] = "Net long term capital gains (or loss)";
@@ -346,6 +352,7 @@
 		InTitle["SEInsurance"] = "Health insurance cost";
 		InTitle["SavingsPenalty"] = "Penalty on early withdawal of savings";
 		InTitle["AlimonyPaid"] = "Alimony paid";
+		InTitle["CharityStandard20"] = "Charitable contributions";
 		InTitle["CharityStandard"] = "Charitable contributions";
 		InTitle["IRADeduction"] = "IRA deduction";
 		InTitle["IRADeductionJoint"] = "IRA deduction for MFJMFS calculations";
@@ -579,8 +586,8 @@
 		MFJMFSMiscellaneousRow.style.display = (IExp && (TY < 2018)) ? "table-row" : "none";
 
 		// 2020 tax form changes
-		MFJMFSCSRow.style.display =
-		CharityStandardRow.style.display = (TY > 2019) ? "table-row" : "none";
+		MFJMFSCS20Row.style.display = CharityStandard20Row.style.display = (TY == 2020) ? "table-row" : "none";
+		MFJMFSCSRow.style.display = CharityStandardRow.style.display = (TY > 2020) ? "table-row" : "none";
 		MFJMFSRecoveryCreditRow.style.display =
 		RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
 
@@ -956,7 +963,7 @@
 		if (TY == 2020) { // 300 unless MFS, then 150
 			charityLimit = (FilingStatusValue === "MFS") ? 150 : 300 ;
 		}
-		if (TY == 2021) { // 300 unless MFJ, then 600
+		if (TY > 2020) { // 300 unless MFJ, then 600
 			charityLimit = (FilingStatusValue === "MFJ") ? 600 : 300 ;
 		}
 		charityLimit = Math.min(charityLimit, Math.max(0, (IncomeNoSS + +SSresult[0])));
@@ -1027,7 +1034,7 @@
 		// Recalculate if UCE can be used
 		UCElimit = (FilingStatusValue === "MFS") ? 75000 : 150000;
 		if ((TaxYear.value == 2020) && (! AllowUCE) && (CalcOut["AGI"] < UCElimit)) {
-			CalcOut["CharityStandard"] = 0; // prevents doubling
+			CalcOut["CharityStandard20"] = 0; // prevents doubling
 			Do_Calcs(CalcType, CalcIn, true)
 			}
 
@@ -1091,8 +1098,9 @@
 		CalcOut["TwoPercent"] = Math.round(+CalcOut["AGI"] * 0.02);
 
 		// Charitable limited to 50% AGI 60% in 2018+
+		if (CalcOut["CharityStandard20"] === undefined) CalcOut["CharityStandard20"] = 0;
 		if (CalcOut["CharityStandard"] === undefined) CalcOut["CharityStandard"] = 0;
-		CharityAGI = Math.max(0, TrueAGI + +CalcOut["CharityStandard"]);
+		CharityAGI = Math.max(0, TrueAGI + +CalcOut["CharityStandard20"]);
 		charlimit = Math.round(CharityAGI * ((TY >= 2018) ? 0.6 : 0.5));
 		if (TY == 2020) charlimit = CharityAGI; //  CARES ACT removes limit for 2020
 		CalcOut["CharityTotal"] = Math.min((+CalcIn["Charity"] + +CalcIn["CharityNoncash"]), charlimit);
@@ -1142,15 +1150,25 @@
 		
 		CalcOut["Itemizing"] = (Deductions !== CalcOut["Standard"]); // T/F
 
-		if (+TaxYear.value >= 2020) {
+		if (+TaxYear.value == 2020) {
 			// Adjust the charitable standard deduction amount
-			// CalcOut["CharityStandard"] = 0;
-			if ((! CalcOut["Itemizing"]) && (CalcOut["CharityStandard"] == 0)) {
-				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
+			if ((! CalcOut["Itemizing"]) && (CalcOut["CharityStandard20"] == 0)) {
+				CalcOut["CharityStandard20"] = Math.min(CalcIn["Charity"], charityLimit);
 				CalcOut["TaxableSS"] += taxableSS_charitydiff; 
 				CalcOut["Gross"] += taxableSS_charitydiff;
-				CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard"];
-				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"] + taxableSS_charitydiff);
+				CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard20"];
+				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard20"] + taxableSS_charitydiff);
+			}
+		}
+		if (+TaxYear.value > 2020) {
+			// Adjust the charitable standard deduction amount
+			if ((! CalcOut["Itemizing"]) && (CalcOut["CharityStandard"] == 0)) {
+				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
+				//CalcOut["TaxableSS"] += taxableSS_charitydiff; 
+				//CalcOut["Gross"] += taxableSS_charitydiff;
+				//CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard"];
+				//CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"] + taxableSS_charitydiff);
+				Deductions += CalcOut["CharityStandard"];
 			}
 		}
 
@@ -1189,6 +1207,9 @@
 				MFJMFSQBILine.style.display = "none";
 			}
 		}
+
+		// Determine total deductions
+		CalcOut["TotalDeductions"] = Deductions + QBIDeduction;
 
 		// Determine taxable amount
 		CalcOut["TaxableAmount"] = Math.max(0, PostExemptAmount - QBIDeduction);
@@ -1326,6 +1347,7 @@
 		CalcOut["TaxDue"] = 
 		taxdue = Math.round(+CalcOut["TotalTax"]
 			- +CalcOut["ACTCredit"]
+			- +CalcOut["ACCCredit"]
 			- +CalcOut["EICCredit"]
 			- +CalcOut["AOCCredit"]
 			- +CalcIn["RecoveryCredit"]
@@ -1389,12 +1411,22 @@
 				TPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
 				TPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
 				TPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+				TPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				TPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				TPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				TPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				TPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
 				TPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
 				break;
 			case "S":
 				SPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
 				SPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
 				SPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+				SPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				SPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				SPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				SPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+				SPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
 				SPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
 				break;
 
@@ -1802,9 +1834,9 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 
-		<tr id="CharityStandardRow"><td></td>
+		<tr id="CharityStandard20Row"><td></td>
 			<td colspan="2">Charitable contributions if using standard deduction <i>(enter under Deductions below)</i></td>
-			<td id="CharityStandard" type="text" class="calculated wktc"></td></tr>
+			<td id="CharityStandard20" type="text" class="calculated wktc"></td></tr>
 
 		<tr><td></td>
 			<td>Total adjustments
@@ -1891,11 +1923,17 @@
 			<td colspan="2">
 				<span id="ExemptCount">0</span></td>
 			<td id="ExemptAmount" class="calculated wktc">0</td></tr>
+		<tr id="CharityStandardRow"><td></td>
+			<td colspan="2">Charitable contributions if using standard deduction <i>(enter under Deductions above)</i></td>
+			<td id="CharityStandard" type="text" class="calculated wktc"></td></tr>
 		<tr id="QBILine"><td></td>
 			<td colspan="2">Qualified Business Income deduction
 				<span id="QBIOOS"> OUT OF SCOPE </span>
 				</td><td></td>
 			<td id="QBIAmount" class="calculated wktc">0</td></tr>
+		<tr><td></td>
+			<td colspan="2">Total Deductions</td>
+			<td id="TotalDeductions" type="text" class="calculated wktc"></td></tr>
 		<tr><td colspan="5">Taxable income:</td></tr>
 		<tr><td></td>
 			<td colspan="2">Taxable income</td><td></td>
@@ -2134,7 +2172,7 @@
 			<td>	<span id="TPStudentLoan" class="hidden"></span>
 				<span id="SPStudentLoan" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPOtherCredits"></td><td id="SPOtherCredits"></td></tr>
-		<tr id="MFJMFSCSRow"><td id="TPCharityStandard"></td><td id="SPCharityStandard"></td></tr>
+		<tr id="MFJMFSCS20Row"><td id="TPCharityStandard20"></td><td id="SPCharityStandard20"></td></tr>
 		<tr><td id="TPAdjustments"></td><td id="SPAdjustments"></td></tr>
 		<tr><td id="TPAGI"></td><td id="SPAGI"></td></tr>
 		<tr style="page-break-before: always;"><th colspan="2">Deductions:</th></tr>
@@ -2163,7 +2201,9 @@
 		<tr class="exemptions"><td id="TPPreExemptAmount"></td><td id="SPPreExemptAmount"></td></tr>
 		<tr class="exemptions"><td colspan="2">Exemptions:</td></tr>
 		<tr class="exemptions"><td id="TPExemptAmount"></td><td id="SPExemptAmount"></td></tr>
+		<tr id="MFJMFSCSRow"><td id="TPCharityStandard"></td><td id="SPCharityStandard"></td></tr>
 		<tr id="MFJMFSQBILine"><td id="TPQBIAmount"></td><td id="SPQBIAmount"></td></tr>
+		<tr><td id="TPTotalDeductions"></td><td id="SPTotalDeductions"></td></tr>
 		<tr><th colspan="2">Taxable income:</th></tr>
 		<tr><td id="TPTaxableAmount"></td><td id="SPTaxableAmount"></td></tr>
 		<tr class="tablebreak" style="background-color: black;"><td colspan="2"></td></tr>
