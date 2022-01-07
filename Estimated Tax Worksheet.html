@@ -200,7 +200,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.36, 1/4/2022)";
+	var VERSION = "(Version 3.37, 1/7/2022)";
+	//	Modified to include 2021 Refundable Child Tax Credit changes
+	//var VERSION = "(Version 3.36, 1/4/2022)";
 	//	Added line-through on TP and SP columns if not itemizing
 	//	Moved non-itemized charitable deduction line after AGI for 2021 and later
 	//	Added a total deductions line
@@ -594,6 +596,7 @@
 		// 2021 tax form changes
 		MFJMFSACCCreditRow.style.display =
 		ACCCreditRow.style.display = (TY >= 2021) ? "table-row" : "none";
+		ACTCreditRowTitle.innerHTML = (TY >= 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit";
 
 		if (MFJMFS.checked) {
 			TPInput.value = TPMFS["IRADeductionJoint"];
@@ -1291,7 +1294,7 @@
 		var CTCAmount = +CTCresult[0];
 		var FTCAmount = +CTCresult[1];
 		var ACTCLimit = +CTCresult[2];
-		CalcOut["CTCredit"] = CTCAmount + FTCAmount;
+		CalcOut["CTCredit"] = FTCAmount + ( (TY >= 2021) ? 0 : CTCAmount );
 
 		// FTC - Current assumption - Use FTC before CTC but use the same line
 		NRUsedTemp = FTCUsed = Math.min(WorkingTax, FTCAmount); 
@@ -1299,13 +1302,23 @@
 		NRUsed += NRUsedTemp;
 
 		// CTC
-		NRUsedTemp = Math.min(WorkingTax, CTCAmount);
-		WorkingTax -= NRUsedTemp;
-		NRUsed += NRUsedTemp;
-		CalcOut["CTCreditUsed"] = FTCUsed + NRUsedTemp;
+		if (TY < 2021 ) {
+			NRUsedTemp = Math.min(WorkingTax, CTCAmount);
+			WorkingTax -= NRUsedTemp;
+			NRUsed += NRUsedTemp;
+			CalcOut["CTCreditUsed"] = FTCUsed + NRUsedTemp;
+		}
+		else {
+			CalcOut["CTCreditUsed"] = FTCUsed;
+		}
 		
 		// ACTC
-		ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
+		if (TY < 2021) {
+			ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
+		}
+		else {
+			ACTCAmount = CTCAmount;
+		}
 		CalcOut["ACTCredit"] = ACTCAmount;
 
 		// Residential and other credits
@@ -2043,7 +2056,7 @@
 			<td>Earned income tax credit</td>
 			<td id="EICCredit" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
-			<td>Additional Child Tax Credit</td>
+			<td id="ACTCreditRowTitle">Additional Child Tax Credit</td>
 			<td id="ACTCredit" class="calculated wktc"></td></tr>
 		<tr id="ACCCreditRow"><td>  </td>
 			<td>Refundable Child Care Credit (enter cost in Nonrefundable credits line)</td>
