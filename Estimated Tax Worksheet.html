@@ -200,7 +200,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.37, 1/7/2022)";
+	var VERSION = "(Version 3.38, 1/8/2022)";
+	//	Corrected EIC not calculating correctly
+	//var VERSION = "(Version 3.37, 1/7/2022)";
 	//	Modified to include 2021 Refundable Child Tax Credit changes
 	//var VERSION = "(Version 3.36, 1/4/2022)";
 	//	Added line-through on TP and SP columns if not itemizing
@@ -930,8 +932,7 @@
 			+ +CalcOut["SETaxCredit"] + +CalcIn["SESEP"] + +CalcOut["SEHI"]
 			+ +CalcIn["AlimonyPaid"] + +CalcOut["IRADeductionAvailable"]
 			+ +CalcIn["SavingsPenalty"] + +CalcIn["OtherCredits"];
-		var AdjustmentsValue = SSAdjustments + +CalcOut["SLInterest"];
-		CalcOut["Adjustments"] = AdjustmentsValue;
+		CalcOut["Adjustments"] = SSAdjustments + +CalcOut["SLInterest"];
 
 		// Capital gains
 		var CGLossLimit = (FilingStatusValue == "MFS") ? -1500 : -3000;
@@ -965,12 +966,12 @@
 		var charityLimit = 0;
 		if (TY == 2020) { // 300 unless MFS, then 150
 			charityLimit = (FilingStatusValue === "MFS") ? 150 : 300 ;
+			charityLimit = Math.min(charityLimit, Math.max(0, (IncomeNoSS + +SSresult[0])));
+			SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
 		}
 		if (TY > 2020) { // 300 unless MFJ, then 600
 			charityLimit = (FilingStatusValue === "MFJ") ? 600 : 300 ;
 		}
-		charityLimit = Math.min(charityLimit, Math.max(0, (IncomeNoSS + +SSresult[0])));
-		SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
 			(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
 			MFStogetherRelevant);
@@ -986,7 +987,7 @@
 		CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"] - MFJUCE);
 
 		// Figure the AGI
-		var TrueAGI = Math.round(+CalcOut["Gross"] - +AdjustmentsValue);
+		var TrueAGI = Math.round(+CalcOut["Gross"] - +CalcOut["Adjustments"]);
 		CalcOut["AGI"] = Math.max(0, TrueAGI);
 
 		// Add the IRA comment and limit the amount entered
@@ -1336,7 +1337,7 @@
 		var EICInvest = +CalcOut["CapGains"] + +CalcIn["Interest"] + +CalcIn["TaxExempt"] + +CalcIn["Dividends"];
 		var EICEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
 		CalcOut["EICCredit"] = EICAmount = +_EICLookup(TY, FilingStatusValue, EICDependentsValue,
-			EICEarned, EICInvest, AGI.innerHTML, TP65.checked, SP65.checked);
+			EICEarned, EICInvest, CalcOut["AGI"], TP65.checked, SP65.checked);
 
 		// Does NIIT apply?
 		var NIITAmount = _NIITCalc(TY, FilingStatusValue, +CalcOut["AGI"], +CalcIn["Interest"],
