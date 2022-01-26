@@ -269,22 +269,17 @@
 	// Contributors:
 	// --------------------------------------------------------------------
 	//	Phil Saba - added the annuity table code
-	//	Steve Conary
-	//	Kenny Hayes
-	//	John Haim
-	//	Herb Klug
-	//	John Glasserman
-	//	Bruce McCommons
-	//	Paul Hirth
-	//	Douglas Feuerhelm
-	//	Deb Fisher
-	//	Frank Krider
-	//	Paul Renard
-	//	John Arenberg
+	//	Steve Conary		Kenny Hayes		John Haim
+	//	Herb Klug		John Glasserman		Bruce McCommons
+	//	Paul Hirth		Douglas Feuerhelm	Deb Fisher
+	//	Frank Krider		Paul Renard		John Arenberg
+	//	Lois Andersen
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.25a, 11/26/2021)";
+		var VERSION = "(version 10.26, 1/26/2022)";
+		//	Very small amount of contributions caused calc to hang
+		//var VERSION = "(version 10.25a, 11/26/2021)";
 		//	Rounding fixed again
 		//var VERSION = "(version 10.25, 11/15/2021)";
 		//	Reverted back to rounding monthly exclusion
@@ -1228,7 +1223,7 @@
 				CANNOT_CALC |= CONTRIB_ERROR;
 				return; 
 			}
-			if (isNaN(CONTR.value) ) {
+			if ( isNaN(CONTR.value) ) {
 				CONTRc.innerHTML = "Invalid contribution info";
 				CONTRc.style.backgroundColor = "hotpink";
 				alert("Pension Contribution entry is not a valid number. \n \n$, Spaces or commas are not permitted in the number. \n \nEntry may be a whole or decimal number. \nDecimal numbers will be rounded to the nearest whole number. \n \nCalculation not completed"); // //show why calculation not complete
@@ -1460,8 +1455,9 @@
 			CONTR.value = Math.round(CONTR.value);
 		
 			MO_EX.innerHTML = (CONTR.value / NO_MO.innerHTML).toFixed(2); // v 10.25
-			FYR_EX.innerHTML = Math.min(Math.round(FYR_MO.innerHTML * MO_EX.innerHTML), GROSS_TOTAL);
-			RYR_EX.innerHTML = Math.min(Math.round(12 * MO_EX.innerHTML), Math.round(GROSS_TOTAL * 12 / FYR_MO.innerHTML));
+			EX_MIN = (CONTR.value < 0.5) ? 0 : 1 ;
+			FYR_EX.innerHTML = Math.max(EX_MIN, Math.min(Math.round(FYR_MO.innerHTML * MO_EX.innerHTML), GROSS_TOTAL));
+			RYR_EX.innerHTML = Math.max(EX_MIN, Math.min(Math.round(12 * MO_EX.innerHTML), Math.round(GROSS_TOTAL * 12 / FYR_MO.innerHTML)));
 			
 			if (AnnTest > 19860701 && AnnTest < 19870101) {
 				RYR_EX_COMMENT.innerHTML = "LIFETIME EXCLUSION";
@@ -1504,14 +1500,13 @@
 			var TROW = Math.floor((CONTR.value - FYR_EX.innerHTML)/RYR_EX.innerHTML) + 1;
 			if (((CONTR.value - FYR_EX.innerHTML) % RYR_EX.innerHTML) > 0) TROW = TROW + 1;
 			var i, j;
-			var TARR = {};
+			var TARR = [];
 			for(i=0; i < TROW; i++) {
-				TARR[i] = {
-				year: 0,
-				prior: 0,
-				exclusion: 0,
-				remaining: 0
-				}
+				TARR[i] = [];
+				TARR[i].year = 0;
+				TARR[i].prior = 0;
+				TARR[i].exclusion = 0;
+				TARR[i].remaining = 0;
 			}
 		
 			// Populate the array
