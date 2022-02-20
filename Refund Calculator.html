@@ -232,8 +232,11 @@
 	// --------------------------------------------------------------------------------
 	// To Do:
 	//	Provide for use of Schedule D
+	//	2021 changed non-itemizing charitable contributions to after AGI
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.17, 11/8/2021)";
+	//VERSION = "(Version 2.18, 2/19/2022)";
+	//	SALT not being limited in Total itemized deduction amount test
+	//VERSION = "(Version 2.17, 11/8/2021)";
 	//	Fixed coding error that caused app from functioning
 	//VERSION = "(Version 2.16, 11/6/2021)";
 	//	Corrected for change in non-itemizing charitable deduction
@@ -900,7 +903,7 @@
 			}
 			else {
 				// Check the input data
-				if ((CY >= 2020) && CashContrib.value == "") {
+				if ((CY == 2020) && CashContrib.value == "") {
 					NeedData++;
 					CashContrib.style.backgroundColor = "yellow";
 					CashContrib.focus();
@@ -914,7 +917,8 @@
 				}
 				if (NeedData) return;
 
-				if (Itemized.value < (+SALT.value + +Medical.value + +CashContrib.value)) {
+				var SALT_limited = Math.min(+SALT.value, +SALTLimit.innerHTML);
+				if (Itemized.value < (SALT_limited + +Medical.value + +CashContrib.value)) {
 					NeedData++;
 					Itemized.style.backgroundColor = "hotpink";
 					alert("Itemized deduction total seems too low.");
@@ -1680,6 +1684,7 @@
 		<ul>
 			<li>Values in the fields are not recognized until you tab or click out of the field.</li>
 			<li>Boxes highlighted in yellow require an entry before the calculation is done.</li>
+			<li>Boxes highlighted in red indicates the amount cannot be correct.</li>
 			<li>A blank field does not necessarily mean zero. Enter 0 if appropriate when an entry is required.</li>
 		</ul>
 
@@ -2030,7 +2035,7 @@
 
 <div id="ResultsDiv" class="new_block">
 	<h1>Results for TaxSlayer Entry</h1>
-	<h2 id="NotDone">Result is not yet final - complete all yellow boxes</h2>
+	<h2 id="NotDone">Result is not yet final - complete all yellow boxes and fix any red boxes</h2>
 	<table class="data_entry">
 		<tr id="TaxableStateHeader">
 			<td colspan="3" class="underline">Federal taxable amount of refunds NOT taxable to the state:</td></tr>
