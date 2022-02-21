@@ -257,3 +257,6 @@
 		_IRALimits[_TY+":WID"] = "124000";
 		// Col 1 = ret plan, Col 2 = no ret plan
 		_IRALimits[_TY+":MFJ"] = "124000, 206000";
+		
+	// Medicare PartB MFS Premium Threshhold
+		_MEDBMFS[_TY] = 87000;

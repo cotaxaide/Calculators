@@ -255,3 +255,6 @@
 		// Col 1 = ret plan, Col 2 = no ret plan, final phase out
 		// start of phase out is 20000 less
 		_IRALimits[_TY+":MFJ"] = "125000, 208000";
+		
+	// Medicare PartB MFS Premium Threshhold
+		_MEDBMFS[_TY] = 88000;

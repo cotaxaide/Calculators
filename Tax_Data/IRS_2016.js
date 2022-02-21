@@ -226,3 +226,6 @@
 		_IRALimits[_TY+":AGE"] = 50;
 		_IRALimits[_TY+":MAX"] = 5500;
 		_IRALimits[_TY+":SRMAX"] = 6500;
+		
+	// Medicare PartB MFS Premium Threshhold
+		_MEDBMFS[_TY] = 100000000;

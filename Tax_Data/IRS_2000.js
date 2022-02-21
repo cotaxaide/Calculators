@@ -26,6 +26,7 @@ var _SALT = [];
 var _HSA = [];
 var _RETIRE = [];
 var _IRALimits = [];
+var _MEDBMFS = [];
 
 //------------------------------------------------------------
 // DATE VARIABLES

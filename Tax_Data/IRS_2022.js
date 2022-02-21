@@ -213,13 +213,13 @@
 		_QBILimits[_TY+":HOH"] =
 		_QBILimits[_TY+":WID"] = "170050";
 
-	// Net Investment Income Tax
-		_NIITLimits[_TY+":Rate"] = "0.038";			// Needs update
-		_NIITLimits[_TY+":MFJ"] = "300000";			// Needs update
-		_NIITLimits[_TY+":MFS"] = "150000";			// Needs update
+	// Net Investment Income Tax (Form 8960)
+		_NIITLimits[_TY+":Rate"] = "0.038";
 		_NIITLimits[_TY+":SNG"] = 
-		_NIITLimits[_TY+":HOH"] = 
-		_NIITLimits[_TY+":WID"] = "300000";			// Needs update
+		_NIITLimits[_TY+":HOH"] = "200000"
+		_NIITLimits[_TY+":MFJ"] = 
+		_NIITLimits[_TY+":WID"] = "250000";
+		_NIITLimits[_TY+":MFS"] = "125000";
 
 	// Alternative Minimum Tax
 		//                  Exempt  Phaseout
@@ -253,3 +253,6 @@
 		_IRALimits[_TY+":WID"] = "126000";	// Needs update
 		// Col 1 = ret plan, Col 2 = no ret plan
 		_IRALimits[_TY+":MFJ"] = "126000, 212000";	// Needs update
+		
+	// Medicare PartB MFS Premium Threshhold
+		_MEDBMFS[_TY] = 91000;

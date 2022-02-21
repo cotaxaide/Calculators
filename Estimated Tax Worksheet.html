@@ -195,12 +195,14 @@
 	//	Arlene Green		Bob Janesak		Fred Marker
 	//	Henry Geisser		Bob Schroer		Chuck Sherman
 	//	Ron Bower		Barry Schwarz		Erica Adams
-	//	Fred Marker		Kathleen Quinn
+	//	Fred Marker		Kathleen Quinn		Robert Sinsheimer
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.38, 1/8/2022)";
+	var VERSION = "(Version 3.39, 2/21/2022)";
+	//	Added a warning if MFS comparison is best but above Med B threshhold
+	//var VERSION = "(Version 3.38, 1/8/2022)";
 	//	Corrected EIC not calculating correctly
 	//var VERSION = "(Version 3.37, 1/7/2022)";
 	//	Modified to include 2021 Refundable Child Tax Credit changes
@@ -1455,6 +1457,13 @@
 		ResultMessage = "Best result is " + ( (BestResultIsMFS) ? "MFS" : "MFJ" );
 		if (BestResultIsMFS) {
 			ResultMessage += "<br />and " + ( (ItemizedIsBest) ? "" : "not" ) + " itemizing.";
+			if (MFStogether.checked) {
+				TPMFSMAGI = (TP65.checked) ? (+TPAGI.innerHTML + +TPTaxExempt.innerHTML) : 0 ;
+				SPMFSMAGI = (SP65.checked) ? (+SPAGI.innerHTML + +SPTaxExempt.innerHTML) : 0 ;
+				if (Math.max(TPMFSMAGI, SPMFSMAGI) > _MEDBMFS[TY]) {
+					ResultMessage += "<br /><br />CAUTION:<br />Filing MFS may significantly increase Medicare Part B premiums in later years.";
+				}
+			}
 		}
 		if ((R1 < 0) || (R2 < 0)) {
 			ResultMessage += "<br /><br />(Negative result indicates a refund)";
