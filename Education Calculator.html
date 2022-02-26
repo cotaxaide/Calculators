@@ -181,7 +181,12 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.9, 11/28/2021";
+	//var VERSION = "Version 3.10, 2/26/2022";
+	//	Corrected how refundable ACTC is displayed
+	//	Added refundable Child Care Credit
+	var VERSION = "Version 3.9a, 12/27/2021";
+	//	Clarification of instructions on optimizer tab
+	//var VERSION = "Version 3.9, 11/28/2021";
 	//	Fixed hang problem due to ACA 0 rate change
 	//	Added tests to prevent negative dependent entries
 	//var VERSION = "Version 3.8, 10/7/2021";
@@ -541,6 +546,7 @@
 		TNFLineNo.innerHTML = _LineNo[TaxYear.value + ":TNF"];
 		ExcessAPTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":ExcessAPTC"];
 		CareLineNoB.innerHTML = _LineNo[TaxYear.value + ":Care"];
+		RefCareLineNoB.innerHTML = "S3-13g"; // 2021 only
 		LLCLineNoB.innerHTML = _LineNo[TaxYear.value + ":LLC"];
 		RetireLineNoB.innerHTML = _LineNo[TaxYear.value + ":Retire"];
 		CTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":CTC"];
@@ -556,11 +562,9 @@
 		F8962FLineNoA.innerHTML = F8962FLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962F"];
 		//F8962MAGILineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962MAGI"];
 
-		// Child Tax Credit change in 2021
-		Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
-
-		// Child (and Family) Tax Credit name change in 2018
-		OTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
+		// Child Tax Credit and Refundable Care change in 2021
+		RefCareLine.style.display = Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
+		ACTCLabel.innerHTML = (TaxYear.value == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit" ;
 
 		// Calculate Fed Poverty Line for the given year
 		RegionList = document.getElementsByName("Region");
@@ -1401,9 +1405,10 @@
 		result = CalculateNonrefundable("TAX", +LLCTax.value, +AGITax.value);
 			ForeignTax.innerHTML = result.Foreign;
 			CareTax.innerHTML = result.Care;
+			RefCareTax.innerHTML = result.RefCare;
 			LLCTax.value = result.Ed;
 			RetireTax.innerHTML = result.Retire;
-			CTCTax.innerHTML = +result.CTC + +result.OTC;
+			CTCTax.innerHTML = +result.CTC + +result.FTC;
 			ACTCTax.innerHTML = result.ACTC;
 
 		// Calculate Education and AOC nonrefundable credits for the taxpayer
@@ -1884,9 +1889,10 @@
 		result = CalculateNonrefundable("TNF", +LLCTax.value, +AGITNF.innerHTML);
 			ForeignTNF.innerHTML = result.Foreign;
 			CareTNF.innerHTML = result.Care;
+			RefCareTNF.innerHTML = result.RefCare;
 			LLCTNF.innerHTML = result.Ed;
 			RetireTNF.innerHTML = result.Retire;
-			CTCTNF.innerHTML = result.CTC + result.OTC;
+			CTCTNF.innerHTML = result.CTC + result.FTC;
 			NRCreditTNF.innerHTML = result.NRC;
 			ACTCTNF.innerHTML = result.ACTC;
 	}
@@ -1917,9 +1923,10 @@
 		result = CalculateNonrefundable("LLC", nonrefundable, AGILLC.innerHTML)
 			ForeignLLC.innerHTML = result.Foreign;
 			CareLLC.innerHTML = result.Care;
+			RefCareLLC.innerHTML = result.RefCare;
 			LLCLLC.innerHTML = result.Ed;
 			RetireLLC.innerHTML = result.Retire;
-			CTCLLC.innerHTML = result.CTC + result.OTC;
+			CTCLLC.innerHTML = result.CTC + result.FTC;
 			NRCreditLLC.innerHTML = result.NRC;
 			ACTCLLC.innerHTML = result.ACTC;
 			return;
@@ -1961,9 +1968,10 @@
 		result = CalculateNonrefundable("AOC", nonrefundable, +AGIAOC.innerHTML)
 			ForeignAOC.innerHTML = result.Foreign;
 			CareAOC.innerHTML = result.Care;
+			RefCareAOC.innerHTML = result.RefCare;
 			LLCAOC.innerHTML = result.Ed;
 			RetireAOC.innerHTML = result.Retire;
-			CTCAOC.innerHTML = result.CTC + result.OTC;
+			CTCAOC.innerHTML = result.CTC + result.FTC;
 			NRCreditAOC.innerHTML = result.NRC;
 			ACTCAOC.innerHTML = result.ACTC;
 			return;
@@ -2210,8 +2218,11 @@
 		) {
 	// returns: credit amount
 	//----------------------------------------------------------------------------------------
-		var Carefactor = Math.max(0.2, 0.35 - Math.max(0, Math.floor((+testAGI-13001)/2000)/100));
-		return Math.round(AllowedCareTax.value * Carefactor);
+		var allowed = AllowedCareTax.value;
+		return Math.round(_ChildCare(TaxYear.value, FilingStatus.value, testAGI, allowed, allowed, allowed));
+
+		//var Carefactor = Math.max(0.2, 0.35 - Math.max(0, Math.floor((+testAGI-13001)/2000)/100));
+		//return Math.round(AllowedCareTax.value * Carefactor);
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -2226,6 +2237,7 @@
 		var result = [];
 			result.Foreign = 0;
 			result.Care = 0;
+			result.RefCare = 0;
 			result.Ed = 0;
 			result.Retire = 0;
 			result.CTC = 0;
@@ -2248,10 +2260,14 @@
 		// Calculate Child Care Credit
 		var iCare = 0;
 		switch (type) {
-			case "TAX": iCare = CalculateCareCredit(+AGITax.value); break;
-			case "AOC": iCare = CalculateCareCredit(+AGIAOC.innerHTML); break;
-			case "LLC": iCare = CalculateCareCredit(+AGILLC.innerHTML); break;
-			case "TNF": iCare = CalculateCareCredit(+AGITNF.innerHTML); break;
+		case "TAX": iCare = CalculateCareCredit(+AGITax.value); break;
+		case "AOC": iCare = CalculateCareCredit(+AGIAOC.innerHTML); break;
+		case "LLC": iCare = CalculateCareCredit(+AGILLC.innerHTML); break;
+		case "TNF": iCare = CalculateCareCredit(+AGITNF.innerHTML); break;
+		}
+		if (TaxYear.value == 2021) {
+			result.RefCare = iCare;
+			iCare = 0;
 		}
 
 		// Space for care credits
@@ -2282,25 +2298,25 @@
 			case "LLC": earnedCTC = EarnedLLC.innerHTML - +ScholarLLC.innerHTML; break;
 			case "TNF": earnedCTC = EarnedTNF.innerHTML - +ScholarTNF.innerHTML; break;
 		}
-		CTCAmount = OTCAmount = ACTCAmount = 0;
+		CTCAmount = FTCAmount = ACTCAmount = 0;
 		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value,
 			+CTCDependents.value + (+Dependents0.value * 0.01),
 			Dependents.value, earnedCTC, testAGI, 0);
-		CTCAmount = +CTCresult[0];
-		OTCAmount = +CTCresult[1];
+		CTCAmount = (TaxYear.value == "2021") ? 0 : +CTCresult[0] ;
+		FTCAmount = +CTCresult[1];
 		ACTCAmount = +CTCresult[2];
 
-		// Current assumption is that OTC is used before CTC
-		// Space for OTC
-		result.OTC = Math.min(OTCAmount, availableNRC);
-		availableNRC -= result.OTC;
-		result.NRC += result.OTC;
+		// Current assumption is that FTC is used before CTC
+		// Space for FTC
+		result.FTC = Math.min(FTCAmount, availableNRC);
+		availableNRC -= result.FTC;
+		result.NRC += result.FTC;
 
 		// Space for CTC
 		result.CTC = Math.min(CTCAmount, availableNRC);
 		availableNRC -= result.CTC;
 		result.NRC += result.CTC;
-		result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCAmount));
+		result.ACTC = (TaxYear.value == "2021") ? ACTCAmount : result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCAmount));
 
 		// Space for Energy and Sched R amounts?
 		if (type == "TAX") {
@@ -2915,11 +2931,11 @@
 		<li>Effect of an IRA deduction due to change in income</li>
 		<li>Effect of Student loan interest deduction due to change in income</li>
 		<li>Education deductible on Schedule A</li>
+		<li>Charitable deductions for taxpayers not itemizing</li>
 		<li>Employer education assistance benefits</li>
 		<li>Reduction of exemption amount for high income taxpayers</li>
 		<li>Employer provided child care benefits, carryovers, prior year expenses</li>
 		<li>Schedule R reduction of the education credit</li>
-		<li>Shared Responsibility Payment required of the taxpayer</li>
 		<li>Income deductions on the student&apos;s return when the student is a dependent of the TP</li>
 		<li>Unearned income other than that calculated here for a dependent subject to the kiddie tax</li>
 		<li>Effect on state returns</li>
@@ -3712,11 +3728,18 @@
 	Taxable scholarships are entered in TaxSlayer at: Federal Section &gt; Income &gt; Other Compensation &gt; Scholarships and Grants
 	</span>
 	<ul>
-		<li>For the first student, enter the information from the taxpayer&apos;s return before the education choice is made.</li>
-		<li>If the student is a dependent, go to the student&apos;s return below and enter data from their return as well.</li>
-		<li>For subsequent students, change all entries to reflect inclusion of previous students&apos; education choice(s).</li>
+		<li>Complete the taxpayer&apos;s tax return except for the education credits.</li>
+		<li>Enter the information from the taxpayer&apos;s tax return below.</li>
+		<li>If the student is a dependent:</li>
+			<ul>
+				<li>Begin a tax return for the student if they have any income.</li>
+				<li>Enter data from their tax return in the student&apos;s section below.</li>
+			</ul>
 		<li>Estimated values for each option will then be shown in the columns on the right.</li>
 		<li>Finally, click the optimize button at the bottom to see if taxing part of the scholarship gives better results.</li>
+		<li>Add the scholarship information into the tax returns.</li>
+		<li>For additional students, change all taxpayer entries to reflect inclusion of previous students&apos; education choice(s)
+			and repeat the above process.</li>
 	</ul>
 	</div>
 
@@ -3929,7 +3952,7 @@
 			<td class="LLCClass" id="RetireLLC"></td>
 			<td class="TNFClass" id="RetireTNF"></td></tr>
 		<tr>
-			<td>&nbsp;&nbsp;&nbsp;Child<span id="OTC"> and other dependents</span> Tax Credit</td>
+			<td>&nbsp;&nbsp;&nbsp;Child and other dependents</span> Tax Credit</td>
 			<td>1040 line <span id="CTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="CTCTax"></td>
 			<td class="AOCClass" id="CTCAOC"></td>
@@ -3982,12 +4005,19 @@
 			<td class="LLCClass" id="EICLLC"></td>
 			<td class="TNFClass" id="EICTNF"></td></tr>
 		<tr>
-			<td>Additional Child Tax Credit</td>
+			<td id="ACTCLabel">Additional Child Tax Credit</td>
 			<td>1040 line <span id="ACTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="ACTCTax"></td>
 			<td class="AOCClass" id="ACTCAOC"></td>
 			<td class="LLCClass" id="ACTCLLC"></td>
 			<td class="TNFClass" id="ACTCTNF"></td></tr>
+		<tr id="RefCareLine">
+			<td>Refundable Child and Dependent Care Credit</td>
+			<td>1040 line <span id="RefCareLineNoB">??</span></td>
+			<td class="calculatedEntry" id="RefCareTax"></td>
+			<td class="AOCClass" id="RefCareAOC"></td>
+			<td class="LLCClass" id="RefCareLLC"></td>
+			<td class="TNFClass" id="RefCareTNF"></td></tr>
 		<tr>
 			<td>Refundable american opportunity credit</td>
 			<td>1040 line <span id="AOCLineNoB">??</span></td>
