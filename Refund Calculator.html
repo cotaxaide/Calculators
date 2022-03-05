@@ -234,6 +234,9 @@
 	//	Provide for use of Schedule D
 	//	2021 changed non-itemizing charitable contributions to after AGI
 	// CHANGE HISTORY:
+	VERSION = "(Version 2.19, 3/5/2022)";
+	//	Added a new line to show new tax amount for non-refundable
+	//	QBIDMaximum not being cleared if QBI option unchecked
 	//VERSION = "(Version 2.18, 2/19/2022)";
 	//	SALT not being limited in Total itemized deduction amount test
 	//VERSION = "(Version 2.17, 11/8/2021)";
@@ -1134,6 +1137,7 @@
 				QBIBusiness.value = "";
 				QBI199A.value = "";
 				QBIDCurrent.value = "";
+				QBIDMaximum.value = "";
 				NonTaxableButton.style.display = "none";
 				NonTaxableQBIDRow.style.display = "none";
 			}
@@ -1239,6 +1243,7 @@
 			AGI.value = "";
 			RevisedTaxable = "";
 		}
+
 		TestingNonTaxableFor.innerHTML = "";
 		NonTaxableButton.style.display = "none";
 
@@ -1254,6 +1259,11 @@
 			NonRefundableButton.style.display = "inline";
 			NewCredits.value = "";
 			TaxBracketGain.value = "";
+
+			// Copy AGI value from earlier entries
+			CTCAGI.value = (AGI.value != "") ? AGI.value : QBIAGI.value;
+			RevisedTaxable = Math.max(0, +CTCAGI.value - +RevisedItemized.value - +Exemption.value - +QBIDCurrent.value - +QBIDAdditional.value);
+			TaxAmount.value = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, RevisedTaxable, 0, true);
 
 			NeedData++;
 			if (! NoNonRefundables.checked) {
@@ -1271,10 +1281,6 @@
 				NonRefundableAmendedTable.style.display = "inline-table";
 				TestingNonRefundableFor.innerHTML = "Testing for reduction due to unused non-refundable credits";
 				NonRefundableButton.style.display = "inline";
-
-				// Copy AGI value from earlier entries
-				if (AGI.value != "") CTCAGI.value = AGI.value;
-				else if (QBIAGI.value != "") CTCAGI.value = QBIAGI.value;
 
 				// Calculate the CTC if the data is available
 				CTCCalc = (CTCAGI.value != "")
@@ -1915,6 +1921,9 @@
 		</ul>
 		<table id="NonRefundableTable" class="data_entry">
 			<tr class="underline"><td colspan="3">Original amounts:</td></tr>
+			<tr>	<td>&nbsp;&nbsp;Revised tax amount:</td>
+				<td><input id="TaxAmount" type="myinput" disabled="true" /></td>
+				<td>(Calculated - new maximum for non-refundable credits)</td></tr>
 			<tr>	<td>&nbsp;&nbsp;Total non-refundable credits:</td>
 				<td><input id="OldCredits" type="myinput" /></td>
 				<td>From 1040 line <span id="OldNRCreditsLineNo">TBD</span></td></tr>
