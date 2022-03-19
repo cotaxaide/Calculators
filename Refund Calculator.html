@@ -234,7 +234,9 @@
 	//	Provide for use of Schedule D
 	//	2021 changed non-itemizing charitable contributions to after AGI
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.19, 3/5/2022)";
+	VERSION = "(Version 2.20, 3/19/2022)";
+	//	Corrected use of non-refundable credits error
+	//VERSION = "(Version 2.19, 3/5/2022)";
 	//	Added a new line to show new tax amount for non-refundable
 	//	QBIDMaximum not being cleared if QBI option unchecked
 	//VERSION = "(Version 2.18, 2/19/2022)";
@@ -325,6 +327,8 @@
 	var PropertyTaxRefundTaxable = 0;
 	var MedicalRefundTaxable = 0;
 	var TotalTaxable = 0;
+	var NewTotalTaxable = 0;
+	var RevisedTaxableIncome = 0;
 	var Exemptions = 0;
 	var StateTaxRefundAlert = false;
 	var SalesTaxRefundAlert = false;
@@ -1165,6 +1169,7 @@
 		// Test for negative taxable income
 		if (TotalTaxable) {
 
+			var OriginalTaxableIncome = AGI.value - +QBIDCurrent.value - +Itemized.value;
 			if (QBIAGI.value == "") {
 				NonTaxableDiv.style.display = "block";
 				AGI.disabled = false;
@@ -1176,7 +1181,7 @@
 				TaxablePositive.style.display = "none";
 				NonTaxableTable.style.display = "inline-table";
 				NonRefundableDiv.style.display = "none";
-				RevisedTaxable = "";
+				RevisedTaxableIncome = "";
 
 				if (! QBITestSkip.checked) {
 
@@ -1236,12 +1241,12 @@
 				NonTaxableTable.style.display = "none";
 				TaxablePositive.style.display = "none";
 				AGI.value = "";
-				RevisedTaxable = "";
+				RevisedTaxableIncome = "";
 			}
 		}
 		else {
 			AGI.value = "";
-			RevisedTaxable = "";
+			RevisedTaxableIncome = "";
 		}
 
 		TestingNonTaxableFor.innerHTML = "";
@@ -1262,8 +1267,8 @@
 
 			// Copy AGI value from earlier entries
 			CTCAGI.value = (AGI.value != "") ? AGI.value : QBIAGI.value;
-			RevisedTaxable = Math.max(0, +CTCAGI.value - +RevisedItemized.value - +Exemption.value - +QBIDCurrent.value - +QBIDAdditional.value);
-			TaxAmount.value = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, RevisedTaxable, 0, true);
+			RevisedTaxableIncome = Math.max(0, +CTCAGI.value - +RevisedItemized.value - +Exemption.value - +QBIDCurrent.value - +QBIDAdditional.value);
+			TaxAmount.value = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, RevisedTaxableIncome, 0, true);
 
 			NeedData++;
 			if (! NoNonRefundables.checked) {
@@ -1362,6 +1367,7 @@
 					NeedData++;
 					Energy.focus();
 					}
+				if (NeedData) return;
 
 				// Is at least the old data entered
 				NewCredits.value = +ForeignTax.value + +ChildCare.value + +Education.value
@@ -1378,13 +1384,11 @@
 
 				// OldCredits bring the tax to 0, so NewCredits will determine the deduction
 				// Figure the tax bracket and taxable amount increase allowed
-				var NewQBID = +QBIDCurrent.value + +QBIDAdditional.value;
-				var NewTaxable = Math.max(0, +CTCAGI.value - RevisedDeduction - NewQBID + +Exemption.value);
-				NewTax = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, NewTaxable, 0, true);
-				NewCredits.value = Math.min(NewTax, +NewCredits.value);
-				var additionalForCredits = +Brackets(OldCredits.value, NewCredits.value);
-				NRCGain.value = Math.max(0, +NewCredits.value - +OldCredits.value);
-				TaxBracketGain.value = Math.min(additionalForCredits, TotalTaxable);
+				taxableChange = Math.max(0, RevisedTaxableIncome - OriginalTaxableIncome);
+				var additionalForCredits = +Brackets(OldCredits.value, NewCredits.value, +TaxAmount.value, taxableChange);
+
+				NewCredits.value = Math.min(+TaxAmount.value, +NewCredits.value);
+				TaxBracketGain.value = additionalForCredits;
 
 				NewTotalTaxable = Math.max(0, +TotalTaxable - +additionalForCredits);
 				NewTotalPct = +NewTotalTaxable / +TotalTaxable;
@@ -1498,33 +1502,48 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function Brackets(tax0, tax1) {
+	function Brackets(tax0, totalCredits, tax1, taxableChange) {
+	//	tax0 = original tax amount
+	//	tax1 = new tax amount
+	//	totalCredits = total non-refundable credits
+	//	taxableChange = change in taxable income to this point
 	// Calculates the bracket(s) for the credits 
 	//----------------------------------------------------------------------------------------
+		TaxBracket.innerHTML = "";
 		var rateList = _TaxRates[CY + ":PCT"].split(",");
 		var sizeList = _TaxRates[CY + ":" + FilingStatus.value].split(","); // maximum for the rate
 
-		// Compare the starting tax with the tax resulting from each tax bracket taxable income
-		var taxBracket = 0;
-		while ( (taxBracket < rateList.length)
-			&& (+tax0 > (bracketMaxTax = +sizeList[taxBracket] * +rateList[taxBracket]))
-		      ) { taxBracket++; }
+		if (+totalCredits >= +tax1) { // it's all excludable
+			NRCGain.value = Math.max(0, +tax1 - +tax0);
+			TaxBracket.innerHTML = "(Calculated)";
+		}
 
-		// credits may span tax brackets...
+		else {
+			NRCGain.value = Math.max(0, +totalCredits - +tax0);
 
-		// How much in the tax0 bracket?
-		var tax1a = Math.max(0, (Math.min(+tax1, bracketMaxTax) - +tax0));
-		var cE1a = Math.round(tax1a / rateList[taxBracket]);
+			// Compare the starting tax with the tax resulting from each tax bracket taxable income
+			var taxBracket = 0;
+			while ( (taxBracket < rateList.length)
+				&& (+tax0 > (bracketMaxTax = +sizeList[taxBracket] * +rateList[taxBracket]))
+		      	) { taxBracket++; }
+	
+			// credits may span tax brackets...
 
-		// How much in the next bracket (unlikely to jump 2 brackets)
-		var tax1b = Math.max(0, +tax1 - +tax0 - tax1a);
-		var cE1b = Math.round(tax1b / rateList[taxBracket+1]);
+			// How much in the tax0 bracket?
+			var tax1a = Math.max(0, (Math.min(+totalCredits, bracketMaxTax) - +tax0));
+			var cE1a = Math.round(tax1a / rateList[taxBracket]);
 
-		creditExclusion = cE1a + cE1b;
-		var tbmsg = "At " + (100 * rateList[taxBracket]) + "% tax rate, exclusion = " + Math.min(cE1a, TotalTaxable);
-		if (cE1b > 0) tbmsg += "<br />At " + (100 * rateList[taxBracket+1]) + "% tax rate, exclusion = " + cE1b;
-		TaxBracket.innerHTML = tbmsg;
-		return creditExclusion;
+			// How much in the next bracket (unlikely to jump 2 brackets)
+			var tax1b = Math.max(0, +NRCGain.value - tax1a);
+			var cE1b = Math.round(tax1b / rateList[taxBracket+1]);
+
+			taxableChange = cE1a + cE1b;
+			var tbmsg = "At " + (100 * rateList[taxBracket]) + "% tax rate, exclusion = " + Math.min(cE1a, TotalTaxable);
+			if (cE1b > 0) tbmsg += "<br />At " + (100 * rateList[taxBracket+1]) + "% tax rate, exclusion = " + cE1b;
+			TaxBracket.innerHTML = tbmsg;
+		}
+
+		return taxableChange;
 	}
 
 	//----------------------------------------------------------------------------------------
