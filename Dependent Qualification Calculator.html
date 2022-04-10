@@ -60,7 +60,11 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.07 12/22/2021";
+var VERSION = "7.08 4/10/2022";
+//	Fixed EITC filing MFS not allowed for grandchild
+//var VERSION = "7.07a 1/6/2022";
+//	Fixed EITC comment re TP may still qualify if dependent does not
+//var VERSION = "7.07 12/22/2021";
 //	EITC indicated as YES for older daughter, not a qualified child or relative
 //var VERSION = "7.06 12/10/2021";
 //	Added scheme to save 11-50% options for relative support so they can be restored
@@ -1073,10 +1077,12 @@ function CalcStatus(from_age_calc) {
 			if (TPisMarried.checked) SetMessage(EITC,"- Both TP and SP must have an SSN"); // add V6.12
 		 	else SetMessage(EITC,"- TP must have an SSN"); // add V6.12
 		}
-		if ((! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
+		if ((! CitizenUSA.checked) && (DependentITIN.checked)) {
+			SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
+		}
 		if (TP_Filing == "MFS") {
 			if (EITC_DivorceApplies) EITC.value = "EITC_DIV";
-			else SetMessage(EITC,"- TP cannot file MFS");
+			else if (! DEP_ChildQualForEITC) SetMessage(EITC,"- TP is filing MFS");
 		}
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		// if (TPisQR.checked) SetMessage(EITC,"- TP or SP cannot be a qualified relative of another taxpayer"); // rm V6.04
@@ -1721,7 +1727,7 @@ function ColorCells() {
 			}
 		}
 	}
-	if ((EITC.value == "NO") && (TP_Filing != "MFS") && (! TPSPITIN.checked) && (! EITC.title.indexOf("citizenship"))) {
+	if ( (EITC.value == "NO") && (TP_Filing != "MFS") && (! TPSPITIN.checked) ) {
 		EITC.title += "- Although dependent doesn't qualify, TP may still be qualifed for EITC\n";
 	}
 	EITC.style.backgroundColor = BenefitColor.EITC;
