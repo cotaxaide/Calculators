@@ -187,10 +187,12 @@
 	// Contributors:
 	//	Kenny Hayes 		Maggie Barrington		Bob Goings
 	//	Mark Riley		Allan Goldberg			Bill Zlobik
-	//	Ben Seidman		Brian McCann
+	//	Ben Seidman		Brian McCann			John Broughton
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.08, 12/23/2021)";
+	VERSION = "(Version 1.09, 4/10/2022)";
+	//	Corrected work/health/duty < 24 months message to indicate partial exclusion
+	//VERSION = "(Version 1.08, 12/23/2021)";
 	//	Removed 1/1 default sale date
 	//	Corrected adjustment expanation coding - new code segment
 	//	Fixed some adjustment loss calc errors and detail comments
@@ -460,6 +462,7 @@ function Basis_Calc(changingId) {
 		LookbackSpouse.style.display = "none";
 		SPFiveYearsRow.style.display = "none";
 		SPJobRelocRow.style.display = "none";
+		SPTwoYearsY.checked = true;
 		SPExtendedDutyRow.style.display = "none";
 		TSSPTwoYearsRow.style.display = "none";
 		TSSPOwnerRow.style.display = "none";
@@ -533,13 +536,15 @@ function Basis_Calc(changingId) {
 	if (UnforseenY.checked) {
 		TPFiveYearsRow.style.display = "none";
 		SPFiveYearsRow.style.display = "none";
-		PartialExclusionApplies = "true";
+		PartialExclusionApplies = true;
 		TPJobRelocRow.style.display = "none";
 		SPJobRelocRow.style.display = "none";
 		TPExtendedDutyRow.style.display = "none";
 		SPExtendedDutyRow.style.display = "none";
 	}
 	else {
+		if (TPJobRelocY.checked || TPExtendedDutyY.checked) TPPartialExclusionApplies = true;
+		if (SPJobRelocY.checked || SPExtendedDutyY.checked) SPPartialExclusionApplies = true;
 		if (OwnerN.checked) {
 			TPExclusionApplies = SPExclusionApplies = false;
 		}
@@ -569,7 +574,7 @@ function Basis_Calc(changingId) {
 
 		// Widowed exception
 		if (SPDiedY.checked && RemarriedN.checked) TSTPQualifies.innerHTML = TSSPQualifies.innerHTML;
-		PartialExclusionApplies = TPPartialExclusionApplies || SPPartialExclusionApplies;
+		PartialExclusionApplies = PartialExclusionApplies || TPPartialExclusionApplies || SPPartialExclusionApplies;
 	}
 
 	// Home sale details section -------------------------------------------------------------
