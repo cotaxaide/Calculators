@@ -190,7 +190,7 @@
 		}
 		#theTbody { background-color: tan; }
 		#type {
-			width: 22em;
+			width: 24em;
 			text-align:
 			left; margin: auto;
 		}
@@ -273,11 +273,15 @@
 	//	Herb Klug		John Glasserman		Bruce McCommons
 	//	Paul Hirth		Douglas Feuerhelm	Deb Fisher
 	//	Frank Krider		Paul Renard		John Arenberg
-	//	Lois Andersen
+	//	Lois Andersen		Jay Wiedwald		Jen Nakata
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.26, 1/26/2022)";
+		var VERSION = "(version 10.27, 3/8/2022)";
+		//	Including cents in insurance exclusion caused error
+		//var VERSION = "(version 10.26a, 3/6/2022)";
+		//	Minor word change to disability checkbox text
+		//var VERSION = "(version 10.26, 1/26/2022)";
 		//	Very small amount of contributions caused calc to hang
 		//var VERSION = "(version 10.25a, 11/26/2021)";
 		//	Rounding fixed again
@@ -419,7 +423,7 @@
 			EDIT_MODE["TP"] = 0;
 			EDIT_MODE["SP"] = 0;
 		var LASTALERTED = false;
-		var FULLMEDEX = 0; // total exclusion entered
+		var FULLMEDEX = 60; // total exclusion entered
 		var IGNOREMED = false;
 		var OVERAGE = 0;
 		var GROSS_TOTAL = 0;
@@ -1044,9 +1048,9 @@
 				CANNOT_CALC |= RETAGE_ERROR;
 				if (! ret_age_warning_seen) {
 					Disable_alert = "For a disability retirement, the recovery of contributions does not take effect until the annuitant reaches minimum retirement age, which can vary based on the employer and length of service. For this annuitant, this will occur in " + MIN_ANN_YR + ".\n\n";
-					if (PSOMEDIC.value > 0) {
+					if (+PSOMEDIC.value > 0) {
 						Pension_part = "This year,";
-						if (PSOMEDIC.value > MedTaxLimit) { // More than the limit entered
+						if (+PSOMEDIC.value > MedTaxLimit) { // More than the limit entered
 							Pension_part += "\n\n   The taxable amount of the annuity is $";
 							Pension_part += (+TPGROSS.value - MedTaxLimit);
 							Pension_part += "\n   The public safety officer insurance exclusion is (reduced to the tax law limit) $" + MedTaxLimit + ".";
@@ -1245,7 +1249,7 @@
 			}
 			if (IGNOREMED) return;
 
-			MEDIC.value = PSOMEDIC.value;
+			MEDIC.value = Math.round(PSOMEDIC.value); // do not use "+PSOMEDIC.value"
 
 			if (TPdec.checked && (! TPdied.checked) && (! SPdied.checked)) {
 				alert("The spouse of a public safety officer cannot exclude medical expenses.");
@@ -2121,7 +2125,7 @@
 							<br /><input id="Disability" tabindex = "2" 
 								type="checkbox"
 								onchange="Disability_Change()" />
-								Check if a disability pension
+								Check if this is or was a disability pension
 								<span id="DisQ"
 									onmouseover="DistitleBox.style.display='inline-block';"
 									onmouseout="DistitleBox.style.display='none';"
