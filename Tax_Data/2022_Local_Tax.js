@@ -20,7 +20,7 @@ County_Tax['Conejos:2022'] = '0:';
 County_Tax['Costilla:2022'] = '1:';
 County_Tax['Crowley:2022'] = '2:';
 County_Tax['Custer:2022'] = '2:';
-County_Tax['Delta:2022'] = '2::PSI=0.8:'; // 2021 change
+County_Tax['Delta:2022'] = '2::PSI=0.8:HSD=0.8'; // 2022 change
 County_Tax['Denver:2022'] = '0::RTD=1:'; // 2019 change
 County_Tax['Dolores:2022'] = '0:';
 County_Tax['Douglas:2022'] = '1::RTD=1:CD=0.1:';
@@ -184,6 +184,7 @@ City_Tax['Greeley:2022'] = '4.11:B::';
 City_Tax['Green Mt Falls/El Paso:2022'] = '3::::';
 City_Tax['Green Mt Falls/Teller:2022'] = '3::::';
 City_Tax['Greenwood Village:2022'] = '3::::';
+City_Tax['Grover:2022'] = '1::::';
 City_Tax['Gunnison:2022'] = '4::::';
 City_Tax['Gypsum:2022'] = '3::::';
 City_Tax['Haxtun:2022'] = '3.5::::'; // 2018 change
