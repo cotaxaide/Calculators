@@ -15,6 +15,9 @@
 //	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.15 7/24/2022
+// 	Changed return from _TaxLookup() to an array and added bracket
+// 	Limited CTC expansion to just 2021 and corrected start to > than 400,000
 // Version 1.14 10/24/2021
 // 	Added excess Social Security
 // Version 1.13 10/13/2021
@@ -187,9 +190,13 @@ function _TaxLookup(	// Tax table lookup
 			// on initial call, always use true for useSchedD
 	L06F8615	// Line 6 Form 8615 (Kiddie tax form)
 	) {
-// returns the tax amount
+// returns result array [tax amount, tax bracket]
+// Note: uses the 1040 worksheet, not the Sched D worksheet so may be off for some returns
 //----------------------------------------------------------------------------------------
-	if (taxableAmount <= 0) return(0);
+	result = [];
+	result["tax"] = 0;
+	result["bracket"] = "";
+	if (taxableAmount <= 0) return(result);
 	if (L06F8615 == undefined) L06F8615 = 0;
 	var rateList = _TaxRates[taxYear + ":PCT"].split(",");
 	fs = (filingStatus == "TRUST_SNG") ? "SNG" : filingStatus; // Kiddie tax recursion call
@@ -219,11 +226,17 @@ function _TaxLookup(	// Tax table lookup
 		var D22 = Math.max(0, D12 - D21);
 		var D23PCT20 = Math.round(D22 * +CG_rateList[2]);
 		var fs = (filingStatus == "TRUST") ? "TRUST_SNG" : filingStatus;
-		var D24 = +_TaxLookup(taxYear, fs, D07, 0, false);
+		result = _TaxLookup(taxYear, fs, D07, 0, false);
+		var D24 = +result["tax"];
+		var D24b = result["bracket"];
 		var D25 = D20PCT15 + D23PCT20 + D24;
-		var D26 = +_TaxLookup(taxYear, fs, D01, 0, false);
+		result = _TaxLookup(taxYear, fs, D01, 0, false);
+		var D26 = +result["tax"];
+		var D26b = result["bracket"];
 		var D27 = Math.min(D25, D26);
-		return (D27);
+		result["tax"] = D27;
+		result["bracket"] = (D27 == D26) ? D26b : D24b ;
+		return (result);
 	}
 
 	if ((filingStatus != "TRUST") && (filingStatus != "TRUST_SNG")) {
@@ -260,12 +273,14 @@ function _TaxLookup(	// Tax table lookup
 			taxBracket++;
 		}
 		else { // this is the last bracket
+			result["bracket"] = (rateList[taxBracket] * 100) + "%";
 			taxAmount += taxableAmount * rateList[taxBracket];
 			taxableAmount = 0;
 		}
 	}
 
-	return(Math.round(taxAmount));
+	result["tax"] = Math.round(taxAmount);
+	return(result);
 }
 
 //----------------------------------------------------------------------------------------
@@ -463,8 +478,8 @@ function _ChildCare (	// Form 2441
 	var AGICap = _CareLimits[taxYear + ":AGICap"];
 	var AGICap2 = _CareLimits[taxYear + ":AGICap2"];
 	var RateReduction = Math.ceil(Math.max(0, (AGI - AGICap)/2000));
-	if (+taxYear > 2020) {
-		if (AGI >= 400000) {
+	if (+taxYear == 2021) {
+		if (AGI > 400000) {
 			RateReduction = Math.ceil(Math.max(0, (AGI - AGICap2)/2000));
 			RateMax = RateMin;
 			RateMin = 0;

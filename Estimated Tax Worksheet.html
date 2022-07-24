@@ -52,7 +52,7 @@
 	#FilingInfo { grid-column: 1 / 3; }
 	#IncomeInfo { grid-column: 1 / 3; min-width: 63em; }
 	#MFSInfo { grid-column: 2 / 3; min-width: 13em; display: none; }
-	#IRADist { grid-column: 1 / 3; }
+	#Footnotes { grid-column: 1 / 3; }
 	#About { grid-column: 1 / 3; }
 	#Preliminary { color: red; }
 	#TPName { width:20em; text-align:left; }
@@ -174,7 +174,7 @@
 <script src="Tax_Data/IRS_2000.js"></script>
 <script src="Tax_Data/IRS_2014.js"></script>
 <script src="Tax_Data/IRS_2015.js"></script>
-<script src="Tax_Data/IRS_2016.js"></script>
+<ascript src="Tax_Data/IRS_2016.js"></script>
 <script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
@@ -196,12 +196,16 @@
 	//	Henry Geisser		Bob Schroer		Chuck Sherman
 	//	Ron Bower		Barry Schwarz		Erica Adams
 	//	Fred Marker		Kathleen Quinn		Robert Sinsheimer
-	//	John Onder
+	//	John Onder		Steve Mauri
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.40, 3/19/2022)";
+	var VERSION = "(Version 3.40a, 4/25/2022)";
+	//	Minor change to IRA and HSA limits with footnotes added
+	//	Removed IRA withdrawal calc shown in footnotes block
+	//	Removed 2021 CARES act modifications for 2022
+	//var VERSION = "(Version 3.40, 3/19/2022)";
 	//	Added 100% charitable contribution allowed for 2021
 	//var VERSION = "(Version 3.39, 2/21/2022)";
 	//	Added a warning if MFS comparison is best but above Med B threshhold
@@ -559,7 +563,7 @@
 		var NeedSPRow = ((FilingStatus.value === "MFJ") || ((FilingStatus.value === "MFS") && MFStogether.checked));
 		SP65Option.style.display = (NeedSPRow) ? "inline" : "none";
 		if (! NeedSPRow) SPPlan.checked = false;
-		HSAText.innerHTML = "("+ _HSA[TY + ":IND"] + " personal, " + _HSA[TY + ":FAM"] + " family)";
+		HSAText.innerHTML = "("+ _HSA[TY + ":IND"] + " personal, " + _HSA[TY + ":FAM"] + " family)&sup1;";
 
 		
 		// Expand the income section
@@ -571,9 +575,7 @@
 		}
 
 		// Expand the adjustment section
-		IRAComment.innerHTML = "(" + _IRALimits[TY + ":MAX"]
-			+ ", " + _IRALimits[TY + ":SRMAX"]
-			+ " over age " + _IRALimits[TY + ":AGE"] + " per TP/SP)";
+		IRAComment.innerHTML = "(" + _IRALimits[TY + ":MAX"] + " per TP/SP)&sup2;";
 		IExp = AdjustExpand.checked;
 		itemlist = document.getElementsByClassName("adjustment");
 		for (itno = 0; itno < itemlist.length; itno++) {
@@ -596,14 +598,12 @@
 
 		// 2020 tax form changes
 		MFJMFSCS20Row.style.display = CharityStandard20Row.style.display = (TY == 2020) ? "table-row" : "none";
-		MFJMFSCSRow.style.display = CharityStandardRow.style.display = (TY > 2020) ? "table-row" : "none";
-		MFJMFSRecoveryCreditRow.style.display =
-		RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
+		MFJMFSRecoveryCreditRow.style.display = RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
 
 		// 2021 tax form changes
-		MFJMFSACCCreditRow.style.display =
-		ACCCreditRow.style.display = (TY >= 2021) ? "table-row" : "none";
-		ACTCreditRowTitle.innerHTML = (TY >= 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit";
+		MFJMFSACCCreditRow.style.display = ACCCreditRow.style.display = (TY == 2021) ? "table-row" : "none";
+		ACTCreditRowTitle.innerHTML = (TY == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit";
+		MFJMFSCSRow.style.display = CharityStandardRow.style.display = (TY == 2021) ? "table-row" : "none";
 
 		if (MFJMFS.checked) {
 			TPInput.value = TPMFS["IRADeductionJoint"];
@@ -982,11 +982,11 @@
 			MFStogetherRelevant);
 		taxableSS_charitydiff = 0; // +SSresult[0] - CalcOut["TaxableSS"];
 
-		if (CalcType === "J") {
-			TPMFJ["IRAgap00"] = +SSresult[1];
-			TPMFJ["IRAgap50"] = +SSresult[2];
-			TPMFJ["IRAgap85"] = +SSresult[3];
-		}
+//		if (CalcType === "J") {
+//			TPMFJ["IRAgap00"] = +SSresult[1];
+//			TPMFJ["IRAgap50"] = +SSresult[2];
+//			TPMFJ["IRAgap85"] = +SSresult[3];
+//		}
 
 		// Total the income
 		CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"] - MFJUCE);
@@ -1003,7 +1003,6 @@
 			IRAResults = _IRADeduction(TY, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
 			IRAActualMax = Math.min(+IRAResults["TPcontribMax"] + ((FilingStatusValue == "MFJ") ? +IRAResults["SPcontribMax"] : 0 ), IRAEarned);
 			IRADeduction.style.backgroundColor = (CalcIn["IRADeduction"] > IRAActualMax) ? "hotpink" : "white" ;
-			IRAComment.innerHTML = "(Maximum contribution is " + IRAActualMax + ")";
 			IRAActual = Math.min(+IRAResults["TPdeductible"] + ((FilingStatusValue == "MFJ") ? +IRAResults["SPdeductible"] : 0 ), IRAEarned);
 			IRAActual = Math.min(+TPMFJ["IRADeduction"], IRAActual, IRAEarned);
 		}
@@ -1227,7 +1226,18 @@
 		// Determine Tax
 		var CGtoUse = Math.min( +CalcIn["LTCapGains"], (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]));
 		CG = +CalcIn["QualDividends"] + Math.max(0, CGtoUse);
-		CalcOut["Tax"] = Math.round(_TaxLookup(TY, FilingStatusValue, +CalcOut["TaxableAmount"], CG, true));
+		TaxResult = _TaxLookup(TY, FilingStatusValue, +CalcOut["TaxableAmount"], CG, true);
+		CalcOut["Tax"] = TaxResult["tax"];
+
+		// Show the tax bracket
+		if (CalcType === "J") {
+			if (TaxResult["bracket"]) {
+				Bracket.innerHTML = "(" + TaxResult["bracket"] + " marginal bracket)";
+			}
+			else {
+				Bracket.innerHTML = "";
+			}
+		}
 
 		CalcOut["PreWorkingTax"] = WorkingTax = Math.round(+CalcOut["Tax"] + +CalcIn["AdditionalTax"]);
 
@@ -1251,12 +1261,12 @@
 		if (+CCDependents.value < 0) CCDependents.value = "";
 		if ((FilingStatusValue != "MFS") && (+CCDependents.value > 0)) {
 			var cclimit = (+CCDependents.value  > 1) ? 6000 : 3000;
-			if (TY >= 2021) cclimit = (+CCDependents.value  > 1) ? 16000 : 8000;
+			if (TY == 2021) cclimit = (+CCDependents.value  > 1) ? 16000 : 8000;
 			cccost = Math.min(+CalcIn["ChildCareCost"], cclimit);
 			CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
 			CC2Earned = 0; // Other partner
 			CalcOut["ChildCare"] = Math.round(_ChildCare(TY, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
-			if (TY >= 2021) {
+			if (TY == 2021) {
 				CalcOut["ACCCredit"] = CalcOut["ChildCare"];
 				CalcOut["ChildCare"] = 0;
 			}
@@ -1488,29 +1498,29 @@
 
 		var taxdue = Math.max(0, TaxDue.innerHTML);
 
-		if (TotalTax.innerHTML) MaxIRA.innerHTML = "N/A";
-		else {
-			IRAgap = - TPMFJ["AGI"] + Deductions + TPMFJ["ExemptAmount"];
-			IRAcalc = 0;
-			if (TPMFJ["IRAgap00"] > 0) {
-				IRAused = Math.min(TPMFJ["IRAgap00"], IRAgap);
-				IRAcalc += IRAused;
-				IRAgap = Math.max(0,IRAgap - IRAused);
-			}
-			if (TPMFJ["IRAgap50"] > 0) {
-				IRAused = Math.min(TPMFJ["IRAgap50"], IRAgap/1.5);
-				IRAcalc += IRAused;
-				IRAequiv = IRAused * 1.5;
-				IRAgap = Math.max(0,IRAgap - IRAequiv);
-			}
-			if (TPMFJ["IRAgap85"] > 0) {
-				IRAused = Math.min(TPMFJ["IRAgap85"], IRAgap/2.35);
-				IRAcalc += IRAused;
-				IRAequiv = IRAused * 2.35;
-				IRAgap = Math.max(0,IRAgap - IRAequiv);
-			}
-			MaxIRA.innerHTML = Math.max(0,Math.floor(IRAcalc + IRAgap));
-		}
+//		if (TotalTax.innerHTML) MaxIRA.innerHTML = "N/A";
+//		else {
+//			IRAgap = - TPMFJ["AGI"] + Deductions + TPMFJ["ExemptAmount"];
+//			IRAcalc = 0;
+//			if (TPMFJ["IRAgap00"] > 0) {
+//				IRAused = Math.min(TPMFJ["IRAgap00"], IRAgap);
+//				IRAcalc += IRAused;
+//				IRAgap = Math.max(0,IRAgap - IRAused);
+//			}
+//			if (TPMFJ["IRAgap50"] > 0) {
+//				IRAused = Math.min(TPMFJ["IRAgap50"], IRAgap/1.5);
+//				IRAcalc += IRAused;
+//				IRAequiv = IRAused * 1.5;
+//				IRAgap = Math.max(0,IRAgap - IRAequiv);
+//			}
+//			if (TPMFJ["IRAgap85"] > 0) {
+//				IRAused = Math.min(TPMFJ["IRAgap85"], IRAgap/2.35);
+//				IRAcalc += IRAused;
+//				IRAequiv = IRAused * 2.35;
+//				IRAgap = Math.max(0,IRAgap - IRAequiv);
+//			}
+//			MaxIRA.innerHTML = Math.max(0,Math.floor(IRAcalc + IRAgap));
+//		}
 
 		Do_Pay();
 	}
@@ -1969,7 +1979,8 @@
 			<td id="TaxableWarning" colspan="5" class="blinking"></td></tr>
 		<tr><td colspan="5">Tax:</td>
 		<tr><td></td>
-			<td colspan="3">Tax from tax tables</td>
+			<td>Tax from tax tables</td>
+			<td colspan="2"id="Bracket" class="calculated"></td>
 			<td id="Tax" class="calculated wktc">0</td></tr>
 		<tr><td></td>
 			<td colspan="2">Enter any additional taxes (Forms 4972, 6251, 8814 or 8889)</td>
@@ -2311,9 +2322,11 @@
 	</div> <!-- MFJMFSResults -->
 </div> <!-- MFSInfo -->
 
-<div id="IRADist" class="grid-item">
-	Amount of additional income before filing a return is required (e.g. Max IRA distribution)
-	<span id="MaxIRA" class="floatright">?</span>
+<div id="Footnotes" class="grid-item">
+	&sup1; HSA limit can be $1,000 higher per person over age 55;
+	<br />&sup2; IRA limit can be $1,000 higher per person over age 50 but not more than earned income;
+	<!-- <br />Amount of additional income before filing a return is required (e.g. Max IRA distribution)
+	<span id="MaxIRA" class="floatright">?</span> -->
 </div>
 
 <div id="About" class="noPrint grid-item">

@@ -181,7 +181,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.10, 2/26/2022";
+	var VERSION = "Version 3.11, 7/24/2022";
+	//	Changes due to _TaxLookup return being an array
+	//var VERSION = "Version 3.10, 2/26/2022";
 	//	Corrected how refundable ACTC is displayed
 	//	Added refundable Child Care Credit
 	//var VERSION = "Version 3.9a, 12/27/2021";
@@ -2080,7 +2082,7 @@
 					}
 				}
 				else {
-					result.tax = _TaxLookup(TaxYear.value, StudentFilingStatus.value, taxable, ctCG, true);
+					result.tax = _TaxLookup(TaxYear.value, StudentFilingStatus.value, taxable, ctCG, true)["tax"];
 					result.kiddieResultStandard =
 					result.kiddieIncomeStandard =
 					result.kiddieIncomeTrust =
@@ -2101,7 +2103,7 @@
 				// Use TRUST rate for unearned over the kiddie tax threshhold
 				if (trustTaxable > 0) { // get the tax amount
 					truCG.style.display = (+ctCG > 0) ? "inline" : "none";
-					trustTax = _TaxLookup(TaxYear.value, "TRUST", trustTaxable, +ctCG, true, Form8615P1L6);
+					trustTax = _TaxLookup(TaxYear.value, "TRUST", trustTaxable, +ctCG, true, Form8615P1L6)["tax"];
 				}
 				else {
 					trustTaxable = 0;
@@ -2130,7 +2132,7 @@
 			var filingStatus = FilingStatus.value;
 		}
 
-		result.tax = _TaxLookup(TaxYear.value, filingStatus, taxable, ctCG, true);
+		result.tax = _TaxLookup(TaxYear.value, filingStatus, taxable, ctCG, true)["tax"];
 
 		KiddieIncomeStandard.innerHTML =
 		KiddieResultStandard.innerHTML =
