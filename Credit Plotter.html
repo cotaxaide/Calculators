@@ -77,7 +77,9 @@
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.06, 11/23/2021)";
+	VERSION = "(Version 1.07, 7/24/2022)";
+	//	Modified to reflect change in _TaxLookup that now returns an array
+	//VERSION = "(Version 1.06, 11/23/2021)";
 	//	Revisions to Child Care and FPL
 	//VERSION = "(Version 1.05, 11/10/2021)";
 	//	Allow FPL to print by itself
@@ -270,7 +272,7 @@
 						AGIIndex = (FS === "MFJ") ? 4 : 2 ;
 						AGIMax = Math.max(AGIMax, LLCLimits[AGIIndex]);
 						taxable = Math.max(0, AGIMax - StandardDeduction);
-						tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 						LLCMaxCred = _EdCredit(TY, FS, 0, "LLC", LLCLimits[0]);
 						LLCMaxY = Math.min(tax, LLCMaxCred[0] * Students);
 						CreditMax = Math.max(CreditMax, LLCMaxY);
@@ -285,9 +287,9 @@
 						PreTaxCredit = _EdCredit(TY, FS, TNFAGIPeak, "TNF", TNFLimits[0]);
 						StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
 						taxable = Math.max(0, TNFAGIMax - StandardDeduction);
-						tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 						taxable = Math.max(0, TNFAGIMax - StandardDeduction - PreTaxCredit[0]);
-						tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 						TNFMaxCred = tax0 - tax1;
 						CreditMax = Math.max(CreditMax, TNFMaxCred);
 					}
@@ -389,7 +391,7 @@
 							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
 								income = AGI;
 								var taxable = Math.max(0, AGI - StandardDeduction);
-								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 								credits = _CTCLookup(TY, FS, child * 1.01, child, income, AGI, 0);
 								var creditUsed = Math.min(tax, credits[0]);
 								var creditLeft = credits[0] - creditUsed; 
@@ -428,7 +430,7 @@
 					for (AGI = 0 ; AGI < AGIMax ; AGI += (AGIPlotIncrement * 2)) {
 						income = AGI;
 						var taxable = Math.max(0, AGI - StandardDeduction);
-						var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+						var tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 						credit = _Retirement(TY, FS, AGI, 2000, 0);
 						x1 = (income) ? "" : credit;
 						AddPlot("", x1, income, credit);
@@ -445,7 +447,7 @@
 							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
 								income = AGI;
 								var taxable = Math.max(0, AGI - StandardDeduction);
-								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 								credits = _EdCredit(TY, FS, AGI, "AOC", AOCLimits[0]);
 								var AOCNonrefundable = Math.min(tax, (credits[0] * student));
 								var creditLeft = credits[0] - creditUsed; 
@@ -468,7 +470,7 @@
 							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
 								income = AGI;
 								var taxable = Math.max(0, AGI - StandardDeduction);
-								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0);
+								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 								credits = _EdCredit(TY, FS, AGI, "LLC", LLCLimits[0]);
 								credit = Math.min(tax, (credits[0] * student));
 								x1 = (income) ? "" : credit;
@@ -487,9 +489,9 @@
 							income = AGI;
 							var PreTaxCredit = _EdCredit(TY, FS, AGI, "TNF", TNFLimits[0]);
 							var taxable = Math.max(0, AGI - StandardDeduction);
-							var tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+							var tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 							var taxable = Math.max(0, AGI - StandardDeduction - PreTaxCredit[0]);
-							var tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0);
+							var tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
 							credit = tax0 - tax1;
 							x1 = (income) ? "" : credit;
 							AddPlot("", x1, income, credit);
