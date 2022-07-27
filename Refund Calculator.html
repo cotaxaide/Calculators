@@ -221,21 +221,24 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// To Do:
-	//	Provide for use of Schedule D
-	//	2021 changed non-itemizing charitable contributions to after AGI
+	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.20, 3/19/2022)";
+	VERSION = "(Version 2.21, 7/24/2022)";
+	//	Modifications due to _TaxLookup now returns an array
+	//	2021 changed non-itemizing charitable contributions to after AGI
+	//VERSION = "(Version 2.20, 3/19/2022)";
 	//	Corrected use of non-refundable credits error
+	//	Corrected age 6 count which was blank instead of 0
 	//VERSION = "(Version 2.19, 3/5/2022)";
 	//	Added a new line to show new tax amount for non-refundable
 	//	QBIDMaximum not being cleared if QBI option unchecked
@@ -318,6 +321,7 @@
 	//	Deb Fisher		Lance Lauerhass		Dave Butner
 	//	Paul Peyser		Maria Maggio		Frank Krider
 	//	Vern Chartrand		Brad Kirby		Alvin Young
+	//	Eric Mueller
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -457,8 +461,8 @@
 		}
 		else CYStandard.innerHTML = "TBD";
 	
-		CTC0CountRow.style.display = (NY >= 2022) ?  "inline" : "none" ;
-		CashContribRow.style.display = (NY >= 2021) ? "table-row" : "none" ;
+		CTC0CountRow.style.display = (PY == 2020) ?  "inline" : "none" ;
+		CashContribRow.style.display = (PY >= 2019) ? "table-row" : "none" ;
 		if (NY < 2021) CashContrib.value = "";
 		if (NY >= 2019) {
 			DependentsRow.style.display =
@@ -910,7 +914,7 @@
 			}
 			else {
 				// Check the input data
-				if ((CY == 2020) && CashContrib.value == "") {
+				if ((PY == 2019) && CashContrib.value == "") {
 					NeedData++;
 					CashContrib.style.backgroundColor = "yellow";
 					CashContrib.focus();
@@ -934,8 +938,14 @@
 		
 				// OK to calculate
 				NonSchedAContrib = 0;
-				if (CY == 2020) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFS") ? 150 : 300 ), +CashContrib.value );
-				if (CY == 2021) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFJ") ? 600 : 300 ), +CashContrib.value );
+				// For 2020, NonSchedAContrib is an adjustment
+				if (PY == 2020) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFS") ? 150 : 300 ), +CashContrib.value );
+				// For 2021, NonSchedAContrib adds to the deduction
+				if (PY == 2021) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFJ") ? 600 : 300 ), +CashContrib.value );
+
+				// For 2022, if ItemizedDiff goes to 0, CashContrib goes to NonSchedAContrib and we lose the advantage
+				if (CY == 2022) NonSchedAContrib = -Math.min( 1, +CashContrib.value) ; // will be 1 or 0
+
 				ItemizedDiff = Math.max(0, +Itemized.value - +StandardDeduction.value - NonSchedAContrib);
 				NewTotalTaxable = Math.min(ItemizedDiff, TotalTaxable);
 				NewTotalPct = NewTotalTaxable / TotalTaxable;
@@ -1169,7 +1179,7 @@
 		// Test for negative taxable income
 		if (TotalTaxable) {
 
-			var OriginalTaxableIncome = AGI.value - +QBIDCurrent.value - +Itemized.value;
+			var OriginalTaxableIncome = +QBIAGI.value - +QBIDCurrent.value - +Itemized.value;
 			if (QBIAGI.value == "") {
 				NonTaxableDiv.style.display = "block";
 				AGI.disabled = false;
@@ -1268,7 +1278,7 @@
 			// Copy AGI value from earlier entries
 			CTCAGI.value = (AGI.value != "") ? AGI.value : QBIAGI.value;
 			RevisedTaxableIncome = Math.max(0, +CTCAGI.value - +RevisedItemized.value - +Exemption.value - +QBIDCurrent.value - +QBIDAdditional.value);
-			TaxAmount.value = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, RevisedTaxableIncome, 0, true);
+			TaxAmount.value = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, RevisedTaxableIncome, 0, true)["tax"];
 
 			NeedData++;
 			if (! NoNonRefundables.checked) {
@@ -1290,7 +1300,7 @@
 				// Calculate the CTC if the data is available
 				CTCCalc = (CTCAGI.value != "")
 					&& (CTCCount.value != "")
-					&& (CTC0Count.value != "")
+					&& ((NY < 2022) || (CTC0Count.value != ""))
 					&& (ODCCount.value != "");
 				if (CTCCalc) {
 					CTCChild = +CTCCount.value + (+CTC0Count.value / 100);
@@ -1317,15 +1327,17 @@
 						CTCCount.focus();
 					}
 					if (NeedData) return;
-					else if (CTC0Count.value == "") {
+					else if ((NY == 2022) && (CTC0Count.value == "")) {
 						CTC.value = "";
 						NeedData++;
 						CTC0Count.style.backgroundColor = "yellow";
 						CTC0Count.focus();
 					}
+					if (NeedData) return;
 					if (+CTC0Count.value > +CTCCount.value) {
 						alert("The number of children under 6 cannot be larger than the number of children under 17");
 						CTC0Count.style.backgroundColor = "hotpink";
+						NeedData++;
 						return;
 					}
 					if (NeedData) return;
@@ -1935,7 +1947,7 @@
 		Check this box to skip this test if either:
 		<ul>
 			<li>all credits were used &mdash; the tax amount <u>after</u> non-refundable credits
-			(<span id="PostCreditLineNo">1040 line 13</span>) is not zero, or</li>
+			(<span id="PostCreditLineNo">1040 line 13</span>) was not zero, or</li>
 			<li>you know that the taxpayer has no eligible non-refundable credits</li>
 		</ul>
 		<table id="NonRefundableTable" class="data_entry">
