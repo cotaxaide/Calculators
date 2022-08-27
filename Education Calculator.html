@@ -3,12 +3,13 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+<meta name="viewport" content="width=device-width">
 <title>Education Calculator</title>
 <style>
 	abbr { text-decoration: underline }
-	body { background-color: #ccccff; font-family: sans-serif; font-size: 11pt; } 
-	table { background-color: #ccccff; border-collapse:collapse; width:100%; }
-	table tr:nth-child(even) { background-color: #c7c7f0; }
+	body {background-color: #ccccff;font-family: sans-serif;font-size: 11pt;} 
+	table {background-color: #ccccff; border-collapse:collapse; width:100%;}
+	table tr:nth-child(even) { background-color: #c3c3ff; }
 	td { vertical-align:top; }
 	#InstructionsDiv { display: none; max-width: 75em; margin: auto; }
 	#FilingDiv { display: none; max-width: 75em; margin: auto; }
@@ -68,11 +69,12 @@
 	.SQindent { text-indent: 5em; }
 	#SQdiv { width:35em; border: 3px black solid; padding: 5px; margin:auto; }
 	.FSindent { text-indent: 2em; }
-	.FSindentw2 { text-align: right; position:relative; right:5em; }
+	.FSindentw2 { text-align: right; position: relative; right: 5em; }
 	#FStable tr td:first-child { width:75%; }
 	#FStable tr td:nth-child(2) { width:12%; }
 	#FStable tr td:nth-child(3) { width:13%; }
 	#EItable tr { text-align: right; }
+	#EItable tr td {border-bottom: 1px dashed skyblue;}
 	#EItable tr td:first-child { width: 1%; }
 	#EItable tr td:nth-child(2) { width: 56%; text-align: left; }
 	#EItable tr td:nth-child(3) { width: 11%; }
@@ -172,43 +174,45 @@
 
 <script src="Tax_Data/IRS_2000.js"></script>
 <!-- Keep current plus 4 prior years (for ACA) -->
-<script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.11, 7/24/2022";
+	var VERSION = "Version 3.30, 8/27/2022";
+	//	Reduced taxable amount for LLC and TNF for funds spent on nonqualified ed exp
+	//var VERSION = "Version 3.29, 7/24/2022";
 	//	Changes due to _TaxLookup return being an array
-	//var VERSION = "Version 3.10, 2/26/2022";
+	//var VERSION = "Version 3.28, 2/26/2022";
 	//	Corrected how refundable ACTC is displayed
 	//	Added refundable Child Care Credit
-	//var VERSION = "Version 3.9a, 12/27/2021";
+	//var VERSION = "Version 3.27a, 12/27/2021";
 	//	Clarification of instructions on optimizer tab
-	//var VERSION = "Version 3.9, 11/28/2021";
+	//var VERSION = "Version 3.27, 11/28/2021";
 	//	Fixed hang problem due to ACA 0 rate change
 	//	Added tests to prevent negative dependent entries
-	//var VERSION = "Version 3.8, 10/7/2021";
+	//var VERSION = "Version 3.26, 10/7/2021";
 	//	Modified CTC age limits of 19 - no upper for 2021
 	//	Defaulted to MFJ
-	//var VERSION = "Version 3.7, 8/13/2021";
+	//var VERSION = "Version 3.25, 8/13/2021";
 	//	Modified calc of retirement savings credit
-	//var VERSION = "Version 3.6 draft, 7/5/2021";
+	//var VERSION = "Version 3.24 draft, 7/5/2021";
 	//	Modified for new Chld Tax Credit for 2021
 	//	Added NoEIC checked for TP is the student, age under 25 for 2020.
-	//var VERSION = "Version 3.5, 3/15/2021";
+	//var VERSION = "Version 3.23, 3/15/2021";
 	//	Added test for 2020 to not pay back APTC excess
-	//var VERSION = "Version 3.4a, 10/26/2020";
+	//var VERSION = "Version 3.22a, 10/26/2020";
 	//	Removed another link to extinct Education Cookbook
-	//var VERSION = "Version 3.4, 8/8/2020";
+	//var VERSION = "Version 3.22, 8/8/2020";
 	//	Modified optimizer to use adj to income amounts to increase taxable scholarships
 	//		before invoking the kiddie tax
-	//var VERSION = "Version 3.3a, 2/20/2020";
+	//var VERSION = "Version 3.21a, 2/20/2020";
 	//	Removed links to extinct Education Cookbook
-	//var VERSION = "Version 3.3, 2/7/2020";
+	//var VERSION = "Version 3.21, 2/7/2020";
 	//	Fixed retirement credit not carrying to LLC column
 	//var VERSION = "Version 3.20b, 1/20/2020";
 	//	Added pink to AGI if income but AGI is blank
@@ -292,7 +296,7 @@
 	//	Dick Sramek		Bob Wells		Jay Wiedwald
 	//	Edie Loughmiller	Harold Rowe		Brad Kirby
 	//	Stephen Enk		Roger Metzler		Arlene Green
-	//	Joanne Hill
+	//	Joanne Hill		Fred Lamberth
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -309,6 +313,7 @@
 	var QualExpenses = []; // qualified for the program
 	var QualColor = "green";
 	var NonqualExpenses = []; // not qualified for the program
+	var NontaxableExpenses = []; // not qualified for the program but not taxable
 	var NonqualColor = "red";
 	var AllowedExpenses = []; // allowed by the funding source
 	var NQExpenses = []; // allowed by the funding source but not qualified for credit
@@ -1033,6 +1038,7 @@
 		// Calculate qualified expenses for each category and set tax-free amount flags
 		QualExpenses["AOC"] = QualExpenses["LLC"] = QualExpenses["TNF"] = 0;
 		NonqualExpenses["AOC"] = NonqualExpenses["LLC"] = NonqualExpenses["TNF"] = 0;
+		NontaxableExpenses["AOC"] = NontaxableExpenses["LLC"] = NontaxableExpenses["TNF"] = 0;
 		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = AllowedExpenses["TNF"] = 0;
 
 		// Must be at least half time to apply funds to living expenses
@@ -1693,7 +1699,7 @@
 				QUsedLLC.innerHTML = qAmount;
 				QualExpensesLLC.innerHTML =
 				QualExpensesLLC2.innerHTML = Math.min(+MaxLLC.innerHTML, QualExpenses[type] - qAmount);
-				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount;
+				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = Math.max(0, incomeAmount - NontaxableExpenses[type]); // v3.12
 				break;
 
 			case "TNF":
@@ -1702,7 +1708,7 @@
 				QUsedTNF.innerHTML = qAmount;
 				QualExpensesTNF.innerHTML =
 				QualExpensesTNF2.innerHTML = Math.min(+MaxTNF.innerHTML, QualExpenses[type] - qAmount);
-				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount;
+				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = Math.max(0, incomeAmount - NontaxableExpenses[type]); // v3.12
 				break;
 		}
 		// return true if kiddie tax was encountered
@@ -1821,6 +1827,7 @@
 				AllowedAmount.value = Math.min(ExpenseAmount, +limit);
 				AllowedExpenses[Program[eni-1]] += AllowedAmount.value;
 				ProgramElement.style.color = NonqualColor;
+				NontaxableExpenses[Program[eni-1]] += ((arguments[1]) ? AllowedAmount.value : 0 ); // v3.12
 			}
 			ProgramElement.innerHTML = ExpenseAmount;
 		}
@@ -2689,6 +2696,7 @@
 		// Add the data
 		var eligible = [StudentAOC.innerHTML == "Yes", StudentLLC.innerHTML == "Yes", StudentTNF.innerHTML == "Yes"]
 		var progColor = ["blue","orange","red"];
+		var typeCode = ["AOC", "LLC", "TNF"];
 		for (var progIdx = 0; progIdx < 3; progIdx++) {
 			if (eligible[progIdx]) {
 				PlotCanv.beginPath();
@@ -3216,13 +3224,15 @@
 			<td><input id="ScholarRestricted" type="number" onchange="BudgetChange(this.id)" /> </td>
 			<td></td>
 			<td></td></tr>
-		<tr title="Amount that you wish to make taxable and thus increase income. This may increase the education benefits and overall tax results, depending on the TP's situation. The optimizer adjusts this field also if it is run.">
+		<tr>
 			<td class="FSindent">- Amount (up to <span id="ScholarTaxableMax"></span>) that you wish to make taxable for possible larger tax benefit:
 				<span id="taxInfo" class="help"
 					onmouseover="taxInfoText.style.display='block';"
 					onmouseout="taxInfoText.style.display='none';">&nbsp;?&nbsp;
 				</span>
-				<span id="taxInfoText" class="helpText">
+				<span id="taxInfoText" class="helpText"
+					onmouseover="taxInfoText.style.display='block';"
+					onmouseout="taxInfoText.style.display='none';">
 					You can manually change this amount to see how the funds are distributed
 					in the Expense Information tab. It is initially set to 0 to allow all funds to be used
 					for qualified expenses.
@@ -3231,7 +3241,10 @@
 					You may limit the amount tested if you wish to do so in the next entry...
 				</span>
 			</td>
-			<td><input id="ScholarTaxable" type="number" onchange="BudgetChange(this.id)" /></td> </tr>
+			<td><input id="ScholarTaxable" type="number" onchange="BudgetChange(this.id)"
+				title="Amount that you wish to make taxable and thus increase income.
+This may increase the education benefits and overall tax results, depending on the TP's situation.
+The optimizer adjusts this field also if it is run." /></td> </tr>
 		<tr title="Amount to limit the taxable amount using the optimizer">
 			<td colspan="3" class="FSindent">- - -<input id="ScholarTaxableLimitYes" type="checkbox" />
 				Limit the taxable amount tested by the optimizer tab to:

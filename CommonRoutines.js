@@ -15,11 +15,13 @@
 //	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.16 8/27/2022
+// 	Tax lookup for income < 5 returned undefined
 // Version 1.15 7/24/2022
 // 	Changed return from _TaxLookup() to an array and added bracket
 // 	Limited CTC expansion to just 2021 and corrected start to > than 400,000
 // Version 1.14 10/24/2021
-// 	Added excess Social Security
+// 	Added excess Social Security paid
 // Version 1.13 10/13/2021
 // 	Corrected percent for student loan interest reduction
 // Version 1.12 7/27/2021
@@ -59,6 +61,7 @@ function _SETax (	// Self-employment tax
 		) {
 // returns an array: [self-employment tax amount, deductible amount,
 // 			"SE_tax", "deductible", "medicare", "socialsecurity", "excessSS"]
+// does not include additional medicare tax for high income
 //----------------------------------------------------------------------------------------
 	if (wages === undefined) wages = 0;
 	wagessoc = (Math.min(wages, +_SEMaxWages[TaxYear.value]) * +_SESocSec[TaxYear.value]);
@@ -183,7 +186,7 @@ function _StandardDeduction( // Standard Deduction amount
 //----------------------------------------------------------------------------------------
 function _TaxLookup(	// Tax table lookup
 	taxYear,	// tax year tables to use
-	filingStatus,	// SNG, MFJ, WID, MFS, HOH, or TRUST (for kiddie tax starting in 2018)
+	filingStatus,	// SNG, MFJ, WID, MFS, HOH, or TRUST (for kiddie tax in 2018 and 2019)
 	taxableAmount,	// the amount to look up
 	capitalGains,	// Sched D long term cap gains less cap losses (but not < 0) plus qual dividends
 	useSchedD,	// true/false (used for recursion to allow Sched D worksheet to be skipped)
@@ -241,7 +244,7 @@ function _TaxLookup(	// Tax table lookup
 
 	if ((filingStatus != "TRUST") && (filingStatus != "TRUST_SNG")) {
 		var stepSize = 50;
-		if (taxableAmount < 5) return(0);
+		if (taxableAmount < 5) return(result);
 		if (taxableAmount < 25) stepsize = 10;
 		else if (taxableAmount < 3000) stepSize = 25;
 
