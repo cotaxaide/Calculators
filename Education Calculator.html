@@ -7,9 +7,9 @@
 <title>Education Calculator</title>
 <style>
 	abbr { text-decoration: underline }
-	body {background-color: #ccccff;font-family: sans-serif;font-size: 11pt;} 
-	table {background-color: #ccccff; border-collapse:collapse; width:100%;}
-	table tr:nth-child(even) { background-color: #c3c3ff; }
+	body { background-color: #ccccff; font-family: sans-serif; font-size: 11pt; } 
+	table {background-color: #ccccff; border-collapse:collapse;width:100%;}
+	table tr:nth-child(even) { background-color: #c7c7f0; }
 	td { vertical-align:top; }
 	#InstructionsDiv { display: none; max-width: 75em; margin: auto; }
 	#FilingDiv { display: none; max-width: 75em; margin: auto; }
@@ -69,7 +69,7 @@
 	.SQindent { text-indent: 5em; }
 	#SQdiv { width:35em; border: 3px black solid; padding: 5px; margin:auto; }
 	.FSindent { text-indent: 2em; }
-	.FSindentw2 { text-align: right; position: relative; right: 5em; }
+	.FSindentw2 { text-align: right; position:relative; right:5em; }
 	#FStable tr td:first-child { width:75%; }
 	#FStable tr td:nth-child(2) { width:12%; }
 	#FStable tr td:nth-child(3) { width:13%; }
@@ -120,8 +120,8 @@
 	#TPTaxForm tr td:nth-child(6),
 	#StudentTaxForm tr td:nth-child(6),
 	#TaxFormResults tr td:nth-child(6) { width: 5em; text-align: right; }
-	#OptimizeButtons {display: none;}
-	#OptimizeButtons tr td:first-child { width: 90%; }
+	#OptimizeButtons {display: none; }
+	#OptimizeButtons tr {width: 100%;}
 	#OptimizeButtons tr td:nth-child(2) { width: 10%; }
 	#OptimizeButtons input { width: 9em; }
 	#optDiv { border:2px solid black; width:30em; padding: 3px; }
@@ -183,8 +183,17 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.30, 8/27/2022";
-	//	Reduced taxable amount for LLC and TNF for funds spent on nonqualified ed exp
+	var VERSION = "Version 3.34, 9/8/2022";
+	//	More related corrections
+	//var VERSION = "Version 3.33, 9/5/2022";
+	//	Corrected calcs involved with supplimentary funding
+	//	Corrected LLC expenses and taxable amounts again
+	//var VERSION = "Version 3.32, 9/2/2022";
+	//	Corrected LLC expenses and taxable amounts
+	//var VERSION = "Version 3.31, 8/29/2022";
+	//	Corrected another problem with kiddie tax
+	//var VERSION = "Version 3.30, 8/27/2022";
+	//	Corrected a problem with kiddie tax
 	//var VERSION = "Version 3.29, 7/24/2022";
 	//	Changes due to _TaxLookup return being an array
 	//var VERSION = "Version 3.28, 2/26/2022";
@@ -313,7 +322,6 @@
 	var QualExpenses = []; // qualified for the program
 	var QualColor = "green";
 	var NonqualExpenses = []; // not qualified for the program
-	var NontaxableExpenses = []; // not qualified for the program but not taxable
 	var NonqualColor = "red";
 	var AllowedExpenses = []; // allowed by the funding source
 	var NQExpenses = []; // allowed by the funding source but not qualified for credit
@@ -726,6 +734,12 @@
 			jsqlist[jsqi].style.display = (DegreeNo.checked && TimePart.checked) ? "inline" : "none";
 		}
 
+		// Deactivate supplementary inputs if half-time student
+		ScholarESA.disabled = TimePart.checked;
+		ScholarQTP.disabled = TimePart.checked;
+		ScholarIRA.disabled = TimePart.checked;
+		ScholarSAV.disabled = TimePart.checked;
+
 		// Calculate maximum allowable deduction amounts
 		MaxAOC.innerHTML = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",")[0];
 		if ((DependentNo.checked && ClaimedYes.checked)
@@ -828,41 +842,28 @@
 
 		// Displayed line adjustments
 
-		// QBI and SEHI Added in 2018
-		if (_LineNo[TaxYear.value + ":QBI"] != "") {
 
-			if (BusinessTax.value > 0) {
-				SEHIRow.style.display =
-				QBIRow.style.display = "table-row";
-				BusinessSETax = _SETax(TaxYear.value, BusinessTax.value)[1];
-			}
 
-			else {
-				SEHIRow.style.display =
-				QBIRow.style.display = "none";
-				QBITax.value = BusinessSETax = SEHITax.innerHTML = 0;
-			}
-
-			if (StudBusinessTax.value > 0) {
-				StudSEHIRow.style.display =
-				StudQBIRow.style.display = "table-row";
-				StudBusinessSETax = _SETax(TaxYear.value, StudBusinessTax.value)[1];
-			}
-
-			else {
-				StudSEHIRow.style.display =
-				StudQBIRow.style.display = "none";
-				StudQBITax.innerHTML = StudBusinessSETax = StudSEHITax.value = 0;
-			}
+		if (BusinessTax.value > 0) {
+			SEHIRow.style.display =
+			QBIRow.style.display = "table-row";
+			BusinessSETax = _SETax(TaxYear.value, BusinessTax.value)[1];
+		}
+		else {
+			SEHIRow.style.display =
+			QBIRow.style.display = "none";
+			QBITax.value = BusinessSETax = SEHITax.innerHTML = 0;
 		}
 
-		else { // prior to 2018
-			SEHIRow.style.display =
-			QBIRow.style.display =
+		if (StudBusinessTax.value > 0) {
+			StudSEHIRow.style.display =
+			StudQBIRow.style.display = "table-row";
+			StudBusinessSETax = _SETax(TaxYear.value, StudBusinessTax.value)[1];
+		}
+		else {
 			StudSEHIRow.style.display =
 			StudQBIRow.style.display = "none";
-			QBITax.innerHTML = StudQBITax.innerHTML = 0;
-			SEHITax.value = StudSEHITax.value = 0;
+			StudQBITax.innerHTML = StudBusinessSETax = StudSEHITax.value = 0;
 		}
 
 		needAGI = (((SalaryTax.value > 0) || (BusinessTax.value > 0)) && (AGITax.value == ""))
@@ -936,31 +937,39 @@
 
 			// Get the student's current unearned income
 			// (StudEarnedTax.value is stored in a hidden row in the student's table)
-			var studentUnearned = Math.max(0, +StudAGITax.value - +StudEarnedTax.value);
-
-			// Determine margins (amounts before tax kicks in)
-			var unearnedMargin = fileMinimum - studentUnearned;
-			var earnedMargin = deductionAmount - +StudEarnedTax.value;
-			var grossMargin = deductionAmount - +StudAGITax.value;
-			KiddieFileMargin = KiddieTaxThreshold - studentUnearned; // Taxable scholarship is not included
-			if (studentUnearned > 350) {
-				StudentFileMargin = unearnedMargin; // amount to earn before having to file
+			var studentUnearned = +StudAGITax.value - +StudEarnedTax.value;
+			if (studentUnearned > KiddieTaxThreshold) { // Kiddie tax already applies
+				if (! Optimizing) {
+					alert("CAUTION!\x0DKiddie tax already applies to this student, which is out of scope.");
+					NoOptimize4.style.display = "block";
+					KiddieTaxFlag = true;
+				}
 			}
 			else {
-				//StudentFileMargin = Math.min(earnedMargin, grossMargin); // amount to earn before having to file
-				StudentFileMargin = grossMargin; // amount to earn before having to file NEW
+				NoOptimize4.style.display = "none";
+				KiddieTaxFlag = false;
+			}
+			KiddieFileMargin = Math.max(0, (KiddieTaxThreshold - studentUnearned) ); // Taxable scholarship is not included
+
+			// grossMargin is the amount that can be added without having to file
+			var maxStudentDeduction = Math.min(+StudEarnedTax.value + taxableLimit + 350, deductionAmount);
+			var grossMargin = maxStudentDeduction - StudAGITax.value;
+
+			switch (true) {
+				case (+StudTaxTax.innerHTML > 0): // currently must file
+					grossLimit = KiddieFileMargin;
+					break;
+				case (grossMargin > taxableLimit): // will not have to file
+					grossLimit = taxableLimit;
+					break;
+				default: // may have to file if grossMargin is exceeded
+					grossLimit = Math.max(grossMargin, KiddieFileMargin);
 			}
 
-			//if ((unearnedMargin < 0) || (earnedMargin < 0) || (grossMargin < 0)) { // must file
-			if ((unearnedMargin < 0) || (grossMargin < 0)) { // must file NEW in v 3.4
-				taxableLimit = Math.min(KiddieFileMargin, taxableLimit);
-			}
-			else { // dont have to file yet
-				taxableLimit = Math.min(StudentFileMargin, taxableLimit); // (this was commented out in v3.4)
-				// taxableLimit = StudentFileMargin; // NEW in v 3.4 // commented out in v3.6
-			}
+			// Limit to the amount actually available
+			taxableLimit = Math.min(grossLimit, taxableLimit); // Exceeding this will trigger kiddie tax
 
-			if (ScholarTaxable.value > StudentFileMargin) { // StudentFileMargin was taxableLimit pre v3.6
+			if (ScholarTaxable.value > taxableLimit) {
 				if (! Optimizing) alert("CAUTION!\x0DYou are exceeding the taxable amount to your dependent child that makes the taxpayer \"kiddie tax\" come into effect for the taxpayer. You don't want to do that.");
 				ScholarTaxable.value = "";
 			}
@@ -1038,7 +1047,6 @@
 		// Calculate qualified expenses for each category and set tax-free amount flags
 		QualExpenses["AOC"] = QualExpenses["LLC"] = QualExpenses["TNF"] = 0;
 		NonqualExpenses["AOC"] = NonqualExpenses["LLC"] = NonqualExpenses["TNF"] = 0;
-		NontaxableExpenses["AOC"] = NontaxableExpenses["LLC"] = NontaxableExpenses["TNF"] = 0;
 		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = AllowedExpenses["TNF"] = 0;
 
 		// Must be at least half time to apply funds to living expenses
@@ -1067,8 +1075,8 @@
 		NQTotalLLC.innerHTML = NonqualExpenses["LLC"];
 		NQTotalTNF.innerHTML = NonqualExpenses["TNF"];
 		NQAvailAOC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"];
-		NQAvailLLC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["LLC"];
-		NQAvailTNF.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["TNF"];
+		NQAvailLLC.innerHTML = (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["LLC"]) : NonqualExpenses["LLC"];
+		NQAvailTNF.innerHTML = (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["TNF"]) : NonqualExpenses["TNF"];
 		ExpensesAOC.innerHTML = QualExpenses["AOC"];
 		ExpensesLLC.innerHTML = QualExpenses["LLC"];
 		ExpensesTNF.innerHTML = QualExpenses["TNF"];
@@ -1103,15 +1111,9 @@
 
 		// Distribute the scholarship between q and non-q expenses
 
-		KiddieTaxFlag = false;
 		Distribute("AOC");
 		Distribute("LLC");
-		if (Distribute("TNF")) {
-			if (TaxYear.value < 2018) {
-				WarningMessage += "<br />Kiddie tax cannot be avoided. Results may not be correct.";
-			}
-			KiddieTaxFlag = true;
-		}
+		Distribute("TNF")
 
 		// Warning messages for supplementary funds
 
@@ -1197,13 +1199,13 @@
 			NoOptimize3.style.display = "block";
 			showPerhaps = false;
 		}
-		else if (KiddieTaxFlag && (! KiddieAllow.checked) && (+TaxLLC.innerHTML > 0)) {
+		else if (KiddieTaxFlag && (! KiddieAllow.checked) && (studentUnearned > KiddieTaxThreshold)) {
 			messageNoUnqualified.style.display = "list-item";
 			OptimizeButtons.style.display = "none";
 			NoOptimize4.style.display = "block";
 			showPerhaps = false;
 		}
-		else {
+		else if (Nonrestricted.value == 0) {
 			messageNoScholar.style.display = "list-item";
 			OptimizeButtons.style.display = "none";
 			NoOptimize2.style.display = "block";
@@ -1607,6 +1609,7 @@
 		) {
 	// returns true if kiddie tax was encountered
 	//----------------------------------------------------------------------------------------
+		// saAmount is the amount of ScholarAvailable that remains to be distributed
 		var saAmount = ScholarAvailable;
 
 		// qeeLimit is the tax law limit for the type of credit
@@ -1615,58 +1618,84 @@
 			case "LLC": var qeeLimit = +MaxLLC.innerHTML; break;
 			case "TNF": var qeeLimit = +MaxTNF.innerHTML; break;
 		}
+
+		// nqntAmount is the non-qualified amount that is not taxable
+		var nqntAmount = Math.max(0, QualExpenses["AOC"] - QualExpenses[type]);
 		
-		var taxLimit = Math.min((+ScholarTaxableMax.innerHTML), NQExpenses[type]);
+		// Supplemental resources are not eligible for taxing due to penalties
+		var taxExpenseLimit = Math.max(0, NQExpenses[type] - nqntAmount - ScholarSupplemental);
+		var taxLimit = Math.min(+ScholarTaxableMax.innerHTML, taxExpenseLimit);
 		var taxRequested = +ScholarTaxable.value;
 		var incomeAmount = taxRequested + ScholarIncome;
 
-		// If too much taxable was specified, add it back in to available amount
-		var taxOverage = +ScholarTaxable.value - taxLimit;
-		if (taxOverage > 0) {
-			saAmount += taxOverage;
-			incomeAmount -= taxOverage;
-			taxRequested -= taxOverage;
-		}
+		// suppnqAmount is the non-qualified amount that is taxable if used
+		var suppnqAmount = NQExpenses["AOC"];
 
-		// Use taxable scholarships to pay non-qualified expenses
-		var tsnqAmount = taxRequested;
+		// Amount distributed for expenses
+		var nqAmount = 0; // nonqualified
+		var qAmount =  0;  // qualified
+		var qExpenses = QualExpenses[type];
 
-		// Use Supplemental sources for non-qualified if possible
-		var suppnqAmount = Math.min(NQExpenses[type] - tsnqAmount, ScholarSupplemental);
-		nqAmount = tsnqAmount + suppnqAmount;
-		saAmount -= suppnqAmount;
+		// Use Supplemental sources for supplemental non-qualified first
+		var suppRemainder = ScholarSupplemental;
+		var suppPay = Math.min(suppRemainder, suppnqAmount);
+		nqAmount += suppPay;
+		saAmount -= suppPay;
+		suppRemainder -= suppPay;
+
+		// Use remaining supplemental sources to pay qualified expenses
+		suppPay = Math.min(suppRemainder, QualExpenses[type]);
+		qAmount += suppPay;
+		saAmount -= suppPay;
+		suppRemainder -= suppPay;
+		qExpenses -= suppPay;
+
+		// Use remaining supplemental sources for nontaxable non-qualified
+		suppPay = Math.min(suppRemainder, nqntAmount);
+		nqAmount += suppPay;
+		saAmount -= suppPay;
+		nqntAmount -= suppPay;
+		suppRemainder -= suppPay; // hopefully will be 0
+
+		// If there's any non-taxable nonqualified amount left, pay it next
+		var nqntPay = Math.min(nqntAmount, saAmount);
+		nqntAmount -= nqntPay;
+		nqAmount += nqntPay;
+		saAmount -= nqntPay;
+		incomeAmount -= nqntPay;
 
 		// Pay qualified next
-		var qAmount = Math.min(QualExpenses[type], saAmount);
-		saAmount -= qAmount;
+		var qePayLimit = Math.max(0, QualExpenses[type] - qAmount);
+		var qPaid = Math.min(saAmount, qePayLimit);
+		qAmount += qPaid;
+		saAmount -= qPaid;
+		qExpenses -= qPaid;
 
 		// remainder is taxable
-		if (saAmount > 0) {
-			// amount of supplimental not used is not taxable
-			var suppNotUsed = Math.max(0, ScholarSupplemental - NQExpenses[type] - QualExpenses[type]);
-			incomeAmount += (saAmount - suppNotUsed);
-			var nqFill = Math.min(NQExpenses[type] - nqAmount, saAmount);
-			nqAmount += nqFill;
-		}
+		incomeAmount = Math.max(0, incomeAmount + saAmount - nqntAmount);
 
-		// qeeAmount is how much additional the TP could claim as an expense
-		var qeeAmount = Math.round(Math.max(0, QualExpenses[type] - qAmount));
+		// qExpenses is the amount the taxpayer can claim as expenses
+		qExpenses = Math.min(qeeLimit, qExpenses);
 
-		qeeLimit = qeeLimit - qeeAmount;
+		// Adjust the figures if "Cover the difference" (GapGap) is checked
+		if (GapGap.checked) {
+			// qeeLimit is how much additional the TP could claim as an expense
+			var qeeAmount = Math.round(Math.max(0, QualExpenses["AOC"] - qAmount)); // Always use AOC
+			qeeLimit = qeeLimit - qeeAmount;
 
-		// nqeeLimit is the non-qualified amount remaining that could be taxable
-		var nqeeAmount = Math.max(0,NQExpenses[type] - nqAmount); // limited by remainder of NQ expenses
+			// nqeeAmount is the non-qualified amount remaining that could be taxable
+			var nqeeAmount = Math.max(0, NQExpenses[type] - nqAmount); // limited by remainder of NQ expenses
 
-		// fqeeAmount is the amount remaining given that some cannot be taxable
-		var fqeeAmount = Math.max(0, QualExpenses[type] - Scholarship.value);
+			// fqeeAmount is the amount remaining given that some cannot be diverted
+			var fqeeAmount = Math.max(0, QualExpenses["AOC"] - Scholarship.value);
 
-		// figure the gap and fill it if the option is chosen
-		var gapAmount = Math.min(qeeLimit, nqeeAmount, taxLimit - incomeAmount, fqeeAmount);
-		if (GapGap.checked & (gapAmount > 0)) {
-			nqAmount += gapAmount;
-			qAmount -= gapAmount;
-			qeeAmount += gapAmount;
-			incomeAmount += gapAmount;
+			var gapAmount = Math.min(qeeLimit, nqeeAmount, taxLimit - incomeAmount, fqeeAmount);
+			if (gapAmount > 0) {
+				nqAmount += gapAmount;
+				qAmount -= gapAmount;
+				qeeAmount += gapAmount;
+				incomeAmount += gapAmount;
+			}
 		}
 
 		// adjust for kiddie tax avoidance
@@ -1689,7 +1718,7 @@
 				NQUsedAOC.innerHTML = Math.min(+NQAvailAOC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedAOC.innerHTML = qAmount;
 				QualExpensesAOC.innerHTML =
-				QualExpensesAOC2.innerHTML = Math.min(+MaxAOC.innerHTML, QualExpenses[type] - qAmount);
+				QualExpensesAOC2.innerHTML = qExpenses;
 				IncomeAOC.innerHTML = IncomeAOC2.innerHTML = incomeAmount;
 				break;
 
@@ -1698,8 +1727,8 @@
 				NQUsedLLC.innerHTML = Math.min(+NQAvailLLC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedLLC.innerHTML = qAmount;
 				QualExpensesLLC.innerHTML =
-				QualExpensesLLC2.innerHTML = Math.min(+MaxLLC.innerHTML, QualExpenses[type] - qAmount);
-				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = Math.max(0, incomeAmount - NontaxableExpenses[type]); // v3.12
+				QualExpensesLLC2.innerHTML = qExpenses;
+				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
 				break;
 
 			case "TNF":
@@ -1707,8 +1736,8 @@
 				NQUsedTNF.innerHTML = Math.min(+NQAvailTNF.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedTNF.innerHTML = qAmount;
 				QualExpensesTNF.innerHTML =
-				QualExpensesTNF2.innerHTML = Math.min(+MaxTNF.innerHTML, QualExpenses[type] - qAmount);
-				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = Math.max(0, incomeAmount - NontaxableExpenses[type]); // v3.12
+				QualExpensesTNF2.innerHTML = qExpenses;
+				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount; // v3.33
 				break;
 		}
 		// return true if kiddie tax was encountered
@@ -1781,7 +1810,7 @@
 		// Add a check mark if funds are available for the category
 		ExpenseAmount = 0;
 		var LivingExpenseFlagged = false;
-		var ReductionFlag = false;
+		//var ReductionFlag = false; // not being used
 		if (qualifiedScholarshipExpense) { // show fixed checkmark
 			ExpenseAllowedColumn.innerHTML = "&#x2714;";
 			ExpenseAmount = Math.round(Math.max(0,+(ExpenseCategoryAmount.value)));
@@ -1806,7 +1835,7 @@
 				ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, ScholarReductionMax));
 				ScholarReduction += Math.min(ExpenseAmount, ScholarReductionMax);
 				ScholarReductionMax -= ExpenseAmount;
-				ReductionFlag = ExpenseOption.checked;
+				//ReductionFlag = ExpenseOption.checked; // not being used
 			}
 		}
 
@@ -1827,7 +1856,6 @@
 				AllowedAmount.value = Math.min(ExpenseAmount, +limit);
 				AllowedExpenses[Program[eni-1]] += AllowedAmount.value;
 				ProgramElement.style.color = NonqualColor;
-				NontaxableExpenses[Program[eni-1]] += ((arguments[1]) ? AllowedAmount.value : 0 ); // v3.12
 			}
 			ProgramElement.innerHTML = ExpenseAmount;
 		}
@@ -2062,8 +2090,8 @@
 
 		// Look up the tax
 
-		// Kiddie tax in scope in 2018 when rules changed
-		if ((TaxYear.value >= 2018) && isStudent) {
+		// Kiddie tax in scope in 2019 when rules changed
+		if ((TaxYear.value == 2019) && isStudent && KiddieAllow.checked) {
 			// Definition of earned/unearned is different if kiddie tax applies
 			ctEarned = Math.max(0, ctEarned - ctScholar);
 			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
@@ -2348,8 +2376,9 @@
 	function Optimize() {
 	//----------------------------------------------------------------------------------------
 		if (NRCreditCheck()) {
+			Optimizing = false;
 			Optimized = false;
-			return(1);
+			return;
 		}
 		Optimizing = true;
 		GapAll.checked = true;
@@ -2357,7 +2386,11 @@
 		BudgetChange();
 		PlotLowSch = low = 0;
 		PlotHighSch = high = (ScholarTaxableLimitYes.checked) ? +ScholarTaxableLimit.value : +ScholarTaxableMax.innerHTML;
-		if (PlotHighSch == PlotLowSch) return;
+		if (PlotHighSch == PlotLowSch) {
+			Optimizing = false;
+			Optimized = false;
+			return;
+		}
 		var Plotview = window.open("","","width=" + (OptMarginL+PlotWidth+PlotMarginR) +", height=" + (PlotMarginT+OptHeight+PlotMarginB) + ", resizable=no");
 		Plotview.document.writeln("<!DOCTYPE html>");
 		Plotview.document.writeln("<html>");
@@ -2695,10 +2728,13 @@
 
 		// Add the data
 		var eligible = [StudentAOC.innerHTML == "Yes", StudentLLC.innerHTML == "Yes", StudentTNF.innerHTML == "Yes"]
-		var progColor = ["blue","orange","red"];
-		var typeCode = ["AOC", "LLC", "TNF"];
+		var progColor = ["blue", "orange", "red"];
+		var progCode = ["AOC", "LLC", "TNF"];
+
 		for (var progIdx = 0; progIdx < 3; progIdx++) {
 			if (eligible[progIdx]) {
+				// nqntAmount is the non-qualified amount that is not taxable - shift the curve
+				var nqntAmount = Math.max(0, QualExpenses["AOC"] - QualExpenses[progCode[progIdx]]);
 				PlotCanv.beginPath();
 				PlotCanv.strokeStyle = progColor[progIdx];
 				PlotCanv.fillStyle = progColor[progIdx];
@@ -2707,7 +2743,7 @@
 					xy = plotProgram[iData].split(",");
 					x0 = "";
 					y0 = (iData == 0) ? xy[progIdx + 2] : "";
-					x1 = xy[0];
+					x1 = Math.max(0, xy[0] - nqntAmount);
 					AddPlot(x0, y0, x1, xy[progIdx + 2]);
 				}
 			}
@@ -2953,21 +2989,21 @@
 	As an example of how the optimizer works, try the following:
 	<div class="example">
 		<ul class="circle">
-			<li>In tax year 2018, George is a 25 year old taxpayer attending
+			<li>In tax year 2022, George is a 25 year old taxpayer attending
 			a school half time that qualifies for the American opportunity credit.
-			He and his wife Sally have one child and they earned income of $22,500 for the year.</li>
+			He and his wife Sally have one child and earned income of $24,500 for the year.</li>
 			<li>George has received an unrestricted grant of $4,000, 
 			used to pay for his $4,000 tuition and $500 for books.</li>
 		</ul>
 	</div>
 	<ul>
 		<li>Without optimizing, the entire grant is used to pay for the tuition, they owe no tax
-		and they will receive a refundable $200 for AOC, $1400 for ACTC and $3,461 earned income credit.
+		and they will receive a refundable $200 for AOC, $1500 for ACTC and $3,733 earned income credit.
 		Sounds pretty good, right?</li>
 		<li>But if you optimize, using $4,000 as living expenses,
-		you will find that they will now have to pay a little tax by declaring $1,894 taxable, 
-		but will gain an additional $636 by receiving $840 in AOC and $39 education credit, which offsets
-		the resulting tax and the decrease (-$4) in the earned income credit.
+		you will find that they will now have to pay a little tax by declaring $1,794 taxable, 
+		but will gain an additional $828 by receiving $830 in AOC and $39 education credit, which offsets
+		the resulting tax and the decrease (-$2) in the earned income credit.
 		To see what&apos;s happening, <button class="noPrint" onclick="ShowExample(true)">click here</button>.</li>
 		<span id="exampleGraph" class="noPrint center">
 				<button onclick="ShowExample(false)">Click to close graph</button>
@@ -3225,7 +3261,7 @@
 			<td></td>
 			<td></td></tr>
 		<tr>
-			<td class="FSindent">- Amount (up to <span id="ScholarTaxableMax"></span>) that you wish to make taxable for possible larger tax benefit:
+			<td class="FSindent">- Amount (up to <span id="ScholarTaxableMax"></span>) that you wish use for nonqualified expenses for possible larger tax benefit:
 				<span id="taxInfo" class="help"
 					onmouseover="taxInfoText.style.display='block';"
 					onmouseout="taxInfoText.style.display='none';">&nbsp;?&nbsp;
@@ -3370,7 +3406,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="SCHClass" id="LivingSCH"></td></tr>
 		<tr>
 			<td><input id="InsuranceOption" type="checkbox" /><span id="InsuranceAllowed"></span></td>
-			<td>Required insurance or student health fees:</td>
+			<td>Insurance or student health fees:</td>
 			<td><input id="Insurance" type="number" /></td>
 			<td class="AOCClass" id="InsuranceAOC"></td>
 			<td class="LLCClass" id="InsuranceLLC"></td>
@@ -4324,3 +4360,4 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 </body>
 </html>
+
