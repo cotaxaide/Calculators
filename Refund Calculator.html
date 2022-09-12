@@ -233,9 +233,10 @@
 	// To Do:
 	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
+	VERSION = "(Version 2.22, 9/12/2022)";
+	//	2021 changed non-itemizing charitable contributions to after AGI
 	VERSION = "(Version 2.21, 7/24/2022)";
 	//	Modifications due to _TaxLookup now returns an array
-	//	2021 changed non-itemizing charitable contributions to after AGI
 	//VERSION = "(Version 2.20, 3/19/2022)";
 	//	Corrected use of non-refundable credits error
 	//	Corrected age 6 count which was blank instead of 0
@@ -342,9 +343,9 @@
 	var ComputationCompleteAlert = false;
 	var MyinputList = [];
 	var NeedData = 0;
-	var PY = 0;
-	var CY = 0;
-	var NY = 0;
+	var TY = 0; // tax year
+	var CY = 0; // tax year of data being entered
+	var PY = 0; // prior year to the data being entered
 
 	//----------------------------------------------------------------------------------------
 	function Initialize() {
@@ -441,9 +442,9 @@
 			}
 
 		// Set year values, used a lot
-		NY = +TaxYear.value;
-		CY = NY - 1;
-		PY = NY - 2;
+		TY = +TaxYear.value;
+		CY = TY - 1;
+		PY = TY - 2;
 
 		// Determine exemption amount
 		Exemption.value = (Exemptions + +Dependents.value) * _Standard[CY].split(",")[0];
@@ -461,27 +462,19 @@
 		}
 		else CYStandard.innerHTML = "TBD";
 	
-		CTC0CountRow.style.display = (PY == 2020) ?  "inline" : "none" ;
-		CashContribRow.style.display = (PY >= 2019) ? "table-row" : "none" ;
-		if (NY < 2021) CashContrib.value = "";
-		if (NY >= 2019) {
-			DependentsRow.style.display =
-			DependentsNumber.style.display = "none";
-			ODCCountRow.style.display = "inline";
-			CTC0Count.value = 0;
-			Dependents.value = "";
-			TaxableStateLabel.innerHTML = "Schedule 1 line 1";
-			TaxableSalesLabel.innerHTML = "Schedule 1 line 8";
-		}
-		else { // 2018
-			DependentsRow.style.display =
-			DependentsNumber.style.display = "inline"
-			ODCCountRow.style.display = "none";
-			CTC0Count.value = 0;
-			TaxableStateLabel.innerHTML = "Schedule 1 line 10";
-			TaxableSalesLabel.innerHTML = "Schedule 1 line 21";
-		}
+		CashContribYear = ((CY == 2020) || (CY == 2021)); // T/F
+		CTC0Year = (CY == 2021); // T/F
 
+		CashContribRow.style.display = (CashContribYear) ? "table-row" : "none" ;
+		CTC0CountRow.style.display = (CTC0Year) ?  "inline" : "none" ;
+		if (! CTC0Year) CTC0Count.value = 0;
+		if (! CashContribYear) CashContrib.value = "";
+		DependentsRow.style.display =
+		DependentsNumber.style.display = "none";
+		ODCCountRow.style.display = "inline";
+		Dependents.value = "";
+		TaxableStateLabel.innerHTML = "Schedule 1 line 1";
+		TaxableSalesLabel.innerHTML = "Schedule 1 line 8";
 		PostCreditLineNo.innerHTML = "1040 line 13";
 		SalesTaxText.style.display = "none";
 		EnergyRow.style.display = "none";
@@ -497,7 +490,7 @@
 		// Update lines containing dates
 
 		TPNameHeader.innerHTML = CY + " Taxpayer Information";
-		RefundHeader.innerHTML = "Refunds received in " + NY + " for the return filed in " + CY;
+		RefundHeader.innerHTML = "Refunds received in " + TY + " for the return filed in " + CY;
 		SchedAHeader.innerHTML = CY + " Schedule A Test Information";
 		NonTaxableHeader.innerHTML = "<hr />" + CY + " Negative Taxable Income Test Information";
 		QBIHeader.innerHTML = "<hr />" + CY + " Qualified Business Income Adjustment Test Information";
@@ -512,13 +505,13 @@
 		PaidCYLabel.innerHTML = "&nbsp;&nbsp;" + CY + " withholding and Q1-3 estimated payments total:";
 		PaidCYText.innerHTML = "(Calculated) Should include Q4 estimated payment if paid prior to 12/31/" + CY + " and a payment with an extension to file";
 		EstPY4QText.innerHTML = "Typically paid in January. Also, include any other payments for " + CY + " or earlier";
-		NYEstimatesQ.innerHTML = "State tax payment for " + CY + ", made in " + NY;
-		EstNY4QLabel.innerHTML = "&nbsp;&nbsp;" + CY + " 4Q estimated payment:";
+		TYEstimatesQ.innerHTML = "State tax payment for " + CY + ", made in " + TY;
+		EstTY4QLabel.innerHTML = "&nbsp;&nbsp;" + CY + " 4Q estimated payment:";
 		Est4Q.innerHTML = "Check if there were ANY state income tax payments made in " + CY + " other than withholding";
 		EstQ4Questions.style.display = (StateTaxRefund.value) ? "inline" : "none" ;
 		CYAllocLabel.innerHTML = "&nbsp;&nbsp;" + CY;
-		NYAllocLabel.innerHTML = "&nbsp;&nbsp;" + NY;
-		NYAllocText.innerHTML = "This will reduce the " + CY + " Q4 deduction &ndash; part has already been refunded!";
+		TYAllocLabel.innerHTML = "&nbsp;&nbsp;" + TY;
+		TYAllocText.innerHTML = "This will reduce the " + CY + " Q4 deduction &ndash; part has already been refunded!";
 		SALTLineNo.innerHTML = _LineNo[CY + ":SALT"];
 		SALTLimit.innerHTML = _SALT[CY] / ((FilingStatus.value == "MFS") ? 2 : 1);
 		ItemizedLineNo.innerHTML = _LineNo[CY + ":ItemDed"];
@@ -530,7 +523,7 @@
 		SalaryText.innerHTML = "From Form 1040 line " + _LineNo[CY + ":Salary"];
 		BusinessText.innerHTML = "From Form 1040 " + _LineNo[CY + ":Business"];
 		OldNRCreditsLineNo.innerHTML = _LineNo[CY + ":NRCredit"];
-		DedNY4QYear.innerHTML = CY;
+		DedTY4QYear.innerHTML = CY;
 		QBINetCGRow.style.display = "none"; // A place holder for calculated QBI Cap Gains
 		QBIBusinessLineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":Business"];
 		QBISEPLineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":SEP"];
@@ -560,8 +553,8 @@
 		TaxableSalesHeader.style.display =
 		TaxableSalesRow.style.display = (FedTest) ? "table-row" : "none" ;
 		NotDone.style.display = (StateTest + FedTest) ? "block" : "none" ;
-		DedNY4QRow.style.display =
-		DedNY4QHeader.style.display = (DedNY4Q.value) ? "table-row" : "none" ;
+		DedTY4QRow.style.display =
+		DedTY4QHeader.style.display = (DedTY4Q.value) ? "table-row" : "none" ;
 	
 		Tax_Calc();
 	}
@@ -639,8 +632,8 @@
 		EstPY4Q.style.backgroundColor = "";
 		if (isNaN(DuePY4Q.value) || (+DuePY4Q.value < 0)) DuePY4Q.value = "";
 		DuePY4Q.style.backgroundColor = "";
-		if (isNaN(EstNY4Q.value) || (+EstNY4Q.value < 0)) EstNY4Q.value = "";
-		EstNY4Q.style.backgroundColor = "";
+		if (isNaN(EstTY4Q.value) || (+EstTY4Q.value < 0)) EstTY4Q.value = "";
+		EstTY4Q.style.backgroundColor = "";
 		if (isNaN(OldCredits.value) || (+OldCredits.value < 0)) OldCredits.value = "";
 		OldCredits.style.backgroundColor = "";
 		if (isNaN(ForeignTax.value) || (+ForeignTax.value < 0)) ForeignTax.value = "";
@@ -713,7 +706,7 @@
 	//----------------------------------------------------------------------------------------
 		// Determine amount of state tax or sales tax refund is taxable
 
-		if ((+StateTaxRefund.value + +SalesTaxRefund.value) || (TaxYear.value > 2018)) {
+		if (+StateTaxRefund.value + +SalesTaxRefund.value) {
 			TestingSchedAFor.innerHTML = "Testing for sales tax and state income tax withholding difference";
 			RefundsButton.style.display = "none";
 			SchedAButton.style.display = "inline";
@@ -783,7 +776,7 @@
 
 	//----------------------------------------------------------------------------------------
 		// Determine if property tax refund is limited
-		if ((PropertyTaxRefund.value) || (TaxYear.value > 2018)) {
+		if (PropertyTaxRefund.value) {
 			PropertyRow.style.display = "table-row";
 
 			// Check the input data
@@ -914,7 +907,7 @@
 			}
 			else {
 				// Check the input data
-				if ((PY == 2019) && CashContrib.value == "") {
+				if (CashContribYear && CashContrib.value == "") {
 					NeedData++;
 					CashContrib.style.backgroundColor = "yellow";
 					CashContrib.focus();
@@ -939,14 +932,26 @@
 				// OK to calculate
 				NonSchedAContrib = 0;
 				// For 2020, NonSchedAContrib is an adjustment
-				if (PY == 2020) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFS") ? 150 : 300 ), +CashContrib.value );
+				if (CY == 2020) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFS") ? 150 : 300 ), +CashContrib.value );
+				
 				// For 2021, NonSchedAContrib adds to the deduction
-				if (PY == 2021) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFJ") ? 600 : 300 ), +CashContrib.value );
+				var ItemizedAmount = +Itemized.value;
+				if (CY == 2021) {
+					NonSchedAContrib = Math.min( ( (FilingStatus.value == "MFJ") ? 600 : 300 ), +CashContrib.value );
+					if ((ItemizedAmount <= +StandardDeduction.value + NonSchedAContrib) && (! MustItemize.checked)) {
+						message = "Using itemized deductions in " + CY + " is not the best option.";
+						message += "\n\nYou may wish to amend that return to only use the cash contributions";
+						message += " as a deduction rather than itemizing to get a greater refund.";
+						message += "\n\nThis makes the refund nontaxable.";
+						alert(message);
+						ItemizedAmount = +StandardDeduction.value;
+					}
+					else {
+						ItemizedAmount = Math.max(0, ItemizedAmount - NonSchedAContrib);
+					}
+				}
 
-				// For 2022, if ItemizedDiff goes to 0, CashContrib goes to NonSchedAContrib and we lose the advantage
-				if (CY == 2022) NonSchedAContrib = -Math.min( 1, +CashContrib.value) ; // will be 1 or 0
-
-				ItemizedDiff = Math.max(0, +Itemized.value - +StandardDeduction.value - NonSchedAContrib);
+				ItemizedDiff = Math.max(0, ItemizedAmount - +StandardDeduction.value);
 				NewTotalTaxable = Math.min(ItemizedDiff, TotalTaxable);
 				NewTotalPct = NewTotalTaxable / TotalTaxable;
 
@@ -1037,7 +1042,7 @@
 					QBIDCurrent.style.backgroundColor = "";
 
 					if (Dependent.checked) QBIBusiness.value = Math.round(+Business.value);
-					if (+QBIBusiness.value > 0) QBISETax.value = _SETax(PY, QBIBusiness.value)[1];
+					if (+QBIBusiness.value > 0) QBISETax.value = _SETax(CY, QBIBusiness.value)[1];
 					if (QBIBusiness.value == "") {
 						NeedData++;
 						QBISETax.value = "";
@@ -1300,7 +1305,7 @@
 				// Calculate the CTC if the data is available
 				CTCCalc = (CTCAGI.value != "")
 					&& (CTCCount.value != "")
-					&& ((NY < 2022) || (CTC0Count.value != ""))
+					&& ((TY < 2022) || (CTC0Count.value != ""))
 					&& (ODCCount.value != "");
 				if (CTCCalc) {
 					CTCChild = +CTCCount.value + (+CTC0Count.value / 100);
@@ -1327,7 +1332,7 @@
 						CTCCount.focus();
 					}
 					if (NeedData) return;
-					else if ((NY == 2022) && (CTC0Count.value == "")) {
+					else if ((TY == 2022) && (CTC0Count.value == "")) {
 						CTC.value = "";
 						NeedData++;
 						CTC0Count.style.backgroundColor = "yellow";
@@ -1374,7 +1379,7 @@
 					NeedData++;
 					Retirement.focus();
 					}
-				else if ((NY <= 2018) && (Energy.value == "")) {
+				else if (Energy.value == "") {
 					Energy.style.backgroundColor = "yellow";
 					NeedData++;
 					Energy.focus();
@@ -1450,8 +1455,8 @@
 	//----------------------------------------------------------------------------------------
 		// Allocate state tax refund if it bridges multiple years
 		CYAlloc.value = Math.round(StateTaxRefundTaxable);
-		NYAlloc.value = 0;
-		DedNY4Q.value = "";
+		TYAlloc.value = 0;
+		DedTY4Q.value = "";
 		if (StateTaxRefundTaxable && Est4QYes.checked) {
 			AllocationDiv.style.display = "block";
 			AllocationTable.style.display = (NoAllocation.checked) ? "none" : "table" ;
@@ -1484,27 +1489,27 @@
 					return;
 				}
 
-				if (EstNY4Q.value == "") {
+				if (EstTY4Q.value == "") {
 					NeedData++;
-					EstNY4Q.style.backgroundColor = "yellow";
+					EstTY4Q.style.backgroundColor = "yellow";
 				}
 				if (NeedData) return;
 
 				// OK to calculate
-				PYTotal = (+PaidCY.value + +EstNY4Q.value);
-				if (PYTotal == 0) CYAlloc.value = 0;
-				else CYAlloc.value = Math.round((+StateTaxRefundTaxable * +PaidCY.value) / PYTotal);
-				NYAlloc.value = Math.round(+StateTaxRefundTaxable - +CYAlloc.value);
+				CYTotal = (+PaidCY.value + +EstTY4Q.value);
+				if (CYTotal == 0) CYAlloc.value = 0;
+				else CYAlloc.value = Math.round((+StateTaxRefundTaxable * +PaidCY.value) / CYTotal);
+				TYAlloc.value = Math.round(+StateTaxRefundTaxable - +CYAlloc.value);
 				StateTaxRefundTaxable = +CYAlloc.value; // update to the new taxable amount
-				DedNY4Q.value = Math.round(Math.max(0, +EstNY4Q.value - +NYAlloc.value));
+				DedTY4Q.value = Math.round(Math.max(0, +EstTY4Q.value - +TYAlloc.value));
 			}
 		}
 		else {
 			AllocationDiv.style.display = "none";
 		}
 
-		DedNY4QRow.style.display =
-		DedNY4QHeader.style.display = (DedNY4Q.value) ? "table-row" : "none" ;
+		DedTY4QRow.style.display =
+		DedTY4QHeader.style.display = (DedTY4Q.value) ? "table-row" : "none" ;
 		if (NeedData == 0) ComputationComplete = true;
 
 		Status_Test();
@@ -2055,18 +2060,18 @@
 				<td><input id="PaidCY" type="myinput" disabled="true"/></td>
 				<td id="PaidCYText">(Calculated) May include Q4 estimated payment if paid prior to 12/31.</td></tr>
 			<tr class="underline">
-				<td colspan="3"><br /><span id="NYEstimatesQ"></span></td></tr>
-			<tr id="EstNY4QRow"><td id="EstNY4QLabel"></td>
-				<td><input id="EstNY4Q" type="myinput" /></td>
-				<td id="EstNY4QText">Note: this may not be fully deductible. See results below.</td></tr>
+				<td colspan="3"><br /><span id="TYEstimatesQ"></span></td></tr>
+			<tr id="EstTY4QRow"><td id="EstTY4QLabel"></td>
+				<td><input id="EstTY4Q" type="myinput" /></td>
+				<td id="EstTY4QText">Note: this may not be fully deductible. See results below.</td></tr>
 			<tr class="underline">
 				<td colspan="3"><br />State income tax refund allocation:</td></tr>
 			<tr>	<td id="CYAllocLabel"></td>
 				<td><input id="CYAlloc" type="myinput" disabled="true" /></td>
 				<td></td></tr>
-			<tr>	<td id="NYAllocLabel"></td>
-				<td><input id="NYAlloc" type="myinput" disabled="true" /></td>
-				<td id="NYAllocText"></td>
+			<tr>	<td id="TYAllocLabel"></td>
+				<td><input id="TYAlloc" type="myinput" disabled="true" /></td>
+				<td id="TYAllocText"></td>
 			</tr>
 		</table>
 		<button id="AllocationButton" class="hidden">Next</button>
@@ -2090,11 +2095,11 @@
 			<td><span id="TaxableSalesLabel">1040 line 21</span></td>
 			<td><input id="TaxableSales" type="myinput" disabled="true" /></td>
 			<td class="comment">(TS Income &gt; Other Income)<span id="SummaryB"></span></td></tr>
-		<tr id="DedNY4QHeader">
-			<td colspan="3" class="underline"><br /><span id="DedNY4QYear"></span> 4th quarter estimated payment:</td></tr>
-		<tr id="DedNY4QRow">
+		<tr id="DedTY4QHeader">
+			<td colspan="3" class="underline"><br /><span id="DedTY4QYear"></span> 4th quarter estimated payment:</td></tr>
+		<tr id="DedTY4QRow">
 			<td><span class="comment">Part of Sched A line 5a</span></td>
-			<td><input id="DedNY4Q" type="myinput" disabled="true" /></td>
+			<td><input id="DedTY4Q" type="myinput" disabled="true" /></td>
 			<td>(Federal Section &gt; Deductions &amp; Itemized Deductions &gt;
 				Taxes You Paid &gt; Prior Year 4th Quarter...)<span id="SummaryC"></span></td></tr>
 	</table>
