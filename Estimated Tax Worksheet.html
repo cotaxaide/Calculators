@@ -23,7 +23,7 @@
 	textarea {
 		width: calc(100% - 5px);
 		max-width: calc(100% - 5px);
-		height: 1.2em;
+		height: 1.5em;
 		resize: none;
 		overflow: hidden;
 	}
@@ -172,11 +172,6 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2014.js"></script>
-<script src="Tax_Data/IRS_2015.js"></script>
-<ascript src="Tax_Data/IRS_2016.js"></script>
-<script src="Tax_Data/IRS_2017.js"></script>
-<script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
@@ -196,12 +191,18 @@
 	//	Henry Geisser		Bob Schroer		Chuck Sherman
 	//	Ron Bower		Barry Schwarz		Erica Adams
 	//	Fred Marker		Kathleen Quinn		Robert Sinsheimer
-	//	John Onder		Steve Mauri
+	//	John Onder		Steve Mauri		
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.40a, 4/25/2022)";
+	var VERSION = "(Version 3.41, 9/11/2022)";
+	//	Correction to maximize 2021 with cash gift to charity
+	//var VERSION = "(Version 3.40c, 9/1/2022)";
+	//	Changed page restart to support OH state link
+	//var VERSION = "(Version 3.40b, 8/2/2022)";
+	//	Added state link for OH to capture calc data in Show_Results()
+	//var VERSION = "(Version 3.40a, 4/25/2022)";
 	//	Minor change to IRA and HSA limits with footnotes added
 	//	Removed IRA withdrawal calc shown in footnotes block
 	//	Removed 2021 CARES act modifications for 2022
@@ -409,7 +410,7 @@
 		}
 
 		// Set the default to the tax year
-		TY = TaxYear.value = _DefaultYear + 1;
+		TY = +(TaxYear.value = _DefaultYear + 1);
 
 		// Create the data arrays and initialize inputs
 		TPMFJiList = document.getElementsByClassName("wkti"); // inputs
@@ -515,8 +516,8 @@
 	//----------------------------------------------------------------------------------------
 
 		// Change tax year?
-		TaxYear3.innerHTML = TaxYear2.innerHTML = TY = TaxYear.value;
-		LY1.innerHTML = LY2.innerHTML = LY3.innerHTML = LY4.innerHTML = (+TaxYear.value - 1);
+		TaxYear3.innerHTML = TaxYear2.innerHTML = TY = +TaxYear.value;
+		LY1.innerHTML = LY2.innerHTML = LY3.innerHTML = LY4.innerHTML = (TY - 1);
 		Preliminary.style.display = (_Preliminary[TY]) ? "inline" : "none";
 		MFSoptionText.innerHTML = (TY == _StopYear) ? "will be living" : "lived with" ;
 
@@ -550,7 +551,7 @@
 		}
 		else {
 			DependentsRow.style.display = "table-row";
-			Dependents0Row.style.display = (TaxYear.value >= 2021) ?  "table-row" : "none";
+			Dependents0Row.style.display = (TY == 2021) ?  "table-row" : "none";
 			EICRow.style.display = "table-row";
 			CTCRow.style.display = "table-row";
 			CTCage = (TY >= 2021) ? 18 : 17;
@@ -945,7 +946,7 @@
 
 		// Unemployment and Other Income adustments for 2020
 		var MFJUCE = 0;
-		if ((+TaxYear.value == 2020) && (AllowUCE)) {
+		if ((TY == 2020) && (AllowUCE)) {
 			var UCE_limit = 10200;
 			TPMFS["TPUCE"] = Math.min(+TPMFS["Unemployment"], UCE_limit);
 			SPMFS["SPUCE"] = Math.min(+SPMFS["Unemployment"], UCE_limit);
@@ -1041,7 +1042,7 @@
 
 		// Recalculate if UCE can be used
 		UCElimit = (FilingStatusValue === "MFS") ? 75000 : 150000;
-		if ((TaxYear.value == 2020) && (! AllowUCE) && (CalcOut["AGI"] < UCElimit)) {
+		if ((TY == 2020) && (! AllowUCE) && (CalcOut["AGI"] < UCElimit)) {
 			CalcOut["CharityStandard20"] = 0; // prevents doubling
 			Do_Calcs(CalcType, CalcIn, true)
 			}
@@ -1127,7 +1128,7 @@
 		ItemizedValue = +CalcOut["Medical"] + +CalcOut["TaxesPaid"] + +CalcIn["InterestPaid"] +
 			+CalcOut["CharityTotal"] + +CalcIn["OtherItemized"];
 		// don't use += in the following statement
-		if (+TY < 2018) ItemizedValue = +ItemizedValue + +CalcIn["Miscellaneous"];
+		if (TY < 2018) ItemizedValue = +ItemizedValue + +CalcIn["Miscellaneous"];
 		CalcOut["Itemized"] = ItemizedValue;
 
 		// Are itemized deductions limited by Pease (high income) deduction limit?
@@ -1159,7 +1160,7 @@
 		
 		CalcOut["Itemizing"] = (Deductions !== CalcOut["Standard"]); // T/F
 
-		if (+TaxYear.value == 2020) {
+		if (TY == 2020) {
 			// Adjust the charitable standard deduction amount
 			if ((! CalcOut["Itemizing"]) && (CalcOut["CharityStandard20"] == 0)) {
 				CalcOut["CharityStandard20"] = Math.min(CalcIn["Charity"], charityLimit);
@@ -1169,16 +1170,14 @@
 				CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard20"] + taxableSS_charitydiff);
 			}
 		}
-		if (+TaxYear.value > 2020) {
+
+		if (TY == 2021) {
 			// Adjust the charitable standard deduction amount
-			if ((! CalcOut["Itemizing"]) && (CalcOut["CharityStandard"] == 0)) {
-				CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
-				//CalcOut["TaxableSS"] += taxableSS_charitydiff; 
-				//CalcOut["Gross"] += taxableSS_charitydiff;
-				//CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard"];
-				//CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard"] + taxableSS_charitydiff);
-				Deductions += CalcOut["CharityStandard"];
+			CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
+			if (CalcOut["Itemized"] < CalcOut["CharityStandard"] + CalcOut["Standard"]) {
+				CalcOut["Itemizing"] = false;
 			}
+			else CalcOut["CharityStandard"] = 0;
 		}
 
 		CalcOut["Deductions"] = Math.round(Deductions);
@@ -1218,7 +1217,12 @@
 		}
 
 		// Determine total deductions
-		CalcOut["TotalDeductions"] = Deductions + QBIDeduction;
+		if (CalcOut["CharityStandard"]) {
+			CalcOut["TotalDeductions"] = CalcOut["Standard"] + CalcOut["CharityStandard"];
+		}
+		else {
+			CalcOut["TotalDeductions"] = CalcOut["Deductions"] + QBIDeduction;
+		}
 
 		// Determine taxable amount
 		CalcOut["TaxableAmount"] = Math.max(0, PostExemptAmount - QBIDeduction);
@@ -1471,12 +1475,12 @@
 		ResultMessage = "Best result is " + ( (BestResultIsMFS) ? "MFS" : "MFJ" );
 		if (BestResultIsMFS) {
 			ResultMessage += "<br />and " + ( (ItemizedIsBest) ? "" : "not" ) + " itemizing.";
-			if (MFStogether.checked) {
-				TPMFSMAGI = (TP65.checked) ? (+TPAGI.innerHTML + +TPTaxExempt.innerHTML) : 0 ;
-				SPMFSMAGI = (SP65.checked) ? (+SPAGI.innerHTML + +SPTaxExempt.innerHTML) : 0 ;
-				if (Math.max(TPMFSMAGI, SPMFSMAGI) > _MEDBMFS[TY]) {
-					ResultMessage += "<br /><br />CAUTION:<br />Filing MFS may significantly increase Medicare Part B premiums in later years.";
-				}
+		}
+		if (MFStogether.checked) {
+			TPMFSMAGI = (TP65.checked) ? (+TPAGI.innerHTML + +TPTaxExempt.innerHTML) : 0 ;
+			SPMFSMAGI = (SP65.checked) ? (+SPAGI.innerHTML + +SPTaxExempt.innerHTML) : 0 ;
+			if ((TPMFSMAGI > _MEDBMFS[TY]) || (SPMFSMAGI > _MEDBMFS[TY])) {
+				ResultMessage += "<br /><br />CAUTION:<br />Filing MFS may significantly increase Medicare Part B premiums in later years.";
 			}
 		}
 		if ((R1 < 0) || (R2 < 0)) {
@@ -1484,6 +1488,13 @@
 		}
 
 		TextResult.innerHTML = ResultMessage;
+
+		// Added for OH to allow access to results of this function's calculations
+		try {
+			window.parent.updateFedDataForState();	// need to catch err until all files are fully loaded
+		}						// this also avoids issues when state code isn't present
+		catch(err) {	// do nothing, just continue
+		}
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -1606,7 +1617,7 @@
 </center>
 
 <div id="ClearAndPrint" class="noPrint">
-	<button onclick="window.open(window.location, '_self')">Clear and reset calculator</button>
+	<button onclick="window.top.location.reload()">Clear and reset calculator</button>
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </div>
 	
@@ -1969,7 +1980,7 @@
 				</td><td></td>
 			<td id="QBIAmount" class="calculated wktc">0</td></tr>
 		<tr><td></td>
-			<td colspan="2">Total Deductions</td>
+			<td colspan="3">Total Deductions</td>
 			<td id="TotalDeductions" type="text" class="calculated wktc"></td></tr>
 		<tr><td colspan="5">Taxable income:</td></tr>
 		<tr><td></td>
