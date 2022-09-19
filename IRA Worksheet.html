@@ -6,69 +6,158 @@
 	<title>IRA Worksheet</title>
 
 <style type="text/css">
-	html {background-color: #ccccaa;}
-	body {background-color: #ccccaa; font-family: sans-serif; font-size: 0.9em; padding: 0 2.5% 0 2.5%;}
-	button {cursor: pointer; background-color: lightgreen;}
-	table {background-color: #eeeeaa; border-collapse:collapse;}
-	table {border-top: 1px solid #d1d1a1;}
-	.datatable tr td:first-child {text-align: left; width: 3em;}
-	.datatable tr td:nth-child(3) {text-align: right; width: 1%;}
-	.datatable tr td:nth-child(4) {text-align: right; width: 1%;}
-	.datatable tr {border-bottom: 1px dotted tan;}
-	.datatable tr:nth-child(11) {
+	html {
+		background-color: #ccccaa;
+	}
+	body {
+		background-color: #ccccaa;
+		font-family: sans-serif;
+		font-size: 0.9em;
+		padding: 0 2.5% 0 2.5%;
+	}
+	button {
+		cursor: pointer;
+		background-color:
+		lightgreen;
+	}
+	table {
+		background-color: #eeeeaa;
+		border-collapse:collapse;
+	}
+	ul {
+		margin-block-start: 0;
+		margin-block-end: 0;
+	}
+	.datatable tr td:first-child {
+		text-align: left;
+		width: 3em;
+	}
+	.datatable tr td:nth-child(3),
+	.datatable tr td:nth-child(4) {
+		text-align: right;
+		width: 1%;
+	}
+	.dotted {
+		border-bottom: 1px dotted grey;
+	}
+	.result_top {
 		background-color: lightgreen;
 		border-color: darkgreen;
 		border-style: solid;
-		border-width: 2px 2px 0 2px;}
-	.datatable tr:nth-child(12) {
+		border-width: 2px 0 0 2px; }
+	.result_middle {
 		background-color: lightgreen;
 		border-color: darkgreen;
 		border-style: solid;
-		border-width: 0 2px;}
-	.datatable tr:nth-child(13) {
-		background-color: lightgreen;
-		border-color: darkgreen;
-		border-style: solid;
-		border-width: 0 2px;}
-	.datatable tr:nth-child(14) {
-		background-color: lightgreen;
-		border-color: darkgreen;
-		border-style: solid;
-		border-width: 0 2px 2px 2px;}
-	div {background-color: #eeeeaa; padding: 5px; border:1px solid black;}
-	h1 {text-align: left; font-size: 110%; text-decoration: underline}
-	tr {vertical-align: middle;}
-	input[type="number"] {text-align: right; width:6em;}
-	input, select {background-color: white;}
-	input:disabled, select:disabled {background-color: lightgrey; font-weight: bold;}
-	#WhoFor {width: 8em;}
-	#TaxYear {width: 6em;}
-	#DistTable {width: 100%;}
-	#DistTable tr td:first-child {width: 8%; min-width: 3em;}
+		border-width: 0 0 0 2px;
+		border-bottom: 1px dotted tan; }
+	div {
+		background-color: #eeeeaa;
+		padding: 5px;
+		border:1px solid black;
+	}
+	h1 {
+		text-align: left;
+		font-size: 110%;
+		text-decoration: underline;
+	}
+	tr {
+		vertical-align: middle;
+	}
+	input[type="number"] {
+		text-align: right;
+		width: 6em;
+	}
+	input[type="comma"] {
+		text-align: right;
+		width: 7em;
+	}
+	input, select {
+		background-color: white;
+	}
+	input:disabled,
+	select:disabled {
+		background-color: lightgrey;
+		font-weight: bold;
+	}
+	#TaxYear {
+		width: 6em;
+	}
+	#IRATotalRow {
+		display: none;
+	}
+	#OptimizeButton {
+		float: right;
+		font-size: 120%;
+		border-radius: 5px;
+	}
+	#QCDTable tr:nth-child(2),
+	#F8606Table tr:nth-child(2),
+	#P590BW11Table tr:nth-child(2) {
+		border: 1px solid black;
+	}
+	#P590BW11Table tr td:nth-child(2) {
+		border-bottom: 1px dotted grey;
+	}
+	#P590BW11DoNotUse {
+		font-weight: bold; margin: auto;
+	}
+	#F8606Table tr td:nth-child(2) {
+		border-bottom: 1px dotted grey;
+	}
+	#DistTable {
+		width: 100%;
+	}
+	#DistTable tr:first-child {
+		font-weight: bold;
+	}
+	#DistTable tr td:first-child {
+		width: 8%;
+		min-width: 3em;
+		font-weight: bold;
+	}
 	#DistTable tr td:nth-child(2),
 	#DistTable tr td:nth-child(3),
 	#DistTable tr td:nth-child(4),
-	#DistTable tr td:nth-child(5) {
-		width: 22.5%;
+	#DistTable tr td:nth-child(5),
+	#DistTable tr td:nth-child(6),
+	#DistTable tr td:nth-child(7) {
+		width: 15.3%;
 		border: 1px solid grey;
 		text-align: center;
 	}
 	#TaxableIRA1,
 	#TaxableIRA2,
-	#TaxableIRA3 {
+	#TaxableIRA3,
+	#TaxableIRA4,
+	#TaxableIRA5 {
 		width: 3em;
 		text-align: right;
 		display: block;
 		margin: auto;
 	}
 
-	.groupheader {font-weight: bold;}
-	.title {font-size:125%; font-weight: bold;}
-	.instruction {text-align: right; text-decoration: italic;}
-	.comment {font-style:italic;}
-	.calculated {text-align: right;}
-	#Error1 {background-color: pink;}
-	#TPName {
+	.groupheader {
+		font-weight: bold;
+	}
+	.title {
+		font-size:125%;
+		font-weight: bold;
+	}
+	.instruction {
+		text-align: right;
+		text-decoration: italic;
+	}
+	.comment {
+		font-style:italic;
+	}
+	.calculated {
+		text-align: right;
+	}
+	.TSentry {
+		background-color: lightgreen;
+	}
+	#TPName { 
 		width: 20em;
 		text-align:left;
 	}
@@ -90,57 +179,88 @@
 	}
 	#ClearAndPrint {
 		width: 16em; 
-		text-align:center; 
-		border:0;
-	       	background-color:transparent;
-		z-index:2;
-		position:absolute; top:0; right:1em;}
-	#ClearAndPrint button {margin: 2px;}
+		text-align: center; 
+		border: 0;
+	       	background-color: transparent;
+		z-index: 2;
+		position: absolute;
+		top: 0;
+		right: 1em;
+	}
+	#ClearAndPrint button {
+		margin: 2px;
+	}
 	#CalcMethodDiv {
-		border:0;
-	       	background-color:transparent;
+		border: 0;
+	       	background-color: transparent;
 		z-index: 2;
 		position: absolute;
 		top: 4.5em;
-		right: 2.2em;
+		right: 5em;
 	}
-	#IRA8606 tr:nth-child(even) {
-		background-color: #ddddaa;
+	#IRA8606_Table,
+	#F1099R_Table,
+	#SchedA_Table {
+		width: 100%;
+	}
+	#QCD70 {
+		position: relative;
+		left: -1.6em;
+		font-weight: bold;
 	}
 	@media print {
-		.doPrint {display:inline;}
-		.noPrint {display:none;}
-		html {background-color: white; font-size: 0.8em;}
-		body {font-size: 0.8em; background-color: white; padding:0; margin:0;}
-		input, select, option {font-size: 0.8em;}
-		table {width: 100%; background-color: white;}
-		#AffordTable {page-break-before: always}
+		.doPrint {
+			display: inline;
+		}
+		.noPrint {
+			display: none;
+		}
+		html {
+			background-color: white;
+			font-size: 0.8em;
+		}
+		body {
+			font-size: 0.8em;
+			background-color: white;
+			padding: 0;
+			margin: 0;
+		}
+		input,
+		select,
+		option {
+			font-size: 0.8em;
+		}
+		table {
+			width: 100%;
+			background-color: white;
+		}
+		div {
+			page-break-inside: avoid;
+		}
 	}
 </style>
 
+<script src="CommonRoutines.js"></script>
 <script src="Tax_Data/IRS_2000.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
 	// Contributors:
-	//	Barry Schwarz
-	//	Bob Crews
-	//	Greg Wendling
-	//	John Haim
-	//	Jheroen Dorenbosch
-	//	John Arenberg
-	//	Larry Ellison
-	//	Bob Fox
-	//	Burt Loper
-	//	Mark Mergenthaler
+	//	Barry Schwarz		Bob Crews 		Greg Wendling
+	//	John Haim 		Jheroen Dorenbosch 	John Arenberg
+	//	Larry Ellison 		Bob Fox 		Burt Loper
+	//	Mark Mergenthaler	Margaret Matulis
 	// --------------------------------------------------------------------------------
 
-	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.07a, 7/9/2021)";
+	var VERSION = "(Version 2.01, 9/19/2022)";
+	//	Added Pub 590B Worksheet 1-1, QCD Adjustment Worksheet and QCD exclusion calc
+	//	Added ability to reconcile IRA adjustment with AGI changes due to IRA taxablility
+	//var VERSION = "(Version 1.07a, 7/9/2021)";
 	//	Added 2021 data
 	//var VERSION = "(Version 1.07, 2/1/2020)";
 	//	Restored the TS calculation option - not fixed (broke again?)
@@ -167,6 +287,12 @@
 	//var VERSION = "(Version 1.00, 12/31/2017)";
 	// --------------------------------------------------------------------------------
 
+	var Input = [];
+	var Calc = [];
+	var ActualMAGIbase = 0;
+	var OptimizingFlag = false;
+	var Iteration = 0;
+
 	//----------------------------------------------------------------------------------------
 	function Initialize() {
 	// This function adds tax year options to the Filing Information section
@@ -187,94 +313,406 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function FileChange() {
+	function SplitOptimize() {
+	// Optimize button has been clicked
+	//----------------------------------------------------------------------------------------
+		OptimizingFlag = true;
+		FileChange();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function FileChange(iteration) {
 	// Calculates the values for TaxSlayer inputs and 8606 results
 	//----------------------------------------------------------------------------------------
+		// Iteration is used for optimization recusion
+		if (iteration == undefined) Iteration = 0;
 
 		// Set tax years
-		TaxYear1.innerHTML =
-		TaxYear2.innerHTML =
-		TaxYear3.innerHTML =
-		TaxYear4.innerHTML =
-		TaxYear5.innerHTML =
-		TaxYear6.innerHTML = +TaxYear.value;
-		TaxYear2b.innerHTML =
-		TaxYear4b.innerHTML = +TaxYear.value + 1;
+		TaxYearInfo.innerHTML =
+		TaxYearQCD1.innerHTML =
+		TaxYearQCD2.innerHTML =
+		TaxYearQCD3.innerHTML =
+		TaxYearIRA1.innerHTML =
+		TaxYearIRA2.innerHTML =
+		TaxYearDIST.innerHTML =
+		TaxYearContrib.innerHTML =
+		TaxYearDist.innerHTML =
+		TaxYearNew.innerHTML =
+		TaxYearConvert.innerHTML = +TaxYear.value;
+		TaxYearIRA2b.innerHTML =
+		TaxYearContribb.innerHTML = +TaxYear.value + 1;
 
-		// Check inputs for errors
-		OldBasis.value = Check_Value(OldBasis.value);
-		NDCTY0.value = Check_Value(NDCTY0.value);
-		NDCTY1.value = Check_Value(NDCTY1.value);
-		DistIRA1.value = Check_Value(DistIRA1.value);
-		DistIRA2.value = Check_Value(DistIRA2.value);
-		DistIRA3.value = Check_Value(DistIRA3.value);
-		ROTHIRA1.value = Check_Value(ROTHIRA1.value);
-		ROTHIRA2.value = Check_Value(ROTHIRA2.value);
-		ROTHIRA3.value = Check_Value(ROTHIRA3.value);
-		ValueIRA1.value = Check_Value(ValueIRA1.value);
-		ValueIRA2.value = Check_Value(ValueIRA2.value);
-		ValueIRA3.value = Check_Value(ValueIRA3.value);
-
-		TSContrib.innerHTML =
-			line04 = +NDCTY1.value;
-			line01 = line04 + +NDCTY0.value;
-			line02 = +OldBasis.value;
-		TSBasis.innerHTML =
-			line03 = line01 + line02;
-			line05 = line03 - line04;
-		TSValue.innerHTML =
-			line06 = +ValueIRA1.value + +ValueIRA2.value + +ValueIRA3.value;
-		TSRollover.innerHTML = +Rollover.value;
-			line06 += +Rollover.value;
-		TSDist.innerHTML =
-			line07 = +DistIRA1.value + +DistIRA2.value + +DistIRA3.value;
-		TSConverted.innerHTML =
-			line08 = +ROTHIRA1.value + +ROTHIRA2.value + +ROTHIRA3.value;
-			line09 = line06 + line07 + line08;
-
-		if (CalcMethod.value == "Accurate") {
-			line10 = (line09) ? (Math.min(1, line05 / line09)) : 0;
+		// Part of contribution deductible
+		if (Split_Yes.checked) {
+			// TaxSlayer does not implement the Pub 590B worksheet 1.1
+			P590BW11Table.style.display = (CalcMethod.value == "Accurate") ?  "inline" : "none";
+			//IRATotalRow.style.display = "none";
+			IRADedRow.style.display = "table-row";
+			if (FilingStatus.value != "MFJ") {
+				SplitSP50.checked = false;
+				SplitSPPlan.checked = false;
+			}
+			if (FilingStatus.value != "MFS") {
+				SplitTogether.checked = false;
+			}
 		}
-		else { // TS Calc Method
-			line10 = (line09) ? (Math.round(1000 * Math.min(1, line05 / line09)) / 1000) : 0; // TaxSlayer rounding
+		else {
+			P590BW11Table.style.display = "none";
+			//IRATotalRow.style.display = "none";
+			IRADedRow.style.display = "none";
+			Total_CTY.value = "";
+			Ded_CTY.value = "";
+			SplitTP50.checked = false;
+			SplitSP50.checked = false;
+			SplitTPPlan.checked = false;
+			SplitSPPlan.checked = false;
+			SplitTogether.checked = false;
+		}
+		SplitDetailsRow.style.display = (Split_Yes.checked) ? "table-row" : "none" ;
+		SplitMFJ50.style.display = (FilingStatus.value == "MFJ") ? "inline" : "none" ;
+		SplitMFJPlan.style.display = (FilingStatus.value == "MFJ") ? "inline" : "none" ;
+		SplitMFS.style.display = (FilingStatus.value == "MFS") ? "inline" : "none" ;
+		OptimizeButton.style.display = ((Split_Yes.checked) && (Iteration == 0)) ? "inline" : "none" ;
+
+		// Disaster repayment
+		DisasterRow.style.display = (TaxYear.value === "2020") ? "table-row" : "none" ;
+		if (Disaster_YesMade.checked) {
+			DisasterRepRow.style.display = "table-row";
+			DisasterMade.style.display = "inline";
+		}
+		else {
+			DisasterRepRow.style.display = "none";
+			DisasterMade.style.display = "none" ;
+			Disaster_Distrib.value = "";
+		}
+		if (Disaster_YesRep.checked) {
+			DisasterRep.style.display = "inline";
+		}
+		else {
+			DisasterRepRow.style.display = "none";
+			DisasterRep.style.display = "none" ;
+			Disaster_Repaid.value = "";
 		}
 
-		line11 = line08 * line10; // nontaxable portion of converted distributions
-			line11a = +DistIRA1.value * line10;
-			line11b = +DistIRA2.value * line10;
-			line11c = +DistIRA3.value * line10;
-		line12 = line07 * line10; // nontaxable portion of nonconverted distributions
-			line12a = +ROTHIRA1.value * line10;
-			line12b = +ROTHIRA2.value * line10;
-			line12c = +ROTHIRA3.value * line10;
-		line13 = line11 + line12; // nontaxable portion of all distributions
-		NewBasis.innerHTML =
-		line14 = Math.max(0, Math.round(line03 - line13)); // new total basis in traditional IRAs
-		line15 = line07 - line12; // taxable amount in traditional IRAs
-		line16 = line08;
-		line17 = line11;
-		line18 = line16 - line17; // taxable amount of conversion to ROTH
-		TaxableIRA1.innerHTML = Math.round(+DistIRA1.value + +ROTHIRA1.value - line11a - line12a);
-		TaxableIRA2.innerHTML = Math.round(+DistIRA2.value + +ROTHIRA2.value - line11b - line12b);
-		TaxableIRA3.innerHTML = Math.round(+DistIRA3.value + +ROTHIRA3.value - line11c - line12c);
-		ta = Math.round(line15 + line18); 
-		errtest = line09 ? (line09 - line05) : 0;
-		Taxable.innerHTML = (errtest < 0) ? "Error" : ta;
-		Error1.innerHTML = (errtest < 0) ? "(Error: prior basis is greater than total IRA values, distributions and conversions)":"";
-		NonTaxable.innerHTML = Math.max(0, +OldBasis.value - +NewBasis.innerHTML);
+		// Initialize total counts
+		Calc.GrossTotal = 0;
+		Calc.DistTotal = 0;
+		Calc.DistTradTotal = 0;
+		Calc.ValueTotal = 0;
+		Calc.ValueTradTotal = 0;
+		Calc.ROTHTotal = 0;
+		Calc.ROTHTradTotal = 0;
+		Calc.QCDTotal = 0;
 
-	}
+		// Enough input to do anything?
+		anyGross = GrossIRA1.value + GrossIRA2.value + GrossIRA3.value + GrossIRA4.value + GrossIRA5.value;
+		anyValue = ValueIRA1.value + ValueIRA2.value + ValueIRA3.value + ValueIRA4.value + ValueIRA5.value;
+		if ( (anyGross === "") || (anyValue === "") ) return; // not enough entered
+
+		// Check inputs for errors and remove commas
+		Input.Adjust_70 = +Get_Value("Adjust_70");
+		Input.QCD_70 = +Get_Value("QCD_70");
+		Input.SplitAGI = +Get_Value("SplitAGI");
+		Input.Disaster_Distrib = +Get_Value("Disaster_Distrib");
+		Input.Disaster_Repaid = +Get_Value("Disaster_Repaid");
+		if (Input.Disaster_Repaid > Input.Disaster_Distrib) { // limit repaid to distribution amount
+			Disaster_Repaid.value = Disaster_Distrib.value;
+			Input.Disaster_Repaid = Input.Disaster_Distrib;
+			alert("Disaster amount paid back cannot be more than what was distributed.");
+		}
+		Input.OldBasis = +Get_Value("OldBasis");
+		Input.Ded_CTY = +Get_Value("Ded_CTY");
+		Input.NonDed_CTY = +Get_Value("NonDed_CTY");
+		Input.NonDed_NTY = +Get_Value("NonDed_NTY");
+		Input.Total_CTY = +Get_Value("Total_CTY");
+		Input.Rollover = +Get_Value("Rollover");
+		for (ira = 1; ira < 6; ira++) {
+			grossx = "GrossIRA" + ira;
+			Input[grossx] = +Get_Value(grossx);
+			rothx = "ROTHIRA" + ira;
+			Input[rothx] = +Get_Value(rothx);
+			qcdx = "QCDIRA" + ira;
+			tradbox = document.getElementById("Trad" + ira, true);
+			Input[qcdx] = +Get_Value(qcdx);
+			valuex = "ValueIRA" + ira;
+			Input[valuex] = +Get_Value(valuex);
+			error = ((Input[rothx] + Input[qcdx]) > Input[grossx]);
+			grossbox = document.getElementById(grossx);
+			grossbox.style.backgroundColor = (error) ? "hotpink" : "" ;
+			if (error) return;
+
+			// Calculated totals
+			Calc.GrossTotal += Input[grossx];
+			distx = "DistIRA" + ira;
+			Calc[distx] = Input[grossx] - Input[rothx] - Input[qcdx];
+			Calc.DistTradTotal += ((tradbox.checked) ? Calc[distx] : 0 );
+			Calc.DistTotal += Calc[distx];
+			Calc.ValueTotal += Input[valuex];
+			Calc.ValueTradTotal += ((tradbox.checked) ? Input[valuex] : 0 );
+			Calc.ROTHTotal += Input[rothx];
+			Calc.ROTHTradTotal += ((tradbox.checked) ? Input[rothx] : 0 );
+			Calc.QCDTotal += Input[qcdx];
+		}
+		Calc.IRAContribTotal_CTY = Input.Ded_CTY + Input.NonDed_CTY;
+		Calc.IRAContribTotal = Calc.IRAContribTotal_CTY + Input.NonDed_NTY;
+		Calc.Disaster_Net = Input.Disaster_Distrib - Input.Disaster_Repaid;
+		Calc.DistSEPTotal = Calc.DistTotal - Calc.DistTradTotal;
+
+		// QCD Adjustment Worksheet
+		if (Calc.QCDTotal) {
+			QCD70.style.display = (+TaxYear.value > 2019) ? "inline" : "none" ;
+			QCDTable.style.display = "block";
+		}
+		else {
+			QCD70.style.display = "none" ;
+			QCDTable.style.display = "none" ;
+			TP70.checked = false;
+		}
+
+		if (TP70.checked) {
+			QCDRow1.style.display =
+			QCDRow2.style.display =
+			QCDRow3.style.display =
+			QCDRow4.style.display =
+			QCDRow6.style.display =
+			QCDRow7.style.display = "table-row";
+		}
+		else {
+			QCDRow1.style.display =
+			QCDRow2.style.display =
+			QCDRow3.style.display =
+			QCDRow4.style.display =
+			QCDRow6.style.display =
+			QCDRow7.style.display = "none" ;
+			Adjust_70.value = "";
+			QCD_70.value = "";
+		}
+
+		// QCD limit check
+		error = (Calc.QCDTotal > 100000);
+		QCD_CTY.style.backgroundColor = (error) ? "hotpink" : "" ;
+		if (error) {
+			alert("Total QCD cannot exceed $100,000.");
+			return;
+		}
+
+		// Take QCD from taxable amount of IRAs
+		var taxableAmount = Math.max(0, Calc.ValueTotal + Calc.GrossTotal - Input.OldBasis - Input.NonDed_CTY);
+		QCD_CTY.innerHTML = Calc.QCDTotal;
+		QCDExclusion = Math.max(0, Calc.QCDTotal - Math.max(0, Input.Adjust_70 - Input.QCD_70));
+		QCD_Exclusion.innerHTML = QCDExclusion;
+		QCDLimit = Math.min(QCDExclusion, taxableAmount);
+		QCD_Limit.innerHTML = QCDLimit;
+		QCDLimitRow.style.display = (QCDLimit < QCDExclusion) ? "table-row" : "none" ; // show if limited
+
+		// Anything left can be deducted on Sched A
+		schedAAmount = Calc.QCDTotal - QCDLimit;
+		SchedA.innerHTML = schedAAmount;
+		QCDBasisRow.style.display = (schedAAmount) ? "table-row" : "none";
+		SchedADiv.style.display = (schedAAmount) ? "block" : "none" ;
+
+		// Adjust inputs for Form 8606 to eliminate QCDs
+		reducedBasis = Input.OldBasis - schedAAmount;
+		Input.OldBasis = Math.max(0, reducedBasis);
+		if (reducedBasis < 0) Input.NonDed_CTY = Math.max(0, Input.NonDed_CTY + reducedBasis);
+		if (schedAAmount) QCD_Basis.innerHTML = Input.OldBasis + Input.NonDed_CTY;
+
+		// Pub 90B Worksheet 1-1
+		W11Note.style.display = "none";
+		W11Line01Out.innerHTML = W11Line01 = Input.OldBasis;
+		W11Line02Out.innerHTML = W11Line02 = Input.Ded_CTY + Input.NonDed_CTY + Input.NonDed_NTY;
+		W11Line03Out.innerHTML = W11Line03 = W11Line01 + W11Line02;
+		W11Line04Out.innerHTML = W11Line04 = Calc.ValueTradTotal + Input.Rollover - Input.Disaster_Repaid;
+		W11Line05Out.innerHTML = W11Line05 = Calc.DistTradTotal + Calc.ROTHTradTotal + Input.Disaster_Repaid + Calc.QCDTotal;
+		var DisasterPart = (W11Line05) ? (Calc.Disaster_Net / W11Line05) : 1 ;
+		W11Line06Out.innerHTML = W11Line06 = W11Line04 + W11Line05;
+
+		// Get the fraction that is basis at year end
+		W11Line07 = (W11Line06) ? (Math.round(1000 * W11Line03 / W11Line06) / 1000) : 1 ; // TaxSlayer rounding
+		W11Line07Out.innerHTML = Math.min(1, W11Line07);
+		if (CalcMethod.value == "Accurate") W11Line07 = (W11Line06) ? (W11Line03 / W11Line06) : 1 ;
+		W11Line07 = Math.min(1, W11Line07);
+
+		W11Line08Out.innerHTML = W11Line08 = Math.round(W11Line05 * W11Line07); // Nontaxable portion
+		W11Line09Out.innerHTML = W11Line09 = W11Line05 - W11Line08; // Taxable portion pre Roth conversion
+		W11Line10Out.innerHTML = W11Line10 = Math.round(W11Line09 * ((W11Line05) ? Calc.ROTHTradTotal / W11Line05 : 1 )); // Roth portion
+		W11Line11Out.innerHTML = W11Line11 = W11Line09 - W11Line10; // Taxable portion post Roth conversion
+
+		// Form 8606 Lines
+		StartValue_CTY.innerHTML = "";
+		F8606Percent.innerHTML = "";
+		NewBasis.innerHTML = "";
+
+		line01 = Input.NonDed_CTY + Input.NonDed_NTY;
+		line02 = Input.OldBasis;
+		line03 = line01 + line02;
+		line04 = Input.NonDed_NTY;
+		line05 = line03 - line04;
+		line06 = Math.max(0, Calc.ValueTotal + Input.Rollover - Input.Disaster_Repaid);
+		
+		need8606 = (Calc.DistTotal + Calc.ROTHTotal + Calc.QCDTotal + line03 > 0);
+		if (! need8606) {
+			line14 = line05;
+			line03 = 0;
+			line05 = "";
+			line08 = 0;
+			line09 = "";
+			line10 = "";
+			line13 = "";
+			line15 = 0;
+			line16 = line08;
+			line17 = 0;
+			line18 = 0;
+		}
+		else if ( (! Split_Yes.checked) || (line05 < W11Line08) || (CalcMethod.value == "TS") ) {
+			line07 = Calc.DistTotal + Input.Disaster_Repaid;
+			DisasterPart = (line07) ? (Calc.Disaster_Net / line07) : 0 ;
+			line08 = Calc.ROTHTotal;
+			line09 = TotalInitialValue = line06 + line07 + line08;
+			StartValue_CTY.innerHTML = line09;
+
+			// Get the fraction that is basis at year end
+			line10 = (line09) ? (Math.round(1000 * line05 / line09) / 1000) : 1 ; // TaxSlayer rounding
+			F8606Percent.innerHTML = Math.min(1, line10);
+			if (CalcMethod.value == "Accurate") line10 = (line09) ? (line05 / line09) : 1 ;
+			line10 = Math.min(1, line10);
+
+			line11 = Math.round(line08 * line10); // nontaxable portion of converted distributions
+			line12 = Math.round(line07 * line10); // nontaxable portion of nonconverted distributions
+			line13 = line11 + line12; // nontaxable portion of all distributions
+			line14 = Math.max(0, line03 - line13); // new total basis in traditional IRAs
+			line15 = line07 - line12; // taxable amount in traditional IRAs
+			line16 = line08;
+			line17 = line11;
+		}
+		else {
+			W11Note.style.display = "inline";
+			line07 = "";
+			line08 = "";
+			line09 = "";
+			line10 = ""
+			line13 = W11Line08;
+			line14 = Math.max(0, Math.round(line03 - line13)); // new total basis in traditional IRAs
+			line15 = W11Line11;
+			line16 = Calc.ROTHTotal; //line08
+			line17 = W11Line08; //line11
+		}
+		P590BW11DoNotUse.style.display = (line05 > W11Line08) ? "none" : "inline" ;
+		Contrib_CTY.innerHTML = line05;
+		NonTaxable.innerHTML = line13;
+		NewBasis.innerHTML = (need8606) ? (Math.min(line14, Calc.ValueTradTotal)) : line14 ;
+		unusedBasis = Math.max(0, line14 - Calc.ValueTradTotal);
+		DisasterReduction.innerHTML = dr = Math.round(line15 * DisasterPart);
+		DisasterNote.style.display = (dr) ? "inline" : "none" ;
+		TaxableI.innerHTML = (need8606) ? (line15 -= dr) : "" ; // Part I taxable amount
+		// taxable amount of conversion to ROTH:
+		line18 = ( (Split_Yes.checked) && (CalcMethod.value == "Accurate") ) ? W11Line10 : Math.max(0, line16 - line17);
+		TaxableII.innerHTML = line18; // Part II taxable amount
+
+		// Distribute nontaxable amounts to IRAs
+		Calc.taxableAmount = line15 + line18;
+		nontaxableAmount = Calc.GrossTotal - Calc.taxableAmount + unusedBasis;
+		schedAdeductible = 0;
+		ta = Input.GrossIRA1 - nontaxableAmount;
+		nontaxableAmount = Math.max(0, -ta);
+		TaxableIRA1.innerHTML = ta1 = Math.max(0, ta);
+		ta = Input.GrossIRA2 - nontaxableAmount;
+		nontaxableAmount = Math.max(0, -ta);
+		TaxableIRA2.innerHTML = ta2 = Math.max(0, ta);
+		ta = Input.GrossIRA3 - nontaxableAmount;
+		nontaxableAmount = Math.max(0, -ta);
+		TaxableIRA3.innerHTML = ta3 = Math.max(0, ta);
+		ta = Input.GrossIRA4 - nontaxableAmount;
+		nontaxableAmount = Math.max(0, -ta);
+		TaxableIRA4.innerHTML = ta4 = Math.max(0, ta);
+		ta = Input.GrossIRA5 - nontaxableAmount;
+		nontaxableAmount = Math.max(0, -ta);
+		TaxableIRA5.innerHTML = ta5 = Math.max(0, ta);
+
+		// TaxSlayer input
+		TSContrib.innerHTML = line04;
+		TSBasis.innerHTML = line02;
+		TSValue.innerHTML = line06 - Input.Rollover;
+		TSRollover.innerHTML = Input.Rollover;
+		TSDist.innerHTML = Calc.DistTradTotal
+		TSConverted.innerHTML = Calc.ROTHTotal;
+
+		// Form 1099-R entries
+		F1099R_Taxable.innerHTML = Calc.taxableAmount;
+
+		// QCD exclusion calc
+		// Reduce each IRA's taxable amount util the QCD total has been exclued
+		// or the taxable amount has been used up.
+
+		nontaxableAmount = Calc.QCDTotal;
+		F1099R_QCD.innerHTML = QCDLimit;
+		F1099R_QCDNotice.style.display = (Calc.QCDTotal) ? "table-row" : "none" ;
+		nontaxableAmount = schedAMax = Math.min(Calc.taxableAmount, QCDLimit);
+		//F1099R_Total.innerHTML = Math.max(0, Calc.taxableAmount - QCDLimit);
+		
+		// Deductible comparison between TaxSlayer and what we expect it to be
+		if (Split_Yes.checked) { // The IRA contribution was limited by AGI
+
+			// ActualMAGIbase is the tax return MAGI for calculating the IRA adjustment to income
+			// less the IRA gross distribution amount.
+			// Iteration 0 is from the TaxSlayer input and assumes that all IRAs are
+			// fully taxable.
+			if (Iteration == 0) {
+				ActualMAGIbase = Input.SplitAGI - Calc.GrossTotal + Input.Ded_CTY;
+			}
+
+			var testMAGI = ActualMAGIbase + Calc.taxableAmount;
+
+			// Get maximum based on AGI
+			IRALimits = _IRADeduction(TaxYear.value, FilingStatus.value, testMAGI, 1000000,
+				SplitTPPlan.checked, SplitTP50.checked,
+				SplitSPPlan.checked, SplitSP50.checked,
+				SplitTogether.checked);
+
+			// Limit to what was actually contributed or what is allowed for our taxable amount
+			var myDedIRA = Math.min(Calc.IRAContribTotal_CTY, IRALimits.TPdeductible);
+
+			// Is there a match?
+			if (Input.Ded_CTY != myDedIRA) { // No
+
+				if (OptimizingFlag) {
+					// Set the new values
+					Ded_CTY.value = myDedIRA;
+					NonDed_CTY.value = Calc.IRAContribTotal_CTY - myDedIRA;
+
+					// Prevent an infinite loop
+					if (Iteration++ > 10) {
+						OptimizingFlag = false;
+						return; // Close enough!
+					}
+
+					// try again with the new estimates
+					FileChange(Iteration);
+
+					OptimizingFlag = false;
+				}
+			}
+		}
+	} // File_Change
 
 	//----------------------------------------------------------------------------------------
-	function Check_Value(amount) {
+	function Get_Value(input) {
 	// Calculates the values for TaxSlayer inputs and 8606 results
 	//----------------------------------------------------------------------------------------
-		amount = amount.replace("\,","");
-		if (isNaN(amount)) alert ("Please enter only digits.");
-		return (amount);
+		this_input = document.getElementById(input);
+		this_input.disabled = false;
+		this_input = document.getElementById(input);
+		this_input.style.backgroundColor = "";
+		amount = this_input.value;
+		amount = amount.replace(/\,/g,"");
+		if (isNaN(amount)) {
+			this_input.style.backgroundColor = "red";
+			alert ("Please enter only digits, commas or periods.");
+			this_input.value = "";
+			return (0);
+		}
+		return (Math.round(amount));
 	}
-
-
 
 </script>
 
@@ -319,164 +757,341 @@
 
 <div id="FilingInfo">
 	<h1>Information for tax year <select id="TaxYear" onchange="FileChange();"></select></h1>
-	<h1>This worksheet is for <input id="TPName" type="text" placeholder="(Name)" /> who is the <select id="WhoFor">
-			<option>Taxpayer</option><option>Spouse</option></select></h1>
-<!--
-	<table id="FilingInfoTbl" onchange="FileChange();" onclick="FileChange();">
-		<tr><td></td><td></td><td></td><td></td><td></td></tr>
-		<tr>
-			<td>Taxpayer&apos;s Name:</td>
-			<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td><td></td><td style="text-align: center"><a href="http://www.aarp.org/work/retirement-planning/required_minimuum_distribution_calculator/" target="_blank">Click here for the<br />AARP RMD Calculator</a></td></tr>
-		<tr>
-			<td>Filing Status:</td>
-			<td style="text-align:top">
-				<select id="FilingStatus" title="Select the taxpayer's filing status.">
-					<option value="SNG">Single</option>
-					<option value="MFJ">MFJ</option>
-					<option value="MFS">MFS</option>
-					<option value="HOH">HOH</option>
-					<option value="WID">Widow(er)</option></select>
-			</td>
-			<td style="text-align:top">
-				<input id="TP65" type="checkbox" title="Taxpayer is age 65 or older"/> TP 65 or older
-				<br /><input id="SP65" type="checkbox" title="Spouse is age 65 or older"/> SP 65 or older</td>
-			<td style="text-align:top">
-				<input id="TPBlind" type="checkbox" title="Taxpayer is blind"/> blind
-				<br /><input id="SPBlind" type="checkbox" title="Spouse is blind"/> blind</td></tr>
-		<tr><td></td><td></td><td colspan="2"><span id="MFSoption"><input id="MFStogether" type="checkbox" /> Check if you will you be living with your spouse.<br /></span></td></tr>
-		<tr><td colspan="2">Dependents claimed for exemptions: </td>
-			<td><input id="Dependents" size="2" value="0" 
-				title="Number of dependents in the tax family. Do not include those you could claim but did not claim." /></td><td></td></tr>
-		</table>
--->
-<hr />
+	<table id="OptionsTable" class="datatable" onchange="FileChange();">
+		<tr><td></td>
+			<td colspan="2">This worksheet is for <input id="TPName" type="text" placeholder="(TP or SP Name)" />
+				<br /><br />Check the box if any of the following is true in <span id="TaxYearInfo">2020</span>:
+				<br /><input id="Split_Yes" type="checkbox" />
+				An IRA contribution was made but only part (or none) was deductible due to AGI limitation
+				(See Schedule 1)</td></tr>
+		<tr id="SplitDetailsRow"><td colspan="2"></td>
+			<td>	<ul>
+					<li>Taxable amounts of IRAs affect AGI which affects the IRA contribution deduction
+					which, will change the taxable amount.
+					This worksheet will do the iterations required to optimize this issue.</li>
+					<li>First, make sure all IRAs entered show their gross distribution as fully taxable.</li>
+					<li>Then, enter the following information:
+					<br />Filing status: <select id="FilingStatus">
+						<option>SNG</option>
+						<option selected="true">MFJ</option>
+						<option>MFS</option>
+						<option>WID</option>
+						<option>HOH</option>
+					</select>,
+					AGI: <input type="comma" id="SplitAGI" /><br />
+					<input type="checkbox" id="SplitTP50" />this TP >= 50, 
+					<input type="checkbox" id="SplitTPPlan" />this TP has ret plan, 
+					<span id="SplitMFJ50"><input id="SplitSP50" type="checkbox" />other TP >= 50,</span> 
+					<span id="SplitMFJPlan"><input id="SplitSPPlan" type="checkbox" />other TP has ret plan,</span> 
+					<span id="SplitMFS"><input id="SplitTogether" type="checkbox" />living together</span> 
+					</li>
+				</ul></td></tr>
+		<tr id="DisasterRow"><td></td>
+			<td colspan="2"><input id="Disaster_YesMade" type="checkbox" />
+				A qualified disaster distribution was made<span id="DisasterMade">,
+				Amount: <input id="Disaster_Distrib" type="comma" /></td></tr>
+		<tr id="DisasterRepRow"><td colspan="2"></td>
+			<td><input id="Disaster_YesRep" type="checkbox" />
+				Any amount of the distribution was repaid<span id="DisasterRep">,
+				Amount: <input id="Disaster_Repaid" type="comma" /></span></td></tr>
+	</table>
+</div>
 
-<!-- ****************************************** WORKSHEET ****************************************** -->
+<br />
 
-
+<div id="8606WorkDiv">
+<!-- ****************************************** 8606 WORKSHEET ****************************************** -->
 	<h1>Form 8606 Worksheet - Nondeductible IRAs:</h1>
-	<table id="IRATable0" class="datatable" onchange="FileChange();" onclick="FileChange();">
-		<tr><td></td><td></td><td></td><td></td></tr>
-		<tr><td colspan="4" class="groupheader">BASIS:</td></tr>
-		<tr>
-			<td></td><td colspan="2">Total basis in traditional IRAs from previous years (from most recent Form 8606 line 14)</td>
-			<td><input id="OldBasis" type="number" /></td></tr>
-		<tr><td colspan="4" class="groupheader">CONTRIBUTIONS:</td></tr>
-		<tr>
-			<td></td><td colspan="2">Nondeductible contributions made in <span id="TaxYear1">2017</span></td>
-			<td><input id="NDCTY0" type="number" /></td></tr>
-		<tr>
-			<td></td><td colspan="2">Nondeductible contributions for <span id="TaxYear2">2017</span> made in <span id="TaxYear2b">2018</span> prior to the filing deadline
-			<td><input id="NDCTY1" type="number" /></td></tr>
-		<tr><td colspan="4" class="groupheader">TRADITIONAL/SIMPLE/SEP IRAS:</td></tr>
+	<table id="IRATable0" class="datatable" onchange="FileChange();">
 		<tr><td colspan="4" >
 			<ul>
-				<li>The <U>value</u> of all IRAs must be entered.</li>
-				<li>For <u>distributions</u>, do not include distribution amounts for
-				rollovers, qualified charitable distributions,
-				a one-time distribution to fund an HSA, or
-				distributions that have been repaid or recharacterizations from a ROTH IRA.</li>
-				<li>Enter a ROTH conversion in its own column. Do not include it as a distribution.</li>
-				<li>For distributions and conversions from the same IRA account, you may opt to put each on
-				separate lines to get their respective taxable amounts, but only enter the IRA value once.</li>
+				<li>Do not include inherited IRAs; they require their own 8606 if they have a basis.</li>
+				<li>The year-end value of all IRAs must be entered.</li>
+				<li>Uncheck the TRADITIONAL box if the IRA is a SEP or SIMPLE IRA</li>
+				<li>List IRAs from which QCDs have been taken first followed by traditional IRAs.</li>
+				<li>To simplify TaxSlayer entries, nontaxable amounts are taken from IRAs in the order listed.</li>
 			</ul>
 			</td></tr>
+		<tr><td colspan="4" class="groupheader">BASIS:</td></tr>
 		<tr>
-			<td></td><td colspan="1"><table id="DistTable">
+			<td></td><td colspan="2" class="dotted">Total basis in traditional IRAs from previous years (from most recent Form 8606)</td>
+			<td><input id="OldBasis" type="comma" /></td></tr>
+		<tr><td colspan="4" class="groupheader">CONTRIBUTIONS TO IRA for <span id="TaxYearIRA1">2017</span></td></tr>
+		<tr id="IRATotalRow">
+			<td></td><td colspan="2" class="dotted">Total contributions made</td>
+			<td><input id="Total_CTY" type="comma" /></td></tr>
+		<tr id="IRADedRow">
+			<td></td><td colspan="2" class="dotted">Deductible IRA contribution amount from Schedule 1</td>
+			<td><input id="Ded_CTY" type="comma" /></td></tr>
+		<tr>
+			<td></td><td colspan="2" class="dotted">Nondeductible contributions made in <span id="TaxYearIRA2">2017</span></td>
+			<td><input id="NonDed_CTY" type="comma" /></td></tr>
+		<tr>
+			<td></td><td colspan="2" class="dotted">Nondeductible contributions made in <span id="TaxYearIRA2b">2017</span>
+			prior to filing deadline</td>
+			<td><input id="NonDed_NTY" type="comma" /></td></tr>
+		<tr><td colspan="4" class="groupheader"><hr />TRADITIONAL/SIMPLE/SEP IRAS:</td></tr>
+		<tr>	<td></td>
+			<td>
+				<table id="DistTable">
 				<tr>
 					<td></td>
-					<td><u>DISTRIBUTION</u></td>
-					<td><u>ROTH&nbsp;CONVERSION</u></td>
-					<td><u>VALUE&nbsp;ON&nbsp;12/31/<span id="TaxYear3"></span></u></td>
-					<td><u>TAXABLE&nbsp;AMOUNT</u></td></tr>
+					<td>CHECK&nbsp;IF<br />TRADITIONAL</td>
+					<td>1099&#x2011;R&nbsp;GROSS</br/>DISTRIBUTION</td>
+					<td>ROTH&nbsp;CONV<br />AMOUNT</td>
+					<td>QCD<br />AMOUNT</td>
+					<td>VALUE&nbsp;ON<br />12/31/<span id="TaxYearDIST"></span></td>
+					<td>TAXABLE<br />AMOUNT</td></tr>
 				<tr>
 					<td>IRA 1</td>
-					<td><input id="DistIRA1" type="number" /></td>
-					<td><input id="ROTHIRA1" type="number" /></td>
-					<td><input id="ValueIRA1" type="number" /></td>
+					<td><input id="Trad1" type="checkbox" checked="true" /></td>
+					<td><input id="GrossIRA1" type="comma" /></td>
+					<td><input id="ROTHIRA1" type="comma" /></td>
+					<td><input id="QCDIRA1" type="comma" /></td>
+					<td><input id="ValueIRA1" type="comma" /></td>
 					<td><span id="TaxableIRA1"></span></td></tr>
 				<tr>
 					<td>IRA 2</td>
-					<td><input id="DistIRA2" type="number" /></td>
-					<td><input id="ROTHIRA2" type="number" /></td>
-					<td><input id="ValueIRA2" type="number" /></td>
+					<td><input id="Trad2" type="checkbox" checked="true" /></td>
+					<td><input id="GrossIRA2" type="comma" /></td>
+					<td><input id="ROTHIRA2" type="comma" /></td>
+					<td><input id="QCDIRA2" type="comma" /></td>
+					<td><input id="ValueIRA2" type="comma" /></td>
 					<td><span id="TaxableIRA2"></span></td></tr>
 				<tr>
 					<td>IRA 3</td>
-					<td><input id="DistIRA3" type="number" /></td>
-					<td><input id="ROTHIRA3" type="number" /></td>
-					<td><input id="ValueIRA3" type="number" /></td>
+					<td><input id="Trad3" type="checkbox" checked="true" /></td>
+					<td><input id="GrossIRA3" type="comma" /></td>
+					<td><input id="ROTHIRA3" type="comma" /></td>
+					<td><input id="QCDIRA3" type="comma" /></td>
+					<td><input id="ValueIRA3" type="comma" /></td>
 					<td><span id="TaxableIRA3"></span></td></tr>
 				<tr>
-					<td colspan="3">Any outstanding rollover amount (process not complete)</td>
-					<td><input id="Rollover" type="number" /></td></tr>
+					<td>IRA 4</td>
+					<td><input id="Trad4" type="checkbox" checked="true" /></td>
+					<td><input id="GrossIRA4" type="comma" /></td>
+					<td><input id="ROTHIRA4" type="comma" /></td>
+					<td><input id="QCDIRA4" type="comma" /></td>
+					<td><input id="ValueIRA4" type="comma" /></td>
+					<td><span id="TaxableIRA4"></span></td></tr>
+				<tr>
+					<td>IRA 5</td>
+					<td><input id="Trad5" type="checkbox" checked="true" /></td>
+					<td><input id="GrossIRA5" type="comma" /></td>
+					<td><input id="ROTHIRA5" type="comma" /></td>
+					<td><input id="QCDIRA5" type="comma" /></td>
+					<td><input id="ValueIRA5" type="comma" /></td>
+					<td><span id="TaxableIRA5"></span></td></tr>
+				<tr>
+					<td colspan="5">Any outstanding rollover amount (process not complete)</td>
+					<td><input id="Rollover" type="comma" /></td></tr>
+
+				</table></td></tr>
+
+			<tr>	<td colspan="4">
+				<button id="OptimizeButton" onclick="SplitOptimize();">OPTIMIZE</button>
+				</td></tr>
+
+			<tr>	<td></td>	
+				<td colspan="2">
+
+				<table id="QCDTable">
+					<tr><td colspan="4">&nbsp;</td></tr>
+					<tr><td colspan="4" class="groupheader">Pub 590B QCD Adjustment Worksheet</td></tr>
+					<tr><td id="QCD70Row" colspan="4">
+						<ul>
+							<li>QCDs cannot be more than $100,000 per TP/SP.</li>
+							<li>QCDs are taken first from the part of IRA that would be taxable.
+							The remainder is taken from the basis (nondeductible contributions) and
+							while not an exclusion for the QCD distribution,
+							can be used on Schedule A as a charitable contribution.</li>
+							<li>QCDs can be taken from SIMPLE/SEP IRAs if they are no longer being
+							contributed to.</li>
+							<li>The exclusion amount of QCDs made after turning 70&#xbd;
+							must be reduced by any IRA contributions made for which a
+							deduction was taken.
+							<span id="QCD70">
+								<br /><input id="TP70" type="checkbox" onchange="FileChange()";/>
+								Check if this taxpayer ever made deductible contributions to an IRA
+								when age over 70&#xbd;
+							</span></li>
+						</ul></td></tr>
+					<tr id="QCDRow1"><td colspan="4" class="groupheader">DEDUCTIBLE CONTRIBUTIONS TO IRA:</td></tr>
+					<tr id="QCDRow2"><td></td>
+						<td colspan="2" class="dotted">
+							Total income adjustment credit amount due to IRA contributions
+							since turning 70&#xbd;, including <span id="TaxYearQCD1">2020</span></td>
+						<td><input id="Adjust_70" type="comma" /></td></tr>
+					<tr id="QCDRow3"><td colspan="4" class="groupheader">QCD AMOUNTS:</td></tr>
+					<tr id="QCDRow4"><td></td>
+						<td colspan="2" class="dotted">
+							Total QCD distribution amounts deducted in prior years since turning 70&#xbd;,
+							<b>NOT</b> including <span id="TaxYearQCD2">2017</span></td>
+						<td><input id="QCD_70" type="comma" /></td></tr>
+					<tr id="QCDRow5"><td></td>
+						<td colspan="2" class="dotted">QCD distribution amount for <span id="TaxYearQCD3">2017</span></td>
+						<td id="QCD_CTY"></td></tr>
+					<tr id="QCDRow6"><td colspan="4" class="groupheader">QCD ADJUSTMENT WORKSHEET RESULTS:</td></tr>
+					<tr id="QCDRow7"><td></td>
+						<td colspan="2" class="dotted">
+							Maximum exclusion available for the QCD distribution</td>
+						<td class="calculated"><span id="QCD_Exclusion"></span></td></tr>
+					<tr id="QCDLimitRow"><td></td>
+						<td colspan="2" class="dotted">
+							Exclusion limitation due to taxable amount less than QCD</td>
+						<td class="calculated"><span id="QCD_Limit"></span></td></tr>
+					<tr id="QCDBasisRow"><td></td>
+						<td colspan="2" class="dotted">
+							Reduced basis & contributions due to use of nontaxable amount for QCD</td>
+						<td class="calculated"><span id="QCD_Basis"></span></td></tr>
+				</span>
+				</table>
+
+				<section id="P590BW11Div">
+
+				<table id="P590BW11Table">
+					<tr><td colspan="4">&nbsp;</td></tr>
+					<tr><td colspan="4" class="groupheader">Pub 590B Worksheet 1-1</td></tr>
+					<tr><td></td>
+						<td> 1. Initial basis</td>
+						<td id="W11Line01Out"</td></tr>
+					<tr><td></td>
+						<td> 2. Total contributions</td>
+						<td id="W11Line02Out"</td></tr>
+					<tr><td></td>
+						<td> 3. (Basis + contributions)</td>
+						<td id="W11Line03Out"</td></tr>
+					<tr><td></td>
+						<td> 4. Year end total value of traditional IRAs</td>
+						<td id="W11Line04Out"</td></tr>
+					<tr><td></td>
+						<td> 5. Total distributions from traditional IRAs including QCDs</td>
+						<td id="W11Line05Out"</td></tr>
+					<tr><td></td>
+						<td> 6. (Beginning of year value of traditional IRAs)</td>
+						<td id="W11Line06Out"</td></tr>
+					<tr><td></td>
+						<td> 7. Nontaxable fraction</td>
+						<td id="W11Line07Out"</td></tr>
+					<tr><td></td>
+						<td> 8. Nontaxable portion
+							<span id="P590BW11DoNotUse">
+								<br />Do not use this worksheet -
+								Line 8 is greater than or equal to F8606 line 5 
+							</span></td>
+						<td id="W11Line08Out"</td></tr>
+					<tr><td></td>
+						<td> 9. Taxable portion before ROTH conversion(s)</td>
+						<td id="W11Line09Out"</td></tr>
+					<tr><td></td>
+						<td>10. ROTH conversion taxable portion</td>
+						<td id="W11Line10Out"</td></tr>
+					<tr><td></td>
+						<td>11. Taxable portion after ROTH conversion(s)</td>
+						<td id="W11Line11Out"</td></tr>
+			</table>
+
+
+			</section> <!-- P590BW11Div -->
+			<table id="F8606Table">
+				<tr><td colspan="4">&nbsp;</td></tr>
+				<tr><td colspan="4" class="groupheader">Form 8606 results:</td></tr>
+				<tr> <td></td><td colspan="2">5. Traditional IRA basis + contributions in current tax year only</td>
+					<td class="calculated" id="Contrib_CTY"></td></tr>
+				<tr> <td></td><td colspan="2">9. IRA total amount subject to taxable reduction by basis</td>
+					<td class="calculated" id="StartValue_CTY"></td></tr>
+				<tr> <td></td><td colspan="2">10. Nontaxable fraction
+					<td class="calculated" id="F8606Percent"></td></tr>
+				<tr> <td></td><td colspan="2">13. Nontaxable portion of distributions
+						<span id="W11Note">(From Pub 590B Worksheet 1-1)</span></td>
+					<td class="calculated" id="NonTaxable"></span></td></tr>
+				<tr> <td></td><td colspan="2">14. Total basis in traditional IRAs for
+						<span id="TaxYearNew"></span> and prior years</td>
+					<td class="calculated" id="NewBasis"></td></tr>
+				<tr> <td></td><td colspan="2">15. PART I taxable amount
+						<span id="DisasterNote">(Reduced by
+						<span id="DisasterReduction"></span> for disaster distribution)</span></td>
+					<td class="calculated" id="TaxableI"></td></tr>
+				<tr> <td></td><td colspan="2">18. PART II (ROTH) taxable amount</td>
+					<td class="calculated" id="TaxableII"></td></tr>
 			</table></td></tr>
-		<tr><td></td><td></td><td></td><td></td></tr>
-		<tr><td colspan="4" class="groupheader">FORM 8606 RESULTS:</td></tr>
-		<tr>
-			<td></td><td colspan="2">Remaining IRA basis for use next year</td>
-			<td class="calculated"><span id="NewBasis"></span></td></tr>
-		<tr>
-			<td></td><td colspan="2">Total taxable amount <span id="Error1"></span></td>
-			<td class="calculated"><span id="Taxable"></span></td></tr>
-		<tr>
-			<td></td><td colspan="2">Change in basis (nontaxable amount)</span></td>
-			<td class="calculated"><span id="NonTaxable"></span></td></tr>
-	</table>
+		</table>
 
-</div> <!-- FilingInfo -->
+</div> <!-- 8606WorkDiv -->
+
 <br />
 
-<!--
-<div>
-	<h1>Adjustment to income for TaxSlayer:</h1>
-	(Federal Section > Deductions > Adjustments > IRA Deduction)
-	<hr />
-	<table id="IRAAdjust" class="datatable" onchange="FileChange();" onclick="FileChange();">
-		<tr><td></td><td></td><td></td><td></td></tr>
-		<tr>
-			<td colspan="3">Nondeductible contributions made in <span id="TaxYear7">2017</span></td>
-			<td><span id="x"></span></td></tr>
-	</table>
-</div>
-<br />
--->
+<div id="TaxSlayerInput">
+	<h1>TaxSlayer Input</h1>
 
-<div id="IncomeInfo">
+<div id="8606TSDiv" class="TSentry">
 	<h1>Form 8606 input for TaxSlayer:</h1>
 	<b>NOTE:</b> You <i>must</i> create a Form 8606 in TaxSlayer so that it&apos;s included in the tax return!
 	<br />(Federal Section > Deductions > Adjustments > Nondeductible IRAs)
 	<hr />
-	<table id="IRA8606" class="datatable">
+	<table id="IRA8606_Table" class="datatable TSentry">
 		<tr><td></td><td></td><td></td><td></td></tr>
-		<tr>
-			<td colspan="3">Total basis in traditional IRAs</td>
+		<tr><td></td>
+			<td colspan="2" class="dotted">Total basis in traditional IRAs</td>
 			<td class="calculated"><span id="TSBasis"></span></td></tr>
-		<tr>
-			<td colspan="3">Contributions made from January 1 through 4/18/<span id="TaxYear4b">2018</span></td>
+		<tr><td></td>
+			<td colspan="2" class="dotted">Contributions made from January 1 through filing deadline in <span id="TaxYearContribb">2018</span></td>
 			<td class="calculated"><span id="TSContrib"></span></td></tr>
-		<tr>
-			<td colspan="3">Total value of all traditional, SEP and SIMPLE IRAs as of December 31, <span id="TaxYear4">2017</span></td>
+		<tr><td></td>
+			<td colspan="2" class="dotted">Total value of all traditional, SEP and SIMPLE IRAs as of December 31, <span id="TaxYearContrib">2017</span></td>
 			<td class="calculated"><span id="TSValue"></span></td></tr>
-		<tr>
-			<td colspan="3">Outstanding rollovers</td>
+		<tr><td></td>
+			<td colspan="2" class="dotted">Outstanding rollovers</td>
 			<td class="calculated"><span id="TSRollover"></span></td></tr>
-		<tr>
-			<td colspan="3">Traditional IRA distributions (reported on form 1099-R) received during <span id="TaxYear5">2017</span></td>
+		<tr><td></td>
+			<td colspan="2" class="dotted">Traditional IRA distributions (reported on form 1099-R) received during <span id="TaxYearDist">2017</span></td>
 			<td class="calculated"><span id="TSDist"></span></td></tr>
-		<tr>
-			<td colspan="3">Net amount converted from traditional, SEP and SIMPLE IRAs to Roth IRAs in <span id="TaxYear6">2017</span></td>
+		<tr><td></td>
+			<td colspan="2" class="dotted">Net amount converted from traditional, SEP and SIMPLE IRAs to Roth IRAs in <span id="TaxYearConvert">2017</span></td>
 			<td class="calculated"><span id="TSConverted"></span></td></tr>
+
 	</table>
-</div> <!-- IncomeInfo -->
-
+</div> <!-- 8606TSDiv -->
 <br />
-
-<div id="TaxableInfo">
-	<h1>Form 1099-R input for TaxSlayer:</h1>
+<div id="1099RDiv" class="TSentry">
+	<h1>Form 1099-R taxable amounts for TaxSlayer:</h1>
 	Return to the IRA distribution 1099-R forms and change the TAXABLE AMOUNT to that shown in the table above.
 	<br />(You can actually distribute the total taxable amount to one (or more) of the 1099-R forms in any way you wish.)
-</div> <!-- TaxableInfo -->
+	<hr />
+	<table id="F1099R_Table" class="datatable TSentry">
+		<tr><td></td><td></td><td></td><td></td></tr>
+		<tr><td></td>
+			<td class="dotted">Taxable amount from Form 8606</td>
+			<td id="F1099R_Taxable"></td></tr>
+		<tr><td></td>
+			<td class="dotted">QCD exclusion amount</td>
+			<td id="F1099R_QCD"></td></tr>
+		<tr id=F1099R_QCDNotice><td></td>
+			<td>Also, check the QCD box in Nontaxable Distributions
+			<td id="F1099R_Total"></td></tr>
+	</table>
+	<hr />
+	If an IRA contribution was made check Schedule 1 to see if it was limited by AGI.
+	If so, re-run this worksheet with that option checked since it will affect the results.
+	Then, click the Optimize button to get the optimal results.
+</div> <!-- 1099RDiv -->
+
+<span id="SchedADiv">
+<br />
+<div class="TSentry">
+	<h1>Schedule A contribution input for TaxSlayer:</h1>
+	The Qualified Charitable Contribution(QCD) amount exceeds the taxable amount total of your IRAs. This excess can be deducted as a cash charitable contribution on Schedule A.
+	<hr />
+	<table id="SchedA_Table" class="datatable TSentry">
+		<tr><td></td><td></td><td></td><td></td></tr>
+		<tr id="SchedARow"><td></td>
+			<td>Remaining QCD amount - enter as a Schedule A cash contribution</td>
+			<td id="SchedA"></td></tr>
+	</table>
+</div>
+</span> <!-- SchedADiv -->
+
+</div <!-- TaxSlayerInput -->
 
 <br />
 
