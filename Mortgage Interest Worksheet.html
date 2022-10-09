@@ -73,7 +73,8 @@
 		cursor: pointer;
 	}
 	#Fully_Deductible_Message,
-	#Fully_Deductible_Message2 { display: none; }
+	#Fully_Deductible_Message2,
+	#Fully_Deductible_Message3 { display: none; }
 	#New_Equity_Note { display: none; }
 	#New_CashOut_Note { display: none; }
 	#New_Bank { width: 25em; }
@@ -119,7 +120,7 @@
 	#MortWorkTable tr td:nth-child(6),
 	#MortWorkTable tr td:nth-child(7),
 	#MortWorkTable tr td:nth-child(8) {
-		width: 20%;
+		width: 20;
 		text-align: right;
 		padding-right: 2em;
 	}
@@ -140,8 +141,9 @@
 	#MortResultTable tr td:nth-child(5),
 	#MortResultTable tr td:nth-child(6),
 	#MortResultTable tr td:nth-child(7),
-	#MortResultTable tr td:nth-child(8) {
-		width: 12%;
+	#MortResultTable tr td:nth-child(8),
+	#MortResultTable tr td:nth-child(9) {
+		width: 10%;
 		text-align: right;
 		padding-right: 2em;
 	}
@@ -181,7 +183,10 @@
 // --------------------------------------------------------------------------------
 var VERSION;
 
-VERSION = "(Version 2.05, 9/12/2022)";
+VERSION = "(Version 2.06, 10/9/2022)";
+//	Addition of Mortgage Insurance
+//	Changed Widow(er) filing to QSS
+//VERSION = "(Version 2.05, 9/12/2022)";
 //	Addition of points
 //VERSION = "(Version 2.04b, 12/29/2021)";
 //	Prevent calc when entering balances until all are filled
@@ -264,6 +269,7 @@ function Initialize() {
 		resElement.Equ = document.getElementById("EquAvg" + res);
 		resElement.Int = document.getElementById("QualInt" + res);
 		resElement.Pts = document.getElementById("QualPts" + res);
+		resElement.MIP = document.getElementById("QualMIP" + res);
 		Res_Element[res] = resElement;
 	}
 	var inputs = document.getElementsByClassName("wkti");
@@ -359,6 +365,10 @@ function Input_Change(e) {
 
 	switch (WhatChanged) {
 	case "TaxYear":
+		optionLabel = (+TaxYear.value < 2022) ? "Widow(er)" : "QSS" ;
+		FilingStatus.lastElementChild.innerHTML = optionLabel;
+		if (New_Bank.value == "") return;
+
 		New_Date.style.backgroundColor = "white";
 		NewDatePart = New_Date.value.split("-");
 		if (NewDatePart[0] > TaxYear.value) {
@@ -601,6 +611,7 @@ function Input_Change(e) {
 	showMsg = (InterestPaid.value > 0) && ((+Class_Equity.innerHTML + +Class_GrandEquity.innerHTML) == 0);
 	Fully_Deductible_Message.style.display = (showMsg) ? "inline" : "none";
 	Fully_Deductible_Message2.style.display = (showMsg) ? "inline" : "none";
+	Fully_Deductible_Message3.style.display = (showMsg) ? "inline" : "none";
 
 	// Complete the Mortgage Worksheet
 	//if (MortgageBalance.value > 0) {
@@ -753,6 +764,7 @@ function Determine_Balances() {
 					totalInt = 0 ;
 					totalQualInt = 0;
 					totalQualPts = 0;
+					totalQualMIP = 0;
 					continue;
 				}
 				if (mo == lastMo) {
@@ -867,6 +879,7 @@ function Determine_Balances() {
 			totalInt = 0;
 			totalQualInt = 0;
 			totalQualPts = 0;
+			totalQualMIP = 0;
 			totalPaid = 0;
 			last_monthlyInt = monthlyInt;
 			for (mo = firstMo + 1 ; mo <= 12 ; mo++) {
@@ -930,7 +943,8 @@ function Determine_Balances() {
 	}
 
 	totalQualPts = PointsPaid.value * (totalAcq + totalGrf) / totalBal;
-	Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, totalQualPts);
+	totalQualMIP = MIPPaid.value * (totalAcq + totalGrf) / totalBal;
+	Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, totalQualPts, totalQualMIP);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1081,7 +1095,7 @@ function Clear_Worksheet() {
 }
 
 //----------------------------------------------------------------------------------------
-function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, totalQualPct) {
+function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, totalQualPct, totalQualMIP) {
 //----------------------------------------------------------------------------------------
 	// Clear if the worksheet has been cleared
 	if (totalBal === "clear") {
@@ -1092,6 +1106,7 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, tota
 		Res_Element[CurrentTab].Equ.innerHTML = "";
 		Res_Element[CurrentTab].Int.innerHTML = "";
 		Res_Element[CurrentTab].Pts.innerHTML = "";
+		Res_Element[CurrentTab].MIP.innerHTML = "";
 	}
 	else { // Enter the row for the current mortgage
 		Res_Element[CurrentTab].Pre.innerHTML = (New_Date.value < "2017-12-16") ? "Yes" : "No" ;
@@ -1101,6 +1116,7 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, tota
 		Res_Element[CurrentTab].Equ.innerHTML = Math.round(totalEqu / 12);
 		Res_Element[CurrentTab].Int.innerHTML = Math.round(totalQualInt);
 		Res_Element[CurrentTab].Pts.innerHTML = Math.round(totalQualPct);
+		Res_Element[CurrentTab].MIP.innerHTML = Math.round(totalQualMIP);
 	}
 
 	// Total the averages for all mortgages
@@ -1110,6 +1126,7 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, tota
 	Res_Element[0].Equ.innerHTML = 0;
 	Res_Element[0].Int.innerHTML = 0;
 	Res_Element[0].Pts.innerHTML = 0;
+	Res_Element[0].MIP.innerHTML = 0;
 	AcqPrior = 0;
 	AcqPost = 0;
 	for (m = 1 ; m <= 4 ;  m++) {
@@ -1129,6 +1146,8 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, tota
 			+Res_Element[0].Int.innerHTML + +Res_Element[m].Int.innerHTML;
 		Res_Element[0].Pts.innerHTML = 
 			+Res_Element[0].Pts.innerHTML + +Res_Element[m].Pts.innerHTML;
+		Res_Element[0].MIP.innerHTML = 
+			+Res_Element[0].MIP.innerHTML + +Res_Element[m].MIP.innerHTML;
 	}
 
 	// Pub 936 Table 1 Part 1
@@ -1149,8 +1168,8 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, tota
 	line13 = +Res_Element[0].Int.innerHTML;
 	line14 = line11 / ( (line12) ? line12 : 1 );
 	line15 = line14 * line13;
-	Deductible.innerHTML = Math.round(line15);
-	DeductiblePts.innerHTML = Res_Element[0].Pts.innerHTML;
+	Deductible.innerHTML = Math.round(line15 + +Res_Element[0].Pts.innerHTML);
+	DeductibleMIP.innerHTML = Res_Element[0].MIP.innerHTML;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1229,7 +1248,7 @@ function Print_Pages() {
 				<option value="MFJ" selected>MFJ</option>
 				<option value="MFS">MFS</option>
 				<option value="HOH">HOH</option>
-				<option value="Widow(er)">Widow(er)</option>
+				<option value="QSS">Widow(er)</option>
 				</select></td>
 			<td></td></tr>
 	</table>
@@ -1365,6 +1384,10 @@ function Print_Pages() {
 		<tr>	<td>Points paid this tax year:</td>
 			<td>$<input id="PointsPaid" type="number" class="wkti" />
 				<span id="Fully_Deductible_Message2"><b>(Fully deductible unless debt limit is exceed)</b></span></td></tr>
+		<tr>	<td>Mort insurance premiums:</td>
+			<td>$<input id="MIPPaid" type="number" class="wkti" />
+				<span id="Fully_Deductible_Message3"><b>(Fully deductible unless debt limit is exceed)</b></span>
+				(Deduction may be limited by AGI)</td></tr>
 		<tr>	<td>Balance as of <span id="BalanceTY"></span>:</td>
 			<td>$<input id="MortgageBalance" type="number" class="wkti" /></td></tr>
 	</table>
@@ -1531,7 +1554,7 @@ function Print_Pages() {
 		<table id="MortResultTable">
 			<tr>	<th></th><th></th>
 				<th colspan="4" style="border-bottom: 1px solid black;">Monthly average balances</th>
-				<th colspan="2"></th></tr>
+				<th colspan="3"></th></tr>
 			<tr>	<th>Mortgage lender</th>
 				<th>Pre 12/16/17</th>
 				<th class="right">Mortgage balance</th>
@@ -1539,7 +1562,8 @@ function Print_Pages() {
 				<th class="right">Grandfathered debt</th>
 				<th class="right">Home&nbsp;equity debt</th>
 				<th>Qualified interest</th>
-				<th>Qualified points</th></tr>
+				<th>Qualified points</th>
+				<th>Qualified insurance</th></tr>
 			<tr id="m1">
 				<td id="Lender1"></td>
 				<td id="Pre20171"></td>
@@ -1548,7 +1572,8 @@ function Print_Pages() {
 				<td id="GrfAvg1"></td>
 				<td id="EquAvg1"></td>
 				<td id="QualInt1"></td>
-				<td id="QualPts1"></td></tr>
+				<td id="QualPts1"></td>
+				<td id="QualMIP1"></td></tr>
 			<tr id="m2">
 				<td id="Lender2"></td>
 				<td id="Pre20172"></td>
@@ -1557,7 +1582,8 @@ function Print_Pages() {
 				<td id="GrfAvg2"></td>
 				<td id="EquAvg2"></td>
 				<td id="QualInt2"></td>
-				<td id="QualPts2"></td></tr>
+				<td id="QualPts2"></td>
+				<td id="QualMIP2"></td></tr>
 			<tr id="m3">
 				<td id="Lender3"></td>
 				<td id="Pre20173"></td>
@@ -1566,7 +1592,8 @@ function Print_Pages() {
 				<td id="GrfAvg3"></td>
 				<td id="EquAvg3"></td>
 				<td id="QualInt3"></td>
-				<td id="QualPts3"></td></tr>
+				<td id="QualPts3"></td>
+				<td id="QualMIP3"></td></tr>
 			<tr id="m4">
 				<td id="Lender4"></td>
 				<td id="Pre20174"></td>
@@ -1575,7 +1602,8 @@ function Print_Pages() {
 				<td id="GrfAvg4"></td>
 				<td id="EquAvg4"></td>
 				<td id="QualInt4"></td>
-				<td id="QualPts4"></td></tr>
+				<td id="QualPts4"></td>
+				<td id="QualMIP4"></td></tr>
 			<tr id="m0">
 				<td id="Lender0">Total of averages:</td>
 				<td></td>
@@ -1584,7 +1612,8 @@ function Print_Pages() {
 				<td id="GrfAvg0"></td>
 				<td id="EquAvg0"></td>
 				<td id="QualInt0"></td>
-				<td id="QualPts0"></td></tr>
+				<td id="QualPts0"></td>
+				<td id="QualMIP0"></td></tr>
 		</table>
 	</div> <!-- MortResultDiv -->
 	<br />
@@ -1592,10 +1621,10 @@ function Print_Pages() {
 		<table>
 			<tr>	<td>Qualified Loan Limit:</td>
 				<td id="LoanLimit"></td></tr>
-			<tr>	<td>Deductible Home Mortgage Interest:</td>
+			<tr>	<td>Deductible Home Mortgage Interest and points:</td>
 				<td id="Deductible"></td></tr>
-			<tr>	<td>Deductible Points:</td>
-				<td id="DeductiblePts"></td></tr>
+			<tr>	<td>Deductible Home Mortgage Insurance:</td>
+				<td id="DeductibleMIP"></td></tr>
 		</table>
 	</div>
 </div> <!-- ResultsDiv -->
