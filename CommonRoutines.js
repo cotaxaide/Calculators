@@ -15,6 +15,8 @@
 //	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.17 11/23/2022
+// 	Moved hard coded number for kiddie tax increment to databases
 // Version 1.16 8/27/2022
 // 	Tax lookup for income < 5 returned undefined
 // Version 1.15 7/24/2022
@@ -173,7 +175,7 @@ function _StandardDeduction( // Standard Deduction amount
 	if (dependent) {
 		var depval = Math.max(
 				+taxdata[_Standard["Minimum"]],
-				+earnedIncome + 350);
+				+earnedIncome + +taxdata[+_Standard["DependInc"]]);
 		stdval = Math.min(depval, stdval);
 	}
 	if (TP65) stdval += stdinc;
