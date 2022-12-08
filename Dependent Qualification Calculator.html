@@ -42,10 +42,10 @@
 </style>
  
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script>
 //***************************************************************************************************
 //Contributors:
@@ -60,7 +60,9 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.08 4/10/2022";
+var VERSION = "7.09 10/4/2022";
+//	Changed widow(er) to QSS throughout
+//var VERSION = "7.08 4/10/2022";
 //	Fixed EITC filing MFS not allowed for grandchild
 //var VERSION = "7.07a 1/6/2022";
 //	Fixed EITC comment re TP may still qualify if dependent does not
@@ -277,7 +279,7 @@ var DEP_ChildQualified;
 var DEP_ChildQualForCare;
 var DEP_ChildQualForEITC;
 var DEP_ChildQualForHOH;
-var DEP_ChildQualForWID;
+var DEP_ChildQualForQSS;
 var DEP_ChildQualForMedical;
 var DEP_Citizenship;
 var DEP_Married;
@@ -630,6 +632,8 @@ function CalcStatus(from_age_calc) {
 	ResYear0Year.innerHTML = TaxYear.value;
 	ResYear1Year.innerHTML = +TaxYear.value - 1;
 	ResYear2Year.innerHTML = +TaxYear.value - 2;
+	BQSS.innerHTML = (+TaxYear.value < 2022) ?
+		"Dependent for Widow(er) filing" : "Dependent for QSS filing";	
 
 	// Redetermine dependent age if a birthdate was entered
 	Age0.innerHTML = "Born in " + TaxYear.value;
@@ -655,7 +659,7 @@ function CalcStatus(from_age_calc) {
 	DEP_ChildQualified = true;
 	DEP_ChildQualForCare = true;
 	DEP_ChildQualForHOH = true;
-	DEP_ChildQualForWID = true;
+	DEP_ChildQualForQSS = true;
 	DEP_ChildQualForEITC = true;
 	DEP_ChildQualForMedical = true;
 	DEP_RelativeQualForBenefits = true;
@@ -807,14 +811,14 @@ function CalcStatus(from_age_calc) {
 	QualChild.title = "";
 
 		// Relationship test
-		TestFor = "|DCQ|HOH|CAR|MED|EITC|WID|";
+		TestFor = "|DCQ|HOH|CAR|MED|EITC|QSS|";
 		if (BENE_Relation.indexOf("|DPC|") == NOT_A_BENEFIT) SetMessage(QualChild,"- Failed relationship test.");
-		TestFor = "|CAR|MED|EITC|WID|";
+		TestFor = "|CAR|MED|EITC|QSS|";
 		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(QualChild, QCAreason);
 		TestFor = "|HOH|";
 		if (QualChildOfAnother.checked && (QCAtest != "TP") && (QCAtest != "OTHER_NO_HOH")) SetMessage(QualChild, QCAreason);
 
-		TestFor = "|DCQ|HOH|CAR|MED|EITC|WID|";
+		TestFor = "|DCQ|HOH|CAR|MED|EITC|QSS|";
 		// Age test
 		if ((DEP_Age > 0) && (Older.checked)) SetMessage(QualChild,"- Child older than TP and not disabled");
 		QualChildOfAnother.disabled = false;
@@ -849,14 +853,14 @@ function CalcStatus(from_age_calc) {
 		}
 
 		// Residency test
-		TestFor = "|DQC|HOH|CAR|EITC|WID|";
+		TestFor = "|DQC|HOH|CAR|EITC|QSS|";
 		if (TP_DivorceApplies) {
 			if ((TP_WaiverTo == "NoWaiver") && (TP_Custodial == NO)) {
 				SetMessage(QualChild,"- Parent not eligible for this benefit");
 			}
 		}
 		else {
-			TestFor = "|DQC|HOH|MED|CAR|EITC|WID|";
+			TestFor = "|DQC|HOH|MED|CAR|EITC|QSS|";
 			if (DEP_Residency < 7) {
 				SetMessage(QualChild,"- Dependent failed residency test"); 
 			}
@@ -892,7 +896,7 @@ function CalcStatus(from_age_calc) {
 		// --------------------EITC does not depend on following tests--------------------------
 
 		// Support test
-		TestFor = "|DCQ|HOH|CAR|MED|WID|";
+		TestFor = "|DCQ|HOH|CAR|MED|QSS|";
 		if (DEP_Support == 0) SetMessage(QualChild,"- Failed support test");
 		TestFor = "|CAR|MED|";
 		if (TPisQC.checked) SetMessage(QualChild,"- TP/SP cannot be a qualified child");
@@ -947,7 +951,7 @@ function CalcStatus(from_age_calc) {
 		if (QualRelative.value == NO) DEP_RelativeQualForBenefits = false // Relative care not dependent on following tests
 
 		// Benefit exception tests
-		if (QualRelative.value != "NO") DEP_ChildQualForWID = true;
+		if (QualRelative.value != "NO") DEP_ChildQualForQSS = true;
 		if (DepFilingMFJ.checked && (! DepRefund.checked)) SetMessage(QualRelative,"- Dependent failed joint return test");
 		if (! LowIncome.checked) SetMessage(QualRelative,"- Income too high");
 		if (TPisQC.checked) SetMessage(QualRelative,"- TP/SP cannot be a qualified child");
@@ -993,9 +997,9 @@ function CalcStatus(from_age_calc) {
 	Widow.value = YES; // assume yes until a condition is violated
 	Widow.title = "";
 
-		if (BENE_Relation.indexOf("|WID|") == NOT_A_BENEFIT) SetMessage(Widow,"- Failed relationship test");
+		if (BENE_Relation.indexOf("|QSS|") == NOT_A_BENEFIT) SetMessage(Widow,"- Failed relationship test");
 //		if (QualChild.value == NO) SetMessage(Widow,"- Not a qualified child");
-		if (! DEP_ChildQualForWID) SetMessage(Widow,"- Not a qualified dependent");
+		if (! DEP_ChildQualForQSS) SetMessage(Widow,"- Not a qualified dependent");
 		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(Widow,"- TP is not claiming child as a dependent");
 		if (DEP_Residency < 12) SetMessage(Widow,"- Failed residency test");
 		if (! HHCost.checked) SetMessage(Widow,"- TP must provide >50% of household costs");
@@ -1222,7 +1226,7 @@ function SetMessage(Benefit,Message) {
 	if (TestFor.indexOf("|CAR|")  != NOT_A_BENEFIT)  DEP_ChildQualForCare = false;
 	if (TestFor.indexOf("|EITC|") != NOT_A_BENEFIT)  DEP_ChildQualForEITC = false;
 	if (TestFor.indexOf("|HOH|")  != NOT_A_BENEFIT)  DEP_ChildQualForHOH = false;
-	if (TestFor.indexOf("|WID|")  != NOT_A_BENEFIT)  DEP_ChildQualForWID = false;
+	if (TestFor.indexOf("|QSS|")  != NOT_A_BENEFIT)  DEP_ChildQualForQSS = false;
 } // End of SetMessage()
 
 //***************************************************************************************************
@@ -1241,14 +1245,15 @@ function SetBit(A,B,TEST) { // A is the bitmap, B is the bit to set or clear
 //***************************************************************************************************
 function DetermineBenefits() {
 // Sets the benefits list based on the relationship
-// DPC=Child as dependent, DPR=Relative as dependent, HOH=Head of Household, WID=Widow(er) filing
+// DPC=Child as dependent, DPR=Relative as dependent, HOH=Head of Household,
+// QSS=Qualified Surviving Spouse
 // CAR=Child/Dependent Care, CTD=Child Tax Credit, EITC=Earned Income Credit
 // EDC=Education Credit, EDA=Education Adjustment, RESX=Relative who does not have to live with you
 // PAR=TP is a parent
 //***************************************************************************************************
 	switch (DEP_Relation) {
-	case "CHILD":			BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "ADOPTING":		BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "CHILD":			BENE_Relation="|DPC|PAR|DPR|HOH|QSS|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "ADOPTING":		BENE_Relation="|DPC|PAR|DPR|HOH|QSS|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "CHILD_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "FOSTER":			BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "FOSTER_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
@@ -1615,7 +1620,9 @@ function ColorCells() {
 	if (HOH.value == "YES") {
 		if (Widow.value != NO) {
 			BenefitColor.HOH = ColorWarn;
-			HOH.title += "- Although qualified for HOH, Widow(er) filing is a better choice if still within the 2 year limit\n";
+			HOH.title += ( (+TaxYear.value < 2022) ?
+			"- Although qualified for HOH, Widow(er) filing is a better choice if still within the 2 year limit\n" :
+			"- Although qualified for HOH, QSS filing is a better choice if still within the 2 year limit\n" );
 		}
 		if (TP_DivorceApplies) {
 			BenefitColor.HOH = ColorWarn;
@@ -1624,18 +1631,24 @@ function ColorCells() {
 	}
 	HOH.style.backgroundColor = BenefitColor.HOH;
 
-	// Qualified dependent for Widow(er) with child filing ----------------------------------
+	// Qualified dependent for Qualified Surviving Spouse filing ----------------------------------
 	Widow.innerHTML = Widow.value;
 	BenefitColor.Widow = (Widow.value == NO)? ColorNo:ColorWarn;
 	if (Widow.value != "NO") ShowCaution = true;
 	if (Widow.value == "YES") {
-		Widow.title += "- May only file as a Widow(er) for 2 years following spouse's death if eligible to file MFJ on year of death\n";
+		Widow.title += ( (+TaxYear.value < 2022) ?
+			"- May only file as a Widow(er) for 2 years following spouse's death if eligible to file MFJ on year of death\n" : 
+			"- May only file as a Qualified Surviving Spouse for 2 years following spouse's death if eligible to file MFJ on year of death\n" );
 		if (QualChild.value != "NO" || QualRelative.value != "NO") {
-			BWID.innerHTML = "Dependent for Widow(er) filing";
+			BQSS.innerHTML = (+TaxYear.value < 2022) ?
+				"Dependent for Widow(er) filing" : "Dependent for QSS filing";	
 		}
 		else {
-			BWID.innerHTML = "Eligible for Widow(er) filing";
-			Widow.title += "- Although not eligible for an exemption, this person does qualify the taxpayer to file as Widow(er)\n";
+			BQSS.innerHTML = (+TaxYear.value < 2022) ?
+				"Eligible for Widow(er) filing" : "Eligible for QSS filing";
+			Widow.title += ((+TaxYear.value < 2022) ?
+				"- Although not eligible for an exemption, this person does qualify the taxpayer to file as Widow(er)\n" :
+				"- Although not eligible for an exemption, this person does qualify the taxpayer to file as a Qualified Surviving Spouse\n" );
 		}
 	}
 	Widow.style.backgroundColor = BenefitColor.Widow;
@@ -1874,7 +1887,7 @@ function TestOptions() {
 	TestWindow.document.writeln("<html><head><title>Test results</title></head><body>");
 	TestWindow.document.writeln("<table>");
 	var TestHeader = "<thead><th>Test#</th><th>Age</th><th>Relation</th><th>Support</th><th>Citizenship</th><th>Residency</th>";
-	var TestHeader2 = "<th>QualChild</th><th>QualRelative</th><th>HOH</th><th>Widow(er)</th><th>DependCare</th><th>Medical</th><th>CTC</th><th>COD</th><th>EITC</th><th>T&F</th><th>LLC</th><th>AOC</th></thead>";
+	var TestHeader2 = "<th>QualChild</th><th>QualRelative</th><th>HOH</th><th>QSS</th><th>DependCare</th><th>Medical</th><th>CTC</th><th>COD</th><th>EITC</th><th>T&F</th><th>LLC</th><th>AOC</th></thead>";
 	TestWindow.document.writeln(TestHeader + TestHeader2);
 
 	// Basic dependent tests
@@ -2285,8 +2298,8 @@ function TestResults() {
 				<td id="HOH" style="text-align:center;" onclick="ShowReason(this.id,BHOH.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BWID">Qual person for Widow(er) filing</td>
-				<td id="Widow" style="text-align:center;" onclick="ShowReason(this.id,BWID.innerHTML,this.title)">YES</td>
+				<td id="BQSS">Qual person for Widow(er) filing</td>
+				<td id="Widow" style="text-align:center;" onclick="ShowReason(this.id,BQSS.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
 				<td id="BDC">Child/Dependent Care</td>
