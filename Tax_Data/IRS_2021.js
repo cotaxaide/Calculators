@@ -91,9 +91,10 @@
                 _Standard["HOH"] = 10;
 		_Standard["Kid"] = 12; // kiddie tax unearned income reporting limit (from Form 8815)
 		_Standard["DepAsRel"] = 13; // maximum earned income to be a Dependent as a Relative
+		_Standard["DependInc"] = 14; // increment to earned income for a dependent
 
-                // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    WID,inc,    HOH,inc,  Kiddie, DepAsRel
-                _Standard[_TY] = "          0,1100,   12550,1700, 12550,1350, 25100,1350, 25100,1350, 18800,1700,  2200,   4300";
+                // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    WID,inc,    HOH,inc,  Kiddie, DepAsRel,	DependInc
+                _Standard[_TY] = "          0,1100,   12550,1700, 12550,1350, 25100,1350, 25100,1350, 18800,1700,  2200,   4300,	350";
 
 	// var ItemLimit = []; // Limit repealed by new tax law
                 _ItemLimit[_TY+":SNG"] = 10000000; //261500;	// Needs update
