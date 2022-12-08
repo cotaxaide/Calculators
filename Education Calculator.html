@@ -183,7 +183,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.35, 12/7/2022";
+	var VERSION = "Version 3.36, 12/7/2022";
+	//	Fill the Gap option not working properly
+	//var VERSION = "Version 3.35, 12/7/2022";
 	//	Optimize button not showing for dependent student
 	//var VERSION = "Version 3.34b, 11/23/2022";
 	//	Changed dependent earned income increment
@@ -1184,17 +1186,6 @@
 		if (+ScholarTaxableMax.innerHTML > 0) {
 			messageNoScholar.style.display = "none";
 			OptimizeButtons.style.display = "block";
-//			if (GapGap.checked) {
-   				if (+ExpensesAOC.innerHTML >=
-					(+QUsedAOC.innerHTML + +NQUsedAOC.innerHTML + +MaxAOC.innerHTML)) {
-				}
-   				if (+ExpensesLLC.innerHTML >=
-					(+QUsedLLC.innerHTML + +NQUsedLLC.innerHTML + +MaxLLC.innerHTML)) {
-				}
-   				if (+ExpensesTNF.innerHTML >=
-					(+QUsedTNF.innerHTML + +NQUsedTNF.innerHTML + +MaxTNF.innerHTML)) {
-					}
-//				}
 			if (+NQExpenses["AOC"] + +NQExpenses["LLC"] + +NQExpenses["TNF"] == 0) {
 				messageNoUnqualified.style.display = "list-item";
 				OptimizeButtons.style.display = "none";
@@ -1657,7 +1648,6 @@
 		qAmount += suppPay;
 		saAmount -= suppPay;
 		suppRemainder -= suppPay;
-		qExpenses -= suppPay;
 
 		// Use remaining supplemental sources for nontaxable non-qualified
 		suppPay = Math.min(suppRemainder, nqntAmount);
@@ -1678,13 +1668,13 @@
 		var qPaid = Math.min(saAmount, qePayLimit);
 		qAmount += qPaid;
 		saAmount -= qPaid;
-		qExpenses -= qPaid;
 
-		// remainder is taxable
+		// remainder is taxable, show it as paying nonqualified expenses
 		incomeAmount = Math.max(0, incomeAmount + saAmount - nqntAmount);
+		nqAmount += (Math.min(incomeAmount, NQExpenses["AOC"]));
 
 		// qExpenses is the amount the taxpayer can claim as expenses
-		qExpenses = Math.min(qeeLimit, qExpenses);
+		//qExpenses = Math.min(qeeLimit, qExpenses);
 
 		// Adjust the figures if "Cover the difference" (GapGap) is checked
 		if (GapGap.checked) {
@@ -1727,7 +1717,7 @@
 				NQUsedAOC.innerHTML = Math.min(+NQAvailAOC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedAOC.innerHTML = qAmount;
 				QualExpensesAOC.innerHTML =
-				QualExpensesAOC2.innerHTML = qExpenses;
+				QualExpensesAOC2.innerHTML = Math.min(qeeLimit, (qExpenses - qAmount)); // v3.36
 				IncomeAOC.innerHTML = IncomeAOC2.innerHTML = incomeAmount;
 				break;
 
@@ -1736,7 +1726,7 @@
 				NQUsedLLC.innerHTML = Math.min(+NQAvailLLC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedLLC.innerHTML = qAmount;
 				QualExpensesLLC.innerHTML =
-				QualExpensesLLC2.innerHTML = qExpenses;
+				QualExpensesLLC2.innerHTML = Math.min(qeeLimit, (qExpenses - qAmount)); // v3.36
 				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
 				break;
 
@@ -1745,7 +1735,7 @@
 				NQUsedTNF.innerHTML = Math.min(+NQAvailTNF.innerHTML, (nqAmount + ScholarReduction)); // v3.18
 				QUsedTNF.innerHTML = qAmount;
 				QualExpensesTNF.innerHTML =
-				QualExpensesTNF2.innerHTML = qExpenses;
+				QualExpensesTNF2.innerHTML = Math.min(qeeLimit, (qExpenses - qAmount)); // v3.36
 				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount; // v3.33
 				break;
 		}
