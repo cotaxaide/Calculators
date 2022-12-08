@@ -183,7 +183,13 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.34, 9/8/2022";
+	var VERSION = "Version 3.35, 12/7/2022";
+	//	Optimize button not showing for dependent student
+	//var VERSION = "Version 3.34b, 11/23/2022";
+	//	Changed dependent earned income increment
+	//var VERSION = "Version 3.34a, 10/4/2022";
+	//	Changed filing status option to QSS for 2022
+	//var VERSION = "Version 3.34, 9/8/2022";
 	//	More related corrections
 	//var VERSION = "Version 3.33, 9/5/2022";
 	//	Corrected calcs involved with supplimentary funding
@@ -487,6 +493,12 @@
 		whatChanged	// the id of the field that changed
 		) {
 	//----------------------------------------------------------------------------------------
+		// Change filing status options
+		if (whatChanged == "TaxYear") {
+			optionLabel = (+TaxYear.value < 2022) ? "Widow(er)" : "QSS" ;
+			FilingStatus.lastElementChild.innerHTML = optionLabel;
+			//StudentFilingStatus:nth-child(4).innerHTML
+		}
 
 		// Show controls related to the chosen filing status for the taxpayer
 		AGIdiv.style.display = "block";
@@ -599,10 +611,6 @@
 
 		// Assume all dependents are claimed for EIC until changed, prior to 2018
 		Dependents.value = Math.max(EICDependents.value, CTCDependents.value, Dependents.value, Dependents0.value);
-		if (whatChanged == "Dependents") {
-			if (+TaxYear.value < 2018) EICDependents.value = Dependents.value;
-		}
-
 		// Student filing MFJ not for return of withholding consistency check
 		if ((StudentFilingStatus.value == "MFJ") && (! StudentMFJRefund.checked)) {
 			if (! Optimizing) {
@@ -952,7 +960,8 @@
 			KiddieFileMargin = Math.max(0, (KiddieTaxThreshold - studentUnearned) ); // Taxable scholarship is not included
 
 			// grossMargin is the amount that can be added without having to file
-			var maxStudentDeduction = Math.min(+StudEarnedTax.value + taxableLimit + 350, deductionAmount);
+			var earnedIncrement = +_Standard[TaxYear.value].split(",")[+_Standard["DependInc"]];
+			var maxStudentDeduction = Math.min(+StudEarnedTax.value + taxableLimit + earnedIncrement, deductionAmount);
 			var grossMargin = maxStudentDeduction - StudAGITax.value;
 
 			switch (true) {
@@ -3045,7 +3054,7 @@
 				<option value="MFJ" selected>MFJ</option>
 				<option value="MFS">MFS</option>
 				<option value="HOH">HOH</option>
-				<option value="WID">Widow(er)</option>
+				<option value="WID"><span id="TPWIDQSS">Widow(er)</span></option>
 				</select>
 				<br />
 				<span id="MFJRefundShow"
@@ -3113,7 +3122,7 @@
 					<option value="SNG">Single</option>
 					<option value="MFJ">MFJ</option>
 					<option value="MFS">MFS</option>
-					<option value="WID">Widow(er)</option>
+					<option value="WID"><span id="STWIDQSS">Widow(er)</span></option>
 					</select>
 					<span id="StudentMFJRefundShow"
 						title="FIling MFJ only for return of withholding or estimated tax payments.">
@@ -3225,6 +3234,7 @@
 		However, a warning message is displayed if all the funds cannot be used.</li>
 		<li>Savings bond amounts are not included in the calculations because they do not affect the outcome.
 		However, a warning message is displayed if the bond amount exeeds the education expenses (for tuition and fees) after other sources have been used.</li>
+		<li>CARES act emergency financial aid grants (which may be reported on form 1098-T) are non-taxable and may be used for nonqualified expenses like living expenses. Do not include this amount when using this calculator. Do not reduce expenses paid by these grants.</li>
 		<li id="KiddieWarn">IMPORTANT: Go to the Optimizer tab and enter income information, if any, on the Student&apos;s tax return.</li>
 	</ul>
 
