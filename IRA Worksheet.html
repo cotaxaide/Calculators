@@ -86,10 +86,18 @@
 	#IRATotalRow {
 		display: none;
 	}
+	#OptimizeLine {
+		display: none;
+		background-color: yellow;
+		border: 1px solid green;
+		vertical-align: middle;
+	}
 	#OptimizeButton {
-		float: right;
 		font-size: 120%;
 		border-radius: 5px;
+	}
+	#QCDTable {
+		display: none;
 	}
 	#QCDTable tr:nth-child(2),
 	#F8606Table tr:nth-child(2),
@@ -257,7 +265,10 @@
 	// --------------------------------------------------------------------------------
 
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.01, 9/19/2022)";
+	var VERSION = "(Version 2.02, 11/7/2022)";
+	//	Added total contribution line to calculate Nontaxable amount
+	//	Minor wording changes
+	//var VERSION = "(Version 2.01, 9/19/2022)";
 	//	Added Pub 590B Worksheet 1-1, QCD Adjustment Worksheet and QCD exclusion calc
 	//	Added ability to reconcile IRA adjustment with AGI changes due to IRA taxablility
 	//var VERSION = "(Version 1.07a, 7/9/2021)";
@@ -346,8 +357,10 @@
 		if (Split_Yes.checked) {
 			// TaxSlayer does not implement the Pub 590B worksheet 1.1
 			P590BW11Table.style.display = (CalcMethod.value == "Accurate") ?  "inline" : "none";
-			//IRATotalRow.style.display = "none";
+			IRATotalRow.style.display = "table-row";
 			IRADedRow.style.display = "table-row";
+			NonDed_CTY.disabled = true;
+			NonDed_CTY.value = Math.max(0, Total_CTY.value - Ded_CTY.value);
 			if (FilingStatus.value != "MFJ") {
 				SplitSP50.checked = false;
 				SplitSPPlan.checked = false;
@@ -358,8 +371,9 @@
 		}
 		else {
 			P590BW11Table.style.display = "none";
-			//IRATotalRow.style.display = "none";
+			IRATotalRow.style.display = "none";
 			IRADedRow.style.display = "none";
+			NonDed_CTY.disabled = false;
 			Total_CTY.value = "";
 			Ded_CTY.value = "";
 			SplitTP50.checked = false;
@@ -372,7 +386,6 @@
 		SplitMFJ50.style.display = (FilingStatus.value == "MFJ") ? "inline" : "none" ;
 		SplitMFJPlan.style.display = (FilingStatus.value == "MFJ") ? "inline" : "none" ;
 		SplitMFS.style.display = (FilingStatus.value == "MFS") ? "inline" : "none" ;
-		OptimizeButton.style.display = ((Split_Yes.checked) && (Iteration == 0)) ? "inline" : "none" ;
 
 		// Disaster repayment
 		DisasterRow.style.display = (TaxYear.value === "2020") ? "table-row" : "none" ;
@@ -457,6 +470,7 @@
 		Calc.IRAContribTotal = Calc.IRAContribTotal_CTY + Input.NonDed_NTY;
 		Calc.Disaster_Net = Input.Disaster_Distrib - Input.Disaster_Repaid;
 		Calc.DistSEPTotal = Calc.DistTotal - Calc.DistTradTotal;
+		OptimizeLine.style.display = ((Split_Yes.checked) && (Iteration == 0)) ? "table-row" : "none" ;
 
 		// QCD Adjustment Worksheet
 		if (Calc.QCDTotal) {
@@ -760,10 +774,10 @@
 	<table id="OptionsTable" class="datatable" onchange="FileChange();">
 		<tr><td></td>
 			<td colspan="2">This worksheet is for <input id="TPName" type="text" placeholder="(TP or SP Name)" />
-				<br /><br />Check the box if any of the following is true in <span id="TaxYearInfo">2020</span>:
+				<br /><br />Check the box if the following is true in <span id="TaxYearInfo">2020</span>:
 				<br /><input id="Split_Yes" type="checkbox" />
 				An IRA contribution was made but only part (or none) was deductible due to AGI limitation
-				(See Schedule 1)</td></tr>
+				(See Schedule 1) AND a distribution was also made.</td></tr>
 		<tr id="SplitDetailsRow"><td colspan="2"></td>
 			<td>	<ul>
 					<li>Taxable amounts of IRAs affect AGI which affects the IRA contribution deduction
@@ -818,7 +832,7 @@
 			<td><input id="OldBasis" type="comma" /></td></tr>
 		<tr><td colspan="4" class="groupheader">CONTRIBUTIONS TO IRA for <span id="TaxYearIRA1">2017</span></td></tr>
 		<tr id="IRATotalRow">
-			<td></td><td colspan="2" class="dotted">Total contributions made</td>
+			<td></td><td colspan="2" class="dotted">Total contribution made</td>
 			<td><input id="Total_CTY" type="comma" /></td></tr>
 		<tr id="IRADedRow">
 			<td></td><td colspan="2" class="dotted">Deductible IRA contribution amount from Schedule 1</td>
@@ -830,7 +844,7 @@
 			<td></td><td colspan="2" class="dotted">Nondeductible contributions made in <span id="TaxYearIRA2b">2017</span>
 			prior to filing deadline</td>
 			<td><input id="NonDed_NTY" type="comma" /></td></tr>
-		<tr><td colspan="4" class="groupheader"><hr />TRADITIONAL/SIMPLE/SEP IRAS:</td></tr>
+		<tr><td colspan="4" class="groupheader"><hr />TRADITIONAL/SIMPLE/SEP IRAS: (Enter "0" where appropriate)</td></tr>
 		<tr>	<td></td>
 			<td>
 				<table id="DistTable">
@@ -885,19 +899,20 @@
 				<tr>
 					<td colspan="5">Any outstanding rollover amount (process not complete)</td>
 					<td><input id="Rollover" type="comma" /></td></tr>
+					</table></td></tr>
 
-				</table></td></tr>
-
-			<tr>	<td colspan="4">
-				<button id="OptimizeButton" onclick="SplitOptimize();">OPTIMIZE</button>
-				</td></tr>
-
+				<tr>	<td></td>
+					<td id="OptimizeLine" colspan="4">
+						&nbsp;When all data has been entered, click 
+						<button id="OptimizeButton" onclick="SplitOptimize();">OPTIMIZE</button>
+						to adjust the contribution limited by AGI.&nbsp;
+					</td></tr>
 			<tr>	<td></td>	
 				<td colspan="2">
 
 				<table id="QCDTable">
 					<tr><td colspan="4">&nbsp;</td></tr>
-					<tr><td colspan="4" class="groupheader">Pub 590B QCD Adjustment Worksheet</td></tr>
+					<tr><td colspan="4" class="groupheader">&nbsp;Pub 590B QCD Adjustment Worksheet</td></tr>
 					<tr><td id="QCD70Row" colspan="4">
 						<ul>
 							<li>QCDs cannot be more than $100,000 per TP/SP.</li>
@@ -951,7 +966,7 @@
 
 				<table id="P590BW11Table">
 					<tr><td colspan="4">&nbsp;</td></tr>
-					<tr><td colspan="4" class="groupheader">Pub 590B Worksheet 1-1</td></tr>
+					<tr><td colspan="4" class="groupheader">&nbsp;Pub 590B Worksheet 1-1</td></tr>
 					<tr><td></td>
 						<td> 1. Initial basis</td>
 						<td id="W11Line01Out"</td></tr>
@@ -995,7 +1010,7 @@
 			</section> <!-- P590BW11Div -->
 			<table id="F8606Table">
 				<tr><td colspan="4">&nbsp;</td></tr>
-				<tr><td colspan="4" class="groupheader">Form 8606 results:</td></tr>
+				<tr><td colspan="4" class="groupheader">&nbsp;Form 8606 results:</td></tr>
 				<tr> <td></td><td colspan="2">5. Traditional IRA basis + contributions in current tax year only</td>
 					<td class="calculated" id="Contrib_CTY"></td></tr>
 				<tr> <td></td><td colspan="2">9. IRA total amount subject to taxable reduction by basis</td>
