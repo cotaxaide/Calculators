@@ -172,10 +172,10 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
 <script src="Tax_Data/IRS_2022.js"></script>
+<script src="Tax_Data/IRS_2023.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
@@ -191,12 +191,19 @@
 	//	Henry Geisser		Bob Schroer		Chuck Sherman
 	//	Ron Bower		Barry Schwarz		Erica Adams
 	//	Fred Marker		Kathleen Quinn		Robert Sinsheimer
-	//	John Onder		Steve Mauri		
+	//	John Onder		Steve Mauri		Steve Loesche
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.41, 9/11/2022)";
+	var VERSION = "(Version 3.42, 12/10/2022)";
+	//	2021 above line charitable contributions not subtracting
+	//var VERSION = "(Version 3.41b, 11/19/2022)";
+	//	Scrolling in MFJMFS mode caused numbers in box to be deleted
+	//var VERSION = "(Version 3.41a, 10/4/2022)";
+	//	Limited to only last 4 years + next year
+	//	Changed Widow(er) filing option to QSS
+	//var VERSION = "(Version 3.41, 9/11/2022)";
 	//	Correction to maximize 2021 with cash gift to charity
 	//var VERSION = "(Version 3.40c, 9/1/2022)";
 	//	Changed page restart to support OH state link
@@ -335,6 +342,7 @@
 	var SPMFS = []; // saves spouse input data for MFJ/MFS comparison
 	var CalcOut = [];
 	var MFJMFSError = false;
+	var MFJMFSLastId = "";
 	var MFJMFSItemized = [];
 	var TPMFJiList = []; // array of input elements
 	var TPMFJcList = []; // array of calculated elements
@@ -402,7 +410,6 @@
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
 		var tyOptIndex = 0;
-		_StartYear = 2015;
 		for (var ty = _StartYear; ty <= _StopYear; ty++) {
 			var tyopti = document.createElement("option");
 			tyopti.text = tyopti.value = ty;
@@ -516,6 +523,9 @@
 	//----------------------------------------------------------------------------------------
 
 		// Change tax year?
+		optionLabel = (+TaxYear.value < 2022) ? "Widow(er)" : "QSS" ;
+		FilingStatus.lastElementChild.innerHTML = optionLabel;
+
 		TaxYear3.innerHTML = TaxYear2.innerHTML = TY = +TaxYear.value;
 		LY1.innerHTML = LY2.innerHTML = LY3.innerHTML = LY4.innerHTML = (TY - 1);
 		Preliminary.style.display = (_Preliminary[TY]) ? "inline" : "none";
@@ -628,6 +638,7 @@
 				thisId = MFSInputId.innerHTML;
 				if (thisId == "") {
 					MFSInputBox.style.display = "none";
+					MFJMFSLastId = "";
 					return;
 				}
 			}
@@ -657,14 +668,17 @@
 			MFSInputBox.style.left = pos.x + "px";
 			MFSInputBox.style.top = pos.y + "px";
 			if (thisId == "IRADeduction") thisId = "IRADeductionJoint";
-			TPInput.value = (TPMFS[thisId]) ? TPMFS[thisId] : "";
-			SPInput.value = (SPMFS[thisId]) ? SPMFS[thisId] : "";
+			if (thisId !== MFJMFSLastId) {
+				TPInput.value = (TPMFS[thisId]) ? TPMFS[thisId] : "";
+				SPInput.value = (SPMFS[thisId]) ? SPMFS[thisId] : "";
+			}
 			MFSallowNegative.checked = allowNegative;
 		}
 		else {
 			MFSInputBox.style.display = "none";
 			EdInputBox.style.display = "none";
 		}
+	MFJMFSLastId = thisId;
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -1218,14 +1232,15 @@
 
 		// Determine total deductions
 		if (CalcOut["CharityStandard"]) {
-			CalcOut["TotalDeductions"] = CalcOut["Standard"] + CalcOut["CharityStandard"];
+			CalcOut["TotalDeductions"] = CalcOut["Standard"] + CalcOut["CharityStandard"] + QBIDeduction;
 		}
 		else {
 			CalcOut["TotalDeductions"] = CalcOut["Deductions"] + QBIDeduction;
 		}
 
 		// Determine taxable amount
-		CalcOut["TaxableAmount"] = Math.max(0, PostExemptAmount - QBIDeduction);
+		//CalcOut["TaxableAmount"] = Math.max(0, PostExemptAmount - QBIDeduction);
+		CalcOut["TaxableAmount"] = Math.max(0, +CalcOut["AGI"] - +CalcOut["TotalDeductions"]);
 
 		// Determine Tax
 		var CGtoUse = Math.min( +CalcIn["LTCapGains"], (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]));
