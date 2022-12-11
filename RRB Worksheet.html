@@ -18,6 +18,7 @@
 	input, select { background-color: white; }
 	input[type="number"] { width: 4em; }
 	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.italic { font-style: italic; }
 	.bold { font-weight: bold; }
 	.center { text-align: center; }
 	.tblHeader { font-size:110%; font-weight:bold; text-decoration:underline; }
@@ -57,10 +58,10 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script type="text/javascript">
 	var VERSION;
 	// --------------------------------------------------------------------------------
@@ -69,7 +70,9 @@
 	//	Nancy or Don Metzger
 	// --------------------------------------------------------------------------------
 
-	VERSION = "Version 1.08, 11/2/2021";
+	VERSION = "Version 1.09, 12/2/2022";
+	//	Added CO exemption rate for over 65 due to SSA taxability
+	//VERSION = "Version 1.08, 11/2/2021";
 	//	TaxSlayer bug has been fixed, no special treatment required now
 	//VERSION = "Version 1.07, 9/9/2021";
 	//	Added TaxSlayer bug treatment
@@ -199,7 +202,7 @@
 
 		// TaxSlayer error:
 		// Entering  a Pension/Annuity Income doesn't change retirement exclusion
-		TaxSlayerError = false; // (+TaxYear.value >= 2019); // T/F
+		TaxSlayerError = false;
 		CTRow1.style.display =
 		CTRow2.style.display =
 		CTRow3.style.display = (TaxSlayerError) ? "none" : "table-row" ;
@@ -217,20 +220,49 @@
 		RRTP = T1TaxableTP;
 		RRSP = T1TaxableSP;
 
+		// Are TP or SP over 65 with higher exclusion due to taxable SS (new in 2022)
+		COExclusionTP = +COAllowedTP.value;
+		COExclusionSP = +COAllowedSP.value;
+		COExclusionMessage.innerHTML = "";
+		if (+TaxYear.value >= 2022) { // Exlusion extended if >65 and taxable SS > 24000
+			COExNoteTP = "";
+			COExNoteSP = "";
+			TP65 = (COExclusionTP >= 24000) ? true : false ;
+			if (TP65) {
+				COExclusionTP = Math.max(24000, SSTaxableTP);
+				COExclusionTP = Math.round(Math.min(COExclusionTP, Math.max(+COPensionTP.value - T1TaxableTP)));
+				COExNoteTPAnd = "";
+				if (COExclusionTP != +COAllowedTP.value) {
+					COExNoteTP = "TP new allowable exclusion is " + COExclusionTP;
+					COExNoteTPAnd = " and ";
+				}
+			}
+			SP65 = (COExclusionSP >= 24000) ? true : false ;
+			if (SP65) {
+				COExclusionSP = Math.max(24000, SSTaxableSP);
+				COExclusionSP = Math.round(Math.min(COExclusionSP, Math.max(+COPensionSP.value - T1TaxableSP)));
+				if (COExclusionSP != +COAllowedSP.value) {
+					COExNoteSP = COExNoteTPAnd + "SP new allowable exclusion is " + COExclusionSP;
+				}
+			}
+			COExNote = COExNoteTP + COExNoteSP;
+			if (COExNote) COExclusionMessage.innerHTML = "NOTE: " + COExNote;
+
+		}
+
 		// Do we need to make adjustments?
-		if (((RRTP == 0) || (+COPensionTP.value == +COAllowedTP.value))
-		&& ((RRSP == 0) || (+COPensionSP.value == +COAllowedSP.value))) {
-			alert("Because the eligible pension income is fully excluded, there is no need to complete this worksheet or make adjustments. The entries will be on the incorrect lines however the final result is correct.");
+		if (((RRTP == 0) || (+COPensionTP.value == COExclusionTP))
+		&& ((RRSP == 0) || (+COPensionSP.value == COExclusionSP))) {
+			alert("Because the eligible pension income is fully excluded, there is no need to complete this worksheet or make adjustments. The entries will be on the incorrect lines but the final result is correct.");
 			COSubtractMessageTP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
 			COSubtractMessageSP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
 			COSubtractMessageRR.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
 			return;
 		}
 
-		// Remove RRB Tier 1 and Tier 2 from CO retirement amount (prior to 2018)
-		// Remove RRB Tier 1 from CO retirement amount (2018)
+		// Remove RRB Tier 1 from CO retirement amount
 		PensionTP = Math.max(0,+COPensionTP.value - RRTP);
-		//PensionTP = Math.min(PensionTP, COAllowedTP.value);
+		//PensionTP = Math.min(PensionTP, COExclusionTP);
 		if (RRTP) {
 			if (PensionTP) {
 				COSubtractTP.value = Math.round(PensionTP);
@@ -247,7 +279,7 @@
 		}
 
 		PensionSP = Math.max(0,+COPensionSP.value - RRSP);
-		//PensionSP = Math.min(PensionSP, COAllowedSP.value);
+		//PensionSP = Math.min(PensionSP, COExclusionSP);
 		if (RRSP) {
 			if (PensionSP) {
 				COSubtractSP.value = Math.round(PensionSP);
@@ -267,7 +299,7 @@
 			var Tier1Subtract = T1TaxableTP + T1TaxableSP;
 			if (TaxSlayerError) {
 				var TPSPAdjustment = PensionTP + PensionSP;
-				var AllowedExclusion = +COAllowedTP.value + +COAllowedSP.value;
+				var AllowedExclusion = COExclusionTP + COExclusionSP;
 				var TPSPReduction = Math.max(0, AllowedExclusion - TPSPAdjustment);
 				if (TPSPReduction) { //Reduction doesn't work, so take from RR
 					if (TPSPReduction > Tier1Subtract) { // Not enough Tier1
@@ -388,6 +420,7 @@
 			<tr><td></td>
 				<td><input id="COSubtractRR" class="output" readonly /></td>
 				<td><span id="COSubtractMessageRR"></span></td></tr>
+			<tr><td colspan="3" class="italic" id="COExclusionMessage"></td></tr>
 		</table>
 	</div>
 
