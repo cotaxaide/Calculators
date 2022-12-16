@@ -55,12 +55,15 @@
 //	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
+//	Mary Jennings
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.09 10/4/2022";
+var VERSION = "7.10 12/16/2022";
+//	TP is Qual Relative not clearing after reset
+//var VERSION = "7.09 10/4/2022";
 //	Changed widow(er) to QSS throughout
 //var VERSION = "7.08 4/10/2022";
 //	Fixed EITC filing MFS not allowed for grandchild
@@ -464,6 +467,7 @@ function Initialize() {
 	SPCitizenship.value = "USA";
 	TPisDependent = "";
 	HHCost.checked = true;
+	TPisQR.checked = false;
 	TPisMarried.checked = true;
 	TPfilingMFJ.checked = true;
 	TPrefund.checked = false;
