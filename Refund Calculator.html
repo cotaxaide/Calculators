@@ -226,6 +226,7 @@
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
 <script src="Tax_Data/IRS_2022.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	var VERSION;
@@ -233,9 +234,13 @@
 	// To Do:
 	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.22, 9/12/2022)";
+	VERSION = "(Version 2.23, 12/19/2022)";
+	//	Sched A line 5b not showing unless a real estate refund
+	//VERSION = "(Version 2.22a, 10/4/2022)";
+	//	Changed filing status of Widow(er) to QSS
+	//VERSION = "(Version 2.22, 9/12/2022)";
 	//	2021 changed non-itemizing charitable contributions to after AGI
-	VERSION = "(Version 2.21, 7/24/2022)";
+	//VERSION = "(Version 2.21, 7/24/2022)";
 	//	Modifications due to _TaxLookup now returns an array
 	//VERSION = "(Version 2.20, 3/19/2022)";
 	//	Corrected use of non-refundable credits error
@@ -322,7 +327,7 @@
 	//	Deb Fisher		Lance Lauerhass		Dave Butner
 	//	Paul Peyser		Maria Maggio		Frank Krider
 	//	Vern Chartrand		Brad Kirby		Alvin Young
-	//	Eric Mueller
+	//	Eric Mueller		Lynn Kinch
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -433,7 +438,7 @@
 				Exemptions = (Dependent.checked) ? 0 : 1;
 				break;
 			case "HOH":
-			case "WID":
+			case "QSS":
 				SPBlind.disabled = SP65.disabled = true;
 				SPBlind.checked = SP65.checked = false;
 				MustItemize.checked = false;
@@ -445,6 +450,10 @@
 		TY = +TaxYear.value;
 		CY = TY - 1;
 		PY = TY - 2;
+
+		// Adjust filing status option label
+		optionLabel = (CY < 2022) ? "Widow(er)" : "QSS" ;
+		FilingStatus.lastElementChild.innerHTML = optionLabel;
 
 		// Determine exemption amount
 		Exemption.value = (Exemptions + +Dependents.value) * _Standard[CY].split(",")[0];
@@ -482,8 +491,8 @@
 		StateWHRow.style.display = "table-row";
 		StateWHText.innerHTML = "to indicate sales tax used";
 		SalesTaxUsedBox.style.display = "inline";
-		PersonalRow.style.display = "table-row";
 		PropertyRow.style.display = "table-row";
+		PersonalRow.style.display = "table-row";
 		SALTRow.style.display = "table-row";
 		NonTaxableQBIDRow.style.display = "table-row";
 
@@ -594,7 +603,7 @@
 		SalesTax.style.backgroundColor = "";
 		if (isNaN(Property.value) || (+Property.value < 0)) Property.value = "";
 		Property.style.backgroundColor = "";
-		if (isNaN(Property.value) || (+Personal.value < 0)) Personal.value = "";
+		if (isNaN(Personal.value) || (+Personal.value < 0)) Personal.value = "";
 		Personal.style.backgroundColor = "";
 		if (isNaN(CashContrib.value) || (+CashContrib.value < 0)) CashContrib.value = "";
 		CashContrib.style.backgroundColor = "";
@@ -776,7 +785,7 @@
 
 	//----------------------------------------------------------------------------------------
 		// Determine if property tax refund is limited
-		if (PropertyTaxRefund.value) {
+		//if (PropertyTaxRefund.value) { // removed in v 2.23
 			PropertyRow.style.display = "table-row";
 
 			// Check the input data
@@ -796,11 +805,11 @@
 
 			// OK to calculate
 			PropertyTaxRefundTaxable = Math.min(PropertyTaxRefundTaxable, +Property.value);
-		}
-		else {
-			PropertyRow.style.display = "none" ;
-			Property.value = "";
-		}
+		//}
+		//else {
+			//PropertyRow.style.display = "none" ;
+			//Property.value = "";
+		//}
 		TestingSchedAFor.innerHTML = "";
 		SchedAButton.style.display = "none";
 
@@ -1703,7 +1712,7 @@
 					<option value="MFJ">MFJ</option>
 					<option value="MFS">MFS</option>
 					<option value="HOH">HOH</option>
-					<option value="WID">Widow(er)</option></select>
+					<option value="QSS">Widow(er)</option></select>
 				<br /><span id="DependentsNumber"><input id="Dependents" type="myinput" /></span></td>
 				<td><input id="TP65" type="checkbox" title="Taxpayer was 65 or older" /> TP was 65 or older,
 				<input id="TPBlind" type="checkbox" title="Taxpayer was blind" /> TP was blind
