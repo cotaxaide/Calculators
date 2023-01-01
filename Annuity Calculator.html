@@ -274,10 +274,13 @@
 	//	Paul Hirth		Douglas Feuerhelm	Deb Fisher
 	//	Frank Krider		Paul Renard		John Arenberg
 	//	Lois Andersen		Jay Wiedwald		Jen Nakata
+	//	Nonie Garvey
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.27, 3/8/2022)";
+		var VERSION = "(version 10.28, 12/31/2022)";
+		//	Supress age if annuity has not started due to disability
+		//var VERSION = "(version 10.27, 3/8/2022)";
 		//	Including cents in insurance exclusion caused error
 		//var VERSION = "(version 10.26a, 3/6/2022)";
 		//	Minor word change to disability checkbox text
@@ -1071,6 +1074,8 @@
 					}
 					else {
 						Pension_part = "This year, the disability pension is fully taxable.";
+						TPAGE.innerHTML = "TBD";
+						SPAGE.innerHTML = "";
 					}
 					Pension_part += "\n   Check the TaxSlayer box to indicate that this distribution is earned income.";
 					alert(Disable_alert + Pension_part);
