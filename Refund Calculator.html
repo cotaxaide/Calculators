@@ -226,7 +226,6 @@
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
 <script src="Tax_Data/IRS_2022.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	var VERSION;
@@ -234,7 +233,11 @@
 	// To Do:
 	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.23, 12/19/2022)";
+	VERSION = "(Version 2.24, 1/17/2023)";
+	//	Residential energy credit row hidden but needs entry to continue
+	//VERSION = "(Version 2.23a, 1/13/2023)";
+	//	Minor text change
+	//VERSION = "(Version 2.23, 12/19/2022)";
 	//	Sched A line 5b not showing unless a real estate refund
 	//VERSION = "(Version 2.22a, 10/4/2022)";
 	//	Changed filing status of Widow(er) to QSS
@@ -486,7 +489,6 @@
 		TaxableSalesLabel.innerHTML = "Schedule 1 line 8";
 		PostCreditLineNo.innerHTML = "1040 line 13";
 		SalesTaxText.style.display = "none";
-		EnergyRow.style.display = "none";
 		StateWHBox.style.display = "none";
 		StateWHRow.style.display = "table-row";
 		StateWHText.innerHTML = "to indicate sales tax used";
@@ -499,7 +501,7 @@
 		// Update lines containing dates
 
 		TPNameHeader.innerHTML = CY + " Taxpayer Information";
-		RefundHeader.innerHTML = "Refunds received in " + TY + " for the return filed in " + CY;
+		RefundHeader.innerHTML = "Refunds received in " + TY + " for the return filed for " + CY;
 		SchedAHeader.innerHTML = CY + " Schedule A Test Information";
 		NonTaxableHeader.innerHTML = "<hr />" + CY + " Negative Taxable Income Test Information";
 		QBIHeader.innerHTML = "<hr />" + CY + " Qualified Business Income Adjustment Test Information";
@@ -1791,7 +1793,7 @@
 				<td>Refund or recovery of other expenses that provided an adjustment or reduction of taxes</td></tr>
 -->
 		</table>
-		<button id="RefundsButton">Next</button>
+		<button id="RefundsButton" onclick="Recalculate();">Next</button>
 	</div> <!-- Refunds -->
 </div> <!-- DataEntry -->
 
@@ -1851,7 +1853,7 @@
 				<td class="test_results">Taxable amount of the refund after this test: 
 					<span id="SchedAResult">TBD</span></td></tr>
 		</table>
-		<button id="SchedAButton" class="hidden">Next</button>
+		<button id="SchedAButton" class="hidden" onclick="Recalculate();">Next</button>
 	</div> <!-- SchedADiv -->
 
 	<div id="StandardDiv" class="hidden">
@@ -1868,7 +1870,7 @@
 				<td><input id="StandardDeduction" type="myinput" disabled="true" /></td>
 				<td>(Calculated)</td></tr>
 		</table>
-		<button id="StandardButton" class="hidden">Next</button>
+		<button id="StandardButton" class="hidden" onclick="Recalculate();">Next</button>
 	</div> <!-- StandardDiv -->
 
 	<div id="QBIDiv" class="hidden">
@@ -1950,7 +1952,7 @@
 				<td class="test_results">Taxable amount of the refund after this test: 
 					<span id="NonTaxableResult">TBD</span></td></tr>
 		</table>
-		<button id="NonTaxableButton" class="hidden">Next</button>
+		<button id="NonTaxableButton" class="hidden" onclick="Recalculate();">Next</button>
 		<span id="TaxablePositive">Taxable income is positive. Please check the box above to skip this test.</span>
 	</div> <!-- NonTaxableDiv -->
 
@@ -1998,7 +2000,7 @@
 				<td><input id="Retirement" type="myinput" /></td>
 				<td>From Form 8880 line 10</td></tr>
 			<tr><td colspan="3"></td></tr>
-			<tr id="EnergyRow"> <!-- not available after 2017 -->
+			<tr id="EnergyRow">
 				<td>&nbsp;&nbsp;Residential energy credit:</td>
 				<td><input id="Energy" type="myinput" /></td>
 				<td>From Form 5695 line 13</td></tr>
@@ -2039,7 +2041,7 @@
 				<td class="test_results">Taxable amount of the refund after this test: 
 					<span id="NonRefundableResult">TBD</span></td></tr>
 		</table>
-		<button id="NonRefundableButton" class="hidden">Next</button>
+		<button id="NonRefundableButton" class="hidden" onclick="Recalculate();">Next</button>
 	</div> <!-- NonRefundableDiv -->
 
 	<div id="AllocationDiv" class="hidden">
@@ -2083,7 +2085,7 @@
 				<td id="TYAllocText"></td>
 			</tr>
 		</table>
-		<button id="AllocationButton" class="hidden">Next</button>
+		<button id="AllocationButton" class="hidden" onclick="Recalculate();">Next</button>
 	</div> <!-- AllocationDiv -->
 </div>
 
