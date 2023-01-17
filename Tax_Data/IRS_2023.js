@@ -21,7 +21,7 @@
                 _LineNo[_TY+":TaxAmount"] = "16";		// Need update
                 _LineNo[_TY+":CTC"] = "19";		// Need update
                 _LineNo[_TY+":COD"] = "19";		// Need update
-                _LineNo[_TY+":NRCredit"] = "20";		// Need update
+                _LineNo[_TY+":NRCredit"] = "21";		// Need update
                 _LineNo[_TY+":EIC"] = "27";		// Need update
                 _LineNo[_TY+":ACTC"] = "28";		// Need update
                 _LineNo[_TY+":AOC"] = "29";		// Need update

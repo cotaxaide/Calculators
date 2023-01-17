@@ -21,7 +21,7 @@
                 _LineNo[_TY+":TaxAmount"] = "16";
                 _LineNo[_TY+":CTC"] = "19";
                 _LineNo[_TY+":COD"] = "19";
-                _LineNo[_TY+":NRCredit"] = "20";
+                _LineNo[_TY+":NRCredit"] = "21";
                 _LineNo[_TY+":EIC"] = "27";
                 _LineNo[_TY+":ACTC"] = "28";
                 _LineNo[_TY+":AOC"] = "29";
