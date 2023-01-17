@@ -63,7 +63,7 @@
 	}
 
 	.SumTable td:first-child  { width: 3em; }
-	.SumTable td:nth-child(2) { width: 24em; border-bottom: 1px solid tan; }
+	.SumTable td:nth-child(2) { width: 28em; border-bottom: 1px solid tan; }
 	.SumTable td:nth-child(3),
 	.SumTable td:nth-child(4) {
 		width: 5em;
@@ -91,6 +91,9 @@
 		div { background-color: white; }
 		input, select, option { font-size: 0.8em; }
 		table { width: 100%; background-color: white; }
+		#DistTable tr td:nth-child(4) select { width: 4em; }
+		#DistTable tr td:nth-child(5) select { width: 6em; }
+		#DistTable tr td:nth-child(6) select { width: 6em; }
 		#CODiv { page-break-inside: avoid; page-break-after: always; }
 		button { display: none; }
 	}
@@ -105,14 +108,15 @@
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
 	// Contributors:
-	// 	Kirk Coonley
-	//	Barry Berlin
-	//	David Hutchison
+	// 	Kirk Coonley		Barry Berlin		David Hutchison
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.12, 12/28/2022)";
+	var VERSION = "(Version 1.13, 1/5/2023)";
+	//	Changes to support 2022 tax forms
+	//	Added Social Security subtraction
+	//var VERSION = "(Version 1.12, 12/28/2022)";
 	//	Removed SS & Tier 1 from Pension income
 	//	Major rework of retirement calcs
 	//	Added calc of % of CO income for credits
@@ -188,8 +192,6 @@
 	var SPSSState = 0;
 	var TPSSTotal = 0;
 	var SPSSTotal = 0;
-	var TPSSAlloc = 0;
-	var SPSSAlloc = 0;
 	var SSPercent = 0;
 	var SPtracksTPFrom = true;
 	var SPtracksTPTo = true;
@@ -199,6 +201,7 @@
 	var SPToMonth = 12;
 	var TPPercent;
 	var SPPercent;
+	var AdjustmentEntered = false;
 	var FedEarnedIncome = 0;
 	var FedGrossIncome = 0;
 	var FedSSAmount = 0;
@@ -211,6 +214,10 @@
 	var SPPensionAlloc = 0;
 	var TPPension12 = 0;
 	var SPPension12 = 0;
+	var TPPension12Exclusion = 0;
+	var SPPension12Exclusion = 0;
+	var TPPossibleErrorAmount = 0;
+	var SPPossibleErrorAmount = 0;
 	var TPRRB1Total = 0;
 	var SPRRB1Total = 0;
 	var RRBTotal = 0;
@@ -220,7 +227,6 @@
 	var FormADError = false;
 	var TPAgeList = [];
 	var SPAgeList = [];
-	var DaysPerMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 	var MilitaryLimit = [4500, 7500, 10000, 15000, 15000, 15000]; // index 0 = 2019
 
 	//----------------------------------------------------------------------------------------
@@ -302,11 +308,6 @@
 			SPTo.value = SPToMonth;
 		}
 
-		// Set annuity limits
-		for (j = 0; j < 3; j++) {
-			if (TPAgeList[j].checked) TPAnnuityLimit = +TPAgeList[j].value;
-			if (SPAgeList[j].checked) SPAnnuityLimit = +SPAgeList[j].value;
-		}
 		// this will fail in 2025 and will need to be fixed
 		TPMilitaryLimit = (TPAgeList[0].checked) ?  MilitaryLimit[+TaxYear.value - 2019] : 0 ;
 		SPMilitaryLimit = (SPAgeList[0].checked) ?  MilitaryLimit[+TaxYear.value - 2019] : 0 ;
@@ -327,6 +328,7 @@
 
 		if (type == "Recalc") {
 			Recalculating = true;
+			AdjustmentEntered = false;
 			if (RecalcRow == 0) RecalcRow = row;
 			for (recalcidx = 1; recalcidx < RecalcRow; recalcidx++) {
 				Adjustptr = document.getElementById("Adj" + recalcidx);
@@ -354,13 +356,16 @@
 			case "Social_Security-Gross":
 			case "RRB_Tier1-Gross":
 			case "RRB_Tier2-Taxable":
-			case "Pension-Military":
+			case "Pension-Military-Gross":
 			case "IRA_Pension_Annuity-Taxable":
 			case "Unemployment":
 				if (Ownerptr.value == "J") Ownerptr.options.selectedIndex = 2; // TP
 				break;
 		}
 
+		// Set owner to TP if not filing MFJ
+		if (FilingStatus.value != "MFJ") Ownerptr.options.selectedIndex = 2; // TP
+		// Check for errors
 		Typeptr.style.backgroundColor = ((Typeptr.value == "?") && (Amountptr.value > 0)) ? "lightpink" : "white";
 
 		switch (type) {
@@ -397,33 +402,38 @@
 			case "Owner":
 			case "Type": // Display From/To options?
 				switch (Typeptr.value) {
-					case "Alimony_paid":
-					case "Business_expense_of_reservist":
-					case "CO_Capital_gain_subtraction":
-					case "College_tuition_contribution":
-					case "CO_Charitable_contrib-Gross":
-					case "Ded_part_of_self_empl_tax":
-					case "Early_withdrawal_penalty":
 					case "Educator_expense":
+					case "Business_expense_of_reservist":
 					case "HSA deduction":
-					case "Interest-CO_1st_Time_Home":
-					case "IRA_deduction":
-					case "Jury_duty_pay_to_employer":
 					case "Moving_expenses":
-					case "Other_Addition":
-					case "Other_Adjustment":
-					case "Other_Subtraction":
-					case "PERA_DPSRS_subtraction":
-					case "Qualfied_reservation_income":
-					case "RRB_Tier1_subtraction":
-					case "RRB_Tier2_subtraction":
-					case "Repay_supplimental_unemployment":
+					case "Ded_part_of_self_empl_tax":
 					case "Self-employed_SEP_SIMPLE":
 					case "Self-employed_health_insurance":
-					case "State_Tax_Refunds-Taxable":
+					case "Early_withdrawal_penalty":
+					case "Alimony_paid":
+					case "IRA_deduction":
 					case "Student_loan_interest":
 					case "Tuition_and_Fees":
+					case "Jury_duty_pay_to_employer":
+					case "Repay_supplimental_unemployment":
+					case "Other_Adjustment":
+						// no break;
+					case "Other_Addition":
+					case "College_tuition_contribution":
+					case "CO_Capital_gain_subtraction":
+					case "CO_Charitable_contrib-Gross":
+					case "Qualfied_reservation_income":
+					case "PERA_DPSRS_subtraction":
+					case "Wildfire_mitigation_exclusion":
+					case "Other_Subtraction":
+						// no break
+					case "Interest-CO_1st_Time_Home":
+					case "RRB_Tier1_subtraction":
+					case "RRB_Tier2_subtraction":
+					case "State_Tax_Refunds-Taxable":
 						Fromptr.style.display = Toptr.style.display = "none";
+						Fromptr.value = 0;
+						Toptr.value = 11;
 						break;
 					default:
 						Fromptr.style.display = Toptr.style.display = "table-cell";
@@ -447,7 +457,8 @@
 					case "IRA_deduction":
 					case "Self-employed_SEP_SIMPLE":
 					case "Self-employed_health_insurance":
-						StateShare = (FedEarnedIncome) ? StateEarnedIncome / FedEarnedIncome : 0;
+						StateShare = +Earned_income_multiplierTotalState.innerHTML;
+						AdjustmentEntered = true;
 						break;
 
 					// Gross income group
@@ -455,7 +466,8 @@
 					case "Repay_supplimental_unemployment":
 					case "Student_loan_interest":
 					case "Tuition_and_Fees":
-						StateShare = (FedEarnedIncome) ? StateGrossIncome / FedGrossIncome : 0;
+						StateShare = +Gross_income_multiplierTotalState.innerHTML;
+						AdjustmentEntered = true;
 						break;
 
 					// Colorado only group
@@ -492,6 +504,13 @@
 						TPmonths = Math.max(0, Math.min(TPToMonth, tidx) - Math.max(TPFromMonth, fidx) + 1);
 						SPmonths = Math.max(0, Math.min(SPToMonth, tidx) - Math.max(SPFromMonth, fidx) + 1);
 						StateShare = ((TPShare * TPmonths) + (SPShare * SPmonths)) / accountmonths;
+						if (AdjustmentEntered) {
+							message = "Please enter all income items before adjustments.";
+							message += "\n\nThe amount allowed for Colorado is based on the percentage";
+							message += " of income subject to Colorado tax.";
+							alert (message);
+							AdjustmentEntered = false;
+						}
 					}
 				Stateptr.value = Math.round(+Amountptr.value * StateShare);
 				Otherptr.value = +Amountptr.value - Stateptr.value;
@@ -592,6 +611,12 @@
 		FedSSMAGI = 0;
 		FedAGI = 0;
 		FedSSTFI = 0;
+
+		// Set annuity limits
+		for (j = 0; j < 3; j++) {
+			if (TPAgeList[j].checked) TPAnnuityLimit = +TPAgeList[j].value;
+			if (SPAgeList[j].checked) SPAnnuityLimit = +SPAgeList[j].value;
+		}
 		
 		// Add each row's value to its respective sum property
 		for (row = 1 ; row <= ItemCount ; row++) {
@@ -625,7 +650,7 @@
 					StateSum12 += +Amountptr.value;
 					break;
 					
-				case "Pension-Military":
+				case "Pension-Military-Gross":
 				case "IRA_Pension_Annuity-Taxable":
 				case "RRB_Tier2-Taxable":
 					FedGrossIncome += +Amountptr.value;
@@ -661,12 +686,13 @@
 					break;
 
 				case "Student_loan_interest":
-					// Not included in SS calc
+					// Not deductible in SS calc
 					FedAGI -= +Amountptr.value;
 					StateSum12 -= +Amountptr.value;
 					break;
 
 				case "Interest-tax-free_non-CO":
+				case "Dividend-exempt_int_non-CO":
 					FedSSTFI += +Amountptr.value;
 					StateSum12 += +Amountptr.value;
 					break;
@@ -690,29 +716,27 @@
 						SPPension12 += +Amountptr.value;
 					}
 					break;
-				case "Pension-Military":
+				case "Pension-Military-Gross":
 					if (Ownerptr.value == "T") {
 						TPMilitaryTotal += +Amountptr.value;
 						TPMilitaryState += +Stateptr.value;
 						TPEligiblePension += TPMilitaryState;
-						TPPension12 += +Amountptr.value;
 					}
 					if (Ownerptr.value == "S") {
 						SPMilitaryTotal += +Amountptr.value;
 						SPMilitaryState += +Stateptr.value;
 						SPEligiblePension += SPMilitaryTotal;
-						SPPension12 += +Amountptr.value;
 					}
 					break;
 				case "Social_Security-Gross":
 					if (Ownerptr.value == "T") {
 						TPSSTotal += +Amountptr.value;
-						TPSSState += TPSSTotal;
+						TPSSState += +Stateptr.value;
 						// TPEligiblePension addition will be added later
 					}
 					if (Ownerptr.value == "S") {
 						SPSSTotal += +Amountptr.value;
-						SPSSState += SPSSTotal;
+						SPSSState += +Stateptr.value;
 						// SPEligiblePension addition will be added later
 					}
 					break;
@@ -732,12 +756,10 @@
 				case "RRB_Tier2-Taxable":
 					if (Ownerptr.value == "T") {
 						TPRRB2Total += +Stateptr.value;
-						TPPension12 += +Amountptr.value;
 						// not included in TPEligiblePension
 					}
 					if (Ownerptr.value == "S") {
 						SPRRB2Total += +Stateptr.value;
-						SPPension12 += +Amountptr.value;
 						// not included in SPEligiblePension
 					}
 					RRBTotal += +Amountptr.value;
@@ -754,6 +776,8 @@
 			OtherSumptr = document.getElementById(sumtype + "TotalOther");
 			OtherSumptr.innerHTML = OtherSum[sumtype] += +Otherptr.value;
 		}
+		Earned_income_multiplierTotalState.innerHTML = (FedEarnedIncome) ? StateEarnedIncome / FedEarnedIncome : 0;
+		Gross_income_multiplierTotalState.innerHTML = (FedEarnedIncome) ? StateGrossIncome / FedGrossIncome : 0;
 
 		// Copy Fed amounts duplicated in State summary
 		document.getElementById("Interest-gov2TotalState").innerHTML =
@@ -761,13 +785,15 @@
 		document.getElementById("Interest-gov2TotalOther").innerHTML =
 			document.getElementById("Interest-govTotalOther").innerHTML;
 		document.getElementById("Interest-tax-free_non-CO2TotalState").innerHTML =
-			document.getElementById("Interest-tax-free_non-COTotalState").innerHTML;
+			+document.getElementById("Interest-tax-free_non-COTotalState").innerHTML
+			+ +document.getElementById("Dividend-exempt_int_non-COTotalState").innerHTML;
 		document.getElementById("Interest-tax-free_non-CO2TotalOther").innerHTML =
-			document.getElementById("Interest-tax-free_non-COTotalOther").innerHTML;
-		document.getElementById("Dividend-CO_or_gov_adjust2TotalState").innerHTML =
-			document.getElementById("Dividend-CO_or_gov_adjustTotalState").innerHTML;
-		document.getElementById("Dividend-CO_or_gov_adjust2TotalOther").innerHTML =
-			document.getElementById("Dividend-CO_or_gov_adjustTotalOther").innerHTML;
+			+document.getElementById("Interest-tax-free_non-COTotalOther").innerHTML
+			+ +document.getElementById("Dividend-exempt_int_non-COTotalOther").innerHTML;
+		document.getElementById("Dividend-gov_source2TotalState").innerHTML =
+			document.getElementById("Dividend-gov_sourceTotalState").innerHTML;
+		document.getElementById("Dividend-gov_source2TotalOther").innerHTML =
+			document.getElementById("Dividend-gov_sourceTotalOther").innerHTML;
 		document.getElementById("Interest-CO_1st_Time_Home2TotalState").innerHTML =
 			document.getElementById("Interest-CO_1st_Time_HomeTotalState").innerHTML;
 		document.getElementById("Interest-CO_1st_Time_Home2TotalOther").innerHTML =
@@ -800,17 +826,23 @@
 		document.getElementById("RRB_Tier1-GrossTotalOther").innerHTML = 
 			OtherSum["RRB_Tier1-Gross"] =
 			Math.round(OtherSum["RRB_Tier1-Gross"] * SSPercent);
-		TPSSAlloc = Math.round(TPSSState * SSPercent);
-		SPSSAlloc = Math.round(SPSSState * SSPercent);
+		TPSSState = Math.round(TPSSState * SSPercent);
+		SPSSState = Math.round(SPSSState * SSPercent);
 		TPSSTotal = Math.round(TPSSTotal * SSPercent);
 		SPSSTotal = Math.round(SPSSTotal * SSPercent);
 		TPRRB1Total = Math.round(TPRRB1Total * SSPercent);
 		SPRRB1Total = Math.round(SPRRB1Total * SSPercent);
 
-		TPEligiblePension += (TPSSTotal + TPRRB1Total);
-		SPEligiblePension += (SPSSTotal + SPRRB1Total);
-		TPPension12 += TPSSTotal;
-		SPPension12 += SPSSTotal;
+		// Starting in 2022, Social security has its own pension deduction
+		if (+TaxYear.value >= 2022) {
+			StateSum12 -= (TPSSState + SPSSState);
+		}
+		else {
+			TPPension12 += TPSSTotal;
+			SPPension12 += SPSSTotal;
+			TPEligiblePension += TPSSTotal;
+			SPEligiblePension += SPSSTotal;
+		}
 
 
 		// TaxSlayer does not handle military retirements and RRB Tier 1 correctly
@@ -818,6 +850,8 @@
 		// if necessary.
 		TPPossibleErrorAmount = 0;
 		SPPossibleErrorAmount = 0;
+		TPEligiblePension += TPRRB1Total;
+		SPEligiblePension += SPRRB1Total;
 
 		// Apply limits to military retirement accounts ------------------------
 		TPExcl = Math.min(TPMilitaryState, +TPMilitaryLimit); 
@@ -853,12 +887,12 @@
 		// Adjust for TaxSlayer calcs which include Tier1 with pensions
 		TPExcl = Math.min(TPEligiblePension, TPRRB1Total); 
 		TPEligiblePension -= TPExcl;
-		TPPossibleErrorAmount += TPExcl;
+		//TPPossibleErrorAmount += TPExcl;
 		RRBAdjust += TPExcl; // Adjust TaxSlayer for Tier1
 
 		SPExcl = Math.min(SPEligiblePension, SPRRB1Total); 
 		SPEligiblePension -= SPExcl; 
-		SPPossibleErrorAmount += SPExcl;
+		//SPPossibleErrorAmount += SPExcl;
 		RRBAdjust += SPExcl; // Adjust TaxSlayer for Tier1
 
 		// Adjust for Tier 2
@@ -876,25 +910,49 @@
 
 		// Apply limit to remaining retirement accounts ------------------------
 		FormADError = false;
-		if (+TaxYear.value >= 2022) {
-			if (TPAgeList[2].checked) TPAnnuityLimit = Math.max(TPAnnuityLimit, TPSSAlloc);
-			if (SPAgeList[2].checked) SPAnnuityLimit = Math.max(SPAnnuityLimit, SPSSAlloc);
+		TPAnnuityLimitState = TPAnnuityLimit;
+		if (TaxYear.value >= 2022) {
+			if (TPAgeList[2].checked) {
+				TPAnnuityLimitState = Math.max(0, TPAnnuityLimit - TPSSState);
+				StateSum["Taxpayer_Social_Security_exclusion"] = 
+				Taxpayer_Social_Security_exclusionTotalState.innerHTML = TPSSState;
+				OtherSum["Taxpayer_Social_Security_exclusion"] = 
+				Taxpayer_Social_Security_exclusionTotalOther.innerHTML = TPSSTotal - TPSSState;
+			}
 		}
-		TPExcl = Math.min(TPEligiblePension, TPAnnuityLimit); 
+		TPExcl = Math.min(TPEligiblePension, TPAnnuityLimitState); 
 		StateSum["Taxpayer_Annuity_Pension_exclusion"] = TPExcl;
 		Taxpayer_Annuity_Pension_exclusionTotalState.innerHTML = TPExcl;
 		TPEligiblePension -= TPExcl;
-		if ((TPPossibleErrorAmount > 0) && (TPEligiblePension > 0)) FormADError = true;
+		//if ((TPPossibleErrorAmount > 0) && (TPEligiblePension > 0)) FormADError = true;
 
-		SPExcl = Math.min(SPEligiblePension, SPAnnuityLimit); 
+		SPAnnuityLimitState = SPAnnuityLimit;
+		if (TaxYear.value >= 2022) {
+			if (SPAgeList[2].checked) {
+				SPAnnuityLimitState = Math.max(0, SPAnnuityLimit - SPSSState);
+				StateSum["Spouse_Social_Security_exclusion"] = 
+				Spouse_Social_Security_exclusionTotalState.innerHTML = SPSSState;
+				OtherSum["Spouse_Social_Security_exclusion"] = 
+				Spouse_Social_Security_exclusionTotalState.innerHTML = SPSSTotal - SPSSState;
+			}
+		}
+		SPExcl = Math.min(SPEligiblePension, SPAnnuityLimitState); 
 		StateSum["Spouse_Annuity_Pension_exclusion"] = SPExcl;
 		Spouse_Annuity_Pension_exclusionTotalState.innerHTML = SPExcl;
 		SPEligiblePension -= SPExcl;
-		if ((SPPossibleErrorAmount > 0) && (SPEligiblePension > 0)) FormADError = true;
+		//if ((SPPossibleErrorAmount > 0) && (SPEligiblePension > 0)) FormADError = true;
 
 		// Apply limit for full year CO return calc
-		StateSum12 -= (Math.min(TPPension12, TPAnnuityLimit));
-		StateSum12 -= (Math.min(SPPension12, SPAnnuityLimit));
+		TPAnnuityLimitTotal = TPAnnuityLimit;
+		SPAnnuityLimitTotal = SPAnnuityLimit;
+		if (TaxYear.value >= 2022) {
+			if (TPAgeList[2].checked) TPAnnuityLimitTotal = Math.max(0, TPAnnuityLimit - TPSSTotal);
+			if (SPAgeList[2].checked) SPAnnuityLimitTotal = Math.max(0, SPAnnuityLimit - SPSSTotal);
+		}
+		TPPension12Exclusion = Math.min(TPPension12, TPAnnuityLimitTotal);
+		StateSum12 -= TPPension12Exclusion;
+		SPPension12Exclusion = Math.min(SPPension12, SPAnnuityLimitTotal);
+		StateSum12 -= SPPension12Exclusion;
 
 		Full_year_Colorado_incomeTotalState.innerHTML = StateSum12;
 
@@ -907,7 +965,6 @@
 	//----------------------------------------------------------------------------------------
 
 		COInterest.innerHTML = 0
-			+ StateSum["Interest-tax-free_non-CO"]
 			+ StateSum["Interest"]
 			+ StateSum["Interest-CO_1st_Time_Home"]
 			+ StateSum["Interest-gov"]
@@ -917,7 +974,7 @@
 		COCapitalGains.innerHTML = 0
 			+ StateSum["Capital_Gain_Loss"]; 
 		COAnnuities.innerHTML = 0
-			+ StateSum["Pension-Military"]
+			+ StateSum["Pension-Military-Gross"]
 			+ StateSum["IRA_Pension_Annuity-Taxable"]
 			+ StateSum["Social_Security-Gross"]
 			+ StateSum["RRB_Tier1-Gross"]
@@ -949,12 +1006,15 @@
 			+ StateSum["Contributions_to_501(c)_plans"];
 		COAdditions.innerHTML = 0
 			+ StateSum["Other_Addition"]
-			+ StateSum["Interest-tax-free_non-CO"];
+			+ StateSum["Interest-tax-free_non-CO"]
+			+ StateSum["Dividend-exempt_int_non-CO"];
 		COSubtractions.innerHTML = 0
 			+ StateSum["Interest-gov"]
-			+ StateSum["Dividend-CO_or_gov_adjust"]
+			+ StateSum["Dividend-gov_source"]
 			+ StateSum["Taxpayer_Military_retire_benefits"]
 			+ StateSum["Spouse_Military_retire_benefits"]
+			+ StateSum["Taxpayer_Social_Security_exclusion"]
+			+ StateSum["Spouse_Social_Security_exclusion"]
 			+ StateSum["Taxpayer_Annuity_Pension_exclusion"]
 			+ StateSum["Spouse_Annuity_Pension_exclusion"]
 			+ StateSum["CO_Capital_gain_subtraction"]
@@ -983,26 +1043,26 @@
 			- +COSubtractions.innerHTML;
 
 		// Calculate Colorado Credits
-		Part_year_Colorado_incomeTotalState.innerHTML = StateSumPart;
-		Credit_percentageTotalState.innerHTML = IncomePercent = (Math.round(1000 * StateSumPart / StateSum12) / 1000);
+		Part_year_Colorado_incomeTotalState.innerHTML = Math.max(0, StateSumPart);
+		Credit_percentageTotalState.innerHTML = IncomePercent = (Math.round(10000 * StateSumPart / StateSum12) / 10000);
 
 		// Set up for TaxSlayer problem correction
 		SFItotal = 0;
 
-		testsum = TPSSAlloc;
-		//COTPSS.innerHTML = (testsum) ? testsum : "leave&nbsp;blank"; // Not adjustable
+		//testsum = TPSSState; // Not adjustable
+		//COTPSS.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		//SFItotal += testsum;
+
+		//testsum = SPSSState; // Not adjustable
+		//COSPSS.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
+		//SFItotal += testsum;
+
+		testsum = TPPension12;
+		COPensionTPAdjust.innerHTML = (TPPossibleErrorAmount) ? testsum : "leave&nbsp;blank"
 		SFItotal += testsum;
 
-		testsum = SPSSAlloc;
-		//COSPSS.innerHTML = (testsum) ? testsum : "leave&nbsp;blank"; // Not adjustable
-		SFItotal += testsum;
-
-		testsum = StateSum["Taxpayer_Annuity_Pension_exclusion"];
-		//COTPAnn.innerHTML = (testsum) ? testsum : "leave&nbsp;blank"; // Not adjustable
-		SFItotal += testsum;
-
-		testsum = StateSum["Spouse_Annuity_Pension_exclusion"];
-		//COSPAnn.innerHTML = (testsum) ? testsum : "leave&nbsp;blank"; // Not adjustable
+		testsum = SPPension12;
+		COPensionSPAdjust.innerHTML = (SPPossibleErrorAmount) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
 
 		testsum = StateSum["Taxpayer_Military_retire_benefits"];
@@ -1033,8 +1093,10 @@
 		COPERA.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
 
-		testsum = StateSum["RRB_Tier1_subtraction"] + StateSum["RRB_Tier2_subtraction"];
-		CORRBAdjust.innerHTML = (testsum) ? StateSum["RRB_Tier1_subtraction"] : "leave&nbsp;blank";
+		testsum1 = StateSum["RRB_Tier1_subtraction"] + OtherSum["RRB_Tier1_subtraction"]
+		testsum2 = StateSum["RRB_Tier2_subtraction"] + OtherSum["RRB_Tier2_subtraction"];
+		testsum = testsum1 + testsum2;
+		CORRBAdjust.innerHTML = (testsum) ? testsum1 : "leave&nbsp;blank";
 		SFItotal += testsum;
 
 		testsum = StateSum["Wildfire_mitigation_exclusion"]
@@ -1049,44 +1111,98 @@
 		COOtherSubtractions.innerHTML = (testsum) ? testsum : "leave&nbsp;blank";
 		SFItotal += testsum;
 
+		COSubtractDiv.style.display = (SFItotal) ? "block" : "none";
+
 		if (FormADError) {
+			ADTotal = 0;
 			var message = "<h1>TaxSlayer cannot produce an accurate partial year return for Colorado for this taxpayer.</h1>";
 			message += "<ol>";
 			message += "<li>Print the Colorado return from TaxSlayer and modify forms as follows:</li>";
 			message += "<li>CO form 104AD:";
 			message += "<ul>";
-			message += "<li>change line 1 (State income tax subtraction) to $<b>" + StateSum["State_Tax_Refunds-Taxable"] + "</b>.</li>";
-			message += "<li>change line 2 (Government interest) to $<b>" + StateSum["Interest-gov"] + "</b>.</li>";
-			message += "<li>change line 3 (Primary TP pension exclusion) to $<b>" + StateSum["Taxpayer_Annuity_Pension_exclusion"] + "</b>.</li>";
-			message += "<li>change line 4 (SP pension exclusion) to $<b>" + StateSum["Spouse_Annuity_Pension_exclusion"] + "</b>.</li>";
-			message += "<li>change line 5 (Primary TP military retirement) to $<b>" + StateSum["Taxpayer_Military_retire_benefits"] + "</b>.</li>";
-			message += "<li>change line 6 (SP military retirement) to $<b>" + StateSum["Spouse_Military_retire_benefits"] + "</b>.</li>";
-			message += "<li>change line 7 (CO capital gains subraction) to $<b>" + StateSum["CO_Capital_gain_subtraction"] + "</b>.</li>";
-			message += "<li>change line 8 (CollegeInvest contribution) to $<b>" + StateSum["College_tuition_contribution"] + "</b>.</li>";
-			message += "<li>change line 9 (Charitable contributions) to $<b>" + (Math.max(0, StateSum["CO_Charitable_contrib-Gross"] - 500)) + "</b>.</li>";
-			message += "<li>change line 10 (Qualified reservation income) to $<b>" + StateSum["Qualfied_reservation_income"] + "</b>.</li>";
-			message += "<li>change line 11 (PERA/DPRS subtraction) to $<b>" + StateSum["PERA_DPSRS_subtraction"] + "</b>.</li>";
-			message += "<li>change line 12 (RR retirement TIerI/TierII) to $<b>" + (StateSum["RRB_Tier1_subtraction"] + StateSum["RRB_Tier2_subtraction"]) + "</b>.</li>";
-			message += "<li>change line 13 (Wildfire mitigation) to $<b>" + StateSum["Wildfire_mitigation_exclusion"] + "</b>.</li>";
-			message += "<li>change line 18 (FIrst time homebuyer interest) to $<b>" + StateSum["Interest-CO_1st_Time_Home"] + "</b>.</li>";
-			message += "<li>change line 19 (Other subtractions) to $<b>" + StateSum["Other_Subtraction"] + "</b>.</li>";
-			message += "<li>change line 20 (Subtotal) to $<b>" + SFItotal + "</b>.</li>";
+			subline = 1;
+			ADAmount = StateSum["State_Tax_Refunds-Taxable"] + OtherSum["State_Tax_Refunds-Taxable"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (State income tax subtraction) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["Interest-gov"] + OtherSum["Interest-gov"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Government interest) to $<b>" + ADAmount + "</b>.</li>";
+			if (+TaxYear.value == 2022) {
+				ADAmount = StateSum["Taxpayer_Social_Security_exclusion"] + OtherSum["Taxpayer_Social_Security_exclusion"];
+				message += "<li>change line " + (subline++) + " (Primary TP Social Security Benefits) to $<b>" + ADAmount + "</b>.</li>";
+				ADTotal += ADAmount;
+			}
+			ADAmount = TPPension12Exclusion;
+			//ADAmount = StateSum["Taxpayer_Annuity_Pension_exclusion"] + OtherSum["Taxpayer_Annuity_Pension_exclusion"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Primary TP pension exclusion) to $<b>" + ADAmount + "</b>.</li>";
+			if (+TaxYear.value == 2022) {
+				ADAmount = StateSum["Spouse_Social_Security_exclusion"] + OtherSum["Spouse_Social_Security_exclusion"];
+				message += "<li>change line " + (subline++) + " (Spouse Social Security Benefits) to $<b>" + ADAmount + "</b>.</li>";
+				ADTotal += ADAmount;
+			}
+			ADAmount = SPPension12Exclusion;
+			//ADAmount = StateSum["Spouse_Annuity_Pension_exclusion"] + OtherSum["Spouse_Annuity_Pension_exclusion"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Spouse pension exclusion) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["Taxpayer_Military_retire_benefits"] + OtherSum["Taxpayer_Military_retire_benefits"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Primary TP military retirement) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["Spouse_Military_retire_benefits"] + OtherSum["Spouse_Military_retire_benefits"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Spouse military retirement) to $<b>" + ADAmount + "</b>.</li>";
+			if (+TaxYear.value == 2022) {
+				subline++; // Changed to Colorado Agricultural Land Capital Gain Subtraction (OUT OF SCOPE)
+			}
+			else {
+			ADAmount = StateSum["CO_Capital_gain_subtraction"];
+			ADTotal += ADAmount;
+				message += "<li>change line " + (subline++) + " (CO capital gains subraction) to $<b>" + ADAmount + "</b>.</li>";
+			}
+			ADAmount = StateSum["College_tuition_contribution"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (CollegeInvest contribution) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = Math.max(0, StateSum["CO_Charitable_contrib-Gross"] - 500);
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Charitable contributions) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["Qualfied_reservation_income"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Qualified reservation income) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["PERA_DPSRS_subtraction"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (PERA/DPRS subtraction) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["RRB_Tier1_subtraction"] + OtherSum["RRB_Tier1_subtraction"]
+				+ StateSum["RRB_Tier2_subtraction"] + OtherSum["RRB_Tier2_subtraction"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (RR retirement TIerI/TierII) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["Wildfire_mitigation_exclusion"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Wildfire mitigation) to $<b>" + ADAmount + "</b>.</li>";
+			subline = 18; // for 2019, 2020, 2021
+			if (+TaxYear.value == 2022) subline = 22;
+			ADAmount = StateSum["Interest-CO_1st_Time_Home"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (FIrst time homebuyer interest) to $<b>" + ADAmount + "</b>.</li>";
+			ADAmount = StateSum["Other_Subtraction"];
+			ADTotal += ADAmount;
+			message += "<li>change line " + (subline++) + " (Other subtractions) to $<b>" + ADAmount + "</b>.</li>";
+			message += "<li>change line " + (subline++) + " (Subtotal) to $<b>" + ADTotal + "</b>.</li>";
 			message += "</ul></li>";
 			message += "<li>CO form 104PN:";
 			message += "<ul>";
-			message += "<li>change line 30 to $<b>" + SFItotal + "</b>.</li>";
+			message += "<li>change line 30 to $<b>" + ADTotal + "</b>.</li>";
 			message += "<li>change line 31 to $<b>" + COSubtractions.innerHTML + "</b>.</li>";
 			message += "<li>adjust the math in the ensuing lines as needed.</li>";
 			message += "</ul></li>";
 			message += "<li>CO form 104:";
 			message += "<ul>";
-			if (TaxYear.value == 2019) subline = 5;
-			if (TaxYear.value == 2020) subline = 8;
-			if (TaxYear.value == 2021) subline = 6;
-			if (TaxYear.value == 2022) subline = 6;
-			message += "<li>change line " + (subline) + " to $<b>" + SFItotal + "</b>.</li>";
-			message += "<li>adjust the amount in line " + (subline + 1) + ".</li>";
-			message += "<li>change line " + (subline + 2) + " with the new CO tax from 104PN.</li>";
+			if (+TaxYear.value == 2019) subline = 5;
+			if (+TaxYear.value == 2020) subline = 8;
+			if (+TaxYear.value == 2021) subline = 6;
+			if (+TaxYear.value == 2022) subline = 8;
+			message += "<li>change line " + (subline++) + " to $<b>" + ADTotal + "</b>.</li>";
+			message += "<li>adjust the amount in line " + (subline++) + ".</li>";
+			message += "<li>change line " + (subline++) + " with the new CO tax from 104PN.</li>";
 			message += "<li>adjust the math in the ensuing lines as needed.</li>";
 			message += "</ul></li>";
 			message += "<li>Paper file the Colorado tax return.</li></ol>";
@@ -1096,12 +1212,12 @@
 			}
 
 		else {
-			COSubtractDiv.style.display = "block";
 			TSMessageDiv.style.display = "none";
 		}
 
 		TSSubtractions.style.display = "none";
 		//TSMessageDiv.style.display = "block"; // DEBUG
+		//COSubtractDiv.style.display = "block"; // DEBUG
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -1110,6 +1226,16 @@
 	//----------------------------------------------------------------------------------------
 		ItemCount++;
 		var nogrp = "nogrp";
+
+		// Row option codes:
+		//	J = item can be jointly owned
+		//	E = adjustment subject to earned income %
+		//	G = adjustment subject to gross income %
+		//	C = Colorado only
+		//	O = show the "Other" column in details table
+		//	I = earned income
+		E_icon = "&#x2605";
+		G_icon = "&#x2606";
 
 		// Make a new row
 		var newrow = document.createElement("tr");
@@ -1122,81 +1248,218 @@
 		var newcol = document.createElement("td");
 		var newsel = document.createElement("select");
 		newsel.id = "Typ" + ItemCount;
-		Add_Option(newsel, "?",					"",		"Please enter the type of income or adjustment");
+		Add_Option(newsel, "?",
+			"",
+			"Please enter the type of income or adjustment");
 
-		Add_Group(newsel, "Earned Fed Income");
-		Add_Option(newgrp, "W-2_wages",				"STOEincome",	"Wages from employment");
-		Add_Option(newgrp, "Self_Employment",			"STOEincome",	"Self-employment income or loss");
+		Add_Group(newsel, "Earned Fed Income", "show");
+		Add_Option(newgrp, "W-2_wages",
+			"IO",
+			"Wages from employment");
+		Add_Option(newgrp, "Self_Employment",
+			"IO",
+			"Self-employment income or loss");
 
-		Add_Group(newsel, "Other Fed Income");
-		Add_Option(newgrp, "Capital_Gain/Loss",			"JSTO",	"Capital gain income or loss");
-		Add_Option(newgrp, "Dividend",				"JSTO",	"Dividend income");
-		Add_Option(newgrp, "Dividend-CO_or_gov_adjust",		"JSTO",	"Colorado or government dividend income subtraction");
-		Add_Option(newgrp, "Interest",				"JSTO",	"Interest from savings or investment accounts");
-		Add_Option(newgrp, "Interest-CO_1st_Time_Home",		"JSTO",	"Interest from a Colorado first time homebuyer savings account");
-		Add_Option(newgrp, "Interest-gov",			"JSTO",	"Government bond savings or investment interest");
-		Add_Option(newgrp, "Interest-tax-free_non-CO",		"JSTO",	"Tax free interest from non-Colorado bonds.");
-		Add_Option(newgrp, "IRA/Pension/Annuity-Taxable",	"STO",	"Taxable amount of annuity or pension income");
-		Add_Option(newgrp, "Other",				"JSTO",	"Other income, including gambling");
-		Add_Option(newgrp, "Pension-Military",			"STO",	"Taxable amount of military pension income (under age 55)");
-		Add_Option(newgrp, "Rent",				"JSTO",	"Rent income");
-		Add_Option(newgrp, "Royalty",				"JSTO",	"Royalty income");
-		Add_Option(newgrp, "RRB_Tier1-Gross",			"STO",	"Gross amount of Railroad Retirement Tier 1 (Social security equivalent)");
-		Add_Option(newgrp, "RRB_Tier2-Taxable",			"STO",	"Taxable amount of Railroad Retirement Tier 2 (Pension)");
-		Add_Option(newgrp, "Social_Security-Gross",		"STO",	"Gross amount of Social Security income");
-		Add_Option(newgrp, "State_Tax_Refunds-Taxable",		"STO",	"Taxable amount of the refund of state tax refunds");
-		Add_Option(newgrp, "Unemployment",			"STO",	"Unemployment income");
+		Add_Group(newsel, "Other Fed Income", "show");
+		Add_Option(newgrp, "Interest",
+			"JO",
+			"Interest from savings or investment accounts");
+		Add_Option(newgrp, "Interest-CO_1st_Time_Home",
+			"JO",
+			"Interest from a Colorado first time homebuyer savings account");
+		Add_Option(newgrp, "Interest-gov",
+			"JO",
+			"Government bond savings or investment interest");
+		Add_Option(newgrp, "Interest-tax-free_non-CO",
+			"JO",
+			"Tax free interest from non-Colorado bonds.");
+		Add_Option(newgrp, "Dividend",
+			"JO",
+			"Dividend income");
+		Add_Option(newgrp, "Dividend-exempt_int_non-CO",
+			"JO",
+			"Interest from non-Colorado bond dividends.");
+		Add_Option(newgrp, "Dividend-gov_source",
+			"JO",
+			"Government dividend income Colorado subtraction");
+		Add_Option(newgrp, "IRA/Pension/Annuity-Taxable",
+			"O",
+			"Taxable amount of annuity or pension income");
+		Add_Option(newgrp, "Pension-Military-Gross",
+			"O",
+			"Gross amount of military pension income (under age 55)");
+		Add_Option(newgrp, "Social_Security-Gross",
+			"O",
+			"Gross amount of Social Security income");
+		Add_Option(newgrp, "RRB_Tier1-Gross",
+			"O",
+			"Gross amount of Railroad Retirement Tier 1 (SS equivalent)");
+		Add_Option(newgrp, "RRB_Tier2-Taxable",
+			"O",
+			"Taxable amount of Railroad Retirement Tier 2 (Pension)");
+		Add_Option(newgrp, "Capital_Gain/Loss",
+			"JO",
+			"Capital gain income or loss");
+		Add_Option(newgrp, "State_Tax_Refunds-Taxable",
+			"O",
+			"Taxable amount of the refund of state tax refunds");
+		Add_Option(newgrp, "Rent",
+			"JO",
+			"Rent income");
+		Add_Option(newgrp, "Royalty",
+			"JO",
+			"Royalty income");
+		Add_Option(newgrp, "Unemployment",
+			"O",
+			"Unemployment income");
+		Add_Option(newgrp, "Other",
+			"JO",
+			"Other income, including gambling and jury duty pay");
 
-		Add_Group(newsel, "Federal adjustments to income");
-		Add_Option(newgrp, "Educator_expense",			"Earned",	"Educator expenses");
-		Add_Option(newgrp, "Business_expense_of_reservist",	"Earned",	"Business Expense of reservist");
-		Add_Option(newgrp, "HSA deduction",			"Earned",	"Health Savings Account deduction");
-		Add_Option(newgrp, "Moving_expenses",			"Colo",		"Moving expenses into the state only");
-		Add_Option(newgrp, "Ded_part_of_self_empl_tax",		"Earned",	"Deductible part of self-employment tax");
-		Add_Option(newgrp, "Self-employed_SEP/SIMPLE",		"Earned",	"Self-employed SEP/SIMPLE");
-		Add_Option(newgrp, "Self-employed_health_insurance",	"Earned",	"Self-employed health insurance");
-		Add_Option(newgrp, "Early_withdrawal_penalty",		"Colo",		"Penalty on early withdrawal of savings");
-		Add_Option(newgrp, "Alimony_paid",			"Gross",	"Alimony paid");
-		Add_Option(newgrp, "IRA_deduction",			"Earned",	"IRA deduction");
-		Add_Option(newgrp, "Student_loan_interest",		"Gross",	"Student loan interest deduction");
-		Add_Option(newgrp, "Tuition_and_Fees",			"Gross",	"Tuition and Fees deduction");
-		Add_Option(newgrp, "Jury_duty_pay_to_employer",		"Colo",		"Jury duty pay given to employer");
-		Add_Option(newgrp, "Repay_supplimental_unemployment",	"Gross",	"Repayment of supplimental unemployment benefits");
-		Add_Option(newgrp, "Contributions_to_501(c)_plans",	"Earned",	"Contributions to section 501(c)(18)(D) pension plans");
-		Add_Option(newgrp, "Other_Adjustment",			"Colo",		"Other adjustment to income");
+		Add_Group(newsel, "Federal adjustments to income", "show");
+		Add_Option(nogrp, "Earned_income_multiplier",
+			"E",
+			"Earned income multiplier for adjustments");
+		Add_Option(nogrp, "Gross_income_multiplier",
+			"G",
+			"Gross income multiplier for adjustments");
+		Add_Option(newgrp, "Educator_expense",
+			"E",
+			"Educator expenses");
+		Add_Option(newgrp, "Business_expense_of_reservist",
+			"E",
+			"Business Expense of reservist");
+		Add_Option(newgrp, "HSA deduction",
+			"E",
+			"Health Savings Account deduction");
+		Add_Option(newgrp, "Moving_expenses",
+			"C",
+			"Moving expenses into the state only");
+		Add_Option(newgrp, "Ded_part_of_self_empl_tax",
+			"E",
+			"Deductible part of self-employment tax");
+		Add_Option(newgrp, "Self-employed_SEP/SIMPLE",
+			"E",
+			"Self-employed SEP/SIMPLE");
+		Add_Option(newgrp, "Self-employed_health_insurance",
+			"E",
+			"Self-employed health insurance");
+		Add_Option(newgrp, "Early_withdrawal_penalty",
+			"C",
+			"Penalty on early withdrawal of savings");
+		Add_Option(newgrp, "Alimony_paid",
+			"G",
+			"Alimony paid");
+		Add_Option(newgrp, "IRA_deduction",
+			"E",
+			"IRA deduction");
+		Add_Option(newgrp, "Student_loan_interest",
+			"G",
+			"Student loan interest deduction");
+		Add_Option(newgrp, "Tuition_and_Fees",
+			"G",
+			"Tuition and Fees deduction");
+		Add_Option(newgrp, "Jury_duty_pay_to_employer",
+			"C",
+			"Jury duty pay given to employer");
+		Add_Option(newgrp, "Repay_supplimental_unemployment",
+			"G",
+			"Repayment of supplimental unemployment benefits");
+		Add_Option(newgrp, "Contributions_to_501(c)_plans",
+			"E",
+			"Contributions to section 501(c)(18)(D) pension plans");
+		Add_Option(newgrp, "Other_Adjustment",
+			"C",
+			"Other adjustment to income");
 
-		//Add_Group(newsel, "Federal credits");
-		//Add_Option(newgrp, "Federal_EITC",			"Ratio",	"Federal earned income tax credit");
-		//Add_Option(newgrp, "Federal_Child_Care_Credit",	"Ratio",	"Federal child care credit, do not include dependent care");
-		//Add_Option(newgrp, "Long_Term_Care_Credit",		"Ratio",	"Long term care credit");
+		//Add_Group(newsel, "Federal credits", "show");
+		//Add_Option(newgrp, "Federal_EITC",
+		//	"Ratio",
+		//	"Federal earned income tax credit");
+		//Add_Option(newgrp, "Federal_Child_Care_Credit",
+		//	"Ratio",
+		//	"Federal child care credit, do not include dependent care");
+		//Add_Option(newgrp, "Long_Term_Care_Credit",
+		//	"Ratio",
+		//	"Long term care credit");
 
-		Add_Group(newsel, "State Additions");
-		Add_Option(nogrp, "Interest-tax-free_non-CO2",		"",		"Tax free interest from non-Colorado bonds.");
-		Add_Option(newgrp, "Other_Addition",			"JSTColo",	"Other additions to state Adjusted Gross Income");
+		Add_Group(newsel, "State Additions", "show");
+		Add_Option(nogrp, "Interest-tax-free_non-CO2",
+			"",
+			"Tax free interest from non-Colorado bonds.");
+		Add_Option(newgrp, "Other_Addition",
+			"JC",
+			"Other additions to state Adjusted Gross Income");
 
-		Add_Group(newsel, "State Subtractions");
-		Add_Option(nogrp, "Interest-gov2",			"",		"Government bond savings or investment interest");
-		Add_Option(nogrp, "Dividend-CO_or_gov_adjust2",		"",		"Colorado or government dividend income subtraction");
-		Add_Option(newgrp, "CO_Capital_gain_subtraction",	"STColo",	"Capital gain on Colorado investments");
-		Add_Option(newgrp, "College_tuition_contribution",	"STColo",	"Contribution to one of the state's college 529 plans");
-		Add_Option(newgrp, "CO_Charitable_contrib-Gross",	"STColo",	"CO charitable contributions if not using Schedule A");
-		Add_Option(newgrp, "PERA/DPSRS_subtraction",		"STColo",	"Non-taxable PERA/DPSRS contributions from 1984-1986");
-		Add_Option(nogrp, "Interest-CO_1st_Time_Home2",		"",		"Interest from a Colorado first time homebuyer savings account");
-		Add_Option(nogrp, "RRB_Tier1_subtraction",		"",		"RR Tier 1 benefits exclusion from state tax");
-		Add_Option(nogrp, "RRB_Tier2_subtraction",		"",		"RR Tier 2 benefits exclusion from state tax");
-		Add_Option(nogrp, "Taxpayer_Military_retire_benefits",	"",		"Taxpayer military pension exclusion from state tax");
-		Add_Option(nogrp, "Spouse_Military_retire_benefits",	"",		"Spouse military pension exclusion from state tax");
-		Add_Option(nogrp, "Taxpayer_Annuity/Pension_exclusion", "",		"Taxpayer Annuity or Pension exclusion from state tax");
-		Add_Option(nogrp, "Spouse_Annuity/Pension_exclusion",	"",		"Spouse Annuity or Pension exclusion from state tax");
-		Add_Option(newgrp, "Qualfied_reservation_income",	"JSTColo",	"Exclusion of reservation income from state tax");
-		Add_Option(nogrp, "State_Tax_Refunds-Taxable2",		"",		"Taxable amount of the refund of state tax refunds");
-		Add_Option(newgrp, "Wildfire_mitigation_exclusion",	"JSTColo",	"Wildfire mitigation exclusion from state tax");
-		Add_Option(newgrp, "Other_Subtraction",			"JSTColo",	"Other subtractions from state Adjusted Gross Income");
+		Add_Group(newsel, "State Subtractions", "show");
+		Add_Option(nogrp, "State_Tax_Refunds-Taxable2",
+			"",
+			"Taxable amount of the refund of state tax refunds");
+		Add_Option(nogrp, "Interest-gov2",
+			"",
+			"Government bond savings or investment interest");
+		Add_Option(nogrp, "Dividend-gov_source2",
+			"",
+			"Colorado or government dividend income subtraction");
+		Add_Option(nogrp, "Taxpayer_Social_Security_exclusion",
+			"",
+			"Taxpayer Social Security exclusion from state tax");
+		Add_Option(nogrp, "Spouse_Social_Security_exclusion",
+			"",
+			"Spouse Social Security exclusion from state tax");
+		Add_Option(nogrp, "Taxpayer_Annuity/Pension_exclusion",
+			"",
+			"Taxpayer Annuity or Pension exclusion from state tax");
+		Add_Option(nogrp, "Spouse_Annuity/Pension_exclusion",
+			"",
+			"Spouse Annuity or Pension exclusion from state tax");
+		Add_Option(nogrp, "Taxpayer_Military_retire_benefits",
+			"",
+			"Taxpayer military pension exclusion from state tax");
+		Add_Option(nogrp, "Spouse_Military_retire_benefits",
+			"",
+			"Spouse military pension exclusion from state tax");
+		Add_Option(newgrp, "College_tuition_contribution",
+			"C",
+			"Contribution to one of the state's college 529 plans");
+		Add_Option(newgrp, "CO_Capital_gain_subtraction",
+			"CH2022",
+			"Capital gain on Colorado investments"); // Changed to Colorado Agricultural Land Capital Gain Subtraction (Out of Scope) in 2022
+		Add_Option(newgrp, "CO_Charitable_contrib-Gross",
+			"C",
+			"CO charitable contributions if not using Schedule A");
+		Add_Option(newgrp, "Qualfied_reservation_income",
+			"JC",
+			"Exclusion of reservation income from state tax");
+		Add_Option(newgrp, "PERA/DPSRS_subtraction",
+			"C",
+			"Non-taxable PERA/DPSRS contributions from 1984-1986");
+		Add_Option(nogrp, "RRB_Tier1_subtraction",
+			"",
+			"RR Tier 1 benefits exclusion from state tax");
+		Add_Option(nogrp, "RRB_Tier2_subtraction",
+			"",
+			"RR Tier 2 benefits exclusion from state tax");
+		Add_Option(newgrp, "Wildfire_mitigation_exclusion",
+			"JC",
+			"Wildfire mitigation exclusion from state tax");
+		Add_Option(nogrp, "Interest-CO_1st_Time_Home2",
+			"",
+			"Interest from a Colorado first time homebuyer savings account");
+		Add_Option(newgrp, "Other_Subtraction",
+			"JC",
+			"Other subtractions from state Adjusted Gross Income");
 
-		Add_Group(newsel, "Colorado Credits");
-		Add_Option(nogrp, "Full_year_Colorado_income",		"",		"Full year Colorado income");
-		Add_Option(nogrp, "Part_year_Colorado_income",		"",		"Part year Colorado income");
-		Add_Option(nogrp, "Credit_percentage",			"",		"Credit multiplier");
+		Add_Group(newsel, "Colorado Credits", "hide");
+		Add_Option(nogrp, "Full_year_Colorado_income",
+			"",
+			"Full year Colorado income");
+		Add_Option(nogrp, "Part_year_Colorado_income",
+			"",
+			"Part year Colorado income");
+		Add_Option(nogrp, "Credit_percentage",
+			"",
+			"Earned income credit and child care credit multiplier");
 
 		newsel.setAttribute("onchange", "Data_Change(\"Type\", " + ItemCount + ");");
 		newcol.appendChild(newsel);
@@ -1304,12 +1567,14 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function Add_Group(newsel, newlbl) {
+	function Add_Group(newsel, newlbl, newshow) {
 	// Adds an option to a select element
 	//----------------------------------------------------------------------------------------
-		newgrp = document.createElement("optgroup");
-		newgrp.label = newlbl;
-		newsel.appendChild(newgrp);
+		if (newshow == "show") {
+			newgrp = document.createElement("optgroup");
+			newgrp.label = newlbl;
+			newsel.appendChild(newgrp);
+		}
 
 		// Add a line to the totals table
 		if (SumTableMade) return;
@@ -1342,6 +1607,7 @@
 			TypeName.push(newtxt);
 		}
 
+		// Get rid of slash marks
 		newtxt = newtxt.replace(/\//g,"_");
 
 		// Save options for this item
@@ -1351,22 +1617,34 @@
 		if (SumTableMade) return;
 		StateSum[newtxt] = OtherSum[newtxt] = 0;
 		if (newtxt === "?") return; // skip the default ? option
-		newttl = newttl.replace("Gross", "Taxable");
+		if (! newopt.includes("G")) newttl = newttl.replace("Gross", "Taxable");
 		newrowST = document.createElement("tr");
 		newcolST = document.createElement("td"); // indent column
 		newrowST.appendChild(newcolST);
 		newcolST = document.createElement("td"); // description column
-		newcolST.innerHTML = newttl;
+		icon = "";
+		if (newopt.includes("E")) icon = " " + E_icon;
+		if (newopt.includes("G")) icon = " " + G_icon;
+		newcolST.innerHTML = newttl + icon;
 		newrowST.appendChild(newcolST);
 		newcolST = document.createElement("td"); // totals column
 		newcolST.id = newtxt + "TotalState";
 		newcolST.innerHTML = "0";
 		newrowST.appendChild(newcolST);
-		if (newopt.includes("O")) { // make the Other column
-			newcolST = document.createElement("td"); // totals column
-			newcolST.id = newtxt + "TotalOther";
-			newcolST.innerHTML = 0;
-			newrowST.appendChild(newcolST);
+		newcolST = document.createElement("td"); // totals column
+		newcolST.id = newtxt + "TotalOther";
+		newcolST.innerHTML = 0;
+		newrowST.appendChild(newcolST);
+		if (! newopt.includes("O")) { // hide the Other column
+			newcolST.style.display = "none";
+		}
+		newcolST = document.createElement("td"); // totals column
+		newcolST.id = newtxt + "Options";
+		newcolST.innerHTML = newopt;
+		newcolST.style.display = "none";
+		newrowST.appendChild(newcolST);
+		if (newopt.includes("H2022")) {
+			//newrowST.style.display = "none";
 		}
 		TotalsTable.appendChild(newrowST);
 	}
@@ -1610,8 +1888,11 @@
 				<td>Military Pension Income - Spouse</td>
 				<td><span id="COMilPensionSPAdjust">leave&nbsp;blank</span></td></tr>
 			<tr><td></td>
-				<td>IRA/Pension/Annuity Income</td>
-				<td><span id="COPensionAdjust">leave&nbsp;blank</span></td></tr>
+				<td>IRA/Pension/Annuity Income - Taxpayer</td>
+				<td><span id="COPensionTPAdjust">leave&nbsp;blank</span></td></tr>
+			<tr><td></td>
+				<td>IRA/Pension/Annuity Income - Spouse</td>
+				<td><span id="COPensionSPAdjust">leave&nbsp;blank</span></td></tr>
 			<tr><td></td>
 				<td>Colorado Source Capital Gain</td>
 				<td><span id="COCapGain">leave&nbsp;blank</span></td></tr>
