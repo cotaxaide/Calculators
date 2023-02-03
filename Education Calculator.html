@@ -183,7 +183,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.36, 12/7/2022";
+	var VERSION = "Version 3.37, 1/27/2023";
+	//	Added lines for nonqualifed nontaxable amounts
+	//var VERSION = "Version 3.36, 12/7/2022";
 	//	Fill the Gap option not working properly
 	//var VERSION = "Version 3.35, 12/7/2022";
 	//	Optimize button not showing for dependent student
@@ -1048,6 +1050,7 @@
 		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value;
 
 		ScholarAvailableTotal.innerHTML = ScholarAvailable = +ScholarTaxFree.innerHTML + ScholarSupplemental;
+		ScholarNQMax = ScholarAvailable; // v 3.37
 		var scholarAvailableAOC = ScholarAvailable;
 		var scholarAvailableLLC = ScholarAvailable;
 		var scholarAvailableTNF = ScholarAvailable;
@@ -1121,7 +1124,6 @@
 		NQAvailTNF.innerHTML = NQExpenses["TNF"];
 
 		// Distribute the scholarship between q and non-q expenses
-
 		Distribute("AOC");
 		Distribute("LLC");
 		Distribute("TNF")
@@ -1621,15 +1623,16 @@
 
 		// nqntAmount is the non-qualified amount that is not taxable
 		var nqntAmount = Math.max(0, QualExpenses["AOC"] - QualExpenses[type]);
+		var nqntAmount0 = Math.min(nqntAmount, NonqualExpenses[type]);
 		
 		// Supplemental resources are not eligible for taxing due to penalties
-		var taxExpenseLimit = Math.max(0, NQExpenses[type] - nqntAmount - ScholarSupplemental);
+		var taxExpenseLimit = Math.max(0, NQExpenses[type] - ScholarSupplemental);
 		var taxLimit = Math.min(+ScholarTaxableMax.innerHTML, taxExpenseLimit);
 		var taxRequested = +ScholarTaxable.value;
 		var incomeAmount = taxRequested + ScholarIncome;
 
 		// suppnqAmount is the non-qualified amount that is taxable if used
-		var suppnqAmount = NQExpenses["AOC"];
+		var suppnqAmount = nqExpenses = NQExpenses["AOC"];
 
 		// Amount distributed for expenses
 		var nqAmount = 0; // nonqualified
@@ -1642,63 +1645,61 @@
 		nqAmount += suppPay;
 		saAmount -= suppPay;
 		suppRemainder -= suppPay;
+		nqExpenses -= suppPay;
 
 		// Use remaining supplemental sources to pay qualified expenses
 		suppPay = Math.min(suppRemainder, QualExpenses[type]);
 		qAmount += suppPay;
 		saAmount -= suppPay;
 		suppRemainder -= suppPay;
+		qExpenses -= suppPay;
 
 		// Use remaining supplemental sources for nontaxable non-qualified
 		suppPay = Math.min(suppRemainder, nqntAmount);
 		nqAmount += suppPay;
 		saAmount -= suppPay;
 		nqntAmount -= suppPay;
+		nqExpenses -= suppPay;
 		suppRemainder -= suppPay; // hopefully will be 0
 
-		// If there's any non-taxable nonqualified amount left, pay it next
-		var nqntPay = Math.min(nqntAmount, saAmount);
-		nqntAmount -= nqntPay;
-		nqAmount += nqntPay;
-		saAmount -= nqntPay;
-		incomeAmount -= nqntPay;
+		if (GapGap.checked) { 
+			// If there's any non-taxable nonqualified amount left, pay it next
+			nqntPay = Math.min(nqntAmount, saAmount);
+			nqntAmount -= nqntPay;
+			nqAmount += nqntPay;
+			saAmount -= nqntPay;
+			nqExpenses -= nqntPay;
+
+			// Pay any scholarship funds to nonqualified amounts
+			var nqPay = Math.min(nqExpenses, saAmount);
+			//nqAmount += nqPay;
+			saAmount -= nqPay;
+			incomeAmount += nqPay;
+			nqExpenses -= nqPay;
+		}
 
 		// Pay qualified next
 		var qePayLimit = Math.max(0, QualExpenses[type] - qAmount);
 		var qPaid = Math.min(saAmount, qePayLimit);
 		qAmount += qPaid;
 		saAmount -= qPaid;
+		qExpenses -= qPaid;
+
+		if (GapAll.checked) { 
+			// If there's any non-taxable nonqualified amount left, pay it next
+			nqntPay = Math.min(nqntAmount, saAmount);
+			nqntAmount -= nqntPay;
+			nqAmount += nqntPay;
+			saAmount -= nqntPay;
+			nqExpenses -= nqntPay;
+		}
 
 		// remainder is taxable, show it as paying nonqualified expenses
 		incomeAmount = Math.max(0, incomeAmount + saAmount - nqntAmount);
 		nqAmount += (Math.min(incomeAmount, NQExpenses["AOC"]));
 
-		// qExpenses is the amount the taxpayer can claim as expenses
-		//qExpenses = Math.min(qeeLimit, qExpenses);
-
-		// Adjust the figures if "Cover the difference" (GapGap) is checked
-		if (GapGap.checked) {
-			// qeeLimit is how much additional the TP could claim as an expense
-			var qeeAmount = Math.round(Math.max(0, QualExpenses["AOC"] - qAmount)); // Always use AOC
-			qeeLimit = qeeLimit - qeeAmount;
-
-			// nqeeAmount is the non-qualified amount remaining that could be taxable
-			var nqeeAmount = Math.max(0, NQExpenses[type] - nqAmount); // limited by remainder of NQ expenses
-
-			// fqeeAmount is the amount remaining given that some cannot be diverted
-			var fqeeAmount = Math.max(0, QualExpenses["AOC"] - Scholarship.value);
-
-			var gapAmount = Math.min(qeeLimit, nqeeAmount, taxLimit - incomeAmount, fqeeAmount);
-			if (gapAmount > 0) {
-				nqAmount += gapAmount;
-				qAmount -= gapAmount;
-				qeeAmount += gapAmount;
-				incomeAmount += gapAmount;
-			}
-		}
-
 		// adjust for kiddie tax avoidance
-		if (KiddieTaxApplies && ((+TaxYear.value < 2018) || (+TaxYear.value > 2019) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies && ((+TaxYear.value > 2019) || (! KiddieAllow.checked))) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -1714,28 +1715,34 @@
 		switch (type) {
 			case "AOC":
 				NQAvailAOC.innerHTML = +NQAvailAOC.innerHTML + ScholarReduction; // v3.1
-				NQUsedAOC.innerHTML = Math.min(+NQAvailAOC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
+				NQNTAOC.innerHTML = nqntAmount0; // v3.37
 				QUsedAOC.innerHTML = qAmount;
+				NQUsedAOC.innerHTML = nqAmount; // v3.37
+				NontaxableAOC.innerHTML = nqntPay; // v3.37
 				QualExpensesAOC.innerHTML =
-				QualExpensesAOC2.innerHTML = Math.min(qeeLimit, (qExpenses - qAmount)); // v3.36
+				QualExpensesAOC2.innerHTML = qExpenses;
 				IncomeAOC.innerHTML = IncomeAOC2.innerHTML = incomeAmount;
 				break;
 
 			case "LLC":
 				NQAvailLLC.innerHTML = +NQAvailLLC.innerHTML + ScholarReduction; // v3.1
-				NQUsedLLC.innerHTML = Math.min(+NQAvailLLC.innerHTML, (nqAmount + ScholarReduction)); // v3.18
+				NQNTLLC.innerHTML = nqntAmount0; // v3.37
 				QUsedLLC.innerHTML = qAmount;
+				NQUsedLLC.innerHTML = nqAmount; // v3.37
+				NontaxableLLC.innerHTML = nqntPay; // v3.37
 				QualExpensesLLC.innerHTML =
-				QualExpensesLLC2.innerHTML = Math.min(qeeLimit, (qExpenses - qAmount)); // v3.36
+				QualExpensesLLC2.innerHTML = qExpenses;
 				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
 				break;
 
 			case "TNF":
 				NQAvailTNF.innerHTML = +NQAvailTNF.innerHTML + ScholarReduction; // v3.1
-				NQUsedTNF.innerHTML = Math.min(+NQAvailTNF.innerHTML, (nqAmount + ScholarReduction)); // v3.18
+				NQNTTNF.innerHTML = nqntAmount0; // v3.37
 				QUsedTNF.innerHTML = qAmount;
+				NQUsedTNF.innerHTML = nqAmount; // v3.37
+				NontaxableTNF.innerHTML = nqntPay; // v3.37
 				QualExpensesTNF.innerHTML =
-				QualExpensesTNF2.innerHTML = Math.min(qeeLimit, (qExpenses - qAmount)); // v3.36
+				QualExpensesTNF2.innerHTML = qExpenses;
 				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount; // v3.33
 				break;
 		}
@@ -1808,8 +1815,6 @@
 
 		// Add a check mark if funds are available for the category
 		ExpenseAmount = 0;
-		var LivingExpenseFlagged = false;
-		//var ReductionFlag = false; // not being used
 		if (qualifiedScholarshipExpense) { // show fixed checkmark
 			ExpenseAllowedColumn.innerHTML = "&#x2714;";
 			ExpenseAmount = Math.round(Math.max(0,+(ExpenseCategoryAmount.value)));
@@ -1821,7 +1826,8 @@
 				if (+limit > 0) {
 					AllowedElement.innerHTML = "&#x2714;";
 					ExpenseOption.style.display = "none";
-					ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit));
+					//ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit)); // v 3.37
+					ExpenseAmount = Math.round(+ExpenseCategoryAmount.value); // v 3.37
 				}
 				else {
 					AllowedElement.innerHTML = "";
@@ -1834,7 +1840,6 @@
 				ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, ScholarReductionMax));
 				ScholarReduction += Math.min(ExpenseAmount, ScholarReductionMax);
 				ScholarReductionMax -= ExpenseAmount;
-				//ReductionFlag = ExpenseOption.checked; // not being used
 			}
 		}
 
@@ -3339,7 +3344,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 	<span id="ExpenseAllowedFlag">&nbsp;&#x2714;&nbsp;<i>Check marks indicate expenses allowed for scholarships or other funds.</i></span>
 	<table id="EItable" onchange="BudgetChange()">
 		<tr>	<td><center><b>&darr;</b></center></td>
-			<td><i>Check the box if the scholarship <u>can</u> be used to pay for the expenses without being taxed:</i></td></tr>
+			<td><i>Check the box if the scholarship or other funds <u>can</u> be used to pay for the expenses:</i></td></tr>
 		<tr>
 			<th></th>
 			<th>Expense category</th>
@@ -3457,14 +3462,21 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 		<tr>
 			<td></td>
-			<td>Total nonqualified education expenses:</td>
+			<td>Total education expenses not allowed for the credit:</td>
 			<td id="NQTotal"></td>
 			<td class="AOCClass nqexpense" id="NQTotalAOC"></td>
 			<td class="LLCClass nqexpense" id="NQTotalLLC"></td>
 			<td class="TNFClass nqexpense" id="NQTotalTNF"></td></tr>
 		<tr>
 			<td></td>
-			<td>Nonqualified education expenses that can be used:</td>
+			<td>Nonqualified education expenses that are not taxable:</td>
+			<td id="NQAvail"></td>
+			<td class="AOCClass nqexpense" id="NQNTAOC"></td>
+			<td class="LLCClass nqexpense" id="NQNTLLC"></td>
+			<td class="TNFClass nqexpense" id="NQNTTNF"></td></tr>
+		<tr>
+			<td></td>
+			<td>Funds that can be used for nonqualified expenses:</td>
 			<td id="NQAvail"></td>
 			<td class="AOCClass nqexpense" id="NQAvailAOC"></td>
 			<td class="LLCClass nqexpense" id="NQAvailLLC"></td>
@@ -3481,7 +3493,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 		<tr>
 			<td></td>
-			<td>Total qualified education expenses:</td>
+			<td>Total education expenses allowed for the credit:</td>
 			<td id="Expenses"></td>
 			<td class="AOCClass qexpense" id="ExpensesAOC"></td>
 			<td class="LLCClass qexpense" id="ExpensesLLC"></td>
@@ -3495,7 +3507,9 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 					onmouseover="gapInfoText.style.display='block';"
 					onmouseout="gapInfoText.style.display='none';">&nbsp;?&nbsp;
 				</span>
-				<span id="gapInfoText" class="helpText">
+				<span id="gapInfoText" class="helpText"
+					onmouseover="gapInfoText.style.display='block';"
+					onmouseout="gapInfoText.style.display='none';">
 					<u>Use maximum</u> allocates all scholarship(s) available,
 					after any designated as taxable in the funding sources tab,
 					to qualified expenses before diverting allowed amounts to nonqualified expenses.
@@ -3515,14 +3529,32 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 		<tr>
 			<td></td>
-			<td>Maximum qualified expenses allowed for tax benefit by law:</td>
+			<td>Maximum qualified expenses allowed for the credit by tax law:</td>
 			<td id="Max"></td>
 			<td class="AOCClass" id="MaxAOC"></td>
 			<td class="LLCClass" id="MaxLLC"></td>
 			<td class="TNFClass" id="MaxTNF"></td></tr>
 		<tr>
 			<td></td>
-			<td class="bold">Qualified education expenses for TP's tax return:</td>
+			<td>Amount used for IRS qualified expenses but not allowed for credit:
+			<span id="ntnqInfo" class="help"
+					onmouseover="ntnqInfoText.style.display='block';"
+					onmouseout="ntnqInfoText.style.display='none';">&nbsp;?&nbsp;
+				</span>
+				<span id="ntnqInfoText" class="helpText"
+					onmouseover="ntnqInfoText.style.display='block';"
+					onmouseout="ntnqInfoText.style.display='none';">
+					Although not allowed for a benefit, some items may still
+					be an IRS qualifed expense that can be paid without being taxed.
+				</span>
+			</td>
+			<td></td>
+			<td class="AOCClass" id="NontaxableAOC">0</td>
+			<td class="LLCClass" id="NontaxableLLC">0</td>
+			<td class="TNFClass" id="NontaxableTNF">0</td></tr>
+		<tr>
+			<td></td>
+			<td class="bold">Amount of education expenses for TP&apos;s tax return:</td>
 			<td></td>
 			<td class="AOCClass" id="QualExpensesAOC"></td>
 			<td class="LLCClass" id="QualExpensesLLC"></td>
@@ -4360,4 +4392,3 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 </body>
 </html>
-
