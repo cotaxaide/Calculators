@@ -29,15 +29,15 @@
 		text-align: left;
 		width: auto;
 		margin-top: 0;
-		font-size: 120%;
-		width: 25em;
+		font-size: 110%;
+		width: 20em;
 	}
 	#TPNameDiv {
 		width: 99%;
 	}
 	#ClearAndPrint { text-align: center; float: right; z-level: 2; position: absolute; top: 0.5em; right: 1em; }
 	#CalcButton { font-size: 120%; }
-	#IncomeTable { border: 1px solid black; width: 100%}
+	#IncomeTable { border: 1px solid black; width: 100%; }
 	#IncomeTable td, th { padding-right: 1em; }
 	#IncomeTable tr td:nth-child(4),
 	#IncomeTable tr td:nth-child(5) { text-align: center; }
@@ -45,13 +45,16 @@
 	#IncomeTable tr:nth-child(5) { border-top: 1px solid black; }
 	#IncomeTable tr:nth-child(8) { border-top: 1px solid black; }
 	#IncomeTable input { text-align: right; width: 6em; }
+	#DetailsTable tr td:nth-child(1) { width: 20rem; }
+	#DetailsTable tr td:nth-child(2),
+	#DetailsTable tr td:nth-child(3) { width: 6rem; text-align: right; }
 	#ShowColor { background-color: HotPink; }
 	
 	@media print {
 		.doPrint { display:inline; }
 		.noPrint { display:none; }
 		html { background-color: white; font-size: 0.8em; }
-		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
+		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; width: 98%;}
 		input, select, option { font-size: 0.8em; }
 		table { width: 100%; background-color: white; }
 	}
@@ -70,8 +73,8 @@
 	//	Nancy or Don Metzger
 	// --------------------------------------------------------------------------------
 
-	VERSION = "Version 1.09, 12/2/2022";
-	//	Added CO exemption rate for over 65 due to SSA taxability
+	VERSION = "Version 1.09, 2/4/2023";
+	//	Added CO exemption adjustments for 2022 new over 65 SSA exclusion
 	//VERSION = "Version 1.08, 11/2/2021";
 	//	TaxSlayer bug has been fixed, no special treatment required now
 	//VERSION = "Version 1.07, 9/9/2021";
@@ -95,6 +98,7 @@
 
 	var Error = false;
 	var ErrorColor = "hotpink";
+	var TY = 0;
 
 	//----------------------------------------------------------------------------------------
 	function Initialize() {
@@ -117,13 +121,24 @@
 	//----------------------------------------------------------------------------------------
 	function Clear_Results() {
 	//----------------------------------------------------------------------------------------
-		COSubtractTP.value = "";
-		COSubtractMessageTP.innerHTML = "";
-		COSubtractSP.value = "";
-		COSubtractMessageSP.innerHTML = "";
-		COSubtractRR.value = "";
-		COSubtractMessageRR.innerHTML = "";
+		valGroup = document.getElementsByClassName("valueOutput");
+		for (v = 0 ; v < valGroup.length ; v++) {
+			valGroup[v].value = "";
+		}
+
+		valGroup = document.getElementsByClassName("htmlOutput");
+		for (v = 0 ; v < valGroup.length ; v++) {
+			valGroup[v].innerHTML = "";
+		}
+
 		ShowError.style.display = "none";
+
+		// Adding Tier 1 to RRB exclusion requires change to Annuity total prior to 2022
+		TY = +TaxYear.value;
+		CTRow1.style.display =
+		CTRow2.style.display =
+		CTRow3.style.display = (TY >= 2022) ? "none" : "table-row" ;
+
 		//Income_Check();
 	}
 
@@ -200,70 +215,129 @@
 	//----------------------------------------------------------------------------------------
 		Income_Check();
 
-		// TaxSlayer error:
-		// Entering  a Pension/Annuity Income doesn't change retirement exclusion
-		TaxSlayerError = false;
-		CTRow1.style.display =
-		CTRow2.style.display =
-		CTRow3.style.display = (TaxSlayerError) ? "none" : "table-row" ;
-
 		// Determine taxable amounts of SS and Tier1
 		Tier1Total = +Tier1TP.value + +Tier1SP.value;
 		SSTotal = +SSTP.value + +SSSP.value;
 		SSPercent = +SSTaxable.value / (Tier1Total + SSTotal);
 
-		SSTaxableTP = +SSTP.value * SSPercent;	      	
-		SSTaxableSP = +SSSP.value * SSPercent;	      	
-		T1TaxableTP = +Tier1TP.value * SSPercent;
-		T1TaxableSP = +Tier1SP.value * SSPercent;
+		// Fill in the details table
+		DetailSSTaxableTP.innerHTML = SSTaxableTP = Math.round(+SSTP.value * SSPercent);	      	
+		DetailSSTaxableSP.innerHTML = SSTaxableSP = Math.round(+SSSP.value * SSPercent);	      	
+		DetailRR1TaxableTP.innerHTML = T1TaxableTP = Math.round(+Tier1TP.value * SSPercent);
+		DetailRR1TaxableSP.innerHTML = T1TaxableSP = Math.round(+Tier1SP.value * SSPercent);
+		DetailRR2TaxableTP.innerHTML = T2TaxableTP = Math.round(+Tier2TP.value);
+		DetailRR2TaxableSP.innerHTML = T2TaxableSP = Math.round(+Tier2SP.value);
+		ANNTaxableTP = +COPensionTP.value - ( (TY >= 2022) ? 0 : (SSTaxableTP + T1TaxableTP) );
+		DetailANNTaxableTP.innerHTML = Math.round(ANNTaxableTP);
+		ANNTaxableSP = +COPensionSP.value - ( (TY >= 2022) ? 0 : (SSTaxableSP + T1TaxableSP) );
+		DetailANNTaxableSP.innerHTML = Math.round(ANNTaxableSP);
+		DetailTotalTaxableTP.innerHTML =  TotalTP = Math.round(ANNTaxableTP = SSTaxableTP + T1TaxableTP + T2TaxableTP + ANNTaxableTP);
+		DetailTotalTaxableSP.innerHTML =  TotalSP = Math.round(ANNTaxableSP = SSTaxableSP + T1TaxableSP + T2TaxableSP + ANNTaxableSP);
 
-		RRTP = T1TaxableTP;
-		RRSP = T1TaxableSP;
+		DetailSSPercent.innerHTML = (Math.round(SSPercent * 1000) / 10) + "%";
+		if (TY >= 2022) {
+			DetailSSExclusionTP.innerHTML = ExTP = SSTaxableTP;
+			DetailSSExclusionSP.innerHTML = ExSP = SSTaxableSP;
+			DetailSSExclusionTSTP.innerHTML = TSTP = SSTaxableTP + T1TaxableTP;
+			DetailSSExclusionTSSP.innerHTML = TSSP = SSTaxableSP + T1TaxableSP;
+			DetailSSExclusionAdjTP.innerHTML = ExTP - TSTP;
+			DetailSSExclusionAdjSP.innerHTML = ExSP - TSSP;
+		}
+		else {
+			DetailSSExclusionTP.innerHTML =
+			DetailSSExclusionSP.innerHTML =
+			DetailSSExclusionTSTP.innerHTML =
+			DetailSSExclusionTSSP.innerHTML =
+			DetailSSExclusionAdjTP.innerHTML =
+			DetailSSExclusionAdjSP.innerHTML = "N/A";
+		}
 
-		// Are TP or SP over 65 with higher exclusion due to taxable SS (new in 2022)
+		DetailRRExclusionTP.innerHTML = ExTP = (T1TaxableTP + T2TaxableTP);
+		DetailRRExclusionSP.innerHTML = ExSP = (T1TaxableSP + T2TaxableSP);
+		DetailRRExclusionTSTP.innerHTML = TSTP = T2TaxableTP;
+		DetailRRExclusionTSSP.innerHTML = TSSP = T2TaxableSP;
+		DetailRRExclusionAdjTP.innerHTML = ExTP - TSTP;
+		DetailRRExclusionAdjSP.innerHTML = ExSP - TSSP;
+
 		COExclusionTP = +COAllowedTP.value;
+		COExclusionMaxTP = COExclusionAnnTP = (COExclusionTP) ? ((TP65.checked) ? 24000 : 20000 ) : 0 ;
 		COExclusionSP = +COAllowedSP.value;
-		COExclusionMessage.innerHTML = "";
-		if (+TaxYear.value >= 2022) { // Exlusion extended if >65 and taxable SS > 24000
+		COExclusionMaxSP = COExclusionAnnSP = (COExclusionSP) ? ((SP65.checked) ? 24000 : 20000 ) : 0 ;
+
+		if (TY >= 2022) { // Exlusion extended if gt 65 and taxable SS gt 24000
 			COExNoteTP = "";
 			COExNoteSP = "";
-			TP65 = (COExclusionTP >= 24000) ? true : false ;
-			if (TP65) {
-				COExclusionTP = Math.max(24000, SSTaxableTP);
-				COExclusionTP = Math.round(Math.min(COExclusionTP, Math.max(+COPensionTP.value - T1TaxableTP)));
+
+			// Adjust for taxpayer's age
+			if (TP65.checked) {
+				COExclusionMaxTP = Math.max(24000, SSTaxableTP);
+				COExclusionAnnTP = Math.max(0, COExclusionMaxTP - SSTaxableTP);
+				COExclusionTP = Math.min(COExclusionAnnTP, +COPensionTP.value);
 				COExNoteTPAnd = "";
-				if (COExclusionTP != +COAllowedTP.value) {
-					COExNoteTP = "TP new allowable exclusion is " + COExclusionTP;
+				if (COExclusionMaxTP != 24000) {
+					COExNoteTP = "TP new maximum exclusion is " + COExclusionMaxTP;
 					COExNoteTPAnd = " and ";
 				}
 			}
-			SP65 = (COExclusionSP >= 24000) ? true : false ;
-			if (SP65) {
-				COExclusionSP = Math.max(24000, SSTaxableSP);
-				COExclusionSP = Math.round(Math.min(COExclusionSP, Math.max(+COPensionSP.value - T1TaxableSP)));
-				if (COExclusionSP != +COAllowedSP.value) {
-					COExNoteSP = COExNoteTPAnd + "SP new allowable exclusion is " + COExclusionSP;
+			else {
+				COExclusionMaxTP = (COExclusionTP) ? 20000 : 0 ;
+			}
+
+			// Adjust for spouse's age
+			if (SP65.checked) {
+				COExclusionMaxSP = Math.max(24000, SSTaxableSP);
+				COExclusionAnnSP = Math.max(0, COExclusionMaxSP - SSTaxableSP);
+				COExclusionSP = Math.min(COExclusionAnnSP, COPensionSP.value);
+				if (COExclusionMaxSP != 24000) {
+					COExNoteSP = COExNoteTPAnd + "SP new maximum exclusion is " + COExclusionMaxSP;
 				}
 			}
-			COExNote = COExNoteTP + COExNoteSP;
-			if (COExNote) COExclusionMessage.innerHTML = "NOTE: " + COExNote;
+			else {
+				COExclusionMaxSP = (COExclusionSP) ? 20000 : 0 ;
+			}
 
+			COExNote = COExNoteTP + COExNoteSP;
+			if (COExNote) COExclusionMessage.innerHTML = "<br />NOTE: " + COExNote;
+
+			COElegibleTP = +COPensionTP.value;
+			COElegibleSP = +COPensionSP.value;
 		}
+		else { // TaxYear prior to 2022
+			COElegibleTP = +COPensionTP.value - T1TaxableTP;
+			COElegibleSP = +COPensionSP.value - T1TaxableSP;
+		}
+
+		DetailElExclusionTP.innerHTML = ExTP = COElegibleTP;
+		DetailElExclusionSP.innerHTML = ExSP = COElegibleSP;
+		DetailElExclusionTSTP.innerHTML = TSTP = COPensionTP.value;
+		DetailElExclusionTSSP.innerHTML = TSSP = COPensionSP.value;
+		DetailElExclusionAdjTP.innerHTML = ExTP - TSTP;
+		DetailElExclusionAdjSP.innerHTML = ExSP - TSSP;
+
+		DetailANNExclusionTP.innerHTML = COExclusionAnnTP;
+		DetailANNExclusionSP.innerHTML=  COExclusionAnnSP;
+		DetailANNExclusionUseTP.innerHTML = ExTP = COExclusionTP;
+		DetailANNExclusionUseSP.innerHTML= ExSP = COExclusionSP;
+		DetailANNExclusionTSTP.innerHTML = TSTP = +COAllowedTP.value;
+		DetailANNExclusionTSSP.innerHTML = TSSP = +COAllowedSP.value;
+		DetailANNExclusionAdjTP.innerHTML = NeedAdjustmentTP = ExTP - TSTP;
+		DetailANNExclusionAdjSP.innerHTML = NeedAdjustmentSP = ExSP - TSSP;
 
 		// Do we need to make adjustments?
-		if (((RRTP == 0) || (+COPensionTP.value == COExclusionTP))
-		&& ((RRSP == 0) || (+COPensionSP.value == COExclusionSP))) {
-			alert("Because the eligible pension income is fully excluded, there is no need to complete this worksheet or make adjustments. The entries will be on the incorrect lines but the final result is correct.");
-			COSubtractMessageTP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
-			COSubtractMessageSP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
-			COSubtractMessageRR.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
-			return;
-		}
+		//if (((T1TaxableTP == 0) || (+COPensionTP.value == COExclusionTP))
+		//&& ((T1TaxableSP == 0) || (+COPensionSP.value == COExclusionSP))
+		//&& ((NeedAdjustmentTP + NeedAdjustmentSP) == 0)) {
+		//	alert("Because the eligible pension income is fully excluded, there is no need to complete this worksheet or make adjustments. The entries will be on the incorrect lines but the final result is correct.");
+		//	COSubtractMessageTP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+		//	COSubtractMessageSP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+		//	COSubtractMessageRR.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+		//	return;
+		//}
 
 		// Remove RRB Tier 1 from CO retirement amount
-		PensionTP = Math.max(0,+COPensionTP.value - RRTP);
+		PensionTP = Math.max(0,+COPensionTP.value - T1TaxableTP);
 		//PensionTP = Math.min(PensionTP, COExclusionTP);
-		if (RRTP) {
+		if (T1TaxableTP) {
 			if (PensionTP) {
 				COSubtractTP.value = Math.round(PensionTP);
 				COSubtractMessageTP.innerHTML = "";
@@ -278,9 +352,9 @@
 			COSubtractMessageTP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
 		}
 
-		PensionSP = Math.max(0,+COPensionSP.value - RRSP);
+		PensionSP = Math.max(0,+COPensionSP.value - T1TaxableSP);
 		//PensionSP = Math.min(PensionSP, COExclusionSP);
-		if (RRSP) {
+		if (T1TaxableSP) {
 			if (PensionSP) {
 				COSubtractSP.value = Math.round(PensionSP);
 				COSubtractMessageSP.innerHTML = "";
@@ -295,13 +369,14 @@
 			COSubtractMessageSP.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
 		}
 
-		if (RRTP || RRSP) {
+		if (T1TaxableTP || T1TaxableSP) {
 			var Tier1Subtract = T1TaxableTP + T1TaxableSP;
+			TaxSlayerError = false; // DEBUG
 			if (TaxSlayerError) {
 				var TPSPAdjustment = PensionTP + PensionSP;
 				var AllowedExclusion = COExclusionTP + COExclusionSP;
 				var TPSPReduction = Math.max(0, AllowedExclusion - TPSPAdjustment);
-				if (TPSPReduction) { //Reduction doesn't work, so take from RR
+				if (TPSPReduction) { // Reduction doesn't work, so take from RR
 					if (TPSPReduction > Tier1Subtract) { // Not enough Tier1
 						var message = "TaxSlayer cannot create a valid CO return";
 						COSubtractRR.value = 0;
@@ -322,6 +397,14 @@
 		else {
 			COSubtractRR.value = "";
 			COSubtractMessageRR.innerHTML = "&nbsp;NO ADJUSTMENT NEEDED (do not enter 0)";
+		}
+
+		// TaxYear 2022 message
+		Message2022.innerHTML = "";
+		AdjAmount = NeedAdjustmentTP + NeedAdjustmentSP;
+		if ((TY >= 2022) && (AdjAmount)) {
+			Message2022.innerHTML = "<br /><i>TaxSlayer does not permit adjustment of Social Security exclusion which reduces the amount available for the Pension/Annuity Exclusion. To compensate, add an additional $" + AdjAmount + " to the Railroad Benefit subtraction adjustment.</i>";
+			COSubtractRR.value = +COSubtractRR.value + AdjAmount;
 		}
 	}
 
@@ -346,9 +429,15 @@
 </span>
 	
 	<div id="TPNameDiv">
-		<span class="inputTitle">Current Tax Year: </span><select style="width:6em;" id="TaxYear" title="Select the tax year being prepared." onchange="Clear_Results()"></select>
-		<span class="inputTitle">Taxpayer&apos;s Name: </span>
-		<input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" />
+		<table>
+		<tr>	<td>Taxpayer&apos;s Name:</td>
+			<td><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td></tr>
+		<tr>	<td>Current Tax Year:</td>
+			<td><select style="width:6em;" id="TaxYear" title="Select the tax year being prepared." onchange="Clear_Results();"></select>
+				&nbsp;&nbsp;<input id="TP65" type="checkbox" checked onchange="Clear_Results();" /> TP is age 65+
+				&nbsp;&nbsp;<input id="SP65" type="checkbox" checked onchange="Clear_Results();" /> SP is age 65+
+				</td></tr>
+		</table>
 	</div>
 
 	<div id="RRBWorksheet" onchange="Clear_Results();">
@@ -408,21 +497,105 @@
 		<br />
 		<br />
 		<table id="CorrectionTable">
-			<tr id="CTRow1"><td>Enter in <u>Pension/Annuity Income</u> page:</td></tr>
+			<tr id="CTRow1"><td colspan="2">Enter in <u>Pension/Annuity Income</u>:</td></tr>
 			<tr id="CTRow2"><td>&nbsp;&nbsp;&nbsp;Taxpayer:</td>
-				<td><input id="COSubtractTP" class="output" readonly /></td>
-				<td><span id="COSubtractMessageTP"></span></td></tr>
+				<td><input id="COSubtractTP" class="valueOutput" readonly /></td>
+				<td><span id="COSubtractMessageTP" class="htmlOutput"></span></td></tr>
 			<tr id="CTRow3"><td>&nbsp;&nbsp;&nbsp;Spouse:</td>
-				<td><input id="COSubtractSP" class="output" readonly /></td>
-				<td><span id="COSubtractMessageSP"></span></td></tr>
-			<tr><td>&nbsp;</td></tr>
-			<tr><td>Enter in <u>Railroad Benefit Subtraction, Tier I or II Only</u> page:</td></tr>
-			<tr><td></td>
-				<td><input id="COSubtractRR" class="output" readonly /></td>
-				<td><span id="COSubtractMessageRR"></span></td></tr>
-			<tr><td colspan="3" class="italic" id="COExclusionMessage"></td></tr>
+				<td><input id="COSubtractSP" class="valueOutput" readonly /></td>
+				<td><span id="COSubtractMessageSP" class="htmlOutput"></span><br />&nbsp;</td></tr>
+			<tr><td colspan="2">Enter in <u>Railroad Benefit Subtraction, Tier I or II Only</u>:</td></tr>
+			<tr id="CTRow4"><td>&nbsp;&nbsp;&nbsp;(Taxpayer + Spouse):</td>
+				<td><input id="COSubtractRR" class="valueOutput" readonly /></td>
+				<td><span id="COSubtractMessageRR" class="htmlOutput"></span></td></tr>
+			<tr><td colspan="2" class="italic" id="COExclusionMessage" class="htmlOutput"></td></tr>
 		</table>
 	</div>
+
+	<div id="DetailsDiv">
+		<span class="tblHeader">Calculation details:</span>
+		<br />
+		<br />
+		<table id="DetailsTable">
+			<tr><td>Taxable Social Security Amount: (<span id="DetailSSPercent"></span>)</td>
+				<td id="DetailSSTaxableTP" class="htmlOutput"></td>
+				<td id="DetailSSTaxableSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>Taxable RRB Tier 1 Amount:</td>
+				<td id="DetailRR1TaxableTP" class="htmlOutput"></td>
+				<td id="DetailRR1TaxableSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>Taxable RRB Tier 2 Amount:</td>
+				<td id="DetailRR2TaxableTP" class="htmlOutput"></td>
+				<td id="DetailRR2TaxableSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>Taxable Pension/Annuity Amount:</td>
+				<td id="DetailANNTaxableTP" class="htmlOutput"></td>
+				<td id="DetailANNTaxableSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>Total Retirement Amount:</td>
+				<td id="DetailTotalTaxableTP" style="border-top: 1px solid black;" class="htmlOutput"></td>
+				<td id="DetailTotalTaxableSP" style="border-top: 1px solid black;" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;</td></tr>
+			<tr><td>Correct Social Security Exclusion Amount:</td>
+				<td id="DetailSSExclusionTP" class="htmlOutput"></td>
+				<td id="DetailSSExclusionSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;TaxSlayer shows:</td>
+				<td id="DetailSSExclusionTSTP" class="htmlOutput"></td>
+				<td id="DetailSSExclusionTSSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;Adjustment needed:</td>
+				<td id="DetailSSExclusionAdjTP" class="htmlOutput"></td>
+				<td id="DetailSSExclusionAdjSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;</td></tr>
+			<tr><td>Correct Railroad Exclusion Amount:</td>
+				<td id="DetailRRExclusionTP" class="htmlOutput"></td>
+				<td id="DetailRRExclusionSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;TaxSlayer shows:</td>
+				<td id="DetailRRExclusionTSTP" class="htmlOutput"></td>
+				<td id="DetailRRExclusionTSSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;Adjustment needed:</td>
+				<td id="DetailRRExclusionAdjTP" class="htmlOutput"></td>
+				<td id="DetailRRExclusionAdjSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;</td></tr>
+			<tr><td>Correct Pension/Annuity Eligible Amount:</td>
+				<td id="DetailElExclusionTP" class="htmlOutput"></td>
+				<td id="DetailElExclusionSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;TaxSlayer shows:</td>
+				<td id="DetailElExclusionTSTP" class="htmlOutput"></td>
+				<td id="DetailElExclusionTSSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;Adjustment needed:</td>
+				<td id="DetailElExclusionAdjTP" class="htmlOutput"></td>
+				<td id="DetailElExclusionAdjSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;</td></tr>
+			<tr><td>Correct Pension/Annuity Exclusion Available:</td>
+				<td id="DetailANNExclusionTP" class="htmlOutput"></td>
+				<td id="DetailANNExclusionSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;Amount Useable:</td>
+				<td id="DetailANNExclusionUseTP" class="htmlOutput"></td>
+				<td id="DetailANNExclusionUseSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;TaxSlayer shows:</td>
+				<td id="DetailANNExclusionTSTP" class="htmlOutput"></td>
+				<td id="DetailANNExclusionTSSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;Adjustment needed:</td>
+				<td id="DetailANNExclusionAdjTP" class="htmlOutput"></td>
+				<td id="DetailANNExclusionAdjSP" class="htmlOutput"></td>
+			</tr>
+		</table>
+		<span id="Message2022"></span>
+	</div> <!-- Details Div -->
 
 	<div class="noPrint">
 	  Please send corrections and suggestions to	<a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
