@@ -71,9 +71,15 @@
 	// Contributors:
 	//	John Kure
 	//	Nancy or Don Metzger
+	//	Tom LaJeunesse
 	// --------------------------------------------------------------------------------
 
-	VERSION = "Version 1.09, 2/4/2023";
+	VERSION = "Version 1.11, 2/16/2023";
+	//	Corrected double deduction of Tier1
+	//	Changed some explainatory wording
+	//VERSION = "Version 1.10, 2/6/2023";
+	//	Added CO exemption adjustments for 2022 new over 55 SSA exclusion
+	//VERSION = "Version 1.09, 2/4/2023";
 	//	Added CO exemption adjustments for 2022 new over 65 SSA exclusion
 	//VERSION = "Version 1.08, 11/2/2021";
 	//	TaxSlayer bug has been fixed, no special treatment required now
@@ -135,6 +141,7 @@
 
 		// Adding Tier 1 to RRB exclusion requires change to Annuity total prior to 2022
 		TY = +TaxYear.value;
+		SST.innerHTML = _LineNo[TY + ":SST"];
 		CTRow1.style.display =
 		CTRow2.style.display =
 		CTRow3.style.display = (TY >= 2022) ? "none" : "table-row" ;
@@ -260,9 +267,9 @@
 		DetailRRExclusionAdjSP.innerHTML = ExSP - TSSP;
 
 		COExclusionTP = +COAllowedTP.value;
-		COExclusionMaxTP = COExclusionAnnTP = (COExclusionTP) ? ((TP65.checked) ? 24000 : 20000 ) : 0 ;
+		COExclusionMaxTP = COExclusionAnnTP = (TP65.checked) ? 24000 : 20000 ;
 		COExclusionSP = +COAllowedSP.value;
-		COExclusionMaxSP = COExclusionAnnSP = (COExclusionSP) ? ((SP65.checked) ? 24000 : 20000 ) : 0 ;
+		COExclusionMaxSP = COExclusionAnnSP = (SP65.checked) ? 24000 : 20000 ;
 
 		if (TY >= 2022) { // Exlusion extended if gt 65 and taxable SS gt 24000
 			COExNoteTP = "";
@@ -280,7 +287,9 @@
 				}
 			}
 			else {
-				COExclusionMaxTP = (COExclusionTP) ? 20000 : 0 ;
+				//COExclusionMaxTP = (COExclusionTP) ? 20000 : 0 ;
+				COExclusionAnnTP = Math.max(0, COExclusionMaxTP - SSTaxableTP);
+				COExclusionTP = Math.min(COExclusionAnnTP, +COPensionTP.value);
 			}
 
 			// Adjust for spouse's age
@@ -293,7 +302,9 @@
 				}
 			}
 			else {
-				COExclusionMaxSP = (COExclusionSP) ? 20000 : 0 ;
+				//COExclusionMaxSP = (COExclusionSP) ? 20000 : 0 ;
+				COExclusionAnnSP = Math.max(0, COExclusionMaxSP - SSTaxableSP);
+				COExclusionSP = Math.min(COExclusionAnnSP, COPensionSP.value);
 			}
 
 			COExNote = COExNoteTP + COExNoteSP;
@@ -320,8 +331,10 @@
 		DetailANNExclusionUseSP.innerHTML= ExSP = COExclusionSP;
 		DetailANNExclusionTSTP.innerHTML = TSTP = +COAllowedTP.value;
 		DetailANNExclusionTSSP.innerHTML = TSSP = +COAllowedSP.value;
-		DetailANNExclusionAdjTP.innerHTML = NeedAdjustmentTP = ExTP - TSTP;
-		DetailANNExclusionAdjSP.innerHTML = NeedAdjustmentSP = ExSP - TSSP;
+		DetailANNExclusionSSTP.innerHTML = SSTPX = +T1TaxableTP;
+		DetailANNExclusionSSSP.innerHTML = SSSPX = +T1TaxableSP;
+		DetailANNExclusionAdjTP.innerHTML = NeedAdjustmentTP = ExTP - TSTP - SSTPX;
+		DetailANNExclusionAdjSP.innerHTML = NeedAdjustmentSP = ExSP - TSSP - SSSPX;
 
 		// Do we need to make adjustments?
 		//if (((T1TaxableTP == 0) || (+COPensionTP.value == COExclusionTP))
@@ -403,7 +416,7 @@
 		Message2022.innerHTML = "";
 		AdjAmount = NeedAdjustmentTP + NeedAdjustmentSP;
 		if ((TY >= 2022) && (AdjAmount)) {
-			Message2022.innerHTML = "<br /><i>TaxSlayer does not permit adjustment of Social Security exclusion which reduces the amount available for the Pension/Annuity Exclusion. To compensate, add an additional $" + AdjAmount + " to the Railroad Benefit subtraction adjustment.</i>";
+			Message2022.innerHTML = "<br /><i>TaxSlayer does not permit adjustment of Social Security exclusion which reduces the amount available for the Pension/Annuity Exclusion.<br />To compensate, change the Tier 1 amount of $" + COSubtractRR.value + " by $" + AdjAmount + " and enter in the TaxSlayer Railroad Benefit subtraction adjustment line.</i>";
 			COSubtractRR.value = +COSubtractRR.value + AdjAmount;
 		}
 	}
@@ -449,8 +462,6 @@
 		Consequently, other retirement exclusions are capped at the 20K/24K limit prematurely.
 		This calculator removes the taxable portions of Tier 1 RR benefits from the CO retirement
 		amount and totals those RR retirement amounts, all to be entered on the CO &quot;Subtractions from income&quot; page.
-		<br /><br />
-		<b>NOTE: If the person(s) with RR retirement benefits have not reached the maximum pension exclusion (see the CO Pension Exclusion Worksheet), the outcome will be correct, no change is necessary and you do not need to use this worksheet.</b>
 		<ul>
 			<li>The Pension Exclusion Worksheet referenced is printed with the CO return immediately following the CO 104.</li>
 			<li>Other input comes from the taxpayer's documents or their entry in TaxSlayer.</li>
@@ -470,7 +481,7 @@
 			<tr><td></td><td>Social Security Benefits</td><td>Form 1099-SSA, Box 5</td>
 				<td><input id="SSTP" type="nunber" /></td>
 				<td><input id="SSSP" type="nunber" /></td></tr>
-			<tr><td></td><td><b>Taxable</b> Social Security Benefits</td><td>Form 1040, Line 20b</td>
+			<tr><td></td><td>Total <b>Taxable</b> Social Security Benefits</td><td>Form 1040, Line <span id="SST"></span></td>
 				<td colspan="2" class="center"><input id="SSTaxable" type="nunber" /></td></tr>
 			<tr><td colspan="5"><b>RRB AMOUNTS:</b></td></tr>
 			<tr><td></td><td>Tier I Benefits</td><td>RRB 1099, Box 5</td>
@@ -585,9 +596,13 @@
 				<td id="DetailANNExclusionUseTP" class="htmlOutput"></td>
 				<td id="DetailANNExclusionUseSP" class="htmlOutput"></td>
 			</tr>
-			<tr><td>&nbsp;&nbsp;&nbsp;TaxSlayer shows:</td>
+			<tr><td>&nbsp;&nbsp;&nbsp;TaxSlayer annuity deducted:</td>
 				<td id="DetailANNExclusionTSTP" class="htmlOutput"></td>
 				<td id="DetailANNExclusionTSSP" class="htmlOutput"></td>
+			</tr>
+			<tr><td>&nbsp;&nbsp;&nbsp;TaxSlayer Tier 1 deducted:</td>
+				<td id="DetailANNExclusionSSTP" class="htmlOutput"></td>
+				<td id="DetailANNExclusionSSSP" class="htmlOutput"></td>
 			</tr>
 			<tr><td>&nbsp;&nbsp;&nbsp;Adjustment needed:</td>
 				<td id="DetailANNExclusionAdjTP" class="htmlOutput"></td>
