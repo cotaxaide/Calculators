@@ -183,7 +183,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.37, 1/27/2023";
+	var VERSION = "Version 3.38, 2/24/2023";
+	//	Corrected expenses for federal limits
+	//var VERSION = "Version 3.37, 1/27/2023";
 	//	Added lines for nonqualifed nontaxable amounts
 	//var VERSION = "Version 3.36, 12/7/2022";
 	//	Fill the Gap option not working properly
@@ -1720,7 +1722,7 @@
 				NQUsedAOC.innerHTML = nqAmount; // v3.37
 				NontaxableAOC.innerHTML = nqntPay; // v3.37
 				QualExpensesAOC.innerHTML =
-				QualExpensesAOC2.innerHTML = qExpenses;
+				QualExpensesAOC2.innerHTML = Math.min(qExpenses, qeeLimit);
 				IncomeAOC.innerHTML = IncomeAOC2.innerHTML = incomeAmount;
 				break;
 
@@ -1731,7 +1733,7 @@
 				NQUsedLLC.innerHTML = nqAmount; // v3.37
 				NontaxableLLC.innerHTML = nqntPay; // v3.37
 				QualExpensesLLC.innerHTML =
-				QualExpensesLLC2.innerHTML = qExpenses;
+				QualExpensesLLC2.innerHTML = Math.min(qExpenses, qeeLimit);
 				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
 				break;
 
@@ -1742,7 +1744,7 @@
 				NQUsedTNF.innerHTML = nqAmount; // v3.37
 				NontaxableTNF.innerHTML = nqntPay; // v3.37
 				QualExpensesTNF.innerHTML =
-				QualExpensesTNF2.innerHTML = qExpenses;
+				QualExpensesTNF2.innerHTML = Math.min(qExpenses, qeeLimit);
 				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount; // v3.33
 				break;
 		}
@@ -1942,8 +1944,8 @@
 	// This function calculates the tax benefit for the Lifetime Learning credit
 	function CalculateLLC() {
 	//----------------------------------------------------------------------------------------
-		var testAGI = +(AGILLC.value);
-		var expenses = +(QualExpensesLLC.innerHTML) + (5 * +LLCTax.value);
+		var testAGI = +AGILLC.innerHTML;
+		var expenses = +QualExpensesLLC.innerHTML + (5 * +LLCTax.value);
 		var limits = _EdExpenseLimits[TaxYear.value + ":LLC"].split(",");
 		var limit = 0.2 * Math.min(limits[0],expenses);
 		var factor = 1;
@@ -1977,8 +1979,8 @@
 	// This function calculates the tax benefit for the American Opportunity credit
 	function CalculateAOC() {
 	//----------------------------------------------------------------------------------------
-		var testAGI = +(AGIAOC.value);
-		var expenses = +(QualExpensesAOC.innerHTML);
+		var testAGI = +AGIAOC.innerHTML;
+		var expenses = +QualExpensesAOC.innerHTML;
 		if (expenses > 2000) expenses = 2000 + ((expenses-2000) * 0.25);
 		var limits = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",");
 		var limit = Math.min(limits[0],expenses);
