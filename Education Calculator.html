@@ -183,7 +183,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.38, 2/24/2023";
+	var VERSION = "Version 3.39, 3/11/2023";
+	//	Corrected premature end of optimization when refund change is negative
+	//var VERSION = "Version 3.38, 2/24/2023";
 	//	Corrected expenses for federal limits
 	//var VERSION = "Version 3.37, 1/27/2023";
 	//	Added lines for nonqualifed nontaxable amounts
@@ -317,7 +319,7 @@
 	//	Dick Sramek		Bob Wells		Jay Wiedwald
 	//	Edie Loughmiller	Harold Rowe		Brad Kirby
 	//	Stephen Enk		Roger Metzler		Arlene Green
-	//	Joanne Hill		Fred Lamberth
+	//	Joanne Hill		Fred Lamberth		Rob Schussman
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -359,7 +361,6 @@
 	var OptimizedIncome = 0;
 	var PlotCanv;
 	var Plotview;
-	var OptHeight = 50;
 	var PlotHeight = 600;
 	var PlotMarginT = 50; // margin above plot
 	var PlotMarginB = 80; // margin below plot
@@ -431,7 +432,7 @@
 		if (! DependentNo.checked) DependentYes.checked = true;
 
 		// Start with essentially no input information
-		ChangeInfo();
+		ChangeInfo("TaxYear");
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -2381,6 +2382,7 @@
 	// This function attempts to bracket the optimum refund to the taxpayer
 	function Optimize() {
 	//----------------------------------------------------------------------------------------
+		DataviewDebug = false;
 		if (NRCreditCheck()) {
 			Optimizing = false;
 			Optimized = false;
@@ -2390,88 +2392,65 @@
 		GapAll.checked = true;
 		ScholarTaxable.value = 0;
 		BudgetChange();
-		PlotLowSch = low = 0;
-		PlotHighSch = high = (ScholarTaxableLimitYes.checked) ? +ScholarTaxableLimit.value : +ScholarTaxableMax.innerHTML;
-		if (PlotHighSch == PlotLowSch) {
+		var low = 0;
+		var high = (ScholarTaxableLimitYes.checked) ? +ScholarTaxableLimit.value : +ScholarTaxableMax.innerHTML;
+		if (high == low) {
 			Optimizing = false;
 			Optimized = false;
 			return;
 		}
-		var Plotview = window.open("","","width=" + (OptMarginL+PlotWidth+PlotMarginR) +", height=" + (PlotMarginT+OptHeight+PlotMarginB) + ", resizable=no");
-		Plotview.document.writeln("<!DOCTYPE html>");
-		Plotview.document.writeln("<html>");
-		Plotview.document.writeln("<body>");
-
-		// Create the canvas
-		var PlotCenterH = OptMarginL + PlotWidth/2;
-		var PlotCenterV = PlotMarginT + OptHeight/2;
-		var canvasline ="<canvas id='canvas' width='" + (OptMarginL+PlotWidth+PlotMarginR) + "px' height='" + (PlotMarginT+OptHeight+PlotMarginB) + "px'>";
-		Plotview.document.writeln(canvasline);
-		var canvas = Plotview.document.getElementById('canvas');
-		PlotCanv = canvas.getContext('2d');
-	
-		// Draw a boundary box
-		PlotCanv.lineWidth = 3;
-		PlotCanv.strokeRect(OptMarginL, PlotMarginT, PlotWidth, OptHeight);
-		PlotCanv.font = "18pt sans-serif";
-		PlotCanv.textAlign = "center";
-		PlotCanv.fillText("Optimizing", PlotCenterH, PlotCenterV - 50);
-		PlotCanv.lineWidth = 1;
-
-		// Add a progress bar
-		var ProgBarWidth = 600;
-		var ProgBarHeight = 20;
-		var PlotprogH0 = PlotCenterH - ProgBarWidth/2;
-		var PlotprogV0 = PlotCenterV - ProgBarHeight/2;
-		PlotCanv.fillStyle = "yellow";
-		PlotCanv.fillRect(PlotprogH0,PlotprogV0,ProgBarWidth,ProgBarHeight);
+		if (DataviewDebug) {
+			var Dataview = window.open("","","menubar=1, scrollbars=1, resizable=1");
+			Dataview.document.writeln("<!DOCTYPE html>");
+			Dataview.document.writeln("<html>");
+			Dataview.document.writeln("<body>");
+		}
 
 		// Start optimizing
 		var originalRefund = 0; // was MaxRefund
 		var optimizedRefund = -100000;
 		var optimizedTaxable = 0;
-		var steps = 20;
+		var steps = 30;
 		var stepsize = Math.min(100,Math.round((high - low) / steps));
-		var Plotfactor = ProgBarWidth / (high - low);
+		if (DataviewDebug) {
+			Dataview.document.writeln("<table><tr><th>low</th><th>high</th><th>stepsize</th><th>refund</th><th>opt refund</th></tr>");
+		}
 		
 		while (stepsize >= 1) {
+			if (DataviewDebug) {
+				Dataview.document.writeln("<tr><td>" + low + "</td><td>" + high + "</td><td>" + stepsize + "</td><td>" + MaxRefund + "</td><td>" + optimizedRefund + "</tr>");
+			}
 
 			for (var Testval = low; Testval <= high; Testval += stepsize) {
-				PlotCanv.fillStyle = "lightgreen";
-				Plotstepsize = stepsize * Plotfactor;
-				PlotprogLoc0 = PlotprogH0 + (Testval * Plotfactor) - 1;
-				PlotprogBar = (stepsize * Plotfactor) + 2;
-				PlotprogLoc1 = PlotprogLoc0 + Plotstepsize;
-				// Last plot overshoots the plot area, so don't show it.'
-				if (Testval != high) PlotCanv.fillRect(PlotprogLoc0,PlotprogV0,PlotprogBar,ProgBarHeight);
-
 				ScholarTaxable.value = Testval; 
 				BudgetChange();
 
+				if ((stepsize == 1) && DataviewDebug) {
+					Dataview.document.writeln("<tr><td>" + Testval + "</td><td></td><td></td><td>" + MaxRefund + "</td><td>" + optimizedRefund + "</td></tr>");
+				}
+
 				if (MaxRefund > optimizedRefund) {
+					if (DataviewDebug) {
+						Dataview.document.writeln("<tr><td>" + Testval + "</td><td></td><td></td><td>" + MaxRefund + "></td><td>" + optimizedRefund + "</td></tr>");
+					}
 					optimizedRefund = MaxRefund;
 					optimizedTaxable = Testval;
-
-					PlotCanv.fillStyle = "black";
-					PlotprogBar = PlotprogLoc0 - PlotprogH0 - Plotfactor;
-					PlotCanv.fillRect(PlotprogH0, PlotprogV0, PlotprogBar, ProgBarHeight);
-					PlotprogBar = PlotprogH0 + ProgBarWidth - PlotprogLoc1;
-					PlotCanv.fillRect(PlotprogLoc1, PlotprogV0, PlotprogBar, ProgBarHeight);
 				}
 			}
 
 			low = Math.round(Math.max(low, optimizedTaxable - (5 * stepsize)));
 			high = Math.round(Math.min(optimizedTaxable + (5 * stepsize), high));
 			stepsize = (stepsize > 1 && stepsize < 5) ? 1 : Math.round(stepsize/10);
-			PlotCanv.fillStyle = "black";
-			PlotCanv.fillRect(PlotprogH0, PlotprogV0, ProgBarWidth, ProgBarHeight);
-			optimizedRefund = 0;
+			optimizedRefund = -1000000;
+		}
+		if (DataviewDebug) {
+			Dataview.document.writeln("<tr><td>" + Testval + "</td><td></td><td></td><td>" + MaxRefund + "</td><td>" + optimizedRefund + "</td></tr>");
+			Dataview.document.writeln("</table>");
 		}
 		ScholarTaxable.value = Math.round(optimizedTaxable);
 		BudgetChange();
 		Optimizing = false;
 		Optimized = true;
-		Plotview.close();
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -2567,6 +2546,7 @@
 		var optimizedRefund = originalRefund;
 		var optimizedTaxable = 0;
 		var stepsize = 10;
+		//low = 7730; high = 8000; stepsize = 1; 
 		for (var testval = low; testval <= high; testval += stepsize) {
 			ScholarTaxable.value = testval; 
 			BudgetChange();
@@ -3276,12 +3256,10 @@
 				<span id="taxInfoText" class="helpText"
 					onmouseover="taxInfoText.style.display='block';"
 					onmouseout="taxInfoText.style.display='none';">
-					You can manually change this amount to see how the funds are distributed
-					in the Expense Information tab. It is initially set to 0 to allow all funds to be used
-					for qualified expenses.
-					<br /><br />The Optimizer tab changes this amount as it seeks the best amount
-					to be taxable based on interactions with other tax benefits.
-					You may limit the amount tested if you wish to do so in the next entry...
+					No need to enter anything here but you can manually change this amount to see how the funds are distributed
+					in the Expense Information tab. It is initially set to 0 to allow all funds to be used for qualified expenses.
+					<br /><br />The Optimizer tab changes this amount as it seeks the best amount to be taxable based on
+					interactions with other tax benefits.  You may limit the amount tested if you wish to do so in the next entry...
 				</span>
 			</td>
 			<td><input id="ScholarTaxable" type="number" onchange="BudgetChange(this.id)"
