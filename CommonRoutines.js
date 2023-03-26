@@ -100,7 +100,7 @@ function _SETax (	// Self-employment tax
 function _TaxableSS(	// Taxable amount of Social Security
 	taxYear,	// tax year tables to use (not currently needed but here for consistency)
 	filingStatus,	// SNG, MFJ, MFS, HOH, WID
-	SSAmount,	// total Social Security received
+	SSAmount,	// total Social Security Received
 	otherIncome,	// all other income (gross - Social Security) + tax exempt interest
 	adjustments,	// adjustments through IRA deduction + any write-ins (optional)
 	MFStogether	// true/false if filing MFS and living together (optional)
@@ -120,7 +120,7 @@ function _TaxableSS(	// Taxable amount of Social Security
 	var ssline5 = +otherIncome + ssline2;
 	var ssline6 = +adjustments;
 	var ssline7 = Math.max(0, ssline5 - ssline6);
-	if (MFStogether) {
+	if ((filingStatus == "MFS") && MFStogether) {
 		var ssline16 = ssline7 * 0.85;
 		var IRAgap00 = 0;
 		var IRAgap50 = 0;
