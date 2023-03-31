@@ -13,12 +13,12 @@
 	.BeneBox1 {font-size:100%; font-weight:bold; text-decoration:underline;}
 	.BigTable {width:100%; border:2px solid black; margin:0; padding:0;}
 	.BigTableTitle {font-size:150%; text-align:center; margin:0;}
-	.NameTable {width:100%; font-size:125%; border: 2px solid black; margin:0; padding:0;}
+	.yearInput select { font-size: 120% }
+	.NameTable {width:100%; font-size:115%; border: 2px solid black; margin:0; padding:0;}
 	.yearInput {width: 1%;}
-	.yearInput select {font-size: 120%;}
 	.nameTitle {width: 5%;}
 	.nameInput {width: 45%;}
-	.nameInput input{width: 99%; font-size: 120%;}
+	.nameInput input{width: 99%; font-size: 110%;}
 	.TPHeader {background-color:#00BBBB; font-weight:bold; vertical-align:middle; text-align:center; border:1px solid;}
 	.TPOptions {background-color:#00FFFF; vertical-align:top; border:1px solid; padding:0; margin:0;}
 	.QCAHeader {background-color:#11CCBB; vertical-align:top; border:1px solid; padding:0; margin:0;}
@@ -29,7 +29,9 @@
 	.RESHeader {background-color:#00BB00; font-weight:bold; vertical-align:middle; border:1px solid; padding:0; margin:0;}
 	.RESOptions {background-color:#CCFFCC; vertical-align:top; border:1px solid; padding:5px; margin:0;}
 	.RESHide {color:#CCFFCC;}
-	#incomeLimit {padding-left: 2em; max-width: 10em;}
+	#incomeLimit {padding-left: 2em; max-width: 10em; }
+	#QualChild { min-width: 2em; }
+
 	.MBQ {
 		border: 1px solid black;
 		padding-left: .3em;
@@ -38,6 +40,9 @@
 		background-color: lightgreen;
 		cursor: pointer;
 		font-size: 80%;
+	}
+	@media print {
+		.noprint { display: none; }
 	}
 </style>
  
@@ -55,13 +60,16 @@
 //	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
-//	Mary Jennings
+//	Mary Jennings		Debbie Geldis		Ed Hondl
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.10 12/16/2022";
+var VERSION = "7.11 3/31/2023";
+//	Fixed Decendent as nice/nephew qualifies for HOH if a child dependent
+//	Minor text and formatting changes
+//var VERSION = "7.10 12/16/2022";
 //	TP is Qual Relative not clearing after reset
 //var VERSION = "7.09 10/4/2022";
 //	Changed widow(er) to QSS throughout
@@ -402,6 +410,7 @@ HelpMsg += "<li>It's a good idea to click the RESET button between tests";
 HelpMsg += " to be sure you didn't leave a wrong option set due to the previous test.</li>";
 HelpMsg += "<li>A change history is imbedded in the source code.";
 HelpMsg += " You can view the source from your browser menu to see what changes were made and in what version.</li>";
+HelpMsg += "<li>Print landscape at 74% size for best results.</ul>";
 
 // Income box message
 var IncomeMsg = "Check if the potential dependent as a relative&apos;s gross income is less than the year&apos;s exemption amount.";
@@ -418,6 +427,7 @@ IncomeMsg += " is more than $25,000 ($32,000 if MFJ).</li></ol>";
 var MarriedMsg = "You are considered married for the whole year if, on the last day of the year,";
 MarriedMsg += " you and your spouse meet any one of the following tests:";
 MarriedMsg += "<ul><li>You are married and living together.</li>";
+MarriedMsg += "<li>Your spouse died this year and you would have filed MFJ or MFS had he/she were alive.</li>";
 MarriedMsg += "<li>You are living together in a common law marriage recognized in the state where you now live";
 MarriedMsg += " or in the state where the common law marriage began.</li>";
 MarriedMsg += "<li>You are married and living apart, but not legally separated under a decree";
@@ -637,7 +647,7 @@ function CalcStatus(from_age_calc) {
 	ResYear1Year.innerHTML = +TaxYear.value - 1;
 	ResYear2Year.innerHTML = +TaxYear.value - 2;
 	BQSS.innerHTML = (+TaxYear.value < 2022) ?
-		"Dependent for Widow(er) filing" : "Dependent for QSS filing";	
+		"Widow(er) filing status" : "QSS filing status";	
 
 	// Redetermine dependent age if a birthdate was entered
 	Age0.innerHTML = "Born in " + TaxYear.value;
@@ -650,9 +660,9 @@ function CalcStatus(from_age_calc) {
 		imessage = "including Social Security if filing MFS and lived with spouse any time during the year.";
 	}
 	else {
-		imessage = "excluding Social Security (usually <span class=\"MBQ\"";
+		imessage = "excluding Social Security (usually <span class=\"MBQ noprint\"";
 		imessage += "onmouseover=\"IncomeBox.style.display=\'inline-block\';\"";
-		imessage += "onmouseout=\"IncomeBox.style.display=\'none\';\">?</span>).";
+		imessage += "onmouseout=\"IncomeBox.style.display=\'none\';\">?</span>)";
 	}
 	incomeLimit.innerHTML = ilimit + "<br />" + imessage;
 
@@ -1252,7 +1262,7 @@ function DetermineBenefits() {
 // DPC=Child as dependent, DPR=Relative as dependent, HOH=Head of Household,
 // QSS=Qualified Surviving Spouse
 // CAR=Child/Dependent Care, CTD=Child Tax Credit, EITC=Earned Income Credit
-// EDC=Education Credit, EDA=Education Adjustment, RESX=Relative who does not have to live with you
+// EDC=Education Credit, EDA=Education Adjustment, RESX=Relative who does not have to live with you all year
 // PAR=TP is a parent
 //***************************************************************************************************
 	switch (DEP_Relation) {
@@ -1264,9 +1274,9 @@ function DetermineBenefits() {
 	case "SIBLING":			BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 //	case "HALF_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "NIECE_NEPHEW":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|   |   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
+	case "SIBLING_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
 	case "STEP_SIBLING":		BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|   |   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
+	case "STEP_SIBLING_DESCENDANT": BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|    |"; break;
 	case "PARENT":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
 	case "PARENT_ANC_SIB":		BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
 	case "IN_LAW":			BENE_Relation="|   |   |DPR|HOH|   |   |OTC|MED|CAR|    |EDC|EDA|RESX|"; break;
@@ -1625,8 +1635,8 @@ function ColorCells() {
 		if (Widow.value != NO) {
 			BenefitColor.HOH = ColorWarn;
 			HOH.title += ( (+TaxYear.value < 2022) ?
-			"- Although qualified for HOH, Widow(er) filing is a better choice if still within the 2 year limit\n" :
-			"- Although qualified for HOH, QSS filing is a better choice if still within the 2 year limit\n" );
+			"- Although qualified for HOH, \nWidow(er) filing is a better choice \nif still within the 2 year limit\n" :
+			"- Although qualified for HOH, \nQSS filing is a better choice \nif still within the 2 year limit\n" );
 		}
 		if (TP_DivorceApplies) {
 			BenefitColor.HOH = ColorWarn;
@@ -1641,18 +1651,18 @@ function ColorCells() {
 	if (Widow.value != "NO") ShowCaution = true;
 	if (Widow.value == "YES") {
 		Widow.title += ( (+TaxYear.value < 2022) ?
-			"- May only file as a Widow(er) for 2 years following spouse's death if eligible to file MFJ on year of death\n" : 
-			"- May only file as a Qualified Surviving Spouse for 2 years following spouse's death if eligible to file MFJ on year of death\n" );
+			"- May only file as a Widow(er) \nfor 2 years following spouse's death \nif eligible to file MFJ on year of death\n" : 
+			"- May only file as a Qualified Surviving Spouse \nfor 2 years following spouse's death \nif eligible to file MFJ on year of death\n" );
 		if (QualChild.value != "NO" || QualRelative.value != "NO") {
-			BQSS.innerHTML = (+TaxYear.value < 2022) ?
-				"Dependent for Widow(er) filing" : "Dependent for QSS filing";	
+			//BQSS.innerHTML = (+TaxYear.value < 2022) ?
+			//	"Widow(er) filing status" : "QSS filing status";	
 		}
 		else {
-			BQSS.innerHTML = (+TaxYear.value < 2022) ?
-				"Eligible for Widow(er) filing" : "Eligible for QSS filing";
+			//BQSS.innerHTML = (+TaxYear.value < 2022) ?
+			//	"Widow(er) filing status" : "QSS filing status";
 			Widow.title += ((+TaxYear.value < 2022) ?
-				"- Although not eligible for an exemption, this person does qualify the taxpayer to file as Widow(er)\n" :
-				"- Although not eligible for an exemption, this person does qualify the taxpayer to file as a Qualified Surviving Spouse\n" );
+				"- Although not eligible for an exemption, \nthis person does qualify the taxpayer \nto file as Widow(er)\n" :
+				"- Although not eligible for an exemption, \nthis person does qualify the taxpayer \nto file as a Qualified Surviving Spouse\n" );
 		}
 	}
 	Widow.style.backgroundColor = BenefitColor.Widow;
@@ -2047,7 +2057,7 @@ function TestResults() {
 				<input id="TPisMarried" name="TPisMarried" type="checkbox" onclick="CalcStatus()" value="Single"
 				title="The taxpayer is married" checked="checked" />
 				<span class="Label">TP is married</span>
-				<span class="MBQ"
+				<span class="MBQ noprint"
 					onmouseover="MarriedBox.style.display='inline-block';"
 					onmouseout="MarriedBox.style.display='none';">?</span>
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPfilingMFJ" name="TPfilingMFJ" type="checkbox" onclick="CalcStatus()" value="MFJ"
@@ -2214,7 +2224,7 @@ function TestResults() {
 				<br />&nbsp;
 				</td></tr>
 			<tr class="DEPHeader"><td style="padding:5% 0 5% 0; border:1px solid">Citizenship
-				<span class="MBQ"
+				<span class="MBQ noprint"
 					onmouseover="AlienBox.style.display='inline-block';"
 					onmouseout="AlienBox.style.display='none';">?</span></td></tr>
 			<tr><td>
@@ -2298,11 +2308,11 @@ function TestResults() {
 				<td id="QualRelative" style="text-align:center;" onclick="ShowReason(this.id,BQR.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BHOH">Qual person for HOH filing</td>
+				<td id="BHOH">HOH filing status</td>
 				<td id="HOH" style="text-align:center;" onclick="ShowReason(this.id,BHOH.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BQSS">Qual person for Widow(er) filing</td>
+				<td id="BQSS">QSS filing status</td>
 				<td id="Widow" style="text-align:center;" onclick="ShowReason(this.id,BQSS.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
@@ -2337,11 +2347,10 @@ function TestResults() {
 				<td id="BAOC">American Opportunity Credit</td>
 				<td id="AOCCredit" style="text-align:center;" onclick="ShowReason('AOCCredit',BAOC.innerHTML,this.title)">YES</td>
 				</tr>
-			<tr><td> </td><td class=RESHide>YES</td> <!-- Forces space for YES even when all are NO -->
-				</tr>
 		</table>
+		<br />
 			<p class="center">
-				Hover mouse over or click on<br />red or yellow results<br />for more information.
+				<i>Hover mouse over or click on<br />red or yellow results<br />for more information.</i>
 				<br />
 				<br />
 				<button style="font-size:100%; background-color:white;" onclick="ShowHelpBox(true)">&nbsp;HELP&nbsp;</button>
@@ -2362,9 +2371,7 @@ function TestResults() {
 			CAUTION:<br />Although dependent qualifies,<br />there may be other reasons that
 			<br />prevent the <span style="text-decoration:underline">taxpayer</span> from being
 			<br />eligible for the benefits above.
-			<span style="font-size:30%;">&nbsp;<hr /></span>
 			</span>
-			<span style="font-style:italic; font-size:90%;">Click on individual YES/NO<br />result above for details.</span>
 		</td>
 	</tr>
 	<tr>
