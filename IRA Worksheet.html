@@ -225,10 +225,10 @@
 		}
 		html {
 			background-color: white;
-			font-size: 0.8em;
+			font-size: 0.9em;
 		}
 		body {
-			font-size: 0.8em;
+			font-size: 0.9em;
 			background-color: white;
 			padding: 0;
 			margin: 0;
@@ -236,7 +236,7 @@
 		input,
 		select,
 		option {
-			font-size: 0.8em;
+			font-size: 0.9em;
 		}
 		table {
 			width: 100%;
@@ -265,7 +265,9 @@
 	// --------------------------------------------------------------------------------
 
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.02, 11/7/2022)";
+	var VERSION = "(Version 2.02a, 12/15/2022)";
+	//	Added starting tax year comment for QCD reduced exclusion
+	//var VERSION = "(Version 2.02, 11/7/2022)";
 	//	Added total contribution line to calculate Nontaxable amount
 	//	Minor wording changes
 	//var VERSION = "(Version 2.01, 9/19/2022)";
@@ -928,7 +930,7 @@
 							<span id="QCD70">
 								<br /><input id="TP70" type="checkbox" onchange="FileChange()";/>
 								Check if this taxpayer ever made deductible contributions to an IRA
-								when age over 70&#xbd;
+								when age over 70&#xbd; and for tax years after 2019.
 							</span></li>
 						</ul></td></tr>
 					<tr id="QCDRow1"><td colspan="4" class="groupheader">DEDUCTIBLE CONTRIBUTIONS TO IRA:</td></tr>
@@ -1118,3 +1120,4 @@
 
 </body>
 </html>
+
