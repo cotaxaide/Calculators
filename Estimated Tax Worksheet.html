@@ -1,3 +1,4 @@
+
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -196,7 +197,11 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.42, 12/10/2022)";
+	var VERSION = "(Version 3.43a, 4/15/2023)";
+	//	Added source of tax calculation
+	//var VERSION = "(Version 3.43, 4/12/2023)";
+	//	Fixed ACTC error
+	//var VERSION = "(Version 3.42, 12/10/2022)";
 	//	2021 above line charitable contributions not subtracting
 	//var VERSION = "(Version 3.41b, 11/19/2022)";
 	//	Scrolling in MFJMFS mode caused numbers in box to be deleted
@@ -1257,7 +1262,8 @@
 				Bracket.innerHTML = "";
 			}
 		}
-
+		
+		TaxTable.innerHTML = (CG) ? "Tax from Capital Gains Worksheet" : "Tax from tax tables" ;
 		CalcOut["PreWorkingTax"] = WorkingTax = Math.round(+CalcOut["Tax"] + +CalcIn["AdditionalTax"]);
 
 		// Limit Foreign Tax deduction
@@ -1349,7 +1355,7 @@
 		}
 		
 		// ACTC
-		if (TY < 2021) {
+		if (TY != 2021) {
 			ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
 		}
 		else {
@@ -2005,7 +2011,7 @@
 			<td id="TaxableWarning" colspan="5" class="blinking"></td></tr>
 		<tr><td colspan="5">Tax:</td>
 		<tr><td></td>
-			<td>Tax from tax tables</td>
+			<td id="TaxTable">Tax from tax tables</td>
 			<td colspan="2"id="Bracket" class="calculated"></td>
 			<td id="Tax" class="calculated wktc">0</td></tr>
 		<tr><td></td>
@@ -2411,3 +2417,4 @@
 
 </body>
 </html>
+
