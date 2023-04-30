@@ -16,8 +16,10 @@
                 _LineNo[_TY+":AGI"] = "8b";
                 _LineNo[_TY+":QBI"] = "10";
                 _LineNo[_TY+":Taxable"] = "11b";
-                _LineNo[_TY+":TNF"] = "S1-21";
                 _LineNo[_TY+":SEHI"] = "S1-16";
+                _LineNo[_TY+":IRADed"] = "S1-19";
+                _LineNo[_TY+":StudLoan"] = "S1-20";
+                _LineNo[_TY+":TNF"] = "S1-21";
                 _LineNo[_TY+":Adjustments"] = "S1-22";
                 _LineNo[_TY+":Deductions"] = "9";
                 _LineNo[_TY+":TaxAmount"] = "12a";

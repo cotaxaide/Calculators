@@ -27,10 +27,12 @@
                 _LineNo[_TY+":AOC"] = "29";		// Need update
 		// Schedules 1-3
 		_LineNo[_TY+":Business"] = "S1-3";		// Need update
-                _LineNo[_TY+":SEP"] = "S1-15";		// Need update
-                _LineNo[_TY+":SEHI"] = "S1-16";		// Need update
+                _LineNo[_TY+":SEP"] = "S1-16";		// Need update
+                _LineNo[_TY+":SEHI"] = "S1-17";		// Need update
                 _LineNo[_TY+":TNF"] = "";		// Need update
-                _LineNo[_TY+":Adjustments"] = "S1-22";		// Need update
+                _LineNo[_TY+":IRADed"] = "S1-20";
+                _LineNo[_TY+":StudLoan"] = "S1-21";
+                _LineNo[_TY+":Adjustments"] = "S1-24";		// Need update
                 _LineNo[_TY+":ExcessAPTC"] = "S2-2";		// Need update
                 _LineNo[_TY+":Foreign"] = "S3-1";		// Need update
                 _LineNo[_TY+":Care"] = "S3-2";		// Need update
@@ -254,8 +256,8 @@
 
 	// IRA Adjustment limits
 		_IRALimits[_TY+":AGE"] = 50;		// Need update
-		_IRALimits[_TY+":MAX"] = 6000;		// Need update
-		_IRALimits[_TY+":SRMAX"] = 7000;		// Need update
+		_IRALimits[_TY+":MAX"] = 6500;
+		_IRALimits[_TY+":SRMAX"] = 7500;
 		_IRALimits[_TY+":SNG"] = 		// Need update
 		_IRALimits[_TY+":MFS"] = 		// Need update
 		_IRALimits[_TY+":HOH"] = "78000";		// Need update

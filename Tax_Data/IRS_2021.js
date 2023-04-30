@@ -30,6 +30,8 @@
                 _LineNo[_TY+":SEP"] = "S1-16";
                 _LineNo[_TY+":SEHI"] = "S1-17";
                 _LineNo[_TY+":TNF"] = "";
+                _LineNo[_TY+":IRADed"] = "S1-20";
+                _LineNo[_TY+":StudLoan"] = "S1-21";
                 _LineNo[_TY+":Adjustments"] = "S1-25";
                 _LineNo[_TY+":ExcessAPTC"] = "S2-2";
                 _LineNo[_TY+":Foreign"] = "S3-1";
