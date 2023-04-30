@@ -183,7 +183,9 @@
 // --------------------------------------------------------------------------------
 var VERSION;
 
-VERSION = "(Version 2.06, 10/9/2022)";
+VERSION = "(Version 2.07, 3/12/2023)";
+//	Disabled points input for 2022 and later years
+//VERSION = "(Version 2.06, 10/9/2022)";
 //	Addition of Mortgage Insurance
 //	Changed Widow(er) filing to QSS
 //VERSION = "(Version 2.05, 9/12/2022)";
@@ -674,6 +676,9 @@ function Fill_Dates() {
 	Date10.innerHTML = "10/31/" + tyr;
 	Date11.innerHTML = "11/30/" + tyr;
 	BalanceTY.innerHTML = Date12.innerHTML = "12/31/" + tyr;
+
+	// Are points deductible this year?
+	PointsPaid.disabled = (+tyr >= 2022); // true/false
 }
 
 //----------------------------------------------------------------------------------------
