@@ -190,7 +190,9 @@
 	//	Ben Seidman		Brian McCann			John Broughton
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.09, 4/10/2022)";
+	VERSION = "(Version 1.09a, 10/4/2022)";
+	//	Changed WID to QSS
+	//VERSION = "(Version 1.09, 4/10/2022)";
 	//	Corrected work/health/duty < 24 months message to indicate partial exclusion
 	//VERSION = "(Version 1.08, 12/23/2021)";
 	//	Removed 1/1 default sale date
@@ -481,7 +483,7 @@ function Basis_Calc(changingId) {
 		SPDiedRow.style.display = "table-row";
 	}
 
-	if (FilingStatus.value === "WID") {
+	if (FilingStatus.value === "QSS") {
 		SPDiedY.checked = true;
 		RemarriedN.checked = true;
 	}
@@ -1031,7 +1033,7 @@ function Add_Improvement() {
 					<option value="MFJ" selected>MFJ</option>
 					<option value="MFS">MFS</option>
 					<option value="HOH">HOH</option>
-					<option value="WID">Widow(er)</option></select>
+					<option value="QSS">Widow(er)</option></select>
 		</td><td></td></tr>
 		<tr id="SaleDateRow"><td>Date sold:</td>
 			<td><input id="SaleDate" type="date" onchange="Basis_Calc(this.id);" /></td>
