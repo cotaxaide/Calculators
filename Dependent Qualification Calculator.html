@@ -6,18 +6,19 @@
 <title>Dependent Qualification Calculator</title>
 
 <style type="text/css">
-	body {margin:0; padding:0}
+	body {margin:0; padding:0;}
+	abbr, input, button, select {cursor: pointer;}
 	.center {text-align:center; padding:0; margin:0;}
 	.centerbold {text-align:center; font-weight:bold; margin:0; padding:0;}
 	.BeneBox1 {font-size:100%; font-weight:bold; text-decoration:underline;}
 	.BigTable {width:100%; border:2px solid black; margin:0; padding:0;}
 	.BigTableTitle {font-size:150%; text-align:center; margin:0;}
-	.NameTable {width:100%; font-size:125%; border: 2px solid black; margin:0; padding:0;}
+	.yearInput select { font-size: 120% }
+	.NameTable {width:100%; font-size:115%; border: 2px solid black; margin:0; padding:0;}
 	.yearInput {width: 1%;}
-	.yearInput select {font-size: 120%;}
 	.nameTitle {width: 5%;}
 	.nameInput {width: 45%;}
-	.nameInput input{width: 99%; font-size: 120%;}
+	.nameInput input{width: 99%; font-size: 110%;}
 	.TPHeader {background-color:#00BBBB; font-weight:bold; vertical-align:middle; text-align:center; border:1px solid;}
 	.TPOptions {background-color:#00FFFF; vertical-align:top; border:1px solid; padding:0; margin:0;}
 	.QCAHeader {background-color:#11CCBB; vertical-align:top; border:1px solid; padding:0; margin:0;}
@@ -28,7 +29,9 @@
 	.RESHeader {background-color:#00BB00; font-weight:bold; vertical-align:middle; border:1px solid; padding:0; margin:0;}
 	.RESOptions {background-color:#CCFFCC; vertical-align:top; border:1px solid; padding:5px; margin:0;}
 	.RESHide {color:#CCFFCC;}
-	#incomeLimit {padding-left: 2em; max-width: 10em;}
+	#incomeLimit {padding-left: 2em; max-width: 10em; }
+	#QualChild { min-width: 2em; }
+
 	.MBQ {
 		border: 1px solid black;
 		padding-left: .3em;
@@ -38,34 +41,89 @@
 		cursor: pointer;
 		font-size: 80%;
 	}
+	@media print {
+		.noprint { display: none; }
+	}
 </style>
  
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2015.js"></script>
-<script src="Tax_Data/IRS_2016.js"></script>
-<script src="Tax_Data/IRS_2017.js"></script>
-<script src="Tax_Data/IRS_2018.js"></script>
+<script src="Tax_Data/IRS_2019.js"></script>
+<script src="Tax_Data/IRS_2020.js"></script>
+<script src="Tax_Data/IRS_2021.js"></script>
+<script src="Tax_Data/IRS_2022.js"></script>
 <script>
 //***************************************************************************************************
 //Contributors:
-//	Joe Bowman
-//	Steve Conary
-//	Deb Fisher
-//	Gina Kritchevsky
-//	Andreas Kuehnel
-//	Tom LaJeunesse
-//	Frank Petranka
-//	Ken Denbow
-//	Ted Fox
-//	Gregory Gendron
-//	Jon Naiman
-//	Sue Stavio
+//	Joe Bowman		Steve Conary		Deb Fisher 		Gina Kritchevsky
+//	Andreas Kuehnel 	Tom LaJeunesse		Frank Petranka		Ken Denbow
+//	Ted Fox			Gregory Gendron		Jon Naiman		Sue Stavio
+//	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
+//	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
+//	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
+//	Mary Jennings		Debbie Geldis		Ed Hondl
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "6.18 11/12/2018";
+var VERSION = "7.11 3/31/2023";
+//	Fixed Decendent as nice/nephew qualifies for HOH if a child dependent
+//	Minor text and formatting changes
+//var VERSION = "7.10 12/16/2022";
+//	TP is Qual Relative not clearing after reset
+//var VERSION = "7.09 10/4/2022";
+//	Changed widow(er) to QSS throughout
+//var VERSION = "7.08 4/10/2022";
+//	Fixed EITC filing MFS not allowed for grandchild
+//var VERSION = "7.07a 1/6/2022";
+//	Fixed EITC comment re TP may still qualify if dependent does not
+//var VERSION = "7.07 12/22/2021";
+//	EITC indicated as YES for older daughter, not a qualified child or relative
+//var VERSION = "7.06 12/10/2021";
+//	Added scheme to save 11-50% options for relative support so they can be restored
+//	Made TP support for relative section inactive if qualified as child
+//	Moved Care info message which changed for 2021 to refundable (causing undefined (?) messages)
+//var VERSION = "7.05 11/29/2021";
+//	Clear birth year when closing age calc window if > current tax year
+//var VERSION = "7.04a 11/19/2021";
+//	Remove non-refundable comment from Child Care pop-up for 2021
+//var VERSION = "7.04 11/3/2021";
+//	Correction to EITC with divorce/separation
+//var VERSION = "7.03 10/18/2021";
+//	Added new EITC condition for child when divorced and not filing jointly
+//var VERSION = "7.02 10/7/2021";
+//	Split age 17 and 18 due to 2021 change in CTC age maximum
+//var VERSION = "7.01 9/26/2021";
+//	Broke support into two sections
+//var VERSION = "6.26 9/18/2021";
+//	Modified QCA to allow both TP is parent and No parent will claim boxes to be checked
+//var VERSION = "6.25a 7/9/2021";
+//	Added 2021 tax data
+//var VERSION = "6.25 2/3/2021";
+//	Fixed error where HOH not allowed for TP giving dependent to ex SP
+//var VERSION = "6.24 2/27/2020";
+//	Fixed error giving HOH to descendant of niece or nephew
+//var VERSION = "6.23 2/22/2020";
+//	Fixed error when income test could not be checked once unchecked
+//var VERSION = "6.22 2/16/2020";
+//	Added an HOH option to the married status section if not MFJ
+//	Disabled income test for dependent as a child
+//var VERSION = "6.21b 1/22/2020";
+//	Change COD message for citizenship test to residency test
+//	Added actual year numbers to residency test window
+//	Changed dependent income comment from title to pop-up box
+//var VERSION = "6.21a 12/10/2019";
+//	Minor text changes for HOH and Wid results to Qual Person
+//var VERSION = "6.21 12/9/2019";
+//	Age over 24 did not set "Other" and close window
+//	Added year to age 0 text
+//var VERSION = "6.20 11/11/2019";
+//	Added a DOB to calculate age option
+//	Changed default dependent ITIN checkbox to checked
+//var VERSION = "6.19 8/7/2019";
+//	Added FT to student aged 19-23
+//	Changed cursor to pointer on input and select boxes
+//var VERSION = "6.18 11/12/2018";
 //	Added tax years drop-down
 //	Added code to hide dependent benefits not available
 //	Changed list of low-income test to single entry for the selected year
@@ -232,7 +290,7 @@ var DEP_ChildQualified;
 var DEP_ChildQualForCare;
 var DEP_ChildQualForEITC;
 var DEP_ChildQualForHOH;
-var DEP_ChildQualForWID;
+var DEP_ChildQualForQSS;
 var DEP_ChildQualForMedical;
 var DEP_Citizenship;
 var DEP_Married;
@@ -244,12 +302,15 @@ var DEP_RealAge;
 var DEP_Relation;
 var DEP_RelativeQualForBenefits;
 var DEP_Residency;
+var DEP_Support;
+var DEP_SaveSupport;
 
 // TP variables are taxpayer related
 var SP_Citizenship;
 var TP_Citizenship;
 var TP_Custodial;
 var TP_DivorceApplies;
+var EITC_DivorceApplies;
 var TP_QCA_Applies;
 var TP_Filing;
 var TP_IsParent;
@@ -275,21 +336,12 @@ var ColorNo = "hotpink";
 var ColorWarn = "yellow";
 var BenefitColor = {}; //local array to hold color values (querying browser gives unexpected results)
 
-// Low income test title
-var lititle = "Check if the dependent's gross income is less than the year's exemption amount.";
-lititle += "\n\nGross income means all income the person received in the form of money, goods, property and services,";
-lititle += " that isn't exempt from tax.";
-lititle += "\n\nDon't include social security benefits unless:";
-lititle += "\n   - the person is married filing a separate return and lived with their spouse at any time during the tax year or";
-lititle += "\n   - if 1/2 the social security benefits plus their other gross income and tax exempt interest";
-lititle += " is more than $25,000 ($32,000 if MFJ).";
-
 // Caution alert for other TP giving permission to this TP
 var PermissionAlert = "CAUTION\n";
 PermissionAlert += "\n- Test the other taxpayer's elegibility before setting this option. ";
 PermissionAlert += "Permission to use a child's benefits cannot be given to an ineligible taxpayer. ";
 PermissionAlert += "\n\n- Also, only one taxpayer can use the child for all of the following benefits:.";
-PermissionAlert += "\n--- Child as exemption";
+PermissionAlert += "\n--- Child as exemption (prior to 2018)";
 PermissionAlert += "\n--- Head of Household filing";
 PermissionAlert += "\n--- Child/Dependent Care";
 PermissionAlert += "\n--- Exclusion from Income for Dependent Care Benefits";
@@ -305,7 +357,6 @@ YesMsg["Widow"] = "<li>None identified</li>";
 YesMsg["DependCare"] = "<li>Taxpayer must have earned income</li>";
 YesMsg["DependCare"] += "<li>Care must be for work or look for work</li>";
 YesMsg["DependCare"] += "<li>Income amount may reduce or exclude the benefit</li>";
-YesMsg["DependCare"] += "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
 YesMsg["DependCare"] += "<li>If MFJ, spouse must be working, a student, or incapable of self-care</li>";
 YesMsg["DependCare"] += "<li>Qualified payments must be to a qualified person</li>";
 YesMsg["DependCare"] += "<li>TP must have the tax id number of the care provider or show due diligence in an attempt to obtain it</li>";
@@ -336,10 +387,9 @@ YesMsg["AOCCredit"] += "<li>Lifetime Learning Credit portion is \"non-refundable
 // Test alert message for those who inadvertantly find the little heart symbol
 var TestMsg = "This is a test function, not designed for casual users.";
 TestMsg += "\n\nThe test will cycle through all combinations of the dependent's";
-TestMsg += " age, relationship, residency, citizenship and support combinations (8400 of them) and";
+TestMsg += " age, relationship, residency, citizenship and support combinations (5040 of them) and";
 TestMsg += " displays the results in tabular form which you can copy and paste into a spreadsheet";
 TestMsg += " to filter and sort for analysis. Other options (except multiple support by others) are preserved.";
-TestMsg += "\n\nUse Chrome, Firefox, Opera or Safari when testing; Internet Explorer is too slow";
 TestMsg += "\n\nIt takes a while; do you wish to proceed?";
 
 // Help box message
@@ -360,16 +410,29 @@ HelpMsg += "<li>It's a good idea to click the RESET button between tests";
 HelpMsg += " to be sure you didn't leave a wrong option set due to the previous test.</li>";
 HelpMsg += "<li>A change history is imbedded in the source code.";
 HelpMsg += " You can view the source from your browser menu to see what changes were made and in what version.</li>";
+HelpMsg += "<li>Print landscape at 74% size for best results.</ul>";
+
+// Income box message
+var IncomeMsg = "Check if the potential dependent as a relative&apos;s gross income is less than the year&apos;s exemption amount.";
+IncomeMsg += "<br /><br />";
+IncomeMsg += "Gross income means all income the person received in the form of money, goods, property and services,";
+IncomeMsg += " that isn't exempt from tax.";
+IncomeMsg += "<br /><br />";
+IncomeMsg += "Don&apos;t include social security benefits unless either:";
+IncomeMsg += "<ul><li>the person is married filing a separate return and lived with their spouse at any time during the tax year or</li>";
+IncomeMsg += "<li>1/2 the social security benefits plus their other gross income and tax exempt interest";
+IncomeMsg += " is more than $25,000 ($32,000 if MFJ).</li></ol>";
 
 // Married box message
 var MarriedMsg = "You are considered married for the whole year if, on the last day of the year,";
 MarriedMsg += " you and your spouse meet any one of the following tests:";
-MarriedMsg += "<ol><li>You are married and living together.</li>";
+MarriedMsg += "<ul><li>You are married and living together.</li>";
+MarriedMsg += "<li>Your spouse died this year and you would have filed MFJ or MFS had he/she were alive.</li>";
 MarriedMsg += "<li>You are living together in a common law marriage recognized in the state where you now live";
 MarriedMsg += " or in the state where the common law marriage began.</li>";
-MarriedMsg += "<li>Your are married and living apart, but not legally separated under a decree";
+MarriedMsg += "<li>You are married and living apart, but not legally separated under a decree";
 MarriedMsg += " of divorce or separate maintenance.</li>";
-MarriedMsg += "<li>You are separated under an interlocutory (not final) decree of divorce.</li></ol>";
+MarriedMsg += "<li>You are separated under an interlocutory (not final) decree of divorce.</li></ul>";
 
 // Alien box message
 var AlienMsg = "<b>US Cit/US Nat</b>:";
@@ -406,9 +469,6 @@ function Initialize() {
 			}
 		}
 		TaxYear.value = _DefaultYear;
-
-		// Had to do this to get formatting to work properly...
-		LowIncomeTitle.title = lititle;
 	}
 
 
@@ -417,13 +477,17 @@ function Initialize() {
 	SPCitizenship.value = "USA";
 	TPisDependent = "";
 	HHCost.checked = true;
+	TPisQR.checked = false;
 	TPisMarried.checked = true;
 	TPfilingMFJ.checked = true;
 	TPrefund.checked = false;
+	TPfilingHOH.checked = false;
 	TPDivorced.checked = false;
 	LivedWith.checked = false;
 	JointSupport.checked = false;
 	WaiverList[2].checked = true; // none
+	BirthYear.value = "";
+	FTStudent.checked = false;
 	AgeList[1].checked = true; // 12
 	Older.checked = false;
 	Disabled.checked = false;
@@ -431,7 +495,9 @@ function Initialize() {
 	DependentMarriedNo.checked = true; // Unmarried
 	RelationList[0].checked = true; // Child of TP
 	ResidencyList[ResidencyList.length-1].checked = true; // 12
+	DependentITIN.checked = true;
 	Felony.checked = false;
+	SupportSelfNo.checked = true;
 	SupportList[SupportList.length-1].checked = true; // 100%
 	QualChildOfAnother.checked = false;
 	DepFilingMFJ.checked = false;
@@ -451,7 +517,9 @@ function Initialize() {
 	CitizenList[0].click(); // USA
 	HelpMessage.innerHTML = HelpMsg; 
 	MarriedBoxContents.innerHTML = MarriedMsg;
+	IncomeBoxContents.innerHTML = IncomeMsg;
 	AlienBoxContents.innerHTML = AlienMsg;
+	DEP_SaveSupport = 51;
 	}
 
 //***************************************************************************************************
@@ -465,7 +533,43 @@ function Resize() {
 
 	// Change font size to fit window width
 	zzz.style.fontSize = (WinWidth * BaseFont/BasePix) + "pt";
+}
+
+//***************************************************************************************************
+function Calculate_Age () {
+//***************************************************************************************************
+	if (BirthYear.value === "") {
+		AgeBox.style.display = "none";
+		return;
 	}
+
+	if (BirthYear.value.length != 4) {
+		alert("Please enter a 4-digit year.");
+		return;
+	}
+	var age = +TaxYear.value - +BirthYear.value;
+	if (age < 0 ) {
+		alert("Birth year cannot be later than the tax year.");
+		BirthYear.value = "";
+		return;
+	}
+
+	for (j=0; j < AgeList.length; j++) {
+		thisAge = +AgeList[j].value;
+		if (age > thisAge) continue;
+		if ((age >= 19) && (age <= 23) && (! FTStudent.checked)) continue;
+		AgeList[j].checked = true;
+		AgeBox.style.display = "none";
+		BirthYear.value = "";
+		CalcStatus(true);
+		return;
+	}
+	AgeList[j-1].checked = true;
+	AgeBox.style.display = "none";
+	BirthYear.value = "";
+	CalcStatus(true);
+	return;
+}
 
 //***************************************************************************************************
 function PreCalc(Source) {
@@ -504,7 +608,7 @@ function PreCalc(Source) {
 			if (OtherTPisParent.checked) ParentGives.checked = false;
 			break;
 		case (103): // No parent claims & other TP has higher AGI
-			if (ParentGives.checked || OtherTPisParent.checked) OtherTPisParent.checked = false;
+			// if (ParentGives.checked || OtherTPisParent.checked) OtherTPisParent.checked = false; // commented out in 6.26
 			break;
 		case (104): // Other TP gives permission to this TP
 			break;
@@ -527,7 +631,8 @@ function PreCalc(Source) {
 } // End of PreCalc
 
 //***************************************************************************************************
-function CalcStatus() {
+function CalcStatus(from_age_calc) {
+//	from_age_calc	true = do not calculate age again
 // Calculates the benefits based on the input options set
 //***************************************************************************************************
 	// Add text on header line for debugging
@@ -537,6 +642,17 @@ function CalcStatus() {
 
 	// Set default values before examining checked options
 
+	// Update residency year value line labels
+	ResYear0Year.innerHTML = TaxYear.value;
+	ResYear1Year.innerHTML = +TaxYear.value - 1;
+	ResYear2Year.innerHTML = +TaxYear.value - 2;
+	BQSS.innerHTML = (+TaxYear.value < 2022) ?
+		"Widow(er) filing status" : "QSS filing status";	
+
+	// Redetermine dependent age if a birthdate was entered
+	Age0.innerHTML = "Born in " + TaxYear.value;
+	if (! from_age_calc) Calculate_Age();
+
 	// list the standard deduction amounts for the selected year
 	var iamount = _Standard[TaxYear.value].split(",")[_Standard["DepAsRel"]].replace(/(.)(?=(\d{3})+$)/g,'$1,');
 	ilimit = "$ " + iamount + " (" + TaxYear.value + ")\n";
@@ -544,7 +660,9 @@ function CalcStatus() {
 		imessage = "including Social Security if filing MFS and lived with spouse any time during the year.";
 	}
 	else {
-		imessage = "excluding Social Security (usually <span class='MBQ'>?</span>).";
+		imessage = "excluding Social Security (usually <span class=\"MBQ noprint\"";
+		imessage += "onmouseover=\"IncomeBox.style.display=\'inline-block\';\"";
+		imessage += "onmouseout=\"IncomeBox.style.display=\'none\';\">?</span>)";
 	}
 	incomeLimit.innerHTML = ilimit + "<br />" + imessage;
 
@@ -555,7 +673,7 @@ function CalcStatus() {
 	DEP_ChildQualified = true;
 	DEP_ChildQualForCare = true;
 	DEP_ChildQualForHOH = true;
-	DEP_ChildQualForWID = true;
+	DEP_ChildQualForQSS = true;
 	DEP_ChildQualForEITC = true;
 	DEP_ChildQualForMedical = true;
 	DEP_RelativeQualForBenefits = true;
@@ -578,6 +696,32 @@ function CalcStatus() {
 
 	// Dependant support by Taxpayer and/or others
 	for (j=0; j < SupportList.length; j++) if (SupportList[j].checked) DEP_Support = +SupportList[j].value;
+	if (DEP_Support) { // Support for relatives is active
+		if (DEP_Support == 11) {
+			if (OtherSupport11.checked) DEP_Support = 12;
+			if (Form2120.checked) DEP_Support = 21;
+			if (OtherSupport51.checked) DEP_Support = 13;
+		}
+		DEP_SaveSupport = DEP_Support;
+	}
+	if (SupportSelfNo.checked) { // restore saved support information
+		switch (DEP_SaveSupport) {
+		case 10: Support10.checked = true; break;
+		case 11: Support11.checked = true;
+			 OtherSupportNone.checked = true;
+			 break;
+		case 21: Form2120.checked = true;
+		case 12: Support11.checked = true;
+			 OtherSupport11.checked = true;
+			 break;
+		case 13: Support11.checked = true;
+			 OtherSupport51.checked = true;
+			 break;
+		case 51: Support51.checked = true; break;
+		}
+		DEP_Support = DEP_SaveSupport;
+	}
+	if (SupportSelfYes.checked) DEP_Support = 0;
 	DEP_MultipleTPSupport = Support11.checked && OtherSupport11.checked && Form2120.checked;
 
 	// Dependent residency
@@ -597,8 +741,11 @@ function CalcStatus() {
 	TPisDependent = "";
 
 	// Taxpayer marital status
+	TP_Filing = "Single";
+	if (TPisMarried.checked) TP_Filing = "MFS";
 	if (TPfilingMFJ.checked) TP_Filing = "MFJ";
-	else TP_Filing = (TPisMarried.checked) ? "MFS":"Single";
+	//TPfilingHOH.disabled = (! HHCost.checked);
+	if (TPfilingHOH.checked) TP_Filing = "HOH";
 
 	// Taxpayer divorce and Form 8322 waivers
 	TP_IsParent = (BENE_Relation.indexOf("|PAR|") == NOT_A_BENEFIT)? false:true;
@@ -606,6 +753,7 @@ function CalcStatus() {
 		LivedWith.checked = JointSupport.checked = false;
 	}
 	TP_DivorceApplies = (TPDivorced.checked && LivedWith.checked && JointSupport.checked && (DEP_Age < 24) && TP_IsParent && (! Emancipated.checked));
+	EITC_DivorceApplies = (TPDivorced.checked && LivedWith.checked && (DEP_Age < 24) && TP_IsParent && (! Emancipated.checked));
 	WaiverToTP.disabled = WaiverToSP.disabled = WaiverToNone.disabled = ! TP_DivorceApplies;
 	TP_Custodial = YES; // Assume yes for now
 	if (TP_DivorceApplies) {
@@ -627,16 +775,19 @@ function CalcStatus() {
 			if (DEP_Residency < 6) TP_Custodial = NO;
 			break;
 		}
-		SupportSelf.disabled = Support10.disabled = Support11.disabled = (! WaiverToNone.checked);
+		SupportSelfYes.disabled = Support10.disabled = Support11.disabled = (! WaiverToNone.checked);
 		if (! WaiverToNone.checked) Support51.checked = true;
 	}
 	else {
 		WaiverToNone.checked = true;
-		SupportSelf.disabled = Support10.disabled = Support11.disabled = false;
-		Support10.disabled = Support11.disabled = SupportSelf.checked;
+		SupportSelfYes.disabled = Support10.disabled = Support11.disabled = false;
+		Support10.disabled = Support11.disabled = Support51.disabled = SupportSelfYes.checked;
 	}
 
-
+	// Clean up support checkmarks
+	if (Support10.disabled) Support10.checked = false;
+	if (Support11.disabled) Support11.checked = false;
+	if (Support51.disabled) Support51.checked = false;
 
 	// Get Taxpayer/Spouse citizenship
 	SP_Citizenship = SPCitizenship.value;
@@ -661,7 +812,7 @@ function CalcStatus() {
 		ShowResBox("Clear"); // Not alien status
 	}
 	DepITIN.style.visibility = (DEP_Citizenship == "USA") ? "hidden" : "visible";
-	if (DepITIN.style.visibility == "hidden") DependentITIN.checked = false;
+	//if (DepITIN.style.visibility == "hidden") DependentITIN.checked = false; removed v6.20
 
 	CheckMultiUseBoxes(); // Update settings based on inputs
 	ShowQCA();
@@ -674,12 +825,14 @@ function CalcStatus() {
 	QualChild.title = "";
 
 		// Relationship test
-		TestFor = "|DCQ|HOH|CAR|MED|EITC|WID|";
+		TestFor = "|DCQ|HOH|CAR|MED|EITC|QSS|";
 		if (BENE_Relation.indexOf("|DPC|") == NOT_A_BENEFIT) SetMessage(QualChild,"- Failed relationship test.");
-		TestFor = "|HOH|CAR|MED|EITC|WID|";
-		if (QualChildOfAnother.checked && QCAtest != "TP") SetMessage(QualChild, QCAreason);
+		TestFor = "|CAR|MED|EITC|QSS|";
+		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(QualChild, QCAreason);
+		TestFor = "|HOH|";
+		if (QualChildOfAnother.checked && (QCAtest != "TP") && (QCAtest != "OTHER_NO_HOH")) SetMessage(QualChild, QCAreason);
 
-		TestFor = "|DCQ|HOH|CAR|MED|EITC|WID|";
+		TestFor = "|DCQ|HOH|CAR|MED|EITC|QSS|";
 		// Age test
 		if ((DEP_Age > 0) && (Older.checked)) SetMessage(QualChild,"- Child older than TP and not disabled");
 		QualChildOfAnother.disabled = false;
@@ -714,14 +867,14 @@ function CalcStatus() {
 		}
 
 		// Residency test
-		TestFor = "|DQC|HOH|CAR|EITC|WID|";
+		TestFor = "|DQC|HOH|CAR|EITC|QSS|";
 		if (TP_DivorceApplies) {
 			if ((TP_WaiverTo == "NoWaiver") && (TP_Custodial == NO)) {
 				SetMessage(QualChild,"- Parent not eligible for this benefit");
 			}
 		}
 		else {
-			TestFor = "|DQC|HOH|MED|CAR|EITC|WID|";
+			TestFor = "|DQC|HOH|MED|CAR|EITC|QSS|";
 			if (DEP_Residency < 7) {
 				SetMessage(QualChild,"- Dependent failed residency test"); 
 			}
@@ -729,12 +882,35 @@ function CalcStatus() {
 
 		// Other qualified taxpayer optioms
 		TestFor = "";
-		Support10.disabled = Support11.disabled = (SupportSelf.checked || (QualChild.value == YES));
+		hideRelativeSupportOptions = ((SupportSelfYes.checked) || (QualChild.value == YES)); // v 7.01, v 7.06
+		Support51.disabled = Support10.disabled = Support11.disabled = hideRelativeSupportOptions; // v 7.06
+		if (hideRelativeSupportOptions) { // v 7.06
+			Support51.checked = Support10.checked = Support11.checked = false;
+		}
+		else { // v 7.06
+			if (DEP_Support == 10) Support10.checked = true;
+			switch (DEP_SaveSupport) {
+			case 10: Support10.checked = true; break;
+			case 11: Support11.checked = true;
+			 	OtherSupportNone.checked = true;
+			 	break;
+			case 21: Form2120.checked = true;
+			case 12: Support11.checked = true;
+			 	OtherSupport11.checked = true;
+			 	break;
+			case 13: Support11.checked = true;
+			 	OtherSupport51.checked = true;
+			 	break;
+			case 51: Support51.checked = true; break;
+			}
+		}
+		//if (SupportSelfYes.checked) Support51.disabled = true; // v 7.01, v 7.06
+		DEP_ChildQualForEITC = QualChild.value; // v 7.06
 
 		// --------------------EITC does not depend on following tests--------------------------
 
 		// Support test
-		TestFor = "|DCQ|HOH|CAR|MED|WID|";
+		TestFor = "|DCQ|HOH|CAR|MED|QSS|";
 		if (DEP_Support == 0) SetMessage(QualChild,"- Failed support test");
 		TestFor = "|CAR|MED|";
 		if (TPisQC.checked) SetMessage(QualChild,"- TP/SP cannot be a qualified child");
@@ -759,6 +935,7 @@ function CalcStatus() {
 		}
 
 		if (QualChild.value != NO) { ShowMSRBox("Clear"); } // Closes display for MSR box if it was open
+		LowIncome.disabled = (QualChild.value == YES);
 	
 
 	// ==============================================================
@@ -788,7 +965,7 @@ function CalcStatus() {
 		if (QualRelative.value == NO) DEP_RelativeQualForBenefits = false // Relative care not dependent on following tests
 
 		// Benefit exception tests
-		if (QualRelative.value != "NO") DEP_ChildQualForWID = true;
+		if (QualRelative.value != "NO") DEP_ChildQualForQSS = true;
 		if (DepFilingMFJ.checked && (! DepRefund.checked)) SetMessage(QualRelative,"- Dependent failed joint return test");
 		if (! LowIncome.checked) SetMessage(QualRelative,"- Income too high");
 		if (TPisQC.checked) SetMessage(QualRelative,"- TP/SP cannot be a qualified child");
@@ -799,6 +976,7 @@ function CalcStatus() {
 //			if (DEP_Residency > 6.5) QualRelative.value = "SPOUSE_MAY_USE";
 //		}
 		if (TP_DivorceApplies && WaiverToSP.checked) SetMessage(QualRelative,"- Ex-spouse has 8832 or decree");
+
 
 
 	// ==============================================================
@@ -812,12 +990,13 @@ function CalcStatus() {
 		if ((MSRBoxActive) && (QualRelative.value != NO)) SetMessage(HOH,"- Multiple support person is not an HOH dependent");
 		if ((DEP_Relation != "PARENT") && (DEP_Residency < 7)) SetMessage(HOH,"- Failed residency test");
 		if (! HHCost.checked) SetMessage(HOH,"- TP must provide >50% of household costs");
-		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(HOH,"- TP is not claiming child as a dependent");
+		if (QualChildOfAnother.checked && (QCAtest != "TP") && (QCAtest != "OTHER_NO_HOH")) SetMessage(HOH,"- TP is not claiming child as a dependent");
 		if (TP_Filing == "MFJ") SetMessage(HOH,"- TP filing as married");
-		if (TP_Filing == "MFS") { // TP may be able to file HOH
+		if ((TP_Filing == "MFS") || (TP_Filing == "HOH")) { // TP may be able to file HOH
 			if (TPDivorced.checked && (! TP_DivorceApplies)) { // still married but living apart - dependent restrictions apply
 				if (! ((DEP_Relation == "CHILD") || (DEP_Relation == "FOSTER")) || ((QualChild.value == NO) && (QualRelative.value == NO))) {
-					SetMessage(HOH,"- In this TP's case, dependent must be a child, step-child or foster child claimed as an exemption");
+					SetMessage(HOH,"- In this TP's case, dependent must be a child, step-child or foster child");
+					HOH.value = NO;
 				}
 			}
 			if (HOH.value != NO) {
@@ -832,14 +1011,14 @@ function CalcStatus() {
 	Widow.value = YES; // assume yes until a condition is violated
 	Widow.title = "";
 
-		if (BENE_Relation.indexOf("|WID|") == NOT_A_BENEFIT) SetMessage(Widow,"- Failed relationship test");
+		if (BENE_Relation.indexOf("|QSS|") == NOT_A_BENEFIT) SetMessage(Widow,"- Failed relationship test");
 //		if (QualChild.value == NO) SetMessage(Widow,"- Not a qualified child");
-		if (! DEP_ChildQualForWID) SetMessage(Widow,"- Not a qualified dependent");
+		if (! DEP_ChildQualForQSS) SetMessage(Widow,"- Not a qualified dependent");
 		if (QualChildOfAnother.checked && (QCAtest != "TP")) SetMessage(Widow,"- TP is not claiming child as a dependent");
 		if (DEP_Residency < 12) SetMessage(Widow,"- Failed residency test");
 		if (! HHCost.checked) SetMessage(Widow,"- TP must provide >50% of household costs");
 		if (TPDivorced.checked) SetMessage(Widow,"- TP divorced or separated, not widow(er)");
-		if ((TP_Filing == "MFJ") || (TP_Filing == "MFS")) SetMessage(Widow,"- TP filing as married");
+		if (TPisMarried.checked) SetMessage(Widow,"- TP cannot be married");
 
 	// ==============================================================
 
@@ -879,14 +1058,15 @@ function CalcStatus() {
 	CTC.title = "";
 
 		if (BENE_Relation.indexOf("|CTC|") == NOT_A_BENEFIT) SetMessage(CTC,"- Failed relationship test");
-		if (DEP_RealAge > 16) SetMessage(CTC,"- Failed age test");
+		maxCTCAge = (+TaxYear.value == 2021) ? 17 : 16 ;
+		if (DEP_RealAge > maxCTCAge) SetMessage(CTC,"- Failed age test");
 		if ((! TP_DivorceApplies) && (DEP_Residency < 7)) SetMessage(CTC,"- Failed residency test");
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
 			SetMessage(CTC,"- Dependent failed citizenship test");
 		if (TPisQC.checked) SetMessage(CTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(CTC,"- TP or SP cannot be a qualified relative");
 		if (QualChild.value == NO) SetMessage(CTC,"- Not a qualified child");
-		if (DependentITIN.checked) SetMessage(CTC,"- The dependent must have a valid SSN"); // add V6.12
+		if ((! CitizenUSA.checked) && (DependentITIN.checked)) SetMessage(CTC,"- The dependent must have a valid SSN");
 
 	// ==============================================================
 	
@@ -895,7 +1075,7 @@ function CalcStatus() {
 
 		if (BENE_Relation.indexOf("|OTC|") == NOT_A_BENEFIT) SetMessage(OTC,"- Failed relationship test");
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
-			SetMessage(OTC,"- Dependent failed citizenship test");
+			SetMessage(OTC,"- Dependent failed residency test"); // 
 		if (TPisQC.checked) SetMessage(OTC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		if (TPisQR.checked) SetMessage(OTC,"- TP or SP cannot be a qualified relative");
 		if ((QualChild.value == NO) && (QualRelative.value == NO)) SetMessage(OTC,"- Not a qualified dependent");
@@ -915,12 +1095,17 @@ function CalcStatus() {
 			if (TPisMarried.checked) SetMessage(EITC,"- Both TP and SP must have an SSN"); // add V6.12
 		 	else SetMessage(EITC,"- TP must have an SSN"); // add V6.12
 		}
-		if (DependentITIN.checked) SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
-		if (TP_Filing == "MFS") SetMessage(EITC,"- TP failed joint return test");
+		if ((! CitizenUSA.checked) && (DependentITIN.checked)) {
+			SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
+		}
+		if (TP_Filing == "MFS") {
+			if (EITC_DivorceApplies) EITC.value = "EITC_DIV";
+			else if (! DEP_ChildQualForEITC) SetMessage(EITC,"- TP is filing MFS");
+		}
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		// if (TPisQR.checked) SetMessage(EITC,"- TP or SP cannot be a qualified relative of another taxpayer"); // rm V6.04
 		if (QualChildOfAnother.checked && QCAtest != "TP") SetMessage(EITC, QCAreason);
-		if (! DEP_ChildQualForEITC) SetMessage(EITC,"- Not a qualified child");
+		if (DEP_ChildQualForEITC == "NO") SetMessage(EITC,"- Not a qualified child");
 		else {
 			if ((DEP_Married == YES) && (QualChild.value == NO)) SetMessage( EITC,"- Dependent must be single or an exemption");
 		}
@@ -975,11 +1160,12 @@ function CheckMultiUseBoxes() {
 //***************************************************************************************************
 
 	// ------------------------Spouse of TP-------------------------------
+	TPfilingHOH.disabled = (! TPisMarried.checked) || (! HHCost.checked);
 	TPfilingMFJ.disabled = TPrefund.disabled = SPCitizenship.disabled = (! TPisMarried.checked);
 
 	// if there's a value for SPCitizenship, change it if it's N/A
-	var newval = (SPCitizenship.value == "N/A") ? "USA":SPCitizenship.value;
-	SPCitizenship.value = (TPisMarried.checked) ? newval:"N/A";
+	var newval = (SPCitizenship.value == "N/A") ? "USA" : SPCitizenship.value;
+	SPCitizenship.value = (TPisMarried.checked) ? newval : "N/A";
 
 	var SpouseIndex = RelationList.length - 1;
 	var UnrelatedIndex = SpouseIndex - 1;
@@ -994,13 +1180,34 @@ function CheckMultiUseBoxes() {
 	if (DepRefund.disabled = ! DepFilingMFJ.checked) DepRefund.checked = false; // Remove previous mark if any
 	if (TPfilingMFJ.disabled) {
 		TPfilingMFJ.checked = false; // Clear any previous mark, if disabled
+		TPfilingHOH.checked = false; // Clear any previous mark, if disabled
 		TPrefund.checked = false; // Clear any previous mark, if disabled
 	}
 
-	if (! TPfilingMFJ.checked) {TPrefund.checked = false; TPrefund.disabled = true;}
-	else TPrefund.disabled = false;
+	if (TPfilingHOH.checked) {
+		TPfilingMFJ.checked = false;
+		TPfilingMFJ.disabled = true;
+	}
+
+	TPfilingHOH.disabled = true;
+	if (TPfilingMFJ.checked) {
+		TPrefund.disabled = false;
+		TPfilingHOH.checked = false;
+	}
+	else {
+		TPrefund.checked = false;
+		TPrefund.disabled = true;
+		if ( (TPDivorced.checked) && (HHCost.checked) ) {
+			TPfilingHOH.disabled = false;
+		}
+		else {
+			TPfilingHOH.checked = false;
+		}
+	}
+
 	if (TPfilingMFJ.checked && (! TPrefund.checked)) {
-		TPisQC.checked = false; TPisQC.disabled = true;
+		TPisQC.checked = false;
+		TPisQC.disabled = true;
 	}
 	else TPisQC.disabled = false;
 
@@ -1033,7 +1240,7 @@ function SetMessage(Benefit,Message) {
 	if (TestFor.indexOf("|CAR|")  != NOT_A_BENEFIT)  DEP_ChildQualForCare = false;
 	if (TestFor.indexOf("|EITC|") != NOT_A_BENEFIT)  DEP_ChildQualForEITC = false;
 	if (TestFor.indexOf("|HOH|")  != NOT_A_BENEFIT)  DEP_ChildQualForHOH = false;
-	if (TestFor.indexOf("|WID|")  != NOT_A_BENEFIT)  DEP_ChildQualForWID = false;
+	if (TestFor.indexOf("|QSS|")  != NOT_A_BENEFIT)  DEP_ChildQualForQSS = false;
 } // End of SetMessage()
 
 //***************************************************************************************************
@@ -1052,14 +1259,15 @@ function SetBit(A,B,TEST) { // A is the bitmap, B is the bit to set or clear
 //***************************************************************************************************
 function DetermineBenefits() {
 // Sets the benefits list based on the relationship
-// DPC=Child as dependent, DPR=Relative as dependent, HOH=Head of Household, WID=Widow(er) filing
+// DPC=Child as dependent, DPR=Relative as dependent, HOH=Head of Household,
+// QSS=Qualified Surviving Spouse
 // CAR=Child/Dependent Care, CTD=Child Tax Credit, EITC=Earned Income Credit
-// EDC=Education Credit, EDA=Education Adjustment, RESX=Relative who does not have to live with you
+// EDC=Education Credit, EDA=Education Adjustment, RESX=Relative who does not have to live with you all year
 // PAR=TP is a parent
 //***************************************************************************************************
 	switch (DEP_Relation) {
-	case "CHILD":			BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
-	case "ADOPTING":		BENE_Relation="|DPC|PAR|DPR|HOH|WID|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "CHILD":			BENE_Relation="|DPC|PAR|DPR|HOH|QSS|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
+	case "ADOPTING":		BENE_Relation="|DPC|PAR|DPR|HOH|QSS|CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "CHILD_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "FOSTER":			BENE_Relation="|DPC|PAR|DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
 	case "FOSTER_DESCENDANT":	BENE_Relation="|DPC|   |DPR|HOH|   |CTC|OTC|MED|CAR|EITC|EDC|EDA|RESX|"; break;
@@ -1106,7 +1314,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 		PermissionToUse.disabled = false;
 
 		// Show other boxes or lines as they apply
-		if (OtherTPisParent.checked) NoParentClaims.checked = false;
+		// if (OtherTPisParent.checked) NoParentClaims.checked = false; // commented out in v 6.26
 		TP_QCA_Applies = (QualChildOfAnother.checked && OtherTPisParent.checked && TP_IsParent) ? true : false;
 		QCA_NoParent.style.display = (TP_QCA_Applies || TP_IsParent) ? "none" : "inline";
 		QCA_ParentGives.style.display = (TP_QCA_Applies || TP_IsParent) ? "inline" : "none";
@@ -1117,7 +1325,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			if (! (TPRes.checked || SPRes.checked || SameRes.checked)) TPRes.checked = true;
 			PermissionToUse.disabled = (TPRes.checked);
 			if (PermissionToUse.disabled) PermissionToUse.checked = false;
-			PermissionGiven.disabled = (SPRes.checked);
+			PermissionGiven.disabled = (SPRes.checked || Form2120.checked);
 			if (PermissionGiven.disabled) PermissionGiven.checked = false;
 
 			if (SameRes.checked) {
@@ -1132,14 +1340,15 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			else {
 				TPAGI.checked = SPAGI.checked = false;
 				QCA_AGITest.style.display = "none";
-				if (TPRes.checked) QCAtest = (PermissionGiven.checked) ? "TP_GIVEN" : "TP";
+				if (TPRes.checked) QCAtest = (PermissionGiven.checked) ? "OTHER_NO_HOH" : "TP";
 				if (SPRes.checked) QCAtest = (PermissionToUse.checked) ? "OTHER_OK" : "OTHER_RES";
 			}
 		}
 		else {
 			TPRes.checked = SPRes.checked = SameRes.checked = false;
 			TPAGI.checked = SPAGI.checked = false;
-			PermissionGiven.disabled = (! TP_IsParent);
+			PermissionGiven.disabled = ((! TP_IsParent) || Form2120.checked) ;
+			if (PermissionGiven.disabled) PermissionGiven.checked = false;
 			PermissionToUse.disabled = true;
 			PermissionToUse.checked = false;
 			QCA_ResTest.style.display = "none";
@@ -1147,6 +1356,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			if (NoParentClaims.checked || TP_IsParent) QCAtest = "TP"; // must precede next test
 			if (OtherTPisParent.checked || ParentGives.checked) QCAtest = "OTHER";
 			if ((! OtherTPisParent.checked) && PermissionGiven.checked) QCAtest = "TP_GIVEN";
+			if (PermissionGiven.checked || NoParentClaims.checked) QCAtest = "TP"; // Added in Version 6.26
 		}
 	}
 	else {
@@ -1176,6 +1386,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 		case (QCAtest == "TP_GIVEN"):
 			QCAtest = "OTHER";
 			// no break
+		case (QCAtest == "OTHER_NO_HOH"): // Don't change this to OTHER
 		case (QCAtest == "TP"):
 			TieBreaker.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;(Tie-Breaker = This TP)";
 			break;
@@ -1230,12 +1441,13 @@ function ShowMSRBox(OPTION) {
 // OPTION = "Display" to show the box
 //	"Reopen" to show the box after options have been set
 //	"Reset" to reset the box options to initial state
-//	"Clear" to Reset and Close the box (no longer a valid option)
+//	"Clear" to Reset and Close the box
 //	"Close" to hide the box
 //***************************************************************************************************
 
 	// Override an option request if the support % is not relevant
-	if (PermissionGiven.checked || (! Support11.checked) || TP_DivorceApplies) {OPTION = "Clear";}
+	//if (PermissionGiven.checked || (! Support11.checked) || TP_DivorceApplies) {OPTION = "Clear";}
+	if ((! Support11.checked) || TP_DivorceApplies) {OPTION = "Clear";}
 
 	// Evaluate the option request
 	switch (OPTION) {
@@ -1271,7 +1483,9 @@ function ShowMSRBox(OPTION) {
 		if (Support11.checked) {
 			MSRButton.style.display = "inline";
 			MSRButtonLabel.innerHTML = "";
-			if ((MSRBox.style.visibility == "hidden") && (! MSRBoxActive)) {MSRBox.style.visibility = "visible";}
+			if ((MSRBox.style.visibility == "hidden") && (! MSRBoxActive)) {
+				MSRBox.style.visibility = "visible";
+			}
 		}
 	}
 
@@ -1372,6 +1586,8 @@ function ColorCells() {
 // Determine the appropriate color for the results cells
 // Provide warning messages for YES results if other related factors need to be considered
 // All other "taxpayer" factors such as income level or other tax benefits are also included
+// Note that xxx.value does not display. Use xxx.innerHTML to display the result.
+// The first statement copies xxx.value to xxx.innerHTML. If not YES or NO, special processing is needed.
 //***************************************************************************************************
 	var ShowCaution = false; // set to true if any answer is YES
 
@@ -1418,7 +1634,9 @@ function ColorCells() {
 	if (HOH.value == "YES") {
 		if (Widow.value != NO) {
 			BenefitColor.HOH = ColorWarn;
-			HOH.title += "- Although qualified for HOH, Widow(er) filing is a better choice if still within the 2 year limit\n";
+			HOH.title += ( (+TaxYear.value < 2022) ?
+			"- Although qualified for HOH, \nWidow(er) filing is a better choice \nif still within the 2 year limit\n" :
+			"- Although qualified for HOH, \nQSS filing is a better choice \nif still within the 2 year limit\n" );
 		}
 		if (TP_DivorceApplies) {
 			BenefitColor.HOH = ColorWarn;
@@ -1427,18 +1645,24 @@ function ColorCells() {
 	}
 	HOH.style.backgroundColor = BenefitColor.HOH;
 
-	// Qualified dependent for Widow(er) with child filing ----------------------------------
+	// Qualified dependent for Qualified Surviving Spouse filing ----------------------------------
 	Widow.innerHTML = Widow.value;
 	BenefitColor.Widow = (Widow.value == NO)? ColorNo:ColorWarn;
 	if (Widow.value != "NO") ShowCaution = true;
 	if (Widow.value == "YES") {
-		Widow.title += "- May only file as a Widow(er) for 2 years following spouse's death if eligible to file MFJ on year of death\n";
+		Widow.title += ( (+TaxYear.value < 2022) ?
+			"- May only file as a Widow(er) \nfor 2 years following spouse's death \nif eligible to file MFJ on year of death\n" : 
+			"- May only file as a Qualified Surviving Spouse \nfor 2 years following spouse's death \nif eligible to file MFJ on year of death\n" );
 		if (QualChild.value != "NO" || QualRelative.value != "NO") {
-			BWID.innerHTML = "Dependent for Widow(er) filing";
+			//BQSS.innerHTML = (+TaxYear.value < 2022) ?
+			//	"Widow(er) filing status" : "QSS filing status";	
 		}
 		else {
-			BWID.innerHTML = "Eligible for Widow(er) filing";
-			Widow.title += "- Although not eligible for an exemption, this person does qualify the taxpayer to file as Widow(er)\n";
+			//BQSS.innerHTML = (+TaxYear.value < 2022) ?
+			//	"Widow(er) filing status" : "QSS filing status";
+			Widow.title += ((+TaxYear.value < 2022) ?
+				"- Although not eligible for an exemption, \nthis person does qualify the taxpayer \nto file as Widow(er)\n" :
+				"- Although not eligible for an exemption, \nthis person does qualify the taxpayer \nto file as a Qualified Surviving Spouse\n" );
 		}
 	}
 	Widow.style.backgroundColor = BenefitColor.Widow;
@@ -1506,18 +1730,31 @@ function ColorCells() {
 	EITC.innerHTML = EITC.value;
 	BenefitColor.EITC = (EITC.value == NO)? ColorNo:ColorYes;
 	if (EITC.value != "NO") ShowCaution = true;
+	if (EITC.value == "EITC_DIV") {
+		EITC.innerHTML = YES;
+		BenefitColor.EITC = ColorWarn;
+		EITC.title += "- If the taxpayer did not live in the same household as the spouse at the end of the year\n";
+	}
 	if (EITC.value == "QC_OF_ANOTHER") {
 		EITC.innerHTML = YES;
 		BenefitColor.EITC = ColorWarn;
 		EITC.title += "- If the dependent is not a qualifying child of another taxpayer\n";
 	}
 	if (EITC.value == "YES") {
-		if (TP_DivorceApplies) {
-			BenefitColor.EITC = ColorWarn;
-			EITC.title += "- If ex-spouse does not claim even if also qualified";
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.EITC = ColorWarn;
+					EITC.title += "- This dependent does not qualify the TP for HOH as selected but OK if there is another dependent that does.";
+				}
+			}
+			else {
+				BenefitColor.EITC = ColorWarn;
+				EITC.title += "- If the taxpayer did not live in the same household as the spouse at the end of the year\n";
+			}
 		}
 	}
-	if ((EITC.value == "NO") && (TP_Filing != "MFS") && (! TPSPITIN.checked) && (! EITC.title.indexOf("citizenship"))) {
+	if ( (EITC.value == "NO") && (TP_Filing != "MFS") && (! TPSPITIN.checked) ) {
 		EITC.title += "- Although dependent doesn't qualify, TP may still be qualifed for EITC\n";
 	}
 	EITC.style.backgroundColor = BenefitColor.EITC;
@@ -1530,12 +1767,17 @@ function ColorCells() {
 		EdAdjustment.innerHTML = YES;
 		BenefitColor.EdAdjustment = ColorWarn;
 		EdAdjustment.title += "- Only if the spouse does not use the exemption\n";
-//		EdAdjustment.title += "- Tuition and fees adjustment expired beginning with tax year 2014\n";
 	}
-//	if (EdAdjustment.value == "YES") {
-//		BenefitColor.EdAdjustment = ColorWarn;
-//		EdAdjustment.title += "- Tuition and fees adjustment expired beginning with tax year 2014\n";
-//	}
+	if (EdAdjustment.value == "YES") {
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.EdAdjustment = ColorWarn;
+					EdAdjustment.title += "- This dependent does not qualify the TP for HOH as selected.  T&F adjustment is allowed if there is another dependent that does.";
+				}
+			}
+		}
+	}
 	EdAdjustment.style.backgroundColor = BenefitColor.EdAdjustment;
 
 	// Qualified dependent for Education Credit ----------------------------------
@@ -1548,7 +1790,14 @@ function ColorCells() {
 		EdCredit.title += "- Only if the spouse does not use the exemption\n";
 	}
 	if (EdCredit.value == "YES") {
-		// place holder
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.EdCredit = ColorWarn;
+					EdCredit.title += "- This dependent does not qualify the TP for HOH as selected.  Education credit is allowed if there is another dependent that does.";
+				}
+			}
+		}
 	}
 	EdCredit.style.backgroundColor = BenefitColor.EdCredit;
 
@@ -1560,6 +1809,16 @@ function ColorCells() {
 		AOCCredit.innerHTML = YES;
 		BenefitColor.AOCCredit = ColorWarn;
 		AOCCredit.title += "- Only if the spouse does not use the exemption\n";
+	}
+	if (AOCCredit.value == "YES") {
+		if (TPDivorced.checked) {
+			if (TPfilingHOH.checked) {
+				if (HOH.innerHTML == "NO") {
+					BenefitColor.AOCCredit = ColorWarn;
+					AOCCredit.title += "- This dependent does not qualify the TP for HOH as selected. AOC is allowed if there is another dependent that does.";
+				}
+			}
+		}
 	}
 	AOCCredit.style.backgroundColor = BenefitColor.AOCCredit;
 
@@ -1608,7 +1867,11 @@ function ShowReason(BenefitID,BenefitName,BenefitText) {
 	// Add any additional useful information
 	if (YesMsg[BenefitID] > "") {
 		BenefitMessage += "<span class='BeneBox1'>" + Other + " reasons why this benefit might be disallowed:</span>"
-		BenefitMessage += "<ul>" + YesMsg[BenefitID] + "</ul>";
+		BenefitMessage += "<ul>" + YesMsg[BenefitID];
+		if ((+TaxYear.value != 2021) && (BenefitID == "DependCare")) {
+		       BenefitMessage += "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
+		}
+		BenefitMessage += "</ul>";
 	}
 
 	// Show the message
@@ -1638,7 +1901,7 @@ function TestOptions() {
 	TestWindow.document.writeln("<html><head><title>Test results</title></head><body>");
 	TestWindow.document.writeln("<table>");
 	var TestHeader = "<thead><th>Test#</th><th>Age</th><th>Relation</th><th>Support</th><th>Citizenship</th><th>Residency</th>";
-	var TestHeader2 = "<th>QualChild</th><th>QualRelative</th><th>HOH</th><th>Widow(er)</th><th>DependCare</th><th>Medical</th><th>CTC</th><th>EITC</th><th>EdAdjust</th><th>EdCredit</th></thead>";
+	var TestHeader2 = "<th>QualChild</th><th>QualRelative</th><th>HOH</th><th>QSS</th><th>DependCare</th><th>Medical</th><th>CTC</th><th>COD</th><th>EITC</th><th>T&F</th><th>LLC</th><th>AOC</th></thead>";
 	TestWindow.document.writeln(TestHeader + TestHeader2);
 
 	// Basic dependent tests
@@ -1752,8 +2015,8 @@ function TestResults() {
 		<td class="DEPHeader">Dependent age<br />on 12/31</td>
 		<td class="DEPHeader">Relationship<br />to TP</td>
 		<td class="DEPHeader">Residency<br />with TP</td>
-		<td class="DEPHeader">Dependent Support</td>
-		<td class="RESHeader">DEPENDENT ELIGIBLE FOR ...</td>
+		<td class="DEPHeader">Dependent<br />self-support</td>
+		<td class="RESHeader">ELIGIBLE FOR ...</td>
 	</tr>
 	<tr>
 		<td class="TPOptions">
@@ -1794,7 +2057,7 @@ function TestResults() {
 				<input id="TPisMarried" name="TPisMarried" type="checkbox" onclick="CalcStatus()" value="Single"
 				title="The taxpayer is married" checked="checked" />
 				<span class="Label">TP is married</span>
-				<span class="MBQ"
+				<span class="MBQ noprint"
 					onmouseover="MarriedBox.style.display='inline-block';"
 					onmouseout="MarriedBox.style.display='none';">?</span>
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPfilingMFJ" name="TPfilingMFJ" type="checkbox" onclick="CalcStatus()" value="MFJ"
@@ -1803,6 +2066,9 @@ function TestResults() {
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPrefund" name="TPrefund" type="checkbox" onclick="CalcStatus()"
 				title="The taxpayer is filing jointly only to receive a refund of withholding or estimated tax payments" />
 				<span class="Label">&mdash;only for refund</span>
+				<br />&nbsp;&nbsp;&nbsp;&nbsp;<input id="TPfilingHOH" name="TPfilingHOH" type="checkbox" onclick="CalcStatus()" value="MFJ"
+				title="The taxpayer is married but filing head of household due to separation and has a qualified dependent" checked="checked" />
+				<span class="Label">Filing Head of Household</span>
 				</td></tr>
 			<tr><td>
 				<span style="font-size:2%;"> <hr /></span>
@@ -1839,7 +2105,7 @@ function TestResults() {
 		<table style="width:100%">
 			<tr><td><input name="Age" type="radio" onclick="CalcStatus()" value="0"
 				title="A dependent born this tax year" />
-				<span class="Label">Born this year</span>
+				<span id="Age0" class="Label">Born this year</span>
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="12" checked="checked"
 				title="A dependent aged twelve or less on 12/31" />
 				<span class="Label">1-12</span>
@@ -1849,18 +2115,24 @@ function TestResults() {
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="16"
 				title="A dependent aged 14-16 on 12/31" />
 				<span class="Label">14-16</span>
+				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="17"
+				title="A dependent aged 17 on 12/31" />
+				<span class="Label">17</span>
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="18"
-				title="A dependent aged 17 or 18 on 12/31" />
-				<span class="Label">17-18</span>
+				title="A dependent aged 18 on 12/31" />
+				<span class="Label">18</span>
 				<br /><input name="Age" type="radio" onclick="CalcStatus()" value="23"
 				title="A dependent aged 19-23 on 12/31 and a full-time student for at least 5 months during the year" />
-				<span class="Label">19-23 student</span>
+				<span class="Label">19-23 <abbr title="full-time"><u>FT</u></abbr> student</span>
 				<br /><input id="AgeOther" name="Age" type="radio" onclick="CalcStatus()" value="24"
 				title="A non-student older than 18 or a student older than 23 on 12/31" />
 				<span class="Label">other</span>
+				<br /><button id="AgeButton" style="font-size:75%" onclick="AgeBox.style.display='block'; BirthYear.focus();">
+					<span id="AgeButtonText">Calculate age using DOB</span>
+				</button>
 				<hr /><input id="Older" name="Older" type="checkbox" onclick="CalcStatus()"
 				title="The dependent is older than the taxpayer (and also the taxpayer's spouse if filing jointly). Do not check if older than only one of the TP or SP." />
-				<span class="Label">Older than TP & SP</span>
+				<span class="Label">Older&nbsp;than&nbsp;TP&nbsp;&amp;&nbsp;SP</span>
 				<hr /><input id="Disabled" name="Disabled" type="checkbox" onclick="CalcStatus()"
 				title="The dependent was permanently and totally disabled at any time during the year and the disability is expected to last more than a year" />
 				<span class="Label">Disabled</span>
@@ -1919,7 +2191,7 @@ function TestResults() {
 		<span class="Label">Parent of TP/SP</span>
 		<br /><input name="Relation" type="radio" onclick="CalcStatus()" value="PARENT_ANC_SIB"
 		title="Taxpayer's or spouse's (great)grandparents, aunt, or uncle.  (Cousins do not qualify: use Unrelated)" />
-		<span class="Label">Ancestor or Sibling of</span>
+		<span class="Label">Ancestor/Sibling of</span>
 		<hr style="font-size:80%;" /><input name="Relation" type="radio" onclick="CalcStatus()" value="IN_LAW"
 		title="Taxpayer's or spouse's stepmother, stepfather, mother-in-law, father-in-law, sister-in-law, brother-in-law, son-in-law or daughter-in-law" />
 		<span class="Label">In-law or stepparent</span>
@@ -1952,7 +2224,7 @@ function TestResults() {
 				<br />&nbsp;
 				</td></tr>
 			<tr class="DEPHeader"><td style="padding:5% 0 5% 0; border:1px solid">Citizenship
-				<span class="MBQ"
+				<span class="MBQ noprint"
 					onmouseover="AlienBox.style.display='inline-block';"
 					onmouseout="AlienBox.style.display='none';">?</span></td></tr>
 			<tr><td>
@@ -1972,6 +2244,7 @@ function TestResults() {
 				<span class="Label"></span> <!-- to keep label and inputs in sync -->
 				<span id="DepITIN">
 				<br /><input id="DependentITIN" type="checkbox" onchange="PreCalc(2)"
+				checked="checked"
 				title="Dependent has an ITIN instead of an SSN" />
 				<span class="Label">Dep. has ITIN</span>
 				<br />&nbsp;</span>
@@ -1987,10 +2260,16 @@ function TestResults() {
 		<td class="DEPOptions">
 		<table style="width:100%;">
 			<tr><td>
-				<input id="SupportSelf" name="Support" type="radio" onclick="CalcStatus()" value="0"
+				<input id="SupportSelfNo" name="SupportDep" type="radio" checked="checked" onclick="CalcStatus()" value="0"
+				title="This dependent provided half or less of their own support" />
+				<span class="Label">&lt;= 50% by Depend.</span>
+				<br /><input id="SupportSelfYes" name="SupportDep" type="radio" onclick="CalcStatus()" value="0"
 				title="This dependent provided more than half of their own support" />
-				<span class="Label">> 50% by Depend.</span>
-				<br /><input id="Support10" name="Support" type="radio" onclick="CalcStatus()" value="10"
+				<span class="Label">&gt; 50% by Depend.</span>
+				<br />&nbsp;
+		</td></tr><tr class="DEPHeader"><td style="border:1px solid;">Taxpayer support<br />for relative</td></tr>
+			<tr><td>
+				<input id="Support10" name="Support" type="radio" onclick="CalcStatus()" value="10"
 				title="Taxpayer provided 10% or less of the dependent's support.  Others, including the dependent, may have also provided support, but not more than half." />
 				<span class="Label">0-10% by TP</span>
 				<br /><input id="Support11" name="Support" type="radio" onclick="CalcStatus()" value="11"
@@ -2000,7 +2279,7 @@ function TestResults() {
 				<span class="Label"></span>
 				<br /><input id="Support51" name="Support" type="radio" onclick="CalcStatus()" value="51" checked="checked"
 				title="Taxpayer provided at least half of the dependent's support. (Child did not provide more than half)" />
-				<span class="Label">51-100% by TP</span>
+				<span class="Label">&gt; 50% by TP/SP</span>
 				<br />&nbsp;
 			</td></tr><tr class="DEPHeader"><td style="border:1px solid;">Dependent<br />Tax Status</td></tr>
 	<tr><td>
@@ -2012,8 +2291,8 @@ function TestResults() {
 				<span class="Label">&mdash;only for refund</span>
 				<br /><span id="LowIncomeTitle">
 					<input id="LowIncome" name="LowIncome" type="checkbox" onclick="CalcStatus()"  checked="checked" />
-					<span class="Label">Income less than:</span>
-					<br /><div id="incomeLimit"></div>
+					<span class="Label">Income less than:
+					<br /><div id="incomeLimit"></div></span>
 				</span>
 			</td></tr>
 		</table>
@@ -2029,12 +2308,12 @@ function TestResults() {
 				<td id="QualRelative" style="text-align:center;" onclick="ShowReason(this.id,BQR.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BHOH">Dependent for HOH filing</td>
+				<td id="BHOH">HOH filing status</td>
 				<td id="HOH" style="text-align:center;" onclick="ShowReason(this.id,BHOH.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
-				<td id="BWID">Dependent for Widow(er) filing</td>
-				<td id="Widow" style="text-align:center;" onclick="ShowReason(this.id,BWID.innerHTML,this.title)">YES</td>
+				<td id="BQSS">QSS filing status</td>
+				<td id="Widow" style="text-align:center;" onclick="ShowReason(this.id,BQSS.innerHTML,this.title)">YES</td>
 				</tr>
 			<tr>
 				<td id="BDC">Child/Dependent Care</td>
@@ -2068,11 +2347,10 @@ function TestResults() {
 				<td id="BAOC">American Opportunity Credit</td>
 				<td id="AOCCredit" style="text-align:center;" onclick="ShowReason('AOCCredit',BAOC.innerHTML,this.title)">YES</td>
 				</tr>
-			<tr><td> </td><td class=RESHide>YES</td> <!-- Forces space for YES even when all are NO -->
-				</tr>
 		</table>
+		<br />
 			<p class="center">
-				Hover mouse over or click on<br />red or yellow results<br />for more information.
+				<i>Hover mouse over or click on<br />red or yellow results<br />for more information.</i>
 				<br />
 				<br />
 				<button style="font-size:100%; background-color:white;" onclick="ShowHelpBox(true)">&nbsp;HELP&nbsp;</button>
@@ -2093,9 +2371,7 @@ function TestResults() {
 			CAUTION:<br />Although dependent qualifies,<br />there may be other reasons that
 			<br />prevent the <span style="text-decoration:underline">taxpayer</span> from being
 			<br />eligible for the benefits above.
-			<span style="font-size:30%;">&nbsp;<hr /></span>
 			</span>
-			<span style="font-style:italic; font-size:90%;">Click on individual YES/NO<br />result above for details.</span>
 		</td>
 	</tr>
 	<tr>
@@ -2190,13 +2466,13 @@ function TestResults() {
 		<span class="Label">Check if dependant has a "green card"</span>
 		<hr /><input id="ResYear0" name="ResYear0" type="text" size="3" onchange="ShowResBox('Calc')"
 		title="Number of days physically present, not a commuter, and not exempt" />
-		<span class="Label">Number of days resident in this tax year</span>
+		<span class="Label">Number of days resident in <span id="ResYear0Year"></span></span>
 		<br /><input id="ResYear1" name="ResYear1" type="text" size="3" onchange="ShowResBox('Calc')"
 		title="Number of days physically present, not a commuter, and not exempt" />
-		<span class="Label">Number of days resident in prior tax year</span>
+		<span class="Label">Number of days resident in <span id="ResYear1Year"></span></span>
 		<br /><input id="ResYear2" name="ResYear2" type="text" size="3" onchange="ShowResBox('Calc')"
 		title="Number of days physically present, not a commuter, and not exempt" />
-		<span class="Label">Number of days resident in second prior tax year</span>
+		<span class="Label">Number of days resident in <span id="ResYear2Year"></span></span>
 		</td></tr>
 		<tr><td class="center" colspan="2"><hr /><button onclick="ShowResBox('Reset')">Clear this window</button>
 								<button  onclick="ShowResBox('Close')">Close this window</button><br />
@@ -2213,6 +2489,15 @@ function TestResults() {
 		<tr class="center"><td colspan="2"><button style="font-size:100%" onclick="ShowBenefitBox(false);">Close this window</button></td></tr>
 	</table>
   </div> <!-- end of BenefitBox -->
+
+  <div id="IncomeBox" style="display:none; position:absolute; left:15em; top:12em; width:40%; z-index:1; font-size:100%; background-color:white;">
+	<table style="border:5px solid; width:100%">
+		<tr class="centerbold">
+			<td class="RESHeader" style="width:100%">Dependent income</td>
+			<td class="RESHeader" style="cursor:default;" onclick="IncomeBox.style.display='none';">&nbsp;X&nbsp;</td></tr>
+		<tr><td class="RESOptions" colspan="2"> <div id="IncomeBoxContents"> </div> </td></tr>
+	</table>
+  </div> <!-- end of IncomeBox -->
 
   <div id="MarriedBox" style="display:none; position:absolute; left:16em; top:12em; width:40%; z-index:1; font-size:100%; background-color:white;">
 	<table style="border:5px solid; width:100%">
@@ -2232,6 +2517,21 @@ function TestResults() {
 	</table>
   </div> <!-- end of AlienBox -->
 
+  <div id="AgeBox" style="display:none; position:absolute; left:6em; top:8em; width:12em; z-index:1; font-size:100%; background-color:white;">
+	<table style="border:5px solid; width:100%">
+		<tr class="centerbold">
+			<td class="RESHeader" style="width:100%">Age calculator</td>
+			<td class="RESHeader" style="cursor:default;" onclick="Calculate_Age();">&nbsp;X&nbsp;</td></tr>
+		<tr><td class="RESOptions" colspan="2">
+			<center><span class="Label">Enter year of birth:</span>
+			<br /><input id="BirthYear" />
+			<br /><input id="FTStudent" type="checkbox" />
+			<span class="Label">Full-time student for at least 5 mo</span>
+			<br /><br /><button onclick="Calculate_Age();">OK</button>
+			</center></td></tr>
+	</table>
+  </div> <!-- end of AgeBox -->
+
   <div id="debugbox"></div>
 
   <script type="text/javascript">Resize()</script>
@@ -2240,4 +2540,5 @@ function TestResults() {
 
 </body>
 </html>
+
 
