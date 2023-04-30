@@ -74,7 +74,6 @@
 			width: 25em;
 			margin: 3px;
 		}
-		#SPXQ,
 		#DisQ,
 		#PSOQ {
 			border: 1px solid black;
@@ -85,7 +84,6 @@
 			cursor: pointer;
 			font-size: 80%;
 		}
-		#SPXQtitleBox,
 		#DistitleBox,
 		#PSOtitleBox {
 			display: none;
@@ -101,10 +99,6 @@
 		}
 		#PSOtitleBox {
 			top: 7.3em;
-		}
-		#SPXQtitleBox {
-			top: 16em;
-			right: 16em;
 		}
 		#TSform table, #TSform tr, #TSform td { border: 0; }
 		#NTIncomeTable table, #NTIncomeTable tr, #NTIncomeTable td { border: 0; }
@@ -166,10 +160,6 @@
 			padding: 5px;
 			width: 30em;
 		}
-		#SGRW_JOINT {
-			background-color: white;
-			font-size: 110%;
-		}
 		#RetAgeHelpBox ul { list-style-type: none; }
 		#RetAgeHelpBox table { border: none; }
 		#RetAgeHelpBox table tr td:first-child { border: none; }
@@ -190,7 +180,7 @@
 		}
 		#theTbody { background-color: tan; }
 		#type {
-			width: 24em;
+			width: 22em;
 			text-align:
 			left; margin: auto;
 		}
@@ -260,62 +250,30 @@
 	</style>
 	
 	<script src="Tax_Data/IRS_2000.js"></script>
-	<script src="Tax_Data/IRS_2019.js"></script>
-	<script src="Tax_Data/IRS_2020.js"></script>
-	<script src="Tax_Data/IRS_2021.js"></script>
-	<script src="Tax_Data/IRS_2022.js"></script>
+	<script src="Tax_Data/IRS_2015.js"></script>
+	<script src="Tax_Data/IRS_2016.js"></script>
+	<script src="Tax_Data/IRS_2017.js"></script>
+	<script src="Tax_Data/IRS_2018.js"></script>
+		
 	<script type="text/javascript">
 	// --------------------------------------------------------------------
 	// Contributors:
 	// --------------------------------------------------------------------
 	//	Phil Saba - added the annuity table code
-	//	Steve Conary		Kenny Hayes		John Haim
-	//	Herb Klug		John Glasserman		Bruce McCommons
-	//	Paul Hirth		Douglas Feuerhelm	Deb Fisher
-	//	Frank Krider		Paul Renard		John Arenberg
-	//	Lois Andersen		Jay Wiedwald		Jen Nakata
-	//	Nonie Garvey
+	//	Steve Conary
+	//	Kenny Hayes
+	//	John Haim
+	//	Herb Klug
+	//	John Glasserman
+	//	Bruce McCommons
+	//	Paul Hirth
+	//	Douglas Feuerhelm
+	//	Deb Fisher
+	//	Frank Krider
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.28, 12/31/2022)";
-		//	Supress age if annuity has not started due to disability
-		//var VERSION = "(version 10.27, 3/8/2022)";
-		//	Including cents in insurance exclusion caused error
-		//var VERSION = "(version 10.26a, 3/6/2022)";
-		//	Minor word change to disability checkbox text
-		//var VERSION = "(version 10.26, 1/26/2022)";
-		//	Very small amount of contributions caused calc to hang
-		//var VERSION = "(version 10.25a, 11/26/2021)";
-		//	Rounding fixed again
-		//var VERSION = "(version 10.25, 11/15/2021)";
-		//	Reverted back to rounding monthly exclusion
-		//var VERSION = "(version 10.24, 11/14/2021)";
-		//	Dropped rounding of monthly exclusion to align with TS
-		//var VERSION = "(version 10.23c, 7/9/2021)";
-		//	Updated imported yearly data (added 2021) 
-		//var VERSION = "(version 10.23b, 3/17/2021)";
-		//	Minor addition clarifying PSO applies with disability
-		//var VERSION = "(version 10.23a, 3/7/2021)";
-		//	Clarification of 7/2/1986 message
-		//var VERSION = "(version 10.23, 1/20/2020)";
-		//	Corrected display of disabled PSO medical exclusion
-		//	Allow 0 for after-tax contributions
-		//	Restored display of non-taxable checkbox instruction
-		//var VERSION = "(version 10.22, 9/27/2019)";
-		//	Reversed entry of spouse birthdate pre 1998
-		//	Added clarification question drop-down instead
-		//var VERSION = "(version 10.21, 2/10/2019)";
-		//	Corrected date for survivor option
-		//var VERSION = "(version 10.20, 2/7/2019)";
-		//	Correction to unrecovered investment in pension text
-		//var VERSION = "(version 10.19a, 1/17/2019)";
-		//	Added comment to directly enter taxable amount or use worksheet
-		//var VERSION = "(version 10.19, 1/1/2019)";
-		//	Added Sched C as a carryover location for excess insurance
-		//var VERSION = "(version 10.18, 11/27/2018)";
-		//	Addded PSO insurance calculations to pre-retirement disability messages
-		//var VERSION = "(version 10.17a, 11/11/2018)";
+		var VERSION = "(version 10.17a, 11/11/2019)";
 		//	Minor disability comment prior to retirement age clarification
 		//var VERSION = "(version 10.17, 11/01/2018)";
 		//	Added variables for Salary and Pension 1040 line numbers
@@ -426,7 +384,7 @@
 			EDIT_MODE["TP"] = 0;
 			EDIT_MODE["SP"] = 0;
 		var LASTALERTED = false;
-		var FULLMEDEX = 60; // total exclusion entered
+		var FULLMEDEX = 0; // total exclusion entered
 		var IGNOREMED = false;
 		var OVERAGE = 0;
 		var GROSS_TOTAL = 0;
@@ -437,7 +395,7 @@
 			PSOtitle += "<li>Members of the Supreme Court Police</li>";
 			PSOtitle += "<li>Federal customs and border protection officers</li>";
 			PSOtitle += "<li>Diplomatic security special agents of the United States Department of State</li>";
-			PSOtitle += "<li>Federal and local firefighter</li>";
+			PSOtitle += "<li>Federal and local firefighters</li>";
 			PSOtitle += "<li>Air traffic controllers</li>";
 			PSOtitle += "<li>Nuclear materials couriers</li>";
 			PSOtitle += "<li>Rescue squad or ambulance crew</li>";
@@ -447,20 +405,21 @@
 			PSOtitle += "<li>accident insurance premiums</li>";
 			PSOtitle += "<li>long term care insurance premiums</li></ul>";
 			PSOtitle += "<b>Note:</b> a surviving spouse does not receive the exclusion.";
-		var Distitle = "For disability pensions, the contributions are not recovered until";
-			Distitle += " the minimum retirement age has been reached however,";
-			Distitle += " public safety officer exclusions still apply if qualified."
-			Distitle += " The annuity recovery will start with the first payment after reaching minimum retirement age.";
-			Distitle += " <br /><br />If that happened this year, you may have to split the 1099-R";
+		var Distitle = "For disabiltity pensions, the contributions are not recovered until";
+			Distitle += " the minimum retirement age has been reached.";
+			Distitle += " <br />If that happened this year, you may have to split the 1099-R";
 			Distitle += " into two entries:";
-			Distitle += "<ul><li>the months prior to minimum retirement age";
+			Distitle += "<ul><li>the months prior to retirement age";
 			Distitle += " to include as wages income.</li>";
-			Distitle += "<li>the months after minimum retirement age";
+			Distitle += "<li>the months after retirement age";
 			Distitle += " to as pension to recover contributions for those months.</li></ul>";
-			Distitle += " The calculator will tell you how what to include in each 1099-R.";
+<<<<<<< Updated upstream
+=======
+			Distitle += " The calculator will tell you what to include in each 1099-R.";
 		var SPXQtitle = "Although joint annuities were established in 1974,";
 			SPXQtitle += " the exclusion calculation did not include the beneficiary's";
 			SPXQtitle += " age until 1998. There is no need to enter it.";
+>>>>>>> Stashed changes
 		var ret_age_yr = [];
 		var ret_age_mo = [];
 		var ret_age_warning_seen = false;
@@ -475,7 +434,6 @@
 		var SPtaxable = 0;
 		var TPprior = 0;
 		var SPprior = 0;
-		var MedTaxLimit = 3000;
 	
 		//----------------------------------------------------------------------------------------
 		function Initialize() {
@@ -511,7 +469,6 @@
 			CONTRc.style.backgroundColor = "tan";
 			PSOtitleBox.innerHTML = PSOtitle;
 			DistitleBox.innerHTML = Distitle;
-			SPXQtitleBox.innerHTML = SPXQtitle;
 			TPGROSStext.style.display = 
 			SPGROSStext.style.display =
 			DeathTable.style.display =
@@ -729,10 +686,10 @@
 				case "ANNUITY":
 					errMessage = "Invalid annuity date";
 					if (YR > EXCL_TY.value) {
-						//if ((! Disability.checked) && (ANNc.innerHTML != errMessage)) { // prevents multiple alerts
-							//alert("Annuity date begins in a future year. It is fully taxable."); //show why calculation not completed
-							//ANNc.innerHTML = errMessage; ANNc.style.backgroundColor = "hotpink";
-						//}
+						if ((! Disability.checked) && (ANNc.innerHTML != errMessage)) { // prevents multiple alerts
+							alert("Annuity date begins in a future year. It is fully taxable."); //show why calculation not completed
+							ANNc.innerHTML = errMessage; ANNc.style.backgroundColor = "hotpink";
+						}
 						CANNOT_CALC |= ANN_ERROR;
 						return(1); 
 					}
@@ -759,10 +716,6 @@
 							ANNc.innerHTML = "";
 						}
 						ANN_YR = YR;
-						if ((ANN_YR > TAX_YR) && (ANNc.innerHTML != errMessage)) { // prevents multiple alerts
-							alert("Annuity date entry is not valid or begins in a future year."); //show why calculation not completed
-							ANNc.innerHTML = errMessage; ANNc.style.backgroundColor = "hotpink";
-						}
 						ANN_MO = MO;
 						SAVE_FYR_MO = 13 - ANN_MO;
 						Set_FYR_MO();
@@ -842,8 +795,7 @@
 					SPAGE.innerHTML = "Not used";
 					if (SP.value != "") {
 						if (AGE < 0) {
-							SPAGE.innerHTML = "Invalid birthdate";
-							SPAGE.style.backgroundColor = "hotpink";
+							SPAGE.innerHTML = "Invalid birthdate"; SPAGE.style.backgroundColor = "hotpink";
 							alert("Spouse birthdate entry is not valid");
 							CANNOT_CALC |= SPAGE_ERROR;
 							return(1); 
@@ -1004,11 +956,11 @@
 				}
 			}
 
-			DIS_MO = 0;
 			if (MIN_ANN_START >= ANN_START) {
 				ANNc.innerHTML = "Using " + +MIN_ANN_MO + "/1/" + +MIN_ANN_YR;
 				ANNc.backgroundColor = "BG_COLOR";
 				if (Disability.checked) {
+					DIS_MO = 0;
 					if (TAX_YR == MIN_ANN_YR) {
 						if (ANN_YR == MIN_ANN_YR) {
 							DIS_MO = Math.max(0, MIN_ANN_MO - ANN_MO);
@@ -1050,35 +1002,7 @@
 			else if (ANN_YR > TAX_YR) {
 				CANNOT_CALC |= RETAGE_ERROR;
 				if (! ret_age_warning_seen) {
-					Disable_alert = "For a disability retirement, the recovery of contributions does not take effect until the annuitant reaches minimum retirement age, which can vary based on the employer and length of service. For this annuitant, this will occur in " + MIN_ANN_YR + ".\n\n";
-					if (+PSOMEDIC.value > 0) {
-						Pension_part = "This year,";
-						if (+PSOMEDIC.value > MedTaxLimit) { // More than the limit entered
-							Pension_part += "\n\n   The taxable amount of the annuity is $";
-							Pension_part += (+TPGROSS.value - MedTaxLimit);
-							Pension_part += "\n   The public safety officer insurance exclusion is (reduced to the tax law limit) $" + MedTaxLimit + ".";
-							Pension_part += "\n\nBe sure to include the additional $";
-							Pension_part += (+PSOMEDIC.value - MedTaxLimit);
-							Pension_part += " as a SEHI adjustment or";
-							Pension_part += " in the Schedule A medical deductions.";
-							MEDIC.value = MedTaxLimit;
-							MEDICc.innerHTML = "Limited to " + MedTaxLimit;
-							MEDICc.style.backgroundColor = "hotpink";
-						}
-						else { // Less than the limit entered
-							Pension_part += "\n\n   The taxable amount of the annuity is $";
-							Pension_part += (+TPGROSS.value - +PSOMEDIC.value);
-							Pension_part += "\n   The public safety officer insurance exclusion is $";
-							Pension_part += +PSOMEDIC.value;
-						}
-					}
-					else {
-						Pension_part = "This year, the disability pension is fully taxable.";
-						TPAGE.innerHTML = "TBD";
-						SPAGE.innerHTML = "";
-					}
-					Pension_part += "\n   Check the TaxSlayer box to indicate that this distribution is earned income.";
-					alert(Disable_alert + Pension_part);
+					alert("For a disability retirement, the recovery of contributions does not take effect until the annuitant reaches minimum retirement age, which can vary based on the employer and length of service. For this annuitant, this will occur in " + MIN_ANN_YR + ". \n\nThis year, the disability pension is fully taxable.");
 					ret_age_warning_seen = true;
 				}
 				NO_MO.innerHTML = "0";
@@ -1223,6 +1147,7 @@
 			CANNOT_CALC &= ~CONTRIB_ERROR;
 			var a = CONTR.value + ""; // This forces CONTR.value to be a string
 			if ( a === "0") { 
+				// CONTRc.innerHTML = "Ages were calculated"; 
 				NO_MO.innerHTML = "";
 				return;
 			}
@@ -1232,7 +1157,7 @@
 				CANNOT_CALC |= CONTRIB_ERROR;
 				return; 
 			}
-			if ( isNaN(CONTR.value) ) {
+			if (isNaN(CONTR.value) ) {
 				CONTRc.innerHTML = "Invalid contribution info";
 				CONTRc.style.backgroundColor = "hotpink";
 				alert("Pension Contribution entry is not a valid number. \n \n$, Spaces or commas are not permitted in the number. \n \nEntry may be a whole or decimal number. \nDecimal numbers will be rounded to the nearest whole number. \n \nCalculation not completed"); // //show why calculation not complete
@@ -1244,17 +1169,14 @@
 		//----------------------------------------------------------------------------------------
 		function Check_medical(tax_exclusion) {
 		// This function checks the cost and insurance field for validity
-		// tax_exclusion:  contribution exclusion amount
-		//	 0 if not yet calculated,
-		//	-1 if all used,
-		//	-2 if currently being entered (key up detected on entry field)
+		// tax_exclusion:  contribution exclusion amount (0 if not yet calculated, -1 if all used)
 		//----------------------------------------------------------------------------------------
 			if (! PSO.checked) {
 				return;
 			}
 			if (IGNOREMED) return;
 
-			MEDIC.value = Math.round(PSOMEDIC.value); // do not use "+PSOMEDIC.value"
+			MEDIC.value = PSOMEDIC.value;
 
 			if (TPdec.checked && (! TPdied.checked) && (! SPdied.checked)) {
 				alert("The spouse of a public safety officer cannot exclude medical expenses.");
@@ -1267,6 +1189,7 @@
 			CANNOT_CALC &= ~MEDICAL_ERROR;
 			MEDICc.innerHTML = "";
 			var a = MEDIC.value + ""; // This forces var a to be MEDIC.value as a string
+	
 			if (MEDIC.value === "" && a.length == 0 && insurance_flag) {
 				MEDICc.innerHTML = "No insurance info"; MEDICc.style.backgroundColor = "hotpink";
 				alert("If there are no medical expenses to exclude, please enter 0 if there are none.");
@@ -1293,10 +1216,10 @@
 				return;
 			}
 
-			SALMEDIC.value = 0;
+
 			if (Disability.checked) {
-				SALMEDIC.value = (DIS_MO) ? Math.round(DIS_MO * (Math.min(FULLMEDEX, MedTaxLimit)) / (DIS_MO + NON_DIS_MO)) : 0;
-				MEDIC.value = Math.min(FULLMEDEX, MedTaxLimit) - +SALMEDIC.value;
+				SALMEDIC.value = (DIS_MO) ? Math.round(DIS_MO * FULLMEDEX / (DIS_MO + NON_DIS_MO)) : 0;
+				MEDIC.value = FULLMEDEX - +SALMEDIC.value;
 			}
 
 			// Still just inputting the value
@@ -1306,45 +1229,43 @@
 			}
 
 			message = "";
+			mediclimit = 3000;
 			overage_gross = FULLMEDEX - Math.round(+TPGROSS.value);
-			overage_limit = FULLMEDEX - MedTaxLimit;
+			overage_limit = FULLMEDEX - mediclimit;
 			overage_exclude = overage_gross + +tax_exclusion;
 			OVERAGE = Math.round(Math.max(0, overage_gross, overage_limit, overage_exclude));
 			switch (OVERAGE) {
 				case overage_gross:
-					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
+					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
 					message += "The public safety officer insurance exclusion has been limited to the gross distribution of $";
 					message += Math.round(+TPGROSS.value);
 					message += ". \n\nBe sure to include the additional $";
 					message += OVERAGE;
-					message += " as a SEHI adjustement or";
-					message += " as a Schedule A medical deductions.";
+					message += " in the Schedule A medical deductions.";
 					MEDICc.innerHTML = "Limited to gross distrib";
 					IGNOREMED = true;
 					MEDIC.value = Math.round(+TPGROSS.value);
 					break;
 				case overage_limit:
-					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
+					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
 					message += "The public safety officer insurance exclusion has been reduced to the tax law limit of $";
-					message += MedTaxLimit;
+					message += mediclimit;
 					message += ". \n\nBe sure to include the additional $";
 					message += OVERAGE;
-					message += " as a SEHI adjustement or";
-					message += " as a Schedule A medical deductions.";
-					MEDICc.innerHTML = "Limited to " + MedTaxLimit;
+					message += " in the Schedule A medical deductions.";
+					MEDICc.innerHTML = "Limited to 3000";
 					IGNOREMED = true;
-					MEDIC.value = MedTaxLimit;
+					MEDIC.value = Math.round(mediclimit);
 					break;
 				case overage_exclude:
 					MEDIC.value = Math.round(+TPGROSS.value - tax_exclusion);
 					PSOMEDIC.value = +MEDIC.value + +SALMEDIC.value;
-					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
+					message = "You entered $" + FULLMEDEX +  " as an exclusion.\n\n";
 					message += "The public safety officer insurance exclusion has been limited to $";
 					message += PSOMEDIC.value;
 					message += " to allow the full exclusion to be taken. \n\nBe sure to include the additional $";
 					message += OVERAGE;
-					message += " as a SEHI adjustement or";
-					message += " as a Schedule A medical deductions.";
+					message += " in the Schedule A medical deductions.";
 					MEDICc.innerHTML = "Limited due to contribution recovery";
 					IGNOREMED = true;
 					break;
@@ -1354,18 +1275,18 @@
 			if (OVERAGE) {
 				MEDICc.style.backgroundColor = "hotpink";
 				alert (message);
-				message = "of the $ " + FULLMEDEX + " you had entered above, include $ " + OVERAGE + " on Sch A or as SEHI.&nbsp;";
+				message = "of the $ " + FULLMEDEX + " you had entered above, include $ " + OVERAGE + " on Sch A.&nbsp;";
 				medicalMessage.innerHTML = message;
-				//FULLMEDEX = +MEDIC.value;
+				FULLMEDEX = +MEDIC.value;
 			}
 			else {
 				message = "be sure to include any insurance amount not used for the exemption.&nbsp;";
 				medicalMessage.innerHTML = message;
 			}
 	
-			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (OVERAGE > 0)) ? "inline" : "none";
+			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0) && (EXCL_TY.value < 2017)) ? "inline" : "none";
 			MedTable.style.display = ((PSO.checked && TS_VISIBLE && OVERAGE) || (FULLMEDEX > +MEDIC.value)) ? "inline" : "none";
-			SGRW_PSO.innerHTML = +MEDIC.value - +SALMEDIC.value;
+			SGRW_PSO.innerHTML = MEDIC.value;
 			DPSO_amount.innerHTML = SALMEDIC.value;
 		}
 		
@@ -1426,7 +1347,6 @@
 	
 			AnnTest = Math.max(ANN_START, MIN_ANN_START);
 			if ( COMBageChecked && (AnnTest > 19971231) ) {
-				SGRW_AGE.innerHTML = COMB.innerHTML;
 				switch(true) {
 					case (COMB.innerHTML < 111): NO_MO.innerHTML = 410; break;
 					case (COMB.innerHTML < 121): NO_MO.innerHTML = 360; break;
@@ -1437,7 +1357,6 @@
 			}
 	
 			else if (AnnTest > 19961118) {
-				SGRW_AGE.innerHTML = TPAGE.innerHTML;
 				switch(true) {
 					case (TPAGE.innerHTML < 56): NO_MO.innerHTML = 360; break;
 					case (TPAGE.innerHTML < 61): NO_MO.innerHTML = 310; break;
@@ -1448,7 +1367,6 @@
 			}
 	
 			else {
-				SGRW_AGE.innerHTML = TPAGE.innerHTML;
 				switch(true) {
 					case (TPAGE.innerHTML < 56): NO_MO.innerHTML = 300; break;
 					case (TPAGE.innerHTML < 61): NO_MO.innerHTML = 260; break;
@@ -1459,14 +1377,16 @@
 			}
 	
 			// Populate calculated fields in the tables
-			SGRW_JOINT.innerHTML = (COMBageChecked) ? "&nbsp;&#x2611&nbsp;" : "&nbsp;&#x2610&nbsp;";
+			SGRW_AGE.innerHTML = (COMBageChecked) ? COMB.innerHTML : TPAGE.innerHTML;
+			SGRW_JOINT.checked = COMBageChecked;
 		
 			CONTR.value = Math.round(CONTR.value);
 		
-			MO_EX.innerHTML = (CONTR.value / NO_MO.innerHTML).toFixed(2); // v 10.25
-			EX_MIN = (CONTR.value < 0.5) ? 0 : 1 ;
-			FYR_EX.innerHTML = Math.max(EX_MIN, Math.min(Math.round(FYR_MO.innerHTML * MO_EX.innerHTML), GROSS_TOTAL));
-			RYR_EX.innerHTML = Math.max(EX_MIN, Math.min(Math.round(12 * MO_EX.innerHTML), Math.round(GROSS_TOTAL * 12 / FYR_MO.innerHTML)));
+			MO_EX.innerHTML = (Math.round((CONTR.value / NO_MO.innerHTML) * 100)/100).toFixed(2);
+			//FYR_EX.innerHTML = Math.min(Math.max(1,Math.round(FYR_MO.innerHTML * MO_EX.innerHTML)), GROSS_TOTAL);
+			//RYR_EX.innerHTML = Math.min(Math.max(1,Math.round(12 * MO_EX.innerHTML)), GROSS_TOTAL);
+			FYR_EX.innerHTML = Math.min(Math.round(FYR_MO.innerHTML * MO_EX.innerHTML), GROSS_TOTAL);
+			RYR_EX.innerHTML = Math.min(Math.round(12 * MO_EX.innerHTML), Math.round(GROSS_TOTAL * 12 / FYR_MO.innerHTML));
 			
 			if (AnnTest > 19860701 && AnnTest < 19870101) {
 				RYR_EX_COMMENT.innerHTML = "LIFETIME EXCLUSION";
@@ -1509,13 +1429,14 @@
 			var TROW = Math.floor((CONTR.value - FYR_EX.innerHTML)/RYR_EX.innerHTML) + 1;
 			if (((CONTR.value - FYR_EX.innerHTML) % RYR_EX.innerHTML) > 0) TROW = TROW + 1;
 			var i, j;
-			var TARR = [];
+			var TARR = {};
 			for(i=0; i < TROW; i++) {
-				TARR[i] = [];
-				TARR[i].year = 0;
-				TARR[i].prior = 0;
-				TARR[i].exclusion = 0;
-				TARR[i].remaining = 0;
+				TARR[i] = {
+				year: 0,
+				prior: 0,
+				exclusion: 0,
+				remaining: 0
+				}
 			}
 		
 			// Populate the array
@@ -1678,7 +1599,7 @@
 	
 			// Anything remaining?
 			if (TARR[TROW-1].remaining > 0) {
-				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as an \"Other\" Deduction on Schedule A or as SEHI.");
+				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as a Miscellaneous Deduction on Schedule A.");
 				deathMessage.innerHTML = TARR[TROW-1].remaining;
 				DeathTable.style.display = "inline";
 			}
@@ -1900,8 +1821,6 @@
 				}
 			}
 			SPdiedQ.style.display = (SPdied.checked) ? "inline" : "none";
-			TPGROSS.style.display = "inline";
-			SPGROSS.style.display = "inline";
 	
 			AnnTest = Math.max(ANN_START, MIN_ANN_START);
 			if (TestForGeneral && (AnnTest > 0) && (AnnTest < 19860702)) { 
@@ -1939,15 +1858,13 @@
 				TPGROSS.style.display = "none";
 				SPGROSS.style.display = "none";
 				FYR_MO.innerHTML = "";
-				var MESSAGE = "Annuities starting before July 2, 1986 must use either the General Method or the 3-year method."
-				MESSAGE += "\n\n - If they have been using the General Method, it is out of scope.";
-				MESSAGE += "\n - If they used the 3-year method, they have recovered their contributions.";
-				MESSAGE += "\n\nThe distribution is fully taxable.";
+				var MESSAGE = "Annuities starting prior to July 2, 1986 have used their exclusion if they used the 3-year method.";
+				MESSAGE += "\n\nIf they have been using the General Method, it is out of scope.";
 				alert(MESSAGE);
 				return; 
 			}
 	
-			if (AnnTest > 19971231) { // Survivor option added to tax law in 1974 but no effect until 1998
+			if (AnnTest > 19971231) { // Survivor option added to tax law
 				SPa.style.backgroundColor = "yellow";
 				SPb.style.backgroundColor = "yellow";
 				TPdiedQ.style.display = "inline";
@@ -1963,7 +1880,7 @@
 					TPdiedQ.style.display = "inline";
 					if (SPdec.checked) SPdiedQ.style.display = "inline";
 				}
-				if (SP.value === "") SPAGE.innerHTML = "Enter only if joint annuity";
+				if (isNaN(SPAGE.innerHTML)) SPAGE.innerHTML = "Enter only if surv annty";
 				SP.style.display = "inline";
 				SPX.style.display = "none";
 			}
@@ -2010,7 +1927,7 @@
 			TSForm2.style.display = (true) ? noshowifzero : "none";
 			TSform.style.display = (TS_VISIBLE) ? "inline" : "none";
 			TSbutton.innerHTML = (TS_VISIBLE) ? "Hide TS input" : "Show TS input";
-			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0)) ? "inline" : "none";
+			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0) && (EXCL_TY.value < 2017)) ? "inline" : "none";
 			MedTable.style.display = ((PSO.checked && TS_VISIBLE && OVERAGE) || (FULLMEDEX > +MEDIC.value)) ? "inline" : "none";
 			RRB1099R_TXCOLOR.style.backgroundColor =
 				F1099R_TXCOLOR.style.backgroundColor = (PSO.checked && TS_VISIBLE) ? "white" : "";
@@ -2022,9 +1939,6 @@
 		// New_TAX_YR = New tax year to populate the TS worksheets with
 		// This function calculates the values for fields 4-7 in the Exclusion Worksheet
 		//----------------------------------------------------------------------------------------
-			//ANN_410 = new Date() ;
-			//alert ("10/" + (New_TAX_YR - 35));
-
 			if (New_TAX_YR < ANN_YR) {
 				message = "Annuity exclusion doesn't start until " + ANN_YR ;
 				message += " so there is no contribution exclusion.";
@@ -2032,7 +1946,7 @@
 					message += "\n\nBe sure to check the \"Form 1040 line ";
 					message += _LineNo[EXCL_TY.value + ":Salary"] + "\" box.";
 				}
-				if (PSOMEDIC.value > MedTaxLimit) {
+				if (PSOMEDIC.value > 3000) {
 					message += "\n\nEnter $3,000 as the PSO exclusion";
 					message += " and the remainder as a medical deduction.";
 				}
@@ -2111,7 +2025,7 @@
 		
 		<table id="userInput">
 			<tr class="center">
-				<td class="inputfield">Taxpayer&apos;s name and annuity/pension type
+				<td class="inputfield">Taxpayer&apos;s name and pension type
 					<br />for tax year <select id="EXCL_TY" tabindex="1" onchange="TSCalc(this.value)"></select>
 					</td>
 				<td class="inputfield" colspan="2">
@@ -2130,7 +2044,7 @@
 							<br /><input id="Disability" tabindex = "2" 
 								type="checkbox"
 								onchange="Disability_Change()" />
-								Check if this is or was a disability pension
+								Check if a disability pension
 								<span id="DisQ"
 									onmouseover="DistitleBox.style.display='inline-block';"
 									onmouseout="DistitleBox.style.display='none';"
@@ -2170,7 +2084,7 @@
 						onkeyup="Build_date(this.id)"
 						onchange="Annuity_Change()" /></td>
 				<td id="TPAGE" class="commentfield3 center"></td></tr>
-			<tr id="RetAgeRow" onchange="Annuity_Change();">
+			<tr id="RetAgeRow">
 				<td id="RetAgea" class="inputfield">Earliest retirement age</td>
 				<td id="RetAgeb" class="inputfield center">
 					<input id="RetAgeYr" tabindex="6"
@@ -2193,13 +2107,7 @@
 							<span id="SPdiedQ">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input id="SPdied" type="checkbox" tabindex="9" onchange="if (this.checked) SPdec.checked = true; Annuity_Change();"> Died in <span id="SPdiedQYR"></span></span>
 							</td></tr></table></td>
 				<td id="SPb" class="commentfield2">
-					<span id="SPX">(N/A for annuity before 1998)
-						<span id="SPXQ"
-									onmouseover="SPXQtitleBox.style.display='inline-block';"
-									onmouseout="SPXQtitleBox.style.display='none';"
-									>?</span>
-					</span>
-					<div id="SPXQtitleBox"></div>
+					<span id="SPX">(N/A for annuity before 1998)</span>
 					<!-- Preserve title formatting below -->
 					<input id="SP" class="hidden" tabindex="10"
 						title="Enter ONLY if this is a joint survivor annuity.
@@ -2342,9 +2250,6 @@
 				<tr> <td>
 	
 					<div id="RRB1099R">
-						<center>
-						Enter Taxable Amount directly<br /><b>or</b> use the worksheet:
-						</center>
 						<table class="entrytable">
 							<tr><td class="center bold">Form RRB-1099-R</td></tr>
 							<tr>
@@ -2360,9 +2265,6 @@
 						</div>
 	
 					<div id="F1099R">
-						<center>
-						Enter Taxable Amount directly<br /><b>or</b> use the worksheet:
-						</center>
 						<table class="entrytable">
 							<tr><td class="center bold">Form 1099-R</td></tr>
 							<tr>
@@ -2393,7 +2295,7 @@
 										<td>Starting date of annuity</td>
 										<td id="SGRW_START" class="white">0</td></tr>
 									<tr>
-										<td><span id="SGRW_JOINT"></span>
+										<td><input id="SGRW_JOINT" type="checkbox" disabled />
 											Check here if this is a Joint or Survivor Annuity</td>
 										<td></td></tr>
 									<tr>	
@@ -2450,7 +2352,7 @@
 			<b>Federal Section > Deductions > Itemized Deductions > <br />Miscellaneous Deductions > Unrecovered Investment in Pension:</b>
 			<table class="entrytable">
 				<tr>
-					<td class="center bold">Schedule A - Other Deductions</td></tr>
+					<td class="center bold">Schedule A - Miscellaneous Deductions</td></tr>
 				<tr>
 					<td>&nbsp;Unrecovered Investment in Pension - $ <span id="deathMessage"></span>&nbsp;&nbsp;</td></tr> </table>
 		</div>
