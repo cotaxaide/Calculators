@@ -110,10 +110,13 @@
 // Contributors:
 //	Steve Conary
 //	Kenny Hayes
+//	Ted Smith
 // --------------------------------------------------------------------------------
 
 var VERSION = 0;
-VERSION = "(Version 1.06c, 2/12/2021)";
+VERSION = "(Version 2.00, 3/8/2023)";
+//	Tax amount returned as an array - changed to accommodate that
+//VERSION = "(Version 1.06c, 2/12/2021)";
 //	Minor text change in DISCLAIMER note
 //	Added heading to 2020 amended summary table for clarification
 //	Added 2021 amended summary table
@@ -260,11 +263,11 @@ function Tax_Calc(field) {
 
 	// Determine tax
 	Tax1B_2020.innerHTML = 
-	Tax1_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1_2020.innerHTML, 0, true, 0);
+	Tax1_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1_2020.innerHTML, 0, true, 0)["tax"];
 	Tax1B_2021.innerHTML = 
-	Tax1_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable1_2021.innerHTML, 0, true, 0);
+	Tax1_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable1_2021.innerHTML, 0, true, 0)["tax"];
 	Tax1B_2022.innerHTML = 
-	Tax1_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable1_2022.innerHTML, 0, true, 0);
+	Tax1_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable1_2022.innerHTML, 0, true, 0)["tax"];
 
 	// Determine AGIs
 	Dist_Remainder = +Distribution.value;
@@ -280,11 +283,11 @@ function Tax_Calc(field) {
 
 	// Determine 3-year taxes
 	Tax3B_2020.innerHTML = 
-	Tax3_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable3_2020.innerHTML, 0, true, 0);
+	Tax3_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable3_2020.innerHTML, 0, true, 0)["tax"];
 	Tax3B_2021.innerHTML = 
-	Tax3_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable3_2021.innerHTML, 0, true, 0);
+	Tax3_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable3_2021.innerHTML, 0, true, 0)["tax"];
 	Tax3B_2022.innerHTML = 
-	Tax3_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable3_2022.innerHTML, 0, true, 0);
+	Tax3_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable3_2022.innerHTML, 0, true, 0)["tax"];
 
 	// Determine refunds
 
@@ -299,32 +302,32 @@ function Tax_Calc(field) {
 			// Calc for 2020 payback
 			AGI1B_2020.innerHTML = Math.max(0, AGI1_2020.value - +Payback_2020.value);
 			Taxable1B_2020.innerHTML = Math.max(0, +AGI1B_2020.innerHTML - standard2020);
-			NewTax1B_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1B_2020.innerHTML, 0, true, 0);
+			NewTax1B_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1B_2020.innerHTML, 0, true, 0)["tax"];
 			if (Payback_2020.value) Tax1B_2020.innerHTML = NewTax1B_2020.innerHTML;
 			Dist_Remainder = +Distribution.value - +Payback_2020.value;
 			IRA_part = Math.floor(Dist_Remainder / 3);
 			AGI3B_2020.innerHTML = Math.max(0, AGI_Base + IRA_part);
 			Taxable3B_2020.innerHTML = Math.max(0, +AGI3B_2020.innerHTML - standard2020);
-			Tax3B_2020.new = +_TaxLookup("2020", FilingStatus.value, Taxable3B_2020.innerHTML, 0, true, 0);
+			Tax3B_2020.new = +_TaxLookup("2020", FilingStatus.value, Taxable3B_2020.innerHTML, 0, true, 0)["tax"];
 			Tax3B_2020.innerHTML = NewTax3B_2020.innerHTML = Tax3B_2020.new;
 
 			// Calc for 2021 payback
 			AGI1B_2020.innerHTML = Math.max(0, AGI1_2020.value - +Payback_2020.value - +Payback_2021.value);
 			Taxable1B_2020.innerHTML = Math.max(0, +AGI1B_2020.innerHTML - standard2020);
-			NewTax1B_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1B_2020.innerHTML, 0, true, 0);
+			NewTax1B_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1B_2020.innerHTML, 0, true, 0)["tax"];
 			Yr1_1_2020.innerHTML = Tax1B_2020.innerHTML - NewTax1B_2020.innerHTML;
 			Dist_refund = +Distribution.value - +Payback_2020.value - +Payback_2021.value;
 			IRA_part = Math.floor(Dist_refund / 3);
 			AGI3B_2020.refund = Math.max(0, AGI_Base + IRA_part);
 			Taxable3B_2020.refund = Math.max(0, +AGI3B_2020.refund - standard2020);
-			Tax3B_2020.refund = +_TaxLookup("2020", FilingStatus.value, Taxable3B_2020.refund, 0, true, 0);
+			Tax3B_2020.refund = +_TaxLookup("2020", FilingStatus.value, Taxable3B_2020.refund, 0, true, 0)["tax"];
 			Yr3_1_2020.innerHTML = 
 			Refund3_2020.refund_yr1 = +Tax3B_2020.innerHTML - Tax3B_2020.refund
 
 			// Calc for 2022 payback
 			AGI1B_2020.innerHTML = Math.max(0, AGI1_2020.value - +Payback_total);
 			Taxable1B_2020.innerHTML = Math.max(0, +AGI1B_2020.innerHTML - standard2020);
-			NewTax1B_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1B_2020.innerHTML, 0, true, 0);
+			NewTax1B_2020.innerHTML = +_TaxLookup("2020", FilingStatus.value, Taxable1B_2020.innerHTML, 0, true, 0)["tax"];
 			Yr1_3_2020.innerHTML = Tax1B_2020.innerHTML - NewTax1B_2020.innerHTML;
 			Yr1_2_2020.innerHTML = +Yr1_3_2020.innerHTML - +Yr1_1_2020.innerHTML;
 			Refund1_2020.refund = 0;
@@ -339,7 +342,7 @@ function Tax_Calc(field) {
 			IRA_part = Math.floor(Dist_refund / 3);
 			AGI3B_2020.refund = Math.max(0, AGI_Base + IRA_part);
 			Taxable3B_2020.refund = Math.max(0, +AGI3B_2020.refund - standard2020);
-			Tax3B_2020.refund = +_TaxLookup("2020", FilingStatus.value, Taxable3B_2020.refund, 0, true, 0);
+			Tax3B_2020.refund = +_TaxLookup("2020", FilingStatus.value, Taxable3B_2020.refund, 0, true, 0)["tax"];
 			Refund3_2020.refund_yr2 = +Tax3B_2020.innerHTML - Tax3B_2020.refund + Refund3_2020.refund_yr1; 
 
 			NewTax3B_2020.innerHTML = Tax3B_2020.refund;
@@ -354,18 +357,18 @@ function Tax_Calc(field) {
 		case 2021:
 			AGI1B_2021.innerHTML = AGI1_2021.value;
 			Taxable1B_2021.innerHTML = Math.max(0, +AGI1B_2021.innerHTML - standard2021);
-			NewTax1B_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable1B_2021.innerHTML, 0, true, 0);
+			NewTax1B_2021.innerHTML = +_TaxLookup("2021", FilingStatus.value, Taxable1B_2021.innerHTML, 0, true, 0)["tax"];
 			Tax3B_2020.original = Tax3B_2020.new;
 			Dist_Remainder = Dist_Remainder - +Payback_2021.value;
 			IRA_part = Math.floor(Dist_Remainder / 3);
 			AGI3B_2021.innerHTML = +AGI1_2021.value + IRA_part;
 			Taxable3B_2021.innerHTML = Math.max(0, +AGI3B_2021.innerHTML - standard2021);
-			Tax3B_2021.new = +_TaxLookup("2021", FilingStatus.value, Taxable3B_2021.innerHTML, 0, true, 0);
+			Tax3B_2021.new = +_TaxLookup("2021", FilingStatus.value, Taxable3B_2021.innerHTML, 0, true, 0)["tax"];
 			Dist_refund = +Distribution.value - +Payback_total;
 			IRA_part = Math.floor(Dist_refund / 3);
 			AGI3B_2021.refund = +AGI1_2021.value + IRA_part;
 			Taxable3B_2021.refund = Math.max(0, +AGI3B_2021.refund - standard2021);
-			Tax3B_2021.refund = +_TaxLookup("2021", FilingStatus.value, Taxable3B_2021.refund, 0, true, 0);
+			Tax3B_2021.refund = +_TaxLookup("2021", FilingStatus.value, Taxable3B_2021.refund, 0, true, 0)["tax"];
 			NewTax3B_2021.innerHTML = Tax3B_2021.refund;
 			Refund3_2021.refund = +Tax3B_2021.new - +Tax3B_2021.refund;
 			Refund3_2021.innerHTML = (Refund3_2021.refund) ? (Refund3_2021.refund + " <sup>&Dagger;</sup>") : "0";
@@ -376,18 +379,18 @@ function Tax_Calc(field) {
 		case 2022:
 			AGI1B_2022.innerHTML = AGI1_2022.value;
 			Taxable1B_2022.innerHTML = Math.max(0, +AGI1B_2022.innerHTML - standard2022);
-			NewTax1B_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable1B_2022.innerHTML, 0, true, 0);
+			NewTax1B_2022.innerHTML = +_TaxLookup("2022", FilingStatus.value, Taxable1B_2022.innerHTML, 0, true, 0)["tax"];
 			Tax3B_2021.original = Tax3B_2021.new;
 			Dist_Remainder = Dist_Remainder - +Payback_2022.value;
 			IRA_part = Math.floor(Dist_Remainder / 3);
 			AGI3B_2022.innerHTML = +AGI1_2022.value + Dist_Remainder - (2 * IRA_part);
 			Taxable3B_2022.innerHTML = Math.max(0, +AGI3B_2022.innerHTML - standard2022);
-			Tax3B_2022.new = +_TaxLookup("2022", FilingStatus.value, Taxable3B_2022.innerHTML, 0, true, 0);
+			Tax3B_2022.new = +_TaxLookup("2022", FilingStatus.value, Taxable3B_2022.innerHTML, 0, true, 0)["tax"];
 			Dist_refund = +Distribution.value - +Payback_total;
 			IRA_part = Math.floor(Dist_refund / 3);
 			AGI3B_2022.refund = +AGI1_2022.value + Dist_refund - (2 * IRA_part);
 			Taxable3B_2022.refund = Math.max(0, +AGI3B_2022.refund - standard2022);
-			Tax3B_2022.refund = +_TaxLookup("2022", FilingStatus.value, Taxable3B_2022.refund, 0, true, 0);
+			Tax3B_2022.refund = +_TaxLookup("2022", FilingStatus.value, Taxable3B_2022.refund, 0, true, 0)["tax"];
 			NewTax3B_2022.innerHTML = Tax3B_2022.refund;
 			Refund3_2022.innerHTML = 0;
 			Tax3B_2022.original = Tax3B_2022.new;
