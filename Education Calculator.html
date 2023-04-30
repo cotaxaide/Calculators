@@ -3,12 +3,11 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
-<meta name="viewport" content="width=device-width">
 <title>Education Calculator</title>
 <style>
 	abbr { text-decoration: underline }
 	body { background-color: #ccccff; font-family: sans-serif; font-size: 11pt; } 
-	table {background-color: #ccccff; border-collapse:collapse;width:100%;}
+	table { background-color: #ccccff; border-collapse:collapse; width:100%; }
 	table tr:nth-child(even) { background-color: #c7c7f0; }
 	td { vertical-align:top; }
 	#InstructionsDiv { display: none; max-width: 75em; margin: auto; }
@@ -61,9 +60,8 @@
 	#FItable tr td:nth-child(4) { width: 40%; }
 	#TPName { width: 20em; }
 	#Dependents,
-	#Dependents0,
 	#EICDependents,
-	#CTCDependents { width: 3em; }
+	#CTCDependents { width: 2em; }
 	#SItable tr td:first-child { width: 50%; }
 	#SItable tr td:nth-child(2) { width:50%; }
 	.SQindent { text-indent: 5em; }
@@ -74,14 +72,13 @@
 	#FStable tr td:nth-child(2) { width:12%; }
 	#FStable tr td:nth-child(3) { width:13%; }
 	#EItable tr { text-align: right; }
-	#EItable tr td {border-bottom: 1px dashed skyblue;}
 	#EItable tr td:first-child { width: 1%; }
 	#EItable tr td:nth-child(2) { width: 56%; text-align: left; }
 	#EItable tr td:nth-child(3) { width: 11%; }
 	#EItable tr td:nth-child(4) { width: 10%; }
 	#EItable tr td:nth-child(5) { width: 10%; }
 	#EItable tr td:nth-child(6) { width: 10%; }
-	#EItable tr td:nth-child(7) { width:  2%; }
+	#EItable tr td:nth-child(7) { width: 2%; }
 	#MCtable tr th { text-align: left; }
 	#MCtable tr td:first-child { width: 28%; font-weight: bold; }
 	#MCtable tr td:nth-child(2) { width: 18%; }
@@ -97,8 +94,6 @@
 	#AGItable tr td:nth-child(5) { width: 36%; }
 	.TaxReturnHeader { width: 99%; padding: 5px; border: 2px solid blue;
 		background-color: lightblue; font-size: 150%; }
-	#EarnedRow { display: none;}
-	#StudEarnedRow { display: none;}
 	#TPTaxForm tr,
 	#StudentTaxForm tr,
 	#TaxFormResults tr { text-align: right; height: 1.5em;}
@@ -113,24 +108,22 @@
 	#TaxFormResults tr td:nth-child(3) { width: 5em; }
 	#TPTaxForm tr td:nth-child(4),
 	#StudentTaxForm tr td:nth-child(4),
-	#TaxFormResults tr td:nth-child(4) { width: 5em; text-align: right; }
+	#TaxFormResults tr td:nth-child(4) { width: 5em; text-align: right;}
 	#TPTaxForm tr td:nth-child(5),
 	#StudentTaxForm tr td:nth-child(5),
-	#TaxFormResults tr td:nth-child(5) { width: 5em; text-align: right; }
+	#TaxFormResults tr td:nth-child(5) { width: 5em; text-align: right;}
 	#TPTaxForm tr td:nth-child(6),
 	#StudentTaxForm tr td:nth-child(6),
-	#TaxFormResults tr td:nth-child(6) { width: 5em; text-align: right; }
-	#OptimizeButtons {display: none; }
-	#OptimizeButtons tr {width: 100%;}
+	#TaxFormResults tr td:nth-child(6) { width: 5em; text-align: right;}
+	#OptimizeButtons {display: none;}
+	#OptimizeButtons tr td:first-child { width: 90%; }
 	#OptimizeButtons tr td:nth-child(2) { width: 10%; }
-	#OptimizeButtons input { width: 9em; }
 	#optDiv { border:2px solid black; width:30em; padding: 3px; }
 	#optDiv table { width: 100%; }
 	#optDiv th, #optDiv td:first-child { text-align: left; }
 	#optDiv td:nth-child(2) { text-align: right; }
 	#testPrint {color: red; font-size: 60%; float: right; cursor: none; }
-	#KiddieAllowOption { padding-left: 2em; }
-	#messageNoUnqualified,
+	#KiddieOverrideOption { display: none; } // For pre 2018, not implemented
 	#NoOptimize1,
 	#NoOptimize2,
 	#NoOptimize3,
@@ -142,14 +135,13 @@
 	.STRefund1 { font-style: italic; }
 	.STRefund1 { border-top: 1px solid black; }
 	.tabSet {
+		width: 102%;
 		height: 3.2em;
 		background-color: none;
-		text-align: center;
-		margins: auto;
 	}
 	.tabReal {
 		font-size: 1.25em; font-weight: bold; border: 3px solid black; text-align: center;
-		vertical-align: middle; width: calc((100% - 36px) / 6); height: 2.5em;
+		vertical-align: middle; width: calc(95% / 6); height: 2.5em;
 		-moz-border-top-left-radius: 15px; -moz-border-top-right-radius: 15px;
 		-webkit-border-top-left-radius: 15px; -webkit-border-top-right-radius: 15px;
 		border-top-left-radius: 15px; border-top-right-radius: 15px;
@@ -164,7 +156,7 @@
 		table tr td,
 		table tr td span { background-color: white; !important }
 		select,
-		input { font-size: 100% }
+		input { font-size: 80% }
 		table tr td select,
 		table input[type="number"] { font-size: 70%; }
 		.noPrint { display: none; !important }
@@ -174,114 +166,16 @@
 
 <script src="Tax_Data/IRS_2000.js"></script>
 <!-- Keep current plus 4 prior years (for ACA) -->
+<script src="Tax_Data/IRS_2014.js"></script>
+<script src="Tax_Data/IRS_2015.js"></script>
+<script src="Tax_Data/IRS_2016.js"></script>
+<script src="Tax_Data/IRS_2017.js"></script>
 <script src="Tax_Data/IRS_2018.js"></script>
-<script src="Tax_Data/IRS_2019.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.39, 3/11/2023";
-	//	Corrected premature end of optimization when refund change is negative
-	//var VERSION = "Version 3.38, 2/24/2023";
-	//	Corrected expenses for federal limits
-	//var VERSION = "Version 3.37, 1/27/2023";
-	//	Added lines for nonqualifed nontaxable amounts
-	//var VERSION = "Version 3.36, 12/7/2022";
-	//	Fill the Gap option not working properly
-	//var VERSION = "Version 3.35, 12/7/2022";
-	//	Optimize button not showing for dependent student
-	//var VERSION = "Version 3.34b, 11/23/2022";
-	//	Changed dependent earned income increment
-	//var VERSION = "Version 3.34a, 10/4/2022";
-	//	Changed filing status option to QSS for 2022
-	//var VERSION = "Version 3.34, 9/8/2022";
-	//	More related corrections
-	//var VERSION = "Version 3.33, 9/5/2022";
-	//	Corrected calcs involved with supplimentary funding
-	//	Corrected LLC expenses and taxable amounts again
-	//var VERSION = "Version 3.32, 9/2/2022";
-	//	Corrected LLC expenses and taxable amounts
-	//var VERSION = "Version 3.31, 8/29/2022";
-	//	Corrected another problem with kiddie tax
-	//var VERSION = "Version 3.30, 8/27/2022";
-	//	Corrected a problem with kiddie tax
-	//var VERSION = "Version 3.29, 7/24/2022";
-	//	Changes due to _TaxLookup return being an array
-	//var VERSION = "Version 3.28, 2/26/2022";
-	//	Corrected how refundable ACTC is displayed
-	//	Added refundable Child Care Credit
-	//var VERSION = "Version 3.27a, 12/27/2021";
-	//	Clarification of instructions on optimizer tab
-	//var VERSION = "Version 3.27, 11/28/2021";
-	//	Fixed hang problem due to ACA 0 rate change
-	//	Added tests to prevent negative dependent entries
-	//var VERSION = "Version 3.26, 10/7/2021";
-	//	Modified CTC age limits of 19 - no upper for 2021
-	//	Defaulted to MFJ
-	//var VERSION = "Version 3.25, 8/13/2021";
-	//	Modified calc of retirement savings credit
-	//var VERSION = "Version 3.24 draft, 7/5/2021";
-	//	Modified for new Chld Tax Credit for 2021
-	//	Added NoEIC checked for TP is the student, age under 25 for 2020.
-	//var VERSION = "Version 3.23, 3/15/2021";
-	//	Added test for 2020 to not pay back APTC excess
-	//var VERSION = "Version 3.22a, 10/26/2020";
-	//	Removed another link to extinct Education Cookbook
-	//var VERSION = "Version 3.22, 8/8/2020";
-	//	Modified optimizer to use adj to income amounts to increase taxable scholarships
-	//		before invoking the kiddie tax
-	//var VERSION = "Version 3.21a, 2/20/2020";
-	//	Removed links to extinct Education Cookbook
-	//var VERSION = "Version 3.21, 2/7/2020";
-	//	Fixed retirement credit not carrying to LLC column
-	//var VERSION = "Version 3.20b, 1/20/2020";
-	//	Added pink to AGI if income but AGI is blank
-	//var VERSION = "Version 3.20a, 1/16/2020";
-	//	Added kiddie tax option wording due to trust method reversion
-	//var VERSION = "Version 3.20, 12/15/2019";
-	//	Corrected calc of dependent standard deduction
-	//var VERSION = "Version 3.19, 12/5/2019";
-	//	Corrected calc of Kiddie tax when unearned income is from capital gains
-	//	Fixed checkmark not showing on Special Needs box for IRAs etc.
-	//var VERSION = "Version 3.18, 11/10/2019";
-	//	Checked options should not be taxable income
-	//var VERSION = "Version 3.17, 10/31/2019";
-	//	Corrected case where dependent student was not subject to kiddie tax
-	//	Removed AllowKiddie option when dependent student was not subject to kiddie tax
-	//var VERSION = "Version 3.16, 9/14/2019";
-	//	More expense granularity
-	//	Added checkboxes if scholarship can be used for an expense group
-	//	Some code changes, variable name changes for consistency, etc
-	//var VERSION = "Version 3.15, 8/19/2019";
-	//	Changed kiddie tax for first $2100 to use 10% vs tax tables to match TS
-	//var VERSION = "Version 3.14, 4/6/2019";
-	//	Tax not calculating for 2015-2017
-	//var VERSION = "Version 3.13, 4/5/2019";
-	//	Correct line number for QDCG worksheet
-	//	Input line rearrangment
-	//var VERSION = "Version 3.12, 3/22/2019";
-	//	Reset optimized value found after reducing the scan range to find earlier max
-	//var VERSION = "Version 3.11, 3/4/2019";
-	//	Added check to insure that disabled student income question is marked Yes
-	//	Corrected kiddie tax calculation so not done if so indicated by test questions
-	//	Hide AOC parent alive question if already asked
-	//var VERSION = "Version 3.10, 2/23/2019";
-	//	Split earned income into Salary and Business income lines
-	//	Corrected QBI calculations when limited by taxable income
-	//	Hide QBI line when no business income
-	//	Added SEHI for QBI calculation
-	//	Changed EIC from input value to calculated
-	//var VERSION = "Version 3.09, 12/29/2018";
-	//	Tax computation in final result was showing wrong choice (LLC vs AOC)
-	//var VERSION = "Version 3.08, 12/19/2018";
-	//	Added QBI lines to TP and Student returns
-	//	Corrected line numbers to match new forms
-	//var VERSION = "Version 3.07, 11/28/2018";
-	//	Added Allow Kiddie Tax option for states that did not change rules
-	//var VERSION = "Version 3.06a, 10/23/2018";
+	var VERSION = "Version 3.06a, 10/23/2018";
 	//	Strange server substitution for html page closure in plot function
 	//var VERSION = "Version 3.06, 8/1/2018";
 	//	New form line numbers for 2018 required some changes
@@ -313,13 +207,19 @@
 
 	//----------------------------------------------------------------------------------------
 	// Contributors:
-	//	Sue Alza		Dana Bell		Bob Brooks		
-	//	Steve Conary		Deb Fisher		Kenny Hayes
-	//	Gina Kritchevsky	Hans Jahns		Betsy Robertson
-	//	Dick Sramek		Bob Wells		Jay Wiedwald
-	//	Edie Loughmiller	Harold Rowe		Brad Kirby
-	//	Stephen Enk		Roger Metzler		Arlene Green
-	//	Joanne Hill		Fred Lamberth		Rob Schussman
+	//	Sue Alza
+	//	Dana Bell
+	//	Bob Brooks
+	//	Steve Conary
+	//	Deb Fisher
+	//	Kenny Hayes
+	//	Gina Kritchevsky
+	//	Hans Jahns
+	//	Betsy Robertson
+	//	Dick Sramek
+	//	Bob Wells
+	//	Jay Wiedwald
+	//	Edie Loughmiller
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -341,12 +241,12 @@
 	var NQExpenses = []; // allowed by the funding source but not qualified for credit
 	var Exemptions = 0;
 	var CTCTotal = 0;
+	var DependentUnderage = false; // test for refundable AOC and kiddy tax
 	var RelativeViolation = false; // test for age 24 and too high AGI
 	var ExcessAPTC = [];
 	var FedPovertyLine = 0;
-	var KiddieTaxApplies = false; // test for Kiddie Tax on info tab
-	var KiddieTaxFlag = false; // display Allow kiddie tax option on optimizer
 	var KiddieTaxThreshold = 0;
+	var KiddieTaxFlag = false;
 	var KiddieFileMargin = -1;
 	var StudentFileMargin = -1;
 	var ExtraNRC = 0;
@@ -361,6 +261,7 @@
 	var OptimizedIncome = 0;
 	var PlotCanv;
 	var Plotview;
+	var OptHeight = 50;
 	var PlotHeight = 600;
 	var PlotMarginT = 50; // margin above plot
 	var PlotMarginB = 80; // margin below plot
@@ -384,14 +285,6 @@
 	var ResultingExpense = 0;
 	var UnusedCTC = 0;
 	var WarningMessage = "";
-	var BusinessSETax = 0;
-	var StudBusinessSETax = 0;
-	var StudKiddieTax = [];
-	var StudKiddieAOC = [];
-	var StudKiddieLLC = [];
-	var StudKiddieTNF = [];
-	var ScholarReduction = 0;
-	var ScholarReductionMax = 0;
 
 	//----------------------------------------------------------------------------------------
 	// This function initializes options when the application is first loaded
@@ -429,10 +322,9 @@
 
 		// Start with the Taxpayer Information tab
 		ChangeTab("InformationTab");
-		if (! DependentNo.checked) DependentYes.checked = true;
 
 		// Start with essentially no input information
-		ChangeInfo("TaxYear");
+		ChangeInfo();
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -448,7 +340,6 @@
 		if ((newTab != "InformationTab") && (newTab != "InstructionsTab")) {
 			if (DependentYes.checked) {
 				var message = "";
-
 				if (+Dependents.value == 0) {
 					message += "\x0DThe taxpayer has not claimed any dependents but the student is marked as a dependent.";
 					message += "\x0D\x0DYou must claim the student as a dependent to qualify for education credits.";
@@ -475,7 +366,6 @@
 						message += " (or more than) the number of dependents you are claiming for exemptions.";
 					}
 				}
-
 				if (message != "") {
 					if (! Optimizing) {
 						alert(message);
@@ -500,12 +390,6 @@
 		whatChanged	// the id of the field that changed
 		) {
 	//----------------------------------------------------------------------------------------
-		// Change filing status options
-		if (whatChanged == "TaxYear") {
-			optionLabel = (+TaxYear.value < 2022) ? "Widow(er)" : "QSS" ;
-			FilingStatus.lastElementChild.innerHTML = optionLabel;
-			//StudentFilingStatus:nth-child(4).innerHTML
-		}
 
 		// Show controls related to the chosen filing status for the taxpayer
 		AGIdiv.style.display = "block";
@@ -568,19 +452,12 @@
 
 		// Show line numbers for the selected tax year in the Optimizer tab
 		CapGainsLineNoA.innerHTML = CapGainsLineNoB.innerHTML =
-		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _LineNo[TaxYear.value + ":QDCG"];
+		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _LineNo[TaxYear.value + ":CapGains"];
 		AGILineNoA.innerHTML = AGILineNoB.innerHTML = _LineNo[TaxYear.value + ":AGI"];
-		QBILineNoA.innerHTML = QBILineNoB.innerHTML = _LineNo[TaxYear.value + ":QBI"];
-		SalaryLineNoA.innerHTML = SalaryLineNoB.innerHTML = _LineNo[TaxYear.value + ":Salary"];
-		BusinessLineNoA.innerHTML = BusinessLineNoB.innerHTML = _LineNo[TaxYear.value + ":Business"];
-		SEHILineNoA.innerHTML = SEHILineNoB.innerHTML = _LineNo[TaxYear.value + ":SEHI"];
-		ItemDedLineNoA.innerHTML = ItemDedLineNoB.innerHTML = _LineNo[TaxYear.value + ":ItemDed"];
-		DeductionsLineNoA.innerHTML = DeductionsLineNoB.innerHTML = _LineNo[TaxYear.value + ":Deductions"];
-		TaxAmountLineNoA.innerHTML = TaxAmountLineNoB.innerHTML = _LineNo[TaxYear.value + ":TaxAmount"];
+		EarnedLineNoA.innerHTML = EarnedLineNoB.innerHTML = _LineNo[TaxYear.value + ":Earned"];
 		TNFLineNo.innerHTML = _LineNo[TaxYear.value + ":TNF"];
 		ExcessAPTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":ExcessAPTC"];
 		CareLineNoB.innerHTML = _LineNo[TaxYear.value + ":Care"];
-		RefCareLineNoB.innerHTML = "S3-13g"; // 2021 only
 		LLCLineNoB.innerHTML = _LineNo[TaxYear.value + ":LLC"];
 		RetireLineNoB.innerHTML = _LineNo[TaxYear.value + ":Retire"];
 		CTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":CTC"];
@@ -596,28 +473,27 @@
 		F8962FLineNoA.innerHTML = F8962FLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962F"];
 		//F8962MAGILineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962MAGI"];
 
-		// Child Tax Credit and Refundable Care change in 2021
-		RefCareLine.style.display = Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
-		ACTCLabel.innerHTML = (TaxYear.value == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit" ;
+		// Child (and Family) Tax Credit name change in 2018
+		FTC.style.display = (+TaxYear.value > 2017) ? "inline" : "none";
 
 		// Calculate Fed Poverty Line for the given year
-		RegionList = document.getElementsByName("Region");
-		for (i = 0; i < RegionList.length; i++){
-			if (RegionList[i].checked) ThisRegion = RegionList[i].value;
+		if (+TaxYear.value < 2019) { // FPL only needed for years 2014 - 2018
+			RegionList = document.getElementsByName("Region");
+			for (i = 0; i < RegionList.length; i++){
+				if (RegionList[i].checked) ThisRegion = RegionList[i].value;
+			}
+			_Write_Cookie("Region", ThisRegion);
+			var FPLi = (TaxYear.value - 1) + ":" + ThisRegion;
+			FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (+Dependents.value * +_FPL[FPLi].split(",")[1]);
+			if (FilingStatus.value == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
 		}
-		_Write_Cookie("Region", ThisRegion);
-		var FPLi = (TaxYear.value - 1) + ":" + ThisRegion;
-		FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (+Dependents.value * +_FPL[FPLi].split(",")[1]);
-		if (FilingStatus.value == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
-
-		// Check dependent entries
-		if (Dependents.value < 0) Dependents.value = 0;
-		if (EICDependents.value < 0) EICDependents.value = 0;
-		if (CTCDependents.value < 0) CTCDependents.value = 0;
-		if (Dependents0.value < 0) Dependents0.value = 0;
 
 		// Assume all dependents are claimed for EIC until changed, prior to 2018
-		Dependents.value = Math.max(EICDependents.value, CTCDependents.value, Dependents.value, Dependents0.value);
+		Dependents.value = Math.max(EICDependents.value, CTCDependents.value, Dependents.value);
+		if (whatChanged == "Dependents") {
+			if (+TaxYear.value < 2018) EICDependents.value = Dependents.value;
+		}
+
 		// Student filing MFJ not for return of withholding consistency check
 		if ((StudentFilingStatus.value == "MFJ") && (! StudentMFJRefund.checked)) {
 			if (! Optimizing) {
@@ -640,9 +516,6 @@
 			KiddieWarn.style.display = "none";
 
 			// Clear the student tax return
-			StudSalaryTax.value =
-			StudBusinessTax.value =
-			StudSEHITax.value =
 			StudEarnedTax.value =
 			StudAGITax.value =
 			StudItemizedTax.value =
@@ -652,14 +525,10 @@
 		}
 		else { // Student is a dependent
 			KiddieWarn.style.display = "list-item";
-			if (whatChanged == "TaxYear") {
-				if ((+TaxYear.value < 2018) || (+TaxYear.value > 2019)) KiddieAllow.checked = false;
-			}
 		}
 		Exemptions += +Dependents.value;
 
 		// Show Claimed questions if not a dependent
-		StudentIsAdult = StudentAge24.checked || StudentAge25.checked;
 		if (whatChanged == "DependentYes") StudentAge19.checked = true;
 		if (whatChanged == "DependentNo") {
 			StudentAge24.checked = true;
@@ -669,9 +538,8 @@
 			F8962FTax.disabled = ACAMonths.disabled = DependentNo.checked && ClaimedYes.checked;
 
 		IncomeLessYes.disabled =
-		IncomeLessNo.disabled = StudentAge16.checked || StudentAge17.checked || StudentIsAdult;
-		if (IncomeLessYes.disabled) IncomeLessYes.checked = true;
-		ParentAliveYes.disabled = ParentAliveNo.disabled = StudentIsAdult;
+		IncomeLessNo.disabled = StudentAge16.checked || StudentAge17.checked || StudentAge24.checked;
+		ParentAliveYes.disabled = ParentAliveNo.disabled = StudentAge24.checked;
 
 		var cqlist = document.getElementsByClassName("ClaimedQuestion");
 		for (var cqi = 0; cqi < cqlist.length; cqi++) {
@@ -693,33 +561,24 @@
 		for (var sqi = 0; sqi < sqlist.length; sqi++) {
 			sqlist[sqi].style.display = (TPisParentNo.checked && DependentYes.checked) ? "inline" : "none";
 		}
-		if ((TPisParentRow.style.display == "inline") && TPisParentYes.checked) ParentAliveYes.checked = ParentAlive2Yes.checked = true;
 
 		// Age and relationship tests for AOC refundable and kiddie tax
 		// Get the dependent's current AGI
+		KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 
-		KTui.innerHTML = KiddieTaxThreshold = 0;
-
-		KiddieTaxApplies = false;
+		DependentUnderage = false;
+		KTdiv.style.display = "none";
 		if      (( StudentAge16.checked
 			|| StudentAge17.checked
 			|| (StudentAge18.checked && IncomeLessYes.checked)
 			|| (StudentAge19.checked && IncomeLessYes.checked && TimeFull.checked))
-
 			&& (! ((ParentAliveNo.checked && DependentNo.checked)
 				|| (ParentAlive2No.checked && DependentYes.checked)))
-
-			&& ((((FilingStatus.value != "MFJ") || MFJRefund.checked) && DependentNo.checked)
-				|| ((StudentFilingStatus.value != "MFJ") && DependentYes.checked))) {
-			
-			KiddieTaxApplies = true;
-			KTui.innerHTML = 
-			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
+			&& (StudentFilingStatus.value != "MFJ")) {
+				DependentUnderage = true;
+				KTui.innerHTML = KiddieTaxThreshold;
+				KTdiv.style.display = "inline";
 		}
-		
-		// Kiddie tax method change in 2018 but rescinded in 2020
-		KiddieAllowOption.style.display =
-		KTdiv.style.display = ((KiddieTaxApplies) && ((+TaxYear.value == 2018) || (+TaxYear.value == 2019))) ? "inline" : "none"; // v3.4
 
 		// Hide tax return results line if student not a dependent
 		StudentInput.style.display = (DependentNo.checked) ? "none" : "inline";
@@ -733,27 +592,14 @@
 		// Show AOC Refund questions if not claimed
 		var aocqlist = document.getElementsByClassName("AOCRefundQuestions");
 		for (var aocqi = 0; aocqi < aocqlist.length; aocqi++) {
-			aocqlist[aocqi].style.display = (ClaimedYes.checked || StudentIsAdult) ? "none" : "inline";
+			aocqlist[aocqi].style.display = (ClaimedYes.checked || StudentAge24.checked) ? "none" : "inline";
 		}
-		// Suppress the same question asked earlier (if it was) and copy the response
-		if (ParentAlive2Row.style.display == "inline") {
-			ParentAliveYes.checked = ParentAlive2Yes.checked;
-			ParentAliveNo.checked = ParentAlive2No.checked;
-			ParentAliveRow.style.display = "none";
-		}
-		else ParentAliveRow.style.display = "table-row";
 
 		// Show Job Skill question if not a half-time student
 		var jsqlist = document.getElementsByClassName("JobSkills");
 		for (var jsqi = 0; jsqi < jsqlist.length; jsqi++) {
 			jsqlist[jsqi].style.display = (DegreeNo.checked && TimePart.checked) ? "inline" : "none";
 		}
-
-		// Deactivate supplementary inputs if half-time student
-		ScholarESA.disabled = TimePart.checked;
-		ScholarQTP.disabled = TimePart.checked;
-		ScholarIRA.disabled = TimePart.checked;
-		ScholarSAV.disabled = TimePart.checked;
 
 		// Calculate maximum allowable deduction amounts
 		MaxAOC.innerHTML = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",")[0];
@@ -784,7 +630,7 @@
 		StudentAOC.innerHTML = (+MaxAOC.innerHTML == 0) ? "No" : "Yes";
 		StudentLLC.innerHTML = (+MaxLLC.innerHTML == 0) ? "No" : "Yes";
 		StudentTNF.innerHTML = (+MaxTNF.innerHTML == 0) ? "No" : "Yes";
-		StudentAOCR.innerHTML = ((DependentNo.checked && ClaimedNo.checked && KiddieTaxApplies) 
+		StudentAOCR.innerHTML = ((DependentNo.checked && ClaimedNo.checked && DependentUnderage) 
 				|| (+MaxAOC.innerHTML == 0)) ? "No" : "Yes";
 
 		// Update figures in the Manual Comparison page CreditLimitTable
@@ -832,7 +678,7 @@
 		TPScholarIncome.style.display = (DependentNo.checked) ? "table-row" : "none";
 
 		// Refresh the expense section
-		BudgetChange(whatChanged);
+		BudgetChange();
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -855,38 +701,6 @@
 
 		Optimized = false;
 
-		// Displayed line adjustments
-
-
-
-		if (BusinessTax.value > 0) {
-			SEHIRow.style.display =
-			QBIRow.style.display = "table-row";
-			BusinessSETax = _SETax(TaxYear.value, BusinessTax.value)[1];
-		}
-		else {
-			SEHIRow.style.display =
-			QBIRow.style.display = "none";
-			QBITax.value = BusinessSETax = SEHITax.innerHTML = 0;
-		}
-
-		if (StudBusinessTax.value > 0) {
-			StudSEHIRow.style.display =
-			StudQBIRow.style.display = "table-row";
-			StudBusinessSETax = _SETax(TaxYear.value, StudBusinessTax.value)[1];
-		}
-		else {
-			StudSEHIRow.style.display =
-			StudQBIRow.style.display = "none";
-			StudQBITax.innerHTML = StudBusinessSETax = StudSEHITax.value = 0;
-		}
-
-		needAGI = (((SalaryTax.value > 0) || (BusinessTax.value > 0)) && (AGITax.value == ""))
-		AGITax.style.backgroundColor = (needAGI) ? "pink" : "";
-		needAGI = (((StudSalaryTax.value > 0) || (StudBusinessTax.value > 0)) && (StudAGITax.value == ""))
-		StudAGITax.style.backgroundColor = (needAGI) ? "pink" : "";
-
-
 		//-----------------------Scholarship calculations --------------------------------
 
 		// Determine how much of the scholarship is available for expenses
@@ -894,8 +708,8 @@
 		var ScholarIncome = +ScholarTeaching.value;
 		var allScholarships = +Nonrestricted.value + +Scholarship.value;
 
-		ScholarAvailable = allScholarships - ScholarIncome - +ScholarRestricted.value;
-		if (ScholarAvailable < 0) { // Data consistency check
+		// Data consistency checks
+		if ((ScholarIncome + +ScholarTaxable.value) > allScholarships) {
 			if (! Optimizing) {
 				alert("Designated use of scholarship amounts cannot be greater than the scholarship itself.");
 				document.getElementById(whatChanged).value = ""; // clear the offending entry
@@ -904,23 +718,32 @@
 			}
 		}
 
-		// Adjust scholarship if lack of a W2 needs to be accounted for
+		ScholarAvailable = allScholarships - ScholarIncome - +ScholarRestricted.value;
+		if (ScholarAvailable < 0) {
+			if (! Optimizing) {
+				alert("Designated use of scholarship amounts cannot be greater than the scholarship itself.");
+				document.getElementById(whatChanged).value = ""; // clear the offending entry
+				ScholarTaxable.value = 0;
+				return;
+			}
+		}
+
 		ScholarW2Yes.disabled = ScholarW2No.disabled = ! (ScholarIncome > 0);
 
-		if (ScholarW2Yes.disabled) { // already accounted for
+		if (ScholarW2Yes.disabled) {
 			ScholarW2Yes.checked = false;
 			ScholarW2No.checked = false;
 		}
 
 		if (ScholarW2No.checked) {
-			// add the W-2 equivalant amount to the student's return income line
-			if (StudSalaryTax.value == "") { // If there was a W-2, probably would be entered
+			// add the W-2 to the student's return income line
+			if (StudEarnedTax.value == "") { // If there was a W-2, probably would be entered
 				if (DependentYes.checked) {
-					StudSalaryTax.value = ScholarIncome;
+					StudEarnedTax.value = ScholarIncome;
 					StudAGITax.value = +StudAGITax.value + +ScholarIncome; // don't use +=
 				}
 				else {
-					SalaryTax.value = ScholarIncome;
+					EarnedTax.value = ScholarIncome;
 					AGITax.value = +AGITax.value + +ScholarIncome; // don't use +=
 				}
 			}
@@ -929,74 +752,57 @@
 			}
 		}
 
-		// Calculate the amount of the scholarship that can be made taxable
+		// Calculate the amount that can be taxable
 		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
-		if (KiddieTaxApplies && (! KiddieAllow.checked)) {
-			// Get the student's current unearned income amount and determine if must file
+		if (+TaxYear.value < 2018) {
+			if (DependentUnderage) { // kiddie unearned tax limit
+				// Get the student's current unearned income amount and determine if must file
 
-			// Taxable scholarship is earned income for this test
-			var deductionAmount = +_StandardDeduction(TaxYear.value, StudentFilingStatus.value,
-				StudentTP65.checked, StudentTPBlind.checked, StudentSP65.checked, StudentSPBlind.checked,
-				false, 0);
-			var fileMinimum = +_Standard[TaxYear.value].split(",")[_Standard["Minimum"]];
-
-			taxableLimit = Math.min(deductionAmount, taxableLimit);
-
-			// Set default filing margins (-1 means not yet calculated)
-			if (KiddieFileMargin == -1) {
-				KiddieFileMargin = KiddieTaxThreshold;
-				StudentFileMargin = deductionAmount;
-			}
-
-			// Get the student's current unearned income
-			// (StudEarnedTax.value is stored in a hidden row in the student's table)
-			var studentUnearned = +StudAGITax.value - +StudEarnedTax.value;
-			if (studentUnearned > KiddieTaxThreshold) { // Kiddie tax already applies
-				if (! Optimizing) {
-					alert("CAUTION!\x0DKiddie tax already applies to this student, which is out of scope.");
-					NoOptimize4.style.display = "block";
-					KiddieTaxFlag = true;
+				// Taxable scholarship is earned income for this test
+				var fileAmount = +_StandardDeduction(TaxYear.value, StudentFilingStatus.value,
+					StudentTP65.checked, StudentTPBlind.checked, StudentSP65.checked, StudentSPBlind.checked,
+					false, 0);
+				var fileMinimum = +_Standard[TaxYear.value].split(",")[_Standard["Minimum"]];
+				taxableLimit = Math.min(fileAmount, taxableLimit);
+				if (KiddieFileMargin == -1) {
+					KiddieFileMargin = KiddieTaxThreshold;
+					StudentFileMargin = fileAmount;
 				}
-			}
-			else {
-				NoOptimize4.style.display = "none";
-				KiddieTaxFlag = false;
-			}
-			KiddieFileMargin = Math.max(0, (KiddieTaxThreshold - studentUnearned) ); // Taxable scholarship is not included
 
-			// grossMargin is the amount that can be added without having to file
-			var earnedIncrement = +_Standard[TaxYear.value].split(",")[+_Standard["DependInc"]];
-			var maxStudentDeduction = Math.min(+StudEarnedTax.value + taxableLimit + earnedIncrement, deductionAmount);
-			var grossMargin = maxStudentDeduction - StudAGITax.value;
+				// Get the student's current unearned (not quite accurate - should use total income)
+				var studentUnearned = Math.max(0, +StudAGITax.value - +StudEarnedTax.value);
+				var unearnedMargin = fileMinimum - studentUnearned;
+				var earnedMargin = fileAmount - +StudEarnedTax.value;
+				var grossMargin = fileAmount - +StudAGITax.value;
+				KiddieFileMargin = KiddieTaxThreshold - studentUnearned; // Taxable scholarship is not included
+				if (studentUnearned > 350) {
+					StudentFileMargin = unearnedMargin; // amount to earn before having to file
+				}
+				else {
+					StudentFileMargin = Math.min(earnedMargin, grossMargin); // amount to earn before having to file
+				}
 
-			switch (true) {
-				case (+StudTaxTax.innerHTML > 0): // currently must file
-					grossLimit = KiddieFileMargin;
-					break;
-				case (grossMargin > taxableLimit): // will not have to file
-					grossLimit = taxableLimit;
-					break;
-				default: // may have to file if grossMargin is exceeded
-					grossLimit = Math.max(grossMargin, KiddieFileMargin);
-			}
+				if ((unearnedMargin < 0) || (earnedMargin < 0) || (grossMargin < 0)) { // must file
+					taxableLimit = Math.min(KiddieFileMargin, taxableLimit);
+				}
+				else { // dont have to file yet
+					//taxableLimit = Math.min(StudentFileMargin, taxableLimit);
+				}
 
-			// Limit to the amount actually available
-			taxableLimit = Math.min(grossLimit, taxableLimit); // Exceeding this will trigger kiddie tax
-
-			if (ScholarTaxable.value > taxableLimit) {
-				if (! Optimizing) alert("CAUTION!\x0DYou are exceeding the taxable amount to your dependent child that makes the taxpayer \"kiddie tax\" come into effect for the taxpayer. You don't want to do that.");
-				ScholarTaxable.value = "";
+				if (ScholarTaxable.value > taxableLimit) {
+					if (! Optimizing) alert("CAUTION!\x0DYou are exceeding the taxable amount to your dependent child that makes the taxpayer \"kiddie tax\" come into effect for the taxpayer. You don't want to do that.");
+					ScholarTaxable.value = "";
+				}
 			}
 		}
 
 		// Limit taxable to dependent relative to prevent a filing requirement (thus no longer dependent)
 		RelativeViolation = false;
-		if (DependentYes.checked && StudentIsAdult && (! Disabled.checked)) { // dependent relative limit
+		if (DependentYes.checked && StudentAge24.checked && (! Disabled.checked)) { // dependent relative limit
 			// Get the student's current AGI (not quite accurate - should be total income)
-			// taxableLimit = +StudAGITax.value; // rmv in v4.6
-			taxableLimit = Math.min(+StudAGITax.value, taxableLimit); // added in v4.6
+			taxableLimit = +StudAGITax.value;
 			var exemptionLimit = _Standard[TaxYear.value].split(",")[+_Standard["DepAsRel"]];
 			if (taxableLimit > exemptionLimit) {
 				message = "The student you are designating as a dependant has an AGI";
@@ -1053,11 +859,10 @@
 		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value;
 
 		ScholarAvailableTotal.innerHTML = ScholarAvailable = +ScholarTaxFree.innerHTML + ScholarSupplemental;
-		ScholarNQMax = ScholarAvailable; // v 3.37
 		var scholarAvailableAOC = ScholarAvailable;
 		var scholarAvailableLLC = ScholarAvailable;
 		var scholarAvailableTNF = ScholarAvailable;
-		//ExpenseAllowedFlag.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
+		ExpenseAllowed.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
 
 		//-----------------------Expense calculations --------------------------------
 
@@ -1067,33 +872,28 @@
 		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = AllowedExpenses["TNF"] = 0;
 
 		// Must be at least half time to apply funds to living expenses
-		var livingAvailable = (! TimePart.checked) ? (+ScholarNQMax + +ScholarIRA.value) : 0;
-		var servicesAvailable = +ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value;
-		ScholarReduction = 0;
-		ScholarReductionMax = ScholarAvailable;
+		var housingESA = (TimeHalf.checked || TimeFull.checked) ? +ScholarESA.value : 0;
+		var housingQTP = (TimeHalf.checked || TimeFull.checked) ? +ScholarQTP.value : 0;
+		var housingIRA = (TimeHalf.checked || TimeFull.checked) ? +ScholarIRA.value : 0;
+		var housingNRH = (TimeHalf.checked || TimeFull.checked) ? +Nonrestricted.value : 0;
 
-		// VerifyExpense(Category,   AOC,   LLC,   TNF,   LIMIT
+		// VerifyExpense(Category,   AOC,   LLC,   TNF,   LIMIT)
 		VerifyExpense("Tuition",     true,  true,  true,  ScholarAvailable);
 		VerifyExpense("Fees",	     true,  true,  true,  ScholarAvailable);
 		VerifyExpense("InstBooks",   true,  true,  true,  ScholarAvailable);
 		VerifyExpense("SecondBooks", true,  false, false, ScholarAvailable);
 		VerifyExpense("Supplies",    true,  true,  true , ScholarAvailable);
-		VerifyExpense("OtherStuff",  true,  false, false, ScholarAvailable);
-		VerifyExpense("Living",      false, false, false, livingAvailable);
-		VerifyExpense("Insurance",   false, false, false, 0);
-		VerifyExpense("Services",    false, false, false, servicesAvailable);
-		VerifyExpense("Transport",   false, false, false, 0);
+		VerifyExpense("NotSupplies", true,  false, false, ScholarAvailable);
+		VerifyExpense("Services",    false, false, false, (+ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value));
 		VerifyExpense("Sports",      false, false, false, 0);
 		VerifyExpense("NonCredit",   false, false, false, 0);
-		VerifyExpense("Clerical",    false, false, false, 0);
+		VerifyExpense("Housing",     false, false, false, (housingNRH + housingESA + housingQTP + housingIRA));
+		VerifyExpense("Insurance",   false, false, false, 0);
 
 		// show the expense totals
-		NQTotalAOC.innerHTML = NonqualExpenses["AOC"];
-		NQTotalLLC.innerHTML = NonqualExpenses["LLC"];
-		NQTotalTNF.innerHTML = NonqualExpenses["TNF"];
-		NQAvailAOC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"];
-		NQAvailLLC.innerHTML = (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["LLC"]) : NonqualExpenses["LLC"];
-		NQAvailTNF.innerHTML = (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["TNF"]) : NonqualExpenses["TNF"];
+		LivingAOC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"];
+		LivingLLC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["LLC"];
+		LivingTNF.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["TNF"];
 		ExpensesAOC.innerHTML = QualExpenses["AOC"];
 		ExpensesLLC.innerHTML = QualExpenses["LLC"];
 		ExpensesTNF.innerHTML = QualExpenses["TNF"];
@@ -1104,36 +904,43 @@
 
 		// Use as much as possible to pay nonqualified expenses
 
-		// Adjust scholarship total for "manually checked" expenses
-		ScholarAvailable -= ScholarReduction;
-
 		NQExpenses["AOC"] = NQExpenses["LLC"] = NQExpenses["TNF"] = 0;
 		NQExpense("Tuition");
 		NQExpense("Fees");
 		NQExpense("InstBooks");
 		NQExpense("SecondBooks");
 		NQExpense("Supplies");
-		NQExpense("OtherStuff");
-		NQExpense("Living");
-		NQExpense("Insurance");
+		NQExpense("NotSupplies");
 		NQExpense("Services");
-		NQExpense("Transport");
 		NQExpense("Sports");
 		NQExpense("NonCredit");
-		NQExpense("Clerical");
+		NQExpense("Housing");
+		NQExpense("Insurance");
 
 		NQAvailAOC.innerHTML = NQExpenses["AOC"];
 		NQAvailLLC.innerHTML = NQExpenses["LLC"];
 		NQAvailTNF.innerHTML = NQExpenses["TNF"];
 
 		// Distribute the scholarship between q and non-q expenses
+
+		KiddieTaxFlag = false;
 		Distribute("AOC");
 		Distribute("LLC");
-		Distribute("TNF")
+		if (Distribute("TNF")) {
+			if (TaxYear < 2018) {
+				WarningMessage += "<br />Kiddie tax cannot be avoided. Results may not be correct.";
+			}
+			//else {
+			//	WarningMessage += "<br />Kiddie tax may be encountered.";
+			//	WarningMessage += " Using trust tax rates for part of the student income";
+			//	WarningMessage += " if the student must file.";
+			//}
+			KiddieTaxFlag = true;
+		}
 
 		// Warning messages for supplementary funds
 
-		var expensesSupplemental = +ExpensesAOC.innerHTML + +Services.value + +Living.value;
+		var expensesSupplemental = +ExpensesAOC.innerHTML + +Services.value + +Housing.value;
 		var CombinedWarning = true;
 		if (+ScholarESA.value > expensesSupplemental) {
 			WarningMessage += "<br />The amount used from your Coverdel ESA exceeds";
@@ -1191,6 +998,17 @@
 		if (+ScholarTaxableMax.innerHTML > 0) {
 			messageNoScholar.style.display = "none";
 			OptimizeButtons.style.display = "block";
+//			if (GapGap.checked) {
+   				if (+ExpensesAOC.innerHTML >=
+					(+QUsedAOC.innerHTML + +NQUsedAOC.innerHTML + +MaxAOC.innerHTML)) {
+				}
+   				if (+ExpensesLLC.innerHTML >=
+					(+QUsedLLC.innerHTML + +NQUsedLLC.innerHTML + +MaxLLC.innerHTML)) {
+				}
+   				if (+ExpensesTNF.innerHTML >=
+					(+QUsedTNF.innerHTML + +NQUsedTNF.innerHTML + +MaxTNF.innerHTML)) {
+					}
+//				}
 			if (+NQExpenses["AOC"] + +NQExpenses["LLC"] + +NQExpenses["TNF"] == 0) {
 				messageNoUnqualified.style.display = "list-item";
 				OptimizeButtons.style.display = "none";
@@ -1204,13 +1022,13 @@
 			NoOptimize3.style.display = "block";
 			showPerhaps = false;
 		}
-		else if (KiddieTaxFlag && (! KiddieAllow.checked) && (studentUnearned > KiddieTaxThreshold)) {
+		else if ((KiddieTaxFlag) && (+TaxLLC.innerHTML > 0)) {
 			messageNoUnqualified.style.display = "list-item";
 			OptimizeButtons.style.display = "none";
 			NoOptimize4.style.display = "block";
 			showPerhaps = false;
 		}
-		else if (Nonrestricted.value == 0) {
+		else {
 			messageNoScholar.style.display = "list-item";
 			OptimizeButtons.style.display = "none";
 			NoOptimize2.style.display = "block";
@@ -1282,28 +1100,14 @@
 			StudScholarTNF.innerHTML = +IncomeTNF.innerHTML;
 
 		// Earned income lines
-		if (isNaN(SalaryTax.value)) SalaryTax.value = "";
-		if (isNaN(BusinessTax.value)) BusinessTax.value = "";
-		SEHIAOC.innerHTML = SEHILLC.innerHTML = SEHITNF.innerHTML = SEHITax.value;
-		BusinessAOC.innerHTML = BusinessLLC.innerHTML = BusinessTNF.innerHTML = BusinessTax.value;
-		EarnedTax.value = +SalaryTax.value + +BusinessTax.value;
-		SalaryAOC.innerHTML = +SalaryTax.value + +ScholarAOC.innerHTML;
+		if (isNaN(EarnedTax.value)) EarnedTax.value = "";
 		EarnedAOC.innerHTML = +EarnedTax.value + +ScholarAOC.innerHTML;
-		SalaryLLC.innerHTML = +SalaryTax.value + +ScholarLLC.innerHTML;
 		EarnedLLC.innerHTML = +EarnedTax.value + +ScholarLLC.innerHTML;
-		SalaryTNF.innerHTML = +SalaryTax.value + +ScholarTNF.innerHTML;
 		EarnedTNF.innerHTML = +EarnedTax.value + +ScholarTNF.innerHTML;
 		if (DependentYes.checked) {
-			if (isNaN(StudSalaryTax.value)) StudSalaryTax.value = "";
-			if (isNaN(StudBusinessTax.value)) StudBusinessTax.value = "";
-			StudSEHIAOC.innerHTML = StudSEHILLC.innerHTML = StudSEHITNF.innerHTML = StudSEHITax.value;
-			StudBusinessAOC.innerHTML = StudBusinessLLC.innerHTML = StudBusinessTNF.innerHTML = StudBusinessTax.value;
-			StudEarnedTax.value = +StudSalaryTax.value + +StudBusinessTax.value;
-			StudSalaryAOC.innerHTML = +StudSalaryTax.value + +StudScholarAOC.innerHTML;
+			if (isNaN(StudEarnedTax.value)) StudEarnedTax.value = "";
 			StudEarnedAOC.innerHTML = +StudEarnedTax.value + +StudScholarAOC.innerHTML;
-			StudSalaryLLC.innerHTML = +StudSalaryTax.value + +StudScholarLLC.innerHTML;
 			StudEarnedLLC.innerHTML = +StudEarnedTax.value + +StudScholarLLC.innerHTML;
-			StudSalaryTNF.innerHTML = +StudSalaryTax.value + +StudScholarTNF.innerHTML;
 			StudEarnedTNF.innerHTML = +StudEarnedTax.value + +StudScholarTNF.innerHTML;
 		}
 
@@ -1341,41 +1145,29 @@
 		result = CalculateTax(AGITax.value, EarnedTax.value, 0, CapGainsTax.value, ClaimedYes.checked);
 			DeductionTax.innerHTML = result.deduction;
 			TaxTax.innerHTML = result.tax;
-			QBITax.innerHTML = result.qbi;
 		result = CalculateTax(AGIAOC.innerHTML, EarnedAOC.innerHTML, ScholarAOC.innerHTML, CapGainsAOC.innerHTML, false);
 			DeductionAOC.innerHTML = result.deduction;
 			TaxAOC.innerHTML = result.tax;
-			QBIAOC.innerHTML = result.qbi;
 		result = CalculateTax(AGILLC.innerHTML, EarnedLLC.innerHTML, ScholarLLC.innerHTML, CapGainsLLC.innerHTML, false);
 			DeductionLLC.innerHTML = result.deduction;
 			TaxLLC.innerHTML = result.tax;
-			QBILLC.innerHTML = result.qbi;
 		result = CalculateTax(AGITNF.innerHTML, EarnedTNF.innerHTML, ScholarTNF.innerHTML, CapGainsTNF.innerHTML, false);
 			DeductionTNF.innerHTML = result.deduction;
 			TaxTNF.innerHTML = result.tax;
-			QBITNF.innerHTML = result.qbi;
 		if (DependentYes.checked) {
 			if (isNaN(StudItemizedTax.value)) StudItemizedTax.value = "";
 			result = CalculateTax(StudAGITax.value, StudEarnedTax.value, 0, StudCapGainsTax.value, true);
 				StudDeductionTax.innerHTML = result.deduction;
 				StudTaxTax.innerHTML = result.tax;
-				StudKiddieTax = result;
-				StudQBITax.innerHTML = result.qbi;
 			result = CalculateTax(StudAGIAOC.innerHTML, StudEarnedAOC.innerHTML, StudScholarAOC.innerHTML, StudCapGainsAOC.innerHTML, true);
 				StudDeductionAOC.innerHTML = result.deduction;
 				StudTaxAOC.innerHTML = result.tax;
-				StudKiddieAOC = result;
-				StudQBIAOC.innerHTML = result.qbi;
 			result = CalculateTax(StudAGILLC.innerHTML, StudEarnedLLC.innerHTML, StudScholarLLC.innerHTML, StudCapGainsLLC.innerHTML, true);
 				StudDeductionLLC.innerHTML = result.deduction;
 				StudTaxLLC.innerHTML = result.tax;
-				StudKiddieLLC = result;
-				StudQBILLC.innerHTML = result.qbi;
 			result = CalculateTax(StudAGITNF.innerHTML, StudEarnedTNF.innerHTML, StudScholarTNF.innerHTML, StudCapGainsTNF.innerHTML, true);
 				StudDeductionTNF.innerHTML = result.deduction;
 				StudTaxTNF.innerHTML = result.tax;
-				StudKiddieTNF = result;
-				StudQBITNF.innerHTML = result.qbi;
 		}
 
 		// Determine new APTC and Net PTC amounts
@@ -1420,10 +1212,9 @@
 		result = CalculateNonrefundable("TAX", +LLCTax.value, +AGITax.value);
 			ForeignTax.innerHTML = result.Foreign;
 			CareTax.innerHTML = result.Care;
-			RefCareTax.innerHTML = result.RefCare;
 			LLCTax.value = result.Ed;
 			RetireTax.innerHTML = result.Retire;
-			CTCTax.innerHTML = +result.CTC + +result.FTC;
+			CTCTax.innerHTML = result.CTC + result.FTC;
 			ACTCTax.innerHTML = result.ACTC;
 
 		// Calculate Education and AOC nonrefundable credits for the taxpayer
@@ -1448,50 +1239,33 @@
 		}
 
 		// Calculate Earned Income Credits
-		switch (+TaxYear.value) { // Age 65 give wrong answer but unlikely to be a student anyway
-		case 2020: // Age 25 - 65
-			EICLower.innerHTML = 25;
-			EICUpper.innerHTML = "or greater than 64";
-			NoDepAge = ((! StudentAge25.checked) || TP65.checked);
-			break;
-		case 2021: // Age 19 - 99
-			EICLower.innerHTML = 19;
-			EICUpper.innerHTML = "";
-			NoDepAge = (StudentAge16.checked || StudentAge17.checked || StudentAge18.checked);
-			break;
-		default: // Age 24 - 65
-			EICLower.innerHTML = 24;
-			EICUpper.innerHTML = "or greater than 64";
-			NoDepAge = ((! (StudentAge25.checked || StudentAge24.checked)) || TP65.checked);
-		}
-		if ( DependentNo.checked && (EICDependents.value == 0) && NoDepAge ) NoEIC.checked = true;
-
+		if (isNaN(EICTax.value)) EICTax.value = "";
 		if ((NoEIC.checked) || (ClaimedYes.checked)) {
-			// Probable high investment income, NR Alien, underage, retired, or dependent
-			EICTax.innerHTML = "";
+			// Probable high investment income, NR Alien, or dependent
+			EICTax.value =
 			EICAOC.innerHTML =
 			EICLLC.innerHTML =
-			EICTNF.innerHTML = "";
+			EICTNF.innerHTML = 0;
 		}
 		else {
 			EICInvest.innerHTML = _EICRates[TaxYear.value + ':INVEST'];
-			EICTax.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				(+EarnedTax.value - BusinessSETax),
+			EICTax.value = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
+				+EarnedTax.value,
 				CapGainsTax.value, AGITax.value, TP65.checked, SP65.checked);
 			EICAOC.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedAOC.innerHTML - +ScholarAOC.innerHTML - BusinessSETax,
+				+EarnedAOC.innerHTML - +ScholarAOC.innerHTML,
 				CapGainsAOC.innerHTML, AGIAOC.innerHTML, TP65.checked, SP65.checked);
 			EICLLC.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedLLC.innerHTML - +ScholarLLC.innerHTML - BusinessSETax,
+				+EarnedLLC.innerHTML - +ScholarLLC.innerHTML,
 				CapGainsLLC.innerHTML, AGILLC.innerHTML, TP65.checked, SP65.checked);
 			EICTNF.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedTNF.innerHTML - +ScholarTNF.innerHTML - BusinessSETax,
+				+EarnedTNF.innerHTML - +ScholarTNF.innerHTML,
 				CapGainsTNF.innerHTML, AGITNF.innerHTML, TP65.checked, SP65.checked);
 		}
 
 		// Calculate the refund fields
 		var BaseRefund = Math.max(0, +TaxTax.innerHTML + +ExcessAPTCTax.innerHTML - +NRCreditTax.value)
-			- +ACTCTax.innerHTML - +AOCTax.value - +EICTax.innerHTML - +NetPTCTax.innerHTML;
+			- +ACTCTax.innerHTML - +AOCTax.value - +EICTax.value - +NetPTCTax.innerHTML;
 		TaxpayerRefundAOC0.innerHTML = 
 		TaxpayerRefundAOC.innerHTML = BaseRefund - (Math.max(0, +TaxAOC.innerHTML - +NRCreditAOC.innerHTML)
 			+ +ExcessAPTCAOC.innerHTML
@@ -1541,10 +1315,6 @@
 			ResultingExpense = +QualExpensesTNF.innerHTML;
 			MaxRefundAGI = +AGITNF.innerHTML;
 			MaxRefundTaxable = +IncomeTNF.innerHTML;
-			KiddieIncomeStandard.innerHTML = StudKiddieTNF.kiddieIncomeStandard;
-			KiddieResultStandard.innerHTML = StudKiddieTNF.kiddieResultStandard;
-			KiddieIncomeTrust.innerHTML = StudKiddieTNF.kiddieIncomeTrust;
-			KiddieResultTrust.innerHTML = StudKiddieTNF.kiddieResultTrust;
 		}
 		else RefundTNF.style.backgroundColor = "hotpink";
 
@@ -1555,10 +1325,6 @@
 			ResultingExpense = +QualExpensesLLC.innerHTML;
 			MaxRefundAGI = +AGILLC.innerHTML;
 			MaxRefundTaxable = +IncomeLLC.innerHTML;
-			KiddieIncomeStandard.innerHTML = StudKiddieLLC.kiddieIncomeStandard;
-			KiddieResultStandard.innerHTML = StudKiddieLLC.kiddieResultStandard;
-			KiddieIncomeTrust.innerHTML = StudKiddieLLC.kiddieIncomeTrust;
-			KiddieResultTrust.innerHTML = StudKiddieLLC.kiddieResultTrust;
 		}
 		else RefundLLC.style.backgroundColor = "hotpink";
 			
@@ -1569,10 +1335,6 @@
 			ResultingExpense = +QualExpensesAOC.innerHTML;
 			MaxRefundAGI = +AGIAOC.innerHTML;
 			MaxRefundTaxable = +IncomeAOC.innerHTML;
-			KiddieIncomeStandard.innerHTML = StudKiddieAOC.kiddieIncomeStandard;
-			KiddieResultStandard.innerHTML = StudKiddieAOC.kiddieResultStandard;
-			KiddieIncomeTrust.innerHTML = StudKiddieAOC.kiddieIncomeTrust;
-			KiddieResultTrust.innerHTML = StudKiddieAOC.kiddieResultTrust;
 		}
 		else RefundAOC.style.backgroundColor = "hotpink";
 
@@ -1614,7 +1376,6 @@
 		) {
 	// returns true if kiddie tax was encountered
 	//----------------------------------------------------------------------------------------
-		// saAmount is the amount of ScholarAvailable that remains to be distributed
 		var saAmount = ScholarAvailable;
 
 		// qeeLimit is the tax law limit for the type of credit
@@ -1623,86 +1384,62 @@
 			case "LLC": var qeeLimit = +MaxLLC.innerHTML; break;
 			case "TNF": var qeeLimit = +MaxTNF.innerHTML; break;
 		}
-
-		// nqntAmount is the non-qualified amount that is not taxable
-		var nqntAmount = Math.max(0, QualExpenses["AOC"] - QualExpenses[type]);
-		var nqntAmount0 = Math.min(nqntAmount, NonqualExpenses[type]);
 		
-		// Supplemental resources are not eligible for taxing due to penalties
-		var taxExpenseLimit = Math.max(0, NQExpenses[type] - ScholarSupplemental);
-		var taxLimit = Math.min(+ScholarTaxableMax.innerHTML, taxExpenseLimit);
+		var taxLimit = Math.min((+ScholarTaxableMax.innerHTML), NQExpenses[type]);
 		var taxRequested = +ScholarTaxable.value;
 		var incomeAmount = taxRequested + ScholarIncome;
 
-		// suppnqAmount is the non-qualified amount that is taxable if used
-		var suppnqAmount = nqExpenses = NQExpenses["AOC"];
-
-		// Amount distributed for expenses
-		var nqAmount = 0; // nonqualified
-		var qAmount =  0;  // qualified
-		var qExpenses = QualExpenses[type];
-
-		// Use Supplemental sources for supplemental non-qualified first
-		var suppRemainder = ScholarSupplemental;
-		var suppPay = Math.min(suppRemainder, suppnqAmount);
-		nqAmount += suppPay;
-		saAmount -= suppPay;
-		suppRemainder -= suppPay;
-		nqExpenses -= suppPay;
-
-		// Use remaining supplemental sources to pay qualified expenses
-		suppPay = Math.min(suppRemainder, QualExpenses[type]);
-		qAmount += suppPay;
-		saAmount -= suppPay;
-		suppRemainder -= suppPay;
-		qExpenses -= suppPay;
-
-		// Use remaining supplemental sources for nontaxable non-qualified
-		suppPay = Math.min(suppRemainder, nqntAmount);
-		nqAmount += suppPay;
-		saAmount -= suppPay;
-		nqntAmount -= suppPay;
-		nqExpenses -= suppPay;
-		suppRemainder -= suppPay; // hopefully will be 0
-
-		if (GapGap.checked) { 
-			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntAmount, saAmount);
-			nqntAmount -= nqntPay;
-			nqAmount += nqntPay;
-			saAmount -= nqntPay;
-			nqExpenses -= nqntPay;
-
-			// Pay any scholarship funds to nonqualified amounts
-			var nqPay = Math.min(nqExpenses, saAmount);
-			//nqAmount += nqPay;
-			saAmount -= nqPay;
-			incomeAmount += nqPay;
-			nqExpenses -= nqPay;
+		// If too much taxable was specified, add it back in to available amount
+		var taxOverage = +ScholarTaxable.value - taxLimit;
+		if (taxOverage > 0) {
+			saAmount += taxOverage;
+			incomeAmount -= taxOverage;
+			taxRequested -= taxOverage;
 		}
+
+		// Use taxable scholarships to pay non-qualified expenses
+		var tsnqAmount = taxRequested;
+
+		// Use Supplemental sources for non-qualified if possible
+		var suppnqAmount = Math.min(NQExpenses[type] - tsnqAmount, ScholarSupplemental);
+		nqAmount = tsnqAmount + suppnqAmount;
+		saAmount -= suppnqAmount;
 
 		// Pay qualified next
-		var qePayLimit = Math.max(0, QualExpenses[type] - qAmount);
-		var qPaid = Math.min(saAmount, qePayLimit);
-		qAmount += qPaid;
-		saAmount -= qPaid;
-		qExpenses -= qPaid;
+		var qAmount = Math.min(QualExpenses[type], saAmount);
+		saAmount -= qAmount;
 
-		if (GapAll.checked) { 
-			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntAmount, saAmount);
-			nqntAmount -= nqntPay;
-			nqAmount += nqntPay;
-			saAmount -= nqntPay;
-			nqExpenses -= nqntPay;
+		// remainder is taxable
+		if (saAmount > 0) {
+			// amount of supplimental not used is not taxable
+			var suppNotUsed = Math.max(0, ScholarSupplemental - NQExpenses[type] - QualExpenses[type]);
+			incomeAmount += (saAmount - suppNotUsed);
+			var nqFill = Math.min(NQExpenses[type] - nqAmount, saAmount);
+			nqAmount += nqFill;
 		}
 
-		// remainder is taxable, show it as paying nonqualified expenses
-		incomeAmount = Math.max(0, incomeAmount + saAmount - nqntAmount);
-		nqAmount += (Math.min(incomeAmount, NQExpenses["AOC"]));
+		// qeeAmount is how much additional the TP could claim as an expense
+		var qeeAmount = Math.round(Math.max(0, QualExpenses[type] - qAmount));
+
+		qeeLimit = qeeLimit - qeeAmount;
+
+		// nqeeLimit is the non-qualified amount remaining that could be taxable
+		var nqeeAmount = Math.max(0,NQExpenses[type] - nqAmount); // limited by remainder of NQ expenses
+
+		// fqeeAmount is the amount remaining given that some cannot be taxable
+		var fqeeAmount = Math.max(0, QualExpenses[type] - Scholarship.value);
+
+		// figure the gap and fill it if the option is chosen
+		var gapAmount = Math.min(qeeLimit, nqeeAmount, taxLimit - incomeAmount, fqeeAmount);
+		if (GapGap.checked & (gapAmount > 0)) {
+			nqAmount += gapAmount;
+			qAmount -= gapAmount;
+			qeeAmount += gapAmount;
+			incomeAmount += gapAmount;
+		}
 
 		// adjust for kiddie tax avoidance
-		if (KiddieTaxApplies && ((+TaxYear.value > 2019) || (! KiddieAllow.checked))) {
+		if ((+TaxYear.value < 2018) ) { // && (! document.getElementById("KiddieOverride").checked)) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -1717,36 +1454,27 @@
 		// Save the results
 		switch (type) {
 			case "AOC":
-				NQAvailAOC.innerHTML = +NQAvailAOC.innerHTML + ScholarReduction; // v3.1
-				NQNTAOC.innerHTML = nqntAmount0; // v3.37
+				NQUsedAOC.innerHTML = nqAmount;
 				QUsedAOC.innerHTML = qAmount;
-				NQUsedAOC.innerHTML = nqAmount; // v3.37
-				NontaxableAOC.innerHTML = nqntPay; // v3.37
 				QualExpensesAOC.innerHTML =
-				QualExpensesAOC2.innerHTML = Math.min(qExpenses, qeeLimit);
+				QualExpensesAOC2.innerHTML = Math.min(+MaxAOC.innerHTML, QualExpenses[type] - qAmount);
 				IncomeAOC.innerHTML = IncomeAOC2.innerHTML = incomeAmount;
 				break;
 
 			case "LLC":
-				NQAvailLLC.innerHTML = +NQAvailLLC.innerHTML + ScholarReduction; // v3.1
-				NQNTLLC.innerHTML = nqntAmount0; // v3.37
+				NQUsedLLC.innerHTML = nqAmount;
 				QUsedLLC.innerHTML = qAmount;
-				NQUsedLLC.innerHTML = nqAmount; // v3.37
-				NontaxableLLC.innerHTML = nqntPay; // v3.37
 				QualExpensesLLC.innerHTML =
-				QualExpensesLLC2.innerHTML = Math.min(qExpenses, qeeLimit);
-				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
+				QualExpensesLLC2.innerHTML = Math.min(+MaxLLC.innerHTML, QualExpenses[type] - qAmount);
+				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount;
 				break;
 
 			case "TNF":
-				NQAvailTNF.innerHTML = +NQAvailTNF.innerHTML + ScholarReduction; // v3.1
-				NQNTTNF.innerHTML = nqntAmount0; // v3.37
+				NQUsedTNF.innerHTML = nqAmount;
 				QUsedTNF.innerHTML = qAmount;
-				NQUsedTNF.innerHTML = nqAmount; // v3.37
-				NontaxableTNF.innerHTML = nqntPay; // v3.37
 				QualExpensesTNF.innerHTML =
-				QualExpensesTNF2.innerHTML = Math.min(qExpenses, qeeLimit);
-				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount; // v3.33
+				QualExpensesTNF2.innerHTML = Math.min(+MaxTNF.innerHTML, QualExpenses[type] - qAmount);
+				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount;
 				break;
 		}
 		// return true if kiddie tax was encountered
@@ -1811,57 +1539,25 @@
 		valTNF,		// qualified expense (true/false)
 		limit) {
 	//----------------------------------------------------------------------------------------
-		ExpenseCategoryAmount = document.getElementById(category);
-		ExpenseOption = document.getElementById(category + "Option");
-		qualifiedScholarshipExpense = (ExpenseOption === null); // no option checkbox
-		ExpenseAllowedColumn = document.getElementById(category + "Allowed");
+		ExpenseNameElement = document.getElementById(category);
+		ExpenseAllowedElement = document.getElementById(category + "Allowed");
 
 		// Add a check mark if funds are available for the category
-		ExpenseAmount = 0;
-		if (qualifiedScholarshipExpense) { // show fixed checkmark
-			ExpenseAllowedColumn.innerHTML = "&#x2714;";
-			ExpenseAmount = Math.round(Math.max(0,+(ExpenseCategoryAmount.value)));
-		}
-		else { // show optional checkbox on non-qualified funds
-			// show fixed checkmark if there is an unrestricted scholarship
-			AllowedElement = document.getElementById(category + "Allowed");
-			if (AllowedElement != undefined) {
-				if (+limit > 0) {
-					AllowedElement.innerHTML = "&#x2714;";
-					ExpenseOption.style.display = "none";
-					//ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit)); // v 3.37
-					ExpenseAmount = Math.round(+ExpenseCategoryAmount.value); // v 3.37
-				}
-				else {
-					AllowedElement.innerHTML = "";
-					ExpenseOption.style.display = "inline";
-				}
-			}
-			if (ExpenseOption.checked) {
-				// Checked options only reduce the scholarship amount
-				// We keep track of the amount and correct the display later by showing it available and used
-				ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, ScholarReductionMax));
-				ScholarReduction += Math.min(ExpenseAmount, ScholarReductionMax);
-				ScholarReductionMax -= ExpenseAmount;
-			}
-		}
+		ExpenseAllowedElement.innerHTML = (+limit > 0) ? "&#x2714;" : "";
+		ExpenseAmount = Math.round(Math.max(0,+(ExpenseNameElement.value)));
 
-
-		// For each category column, include as qualified or non-qualified expense
+		// For each category, include as qualified or non-qualified expense
 		for (var eni=1; eni < arguments.length-1; eni++) {
 			ProgramElement = document.getElementById(category + Program[eni-1]);
-			AllowedAmount = document.getElementById(category + "SCH");
+			AllowedElement = document.getElementById(category + "SCH");
 			if (arguments[eni]) {
-				// This is a qualified deduction expense
 				QualExpenses[Program[eni-1]] += ExpenseAmount;
-				AllowedAmount.value = +limit;
+				AllowedElement.value = limit;
 				ProgramElement.style.color = QualColor;
 			}
 			else {
-				// This is a non-qualified deduction expense
 				NonqualExpenses[Program[eni-1]] += ExpenseAmount;
-				AllowedAmount.value = Math.min(ExpenseAmount, +limit);
-				AllowedExpenses[Program[eni-1]] += AllowedAmount.value;
+				AllowedExpenses[Program[eni-1]] += (AllowedElement.value = Math.min(ExpenseAmount, limit));
 				ProgramElement.style.color = NonqualColor;
 			}
 			ProgramElement.innerHTML = ExpenseAmount;
@@ -1873,21 +1569,14 @@
 	function NQExpense(
 		category) {	// the expense category
 	//----------------------------------------------------------------------------------------
-		ExpenseAllowedColumn = document.getElementById(category + "Allowed")
-		ExpenseOption = document.getElementById(category + "Option");
-		qualifiedExpense = (ExpenseOption === null); // no optional checkbox
-		if (qualifiedExpense) {
-			if (ExpenseAllowedColumn.innerHTML === "") return;
-		}
-		else {
-			if ((! ExpenseOption.checked) && (LivingAllowed.innerHTML === "")) return;
-		}
+		ExpenseAllowedElement = document.getElementById(category + "Allowed")
+		if (ExpenseAllowedElement.innerHTML == "") return;
 
 		for (var eni=0; eni < 3; eni++) {
 			ProgramElement = document.getElementById(category + Program[eni]);
-			AllowedAmount = document.getElementById(category + "SCH");
+			AllowedElement = document.getElementById(category + "SCH");
 			if (ProgramElement.style.color == NonqualColor) {
-				var amount = NQExpenses[Program[eni]] + AllowedAmount.value;
+				var amount = NQExpenses[Program[eni]] + AllowedElement.value;
 				NQExpenses[Program[eni]] = Math.min(amount, ScholarNQMax);
 			}
 		}
@@ -1933,7 +1622,6 @@
 		result = CalculateNonrefundable("TNF", +LLCTax.value, +AGITNF.innerHTML);
 			ForeignTNF.innerHTML = result.Foreign;
 			CareTNF.innerHTML = result.Care;
-			RefCareTNF.innerHTML = result.RefCare;
 			LLCTNF.innerHTML = result.Ed;
 			RetireTNF.innerHTML = result.Retire;
 			CTCTNF.innerHTML = result.CTC + result.FTC;
@@ -1945,8 +1633,8 @@
 	// This function calculates the tax benefit for the Lifetime Learning credit
 	function CalculateLLC() {
 	//----------------------------------------------------------------------------------------
-		var testAGI = +AGILLC.innerHTML;
-		var expenses = +QualExpensesLLC.innerHTML + (5 * +LLCTax.value);
+		var testAGI = +(AGILLC.value);
+		var expenses = +(QualExpensesLLC.innerHTML) + (5 * +LLCTax.value);
 		var limits = _EdExpenseLimits[TaxYear.value + ":LLC"].split(",");
 		var limit = 0.2 * Math.min(limits[0],expenses);
 		var factor = 1;
@@ -1967,7 +1655,6 @@
 		result = CalculateNonrefundable("LLC", nonrefundable, AGILLC.innerHTML)
 			ForeignLLC.innerHTML = result.Foreign;
 			CareLLC.innerHTML = result.Care;
-			RefCareLLC.innerHTML = result.RefCare;
 			LLCLLC.innerHTML = result.Ed;
 			RetireLLC.innerHTML = result.Retire;
 			CTCLLC.innerHTML = result.CTC + result.FTC;
@@ -1980,8 +1667,8 @@
 	// This function calculates the tax benefit for the American Opportunity credit
 	function CalculateAOC() {
 	//----------------------------------------------------------------------------------------
-		var testAGI = +AGIAOC.innerHTML;
-		var expenses = +QualExpensesAOC.innerHTML;
+		var testAGI = +(AGIAOC.value);
+		var expenses = +(QualExpensesAOC.innerHTML);
 		if (expenses > 2000) expenses = 2000 + ((expenses-2000) * 0.25);
 		var limits = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",");
 		var limit = Math.min(limits[0],expenses);
@@ -2003,7 +1690,7 @@
 		// Determine refundable vs nonrefundable amounts
 		var AOCRefundable = Math.round(0.4 * available);
 		if (StudentAOCR.innerHTML == "No") AOCRefundable = 0;
-		if (DependentNo.checked && ClaimedNo.checked && KiddieTaxApplies) AOCRefundable = 0;
+		if (DependentNo.checked && ClaimedNo.checked && DependentUnderage) AOCRefundable = 0;
 		var nonrefundable = available - AOCRefundable + +LLCTax.value;
 		AOCAOC.innerHTML = AOCRefundable + +AOCTax.value;
 		AOCLLC.innerHTML = +AOCTax.value;
@@ -2012,7 +1699,6 @@
 		result = CalculateNonrefundable("AOC", nonrefundable, +AGIAOC.innerHTML)
 			ForeignAOC.innerHTML = result.Foreign;
 			CareAOC.innerHTML = result.Care;
-			RefCareAOC.innerHTML = result.RefCare;
 			LLCAOC.innerHTML = result.Ed;
 			RetireAOC.innerHTML = result.Retire;
 			CTCAOC.innerHTML = result.CTC + result.FTC;
@@ -2033,12 +1719,6 @@
 	//returns:
 	//	result.deduction
 	//	result.tax
-	//	result.qbi
-	//if student:
-	//	result.kiddieIncomeStandard
-	//	result.kiddieResultStandard
-	//	result.kiddieIncomeTrust
-	//	result.kiddieResultTrust
 	//----------------------------------------------------------------------------------------
 
 		var result = {};
@@ -2056,7 +1736,6 @@
 
 		// Get the standard deduction amount
 		var fsv = (isStudent) ? StudentFilingStatus.value : FilingStatus.value;
-		//var cte = (isStudent) ? (+ctEarned - +ctScholar) : ctEarned; // removed 3.20
 		result.deduction = _StandardDeduction(TaxYear.value, fsv,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, isStudent, ctEarned);
 
@@ -2076,65 +1755,27 @@
 
 		// Take the largest deduction
 		result.deduction = Math.max(result.deduction, itemizedDeduction);
-		var taxable = Math.max(0, ctAGI - exemptionAmount - (result.deduction));
-
-		// Add QBI if present
-		QBIAmount = 0;
-		result.qbi = 0;
-		if (_LineNo[TaxYear.value + ":QBI"]) {
-			SEIncome = (isStudent) ? (+StudBusinessTax.value - StudBusinessSETax - +StudSEHITax.value) :
-				(+BusinessTax.value - BusinessSETax - +SEHITax.value);
-			result.qbi = _QBICalc(TaxYear.value, FilingStatus.value, +SEIncome, 0, 0, taxable);
-			//_QBICalc (	// Qualified Business Income deduction
-			//taxYear,	// tax year tables to use
-			//filingStatus,	// SNG, MFJ, WID, MFS, HOH
-			//SEIncome,	// Self-employment income less s-e adjustments
-			//nonTaxCG,	// Qualified dividends + capital gains
-			//QBIDividends,	// Section 199A dividend
-			//income)	// Taxable income amount (before QBI deduction)
-		}
-		taxable = Math.max(0, taxable - +result.qbi);
 
 		// Look up the tax
+		var taxable = Math.max(0, ctAGI - exemptionAmount - result.deduction);
 
-		// Kiddie tax in scope in 2019 when rules changed
-		if ((TaxYear.value == 2019) && isStudent && KiddieAllow.checked) {
+		if ((TaxYear.value > 2017) && (isStudent)) {
 			// Definition of earned/unearned is different if kiddie tax applies
 			ctEarned = Math.max(0, ctEarned - ctScholar);
 			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
 
 			// Is student subject to kiddie tax
-			Form8615P1L3 = Math.max( 0 , unearnedIncome - KiddieTaxThreshold);
-			Form8615P1L5 = Math.min( taxable , Form8615P1L3);
-			if ((Form8615P1L3 > 0) && (Form8615P1L5 > 0)) { // Yes
-				Form8615P1L6 = Math.max( 0 , taxable - Form8615P1L5);
+			if (unearnedIncome > KiddieTaxThreshold) { // Yes
 
 				// Use normal rate for taxable earned income and Kiddie Tax threshold amount
 				var standardTax = 0;
 				var trustTax = 0;
 				var kiddieStandard = Math.min(KiddieTaxThreshold, unearnedIncome);
-				if (KiddieTaxApplies) {
-					if (StudCapGainsTax.value) {
-						trustTaxable = Math.max(0, taxable);
-						standardTaxable = 0;
-					}
-					else {
-						trustTaxable = Math.max(0, unearnedIncome - kiddieStandard);
-						standardTaxable = Math.max(0, ctEarned + kiddieStandard - result.deduction);
-					}
-				}
-				else {
-					result.tax = _TaxLookup(TaxYear.value, StudentFilingStatus.value, taxable, ctCG, true)["tax"];
-					result.kiddieResultStandard =
-					result.kiddieIncomeStandard =
-					result.kiddieIncomeTrust =
-					result.kiddieResultTrust = 0;
-					return(result);
-				}
+				var trustTaxable = Math.max(0, unearnedIncome - kiddieStandard);
+				var standardTaxable = ctEarned + kiddieStandard - result.deduction;
 
 				if (standardTaxable > 0) { // get the tax amount at the standard rate
-					stdCG.style.display = "none";
-					standardTax = standardTaxable * _TaxRates[TaxYear.value + ":PCT"].split(",")[0];
+					standardTax = _TaxLookup(TaxYear.value, fsv, standardTaxable, 0, false);
 				}
 				else { // Unused deductions go to reduce the trustTaxable
 					trustTaxable += standardTaxable;
@@ -2145,7 +1786,7 @@
 				// Use TRUST rate for unearned over the kiddie tax threshhold
 				if (trustTaxable > 0) { // get the tax amount
 					truCG.style.display = (+ctCG > 0) ? "inline" : "none";
-					trustTax = _TaxLookup(TaxYear.value, "TRUST", trustTaxable, +ctCG, true, Form8615P1L6)["tax"];
+					trustTax = _TaxLookup(TaxYear.value, "TRUST", trustTaxable, +ctCG, true);
 				}
 				else {
 					trustTaxable = 0;
@@ -2153,12 +1794,12 @@
 				}
 
 				// Add the two tax rate results and return
-				result.kiddieIncomeStandard = standardTaxable;
-				result.kiddieResultStandard = standardTax;
-				result.kiddieIncomeTrust = trustTaxable;
-				result.kiddieResultTrust = trustTax;
 				result.tax = standardTax + trustTax;
-				if (KiddieTaxApplies && KiddieAllow.checked && (standardTaxable + trustTaxable)) {
+				if (standardTaxable + trustTaxable) {
+					KiddieIncomeStandard.innerHTML = standardTaxable;
+					KiddieResultStandard.innerHTML = standardTax;
+					KiddieIncomeTrust.innerHTML = trustTaxable;
+					KiddieResultTrust.innerHTML = trustTax;
 					KiddieResults.style.display = "block";
 				}
 				else {
@@ -2174,7 +1815,7 @@
 			var filingStatus = FilingStatus.value;
 		}
 
-		result.tax = _TaxLookup(TaxYear.value, filingStatus, taxable, ctCG, true)["tax"];
+		result.tax = _TaxLookup(TaxYear.value, filingStatus, taxable, ctCG, true);
 
 		KiddieIncomeStandard.innerHTML =
 		KiddieResultStandard.innerHTML =
@@ -2216,20 +1857,17 @@
 		if (FPLPercent > 999) FPLPercent = 999;
 		FPLPercent = Math.floor(FPLPercent); // truncate rather than round since 2015
 
-		if (FPLPercent < 133) { result.APTC = +PTCAdvance; return (result) } // not eligible for PTC
-		if (FPLPercent > 400) { result.APTC = +PTCAdvance; return (result) } // must pay it all back
+		if (FPLPercent < 133) { result.APTC = PTCAdvance; return (result) } // not eligible for PTC
+		if (FPLPercent > 400) { result.APTC = PTCAdvance; return (result) } // must pay it all back
 
 		var PTCFactor = 0;
 		var PTCRange = 0;
 		var PTCData = [];
-		while (PTCRange < 400) {
+		while ((PTCFactor == 0) && (PTCRange < 400)){
 			PTCRangeIndex = TaxYear.value + ":" + PTCRange;
 			PTCData = _PTCFactorVal[PTCRangeIndex].split(",");
-			if (PTCData[0] > FPLPercent) { // found it
-				PTCFactor = +PTCData[1];
-				break;
-			}
-			else PTCRange = +PTCData[0]; // keep looking
+			if (PTCData[0] > FPLPercent) PTCFactor = +PTCData[1];
+			else PTCRange = +PTCData[0];
 		}
 		if (PTCRange == 400) {
 			PTCFactor = +PTCData[2];
@@ -2241,17 +1879,13 @@
 		PTCFactor = Math.round(10000 * PTCFactor) / 10000; // round to 4 decimal places
 
 		var PTCContribution = testAGI * PTCFactor;
-		var PTCMaximum = Math.round(Math.min(+PTCPremium, Math.max(0, (+PTC_SLCSP - PTCContribution))));
+		var PTCMaximum = Math.round(Math.min(PTCPremium, Math.max(0, (PTC_SLCSP - PTCContribution))));
 		if (PTCMonths != 12) {
 			PTCMaximum = PTCMonths * Math.round(PTCMaximum / 12);
 		}
 		result.PTCNet = Math.max(0,(PTCMaximum - PTCAdvance));
 		var PTCExcessMax = PTCData[3] * ((FilingStatus.value == "MFS") ? 1 : 2);
 		result.APTC = Math.round(Math.min(PTCExcessMax, Math.max(0, (PTCAdvance - PTCMaximum))));
-
-		// APTC does not need to be repaid in 2020
-		if (+TaxYear.value == 2020) result.APTC = 0;
-
 		return (result);
 	}
 
@@ -2262,11 +1896,8 @@
 		) {
 	// returns: credit amount
 	//----------------------------------------------------------------------------------------
-		var allowed = AllowedCareTax.value;
-		return Math.round(_ChildCare(TaxYear.value, FilingStatus.value, testAGI, allowed, allowed, allowed));
-
-		//var Carefactor = Math.max(0.2, 0.35 - Math.max(0, Math.floor((+testAGI-13001)/2000)/100));
-		//return Math.round(AllowedCareTax.value * Carefactor);
+		var Carefactor = Math.max(0.2, 0.35 - Math.max(0, Math.floor((+testAGI-13001)/2000)/100));
+		return Math.round(AllowedCareTax.value * Carefactor);
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -2281,7 +1912,6 @@
 		var result = [];
 			result.Foreign = 0;
 			result.Care = 0;
-			result.RefCare = 0;
 			result.Ed = 0;
 			result.Retire = 0;
 			result.CTC = 0;
@@ -2304,14 +1934,10 @@
 		// Calculate Child Care Credit
 		var iCare = 0;
 		switch (type) {
-		case "TAX": iCare = CalculateCareCredit(+AGITax.value); break;
-		case "AOC": iCare = CalculateCareCredit(+AGIAOC.innerHTML); break;
-		case "LLC": iCare = CalculateCareCredit(+AGILLC.innerHTML); break;
-		case "TNF": iCare = CalculateCareCredit(+AGITNF.innerHTML); break;
-		}
-		if (TaxYear.value == 2021) {
-			result.RefCare = iCare;
-			iCare = 0;
+			case "TAX": iCare = CalculateCareCredit(+AGITax.value); break;
+			case "AOC": iCare = CalculateCareCredit(+AGIAOC.innerHTML); break;
+			case "LLC": iCare = CalculateCareCredit(+AGILLC.innerHTML); break;
+			case "TNF": iCare = CalculateCareCredit(+AGITNF.innerHTML); break;
 		}
 
 		// Space for care credits
@@ -2327,7 +1953,7 @@
 		// Calculated retirement savings credits
 		var rsv = +MaxRetireTax.value;
 		// See if increased AGI eliminated the credit
-		rsv = _Retirement(TaxYear.value, FilingStatus.value, testAGI, rsv, 0);
+		if (testAGI > _RetireLimits[TaxYear.value].split(',')[+_RetireLimits[FilingStatus.value]]) rsv = 0;
 
 		// Space for retirement savings credit
 		result.Retire = Math.min(rsv, availableNRC);
@@ -2342,13 +1968,12 @@
 			case "LLC": earnedCTC = EarnedLLC.innerHTML - +ScholarLLC.innerHTML; break;
 			case "TNF": earnedCTC = EarnedTNF.innerHTML - +ScholarTNF.innerHTML; break;
 		}
-		CTCAmount = FTCAmount = ACTCAmount = 0;
+		CTCAmount = FTCAmount = ACTCLimit = 0;
 		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value,
-			+CTCDependents.value + (+Dependents0.value * 0.01),
-			Dependents.value, earnedCTC, testAGI, 0);
-		CTCAmount = (TaxYear.value == "2021") ? 0 : +CTCresult[0] ;
+			CTCDependents.value, Dependents.value, earnedCTC, testAGI, 0);
+		CTCAmount = +CTCresult[0];
 		FTCAmount = +CTCresult[1];
-		ACTCAmount = +CTCresult[2];
+		ACTCLimit = +CTCresult[2];
 
 		// Current assumption is that FTC is used before CTC
 		// Space for FTC
@@ -2360,7 +1985,7 @@
 		result.CTC = Math.min(CTCAmount, availableNRC);
 		availableNRC -= result.CTC;
 		result.NRC += result.CTC;
-		result.ACTC = (TaxYear.value == "2021") ? ACTCAmount : result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCAmount));
+		result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCLimit));
 
 		// Space for Energy and Sched R amounts?
 		if (type == "TAX") {
@@ -2382,75 +2007,91 @@
 	// This function attempts to bracket the optimum refund to the taxpayer
 	function Optimize() {
 	//----------------------------------------------------------------------------------------
-		DataviewDebug = false;
 		if (NRCreditCheck()) {
-			Optimizing = false;
 			Optimized = false;
-			return;
+			return(1);
 		}
 		Optimizing = true;
 		GapAll.checked = true;
 		ScholarTaxable.value = 0;
 		BudgetChange();
-		var low = 0;
-		var high = (ScholarTaxableLimitYes.checked) ? +ScholarTaxableLimit.value : +ScholarTaxableMax.innerHTML;
-		if (high == low) {
-			Optimizing = false;
-			Optimized = false;
-			return;
-		}
-		if (DataviewDebug) {
-			var Dataview = window.open("","","menubar=1, scrollbars=1, resizable=1");
-			Dataview.document.writeln("<!DOCTYPE html>");
-			Dataview.document.writeln("<html>");
-			Dataview.document.writeln("<body>");
-		}
+		PlotLowSch = low = 0;
+		PlotHighSch = high = (ScholarTaxableLimitYes.checked) ? +ScholarTaxableLimit.value : +ScholarTaxableMax.innerHTML;
+		if (PlotHighSch == PlotLowSch) return;
+		var Plotview = window.open("","","width=" + (OptMarginL+PlotWidth+PlotMarginR) +", height=" + (PlotMarginT+OptHeight+PlotMarginB) + ", resizable=no");
+		Plotview.document.writeln("<!DOCTYPE html>");
+		Plotview.document.writeln("<html>");
+		Plotview.document.writeln("<body>");
+
+		// Create the canvas
+		var PlotCenterH = OptMarginL + PlotWidth/2;
+		var PlotCenterV = PlotMarginT + OptHeight/2;
+		var canvasline ="<canvas id='canvas' width='" + (OptMarginL+PlotWidth+PlotMarginR) + "px' height='" + (PlotMarginT+OptHeight+PlotMarginB) + "px'>";
+		Plotview.document.writeln(canvasline);
+		var canvas = Plotview.document.getElementById('canvas');
+		PlotCanv = canvas.getContext('2d');
+	
+		// Draw a boundary box
+		PlotCanv.lineWidth = 3;
+		PlotCanv.strokeRect(OptMarginL, PlotMarginT, PlotWidth, OptHeight);
+		PlotCanv.font = "18pt sans-serif";
+		PlotCanv.textAlign = "center";
+		PlotCanv.fillText("Optimizing", PlotCenterH, PlotCenterV - 50);
+		PlotCanv.lineWidth = 1;
+
+		// Add a progress bar
+		var ProgBarWidth = 600;
+		var ProgBarHeight = 20;
+		var PlotprogH0 = PlotCenterH - ProgBarWidth/2;
+		var PlotprogV0 = PlotCenterV - ProgBarHeight/2;
+		PlotCanv.fillStyle = "yellow";
+		PlotCanv.fillRect(PlotprogH0,PlotprogV0,ProgBarWidth,ProgBarHeight);
 
 		// Start optimizing
 		var originalRefund = 0; // was MaxRefund
 		var optimizedRefund = -100000;
 		var optimizedTaxable = 0;
-		var steps = 30;
+		var steps = 20;
 		var stepsize = Math.min(100,Math.round((high - low) / steps));
-		if (DataviewDebug) {
-			Dataview.document.writeln("<table><tr><th>low</th><th>high</th><th>stepsize</th><th>refund</th><th>opt refund</th></tr>");
-		}
+		var Plotfactor = ProgBarWidth / (high - low);
 		
 		while (stepsize >= 1) {
-			if (DataviewDebug) {
-				Dataview.document.writeln("<tr><td>" + low + "</td><td>" + high + "</td><td>" + stepsize + "</td><td>" + MaxRefund + "</td><td>" + optimizedRefund + "</tr>");
-			}
 
 			for (var Testval = low; Testval <= high; Testval += stepsize) {
+				PlotCanv.fillStyle = "lightgreen";
+				Plotstepsize = stepsize * Plotfactor;
+				PlotprogLoc0 = PlotprogH0 + (Testval * Plotfactor) - 1;
+				PlotprogBar = (stepsize * Plotfactor) + 2;
+				PlotprogLoc1 = PlotprogLoc0 + Plotstepsize;
+				// Last plot overshoots the plot area, so don't show it.'
+				if (Testval != high) PlotCanv.fillRect(PlotprogLoc0,PlotprogV0,PlotprogBar,ProgBarHeight);
+
 				ScholarTaxable.value = Testval; 
 				BudgetChange();
 
-				if ((stepsize == 1) && DataviewDebug) {
-					Dataview.document.writeln("<tr><td>" + Testval + "</td><td></td><td></td><td>" + MaxRefund + "</td><td>" + optimizedRefund + "</td></tr>");
-				}
-
 				if (MaxRefund > optimizedRefund) {
-					if (DataviewDebug) {
-						Dataview.document.writeln("<tr><td>" + Testval + "</td><td></td><td></td><td>" + MaxRefund + "></td><td>" + optimizedRefund + "</td></tr>");
-					}
 					optimizedRefund = MaxRefund;
 					optimizedTaxable = Testval;
+
+					PlotCanv.fillStyle = "black";
+					PlotprogBar = PlotprogLoc0 - PlotprogH0 - Plotfactor;
+					PlotCanv.fillRect(PlotprogH0, PlotprogV0, PlotprogBar, ProgBarHeight);
+					PlotprogBar = PlotprogH0 + ProgBarWidth - PlotprogLoc1;
+					PlotCanv.fillRect(PlotprogLoc1, PlotprogV0, PlotprogBar, ProgBarHeight);
 				}
 			}
 
 			low = Math.round(Math.max(low, optimizedTaxable - (5 * stepsize)));
 			high = Math.round(Math.min(optimizedTaxable + (5 * stepsize), high));
 			stepsize = (stepsize > 1 && stepsize < 5) ? 1 : Math.round(stepsize/10);
-			optimizedRefund = -1000000;
-		}
-		if (DataviewDebug) {
-			Dataview.document.writeln("<tr><td>" + Testval + "</td><td></td><td></td><td>" + MaxRefund + "</td><td>" + optimizedRefund + "</td></tr>");
-			Dataview.document.writeln("</table>");
+			PlotCanv.fillStyle = "black";
+			PlotCanv.fillRect(PlotprogH0,PlotprogV0,ProgBarWidth,ProgBarHeight);
 		}
 		ScholarTaxable.value = Math.round(optimizedTaxable);
 		BudgetChange();
 		Optimizing = false;
 		Optimized = true;
+		Plotview.close();
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -2546,7 +2187,6 @@
 		var optimizedRefund = originalRefund;
 		var optimizedTaxable = 0;
 		var stepsize = 10;
-		//low = 7730; high = 8000; stepsize = 1; 
 		for (var testval = low; testval <= high; testval += stepsize) {
 			ScholarTaxable.value = testval; 
 			BudgetChange();
@@ -2714,13 +2354,9 @@
 
 		// Add the data
 		var eligible = [StudentAOC.innerHTML == "Yes", StudentLLC.innerHTML == "Yes", StudentTNF.innerHTML == "Yes"]
-		var progColor = ["blue", "orange", "red"];
-		var progCode = ["AOC", "LLC", "TNF"];
-
+		var progColor = ["blue","orange","red"];
 		for (var progIdx = 0; progIdx < 3; progIdx++) {
 			if (eligible[progIdx]) {
-				// nqntAmount is the non-qualified amount that is not taxable - shift the curve
-				var nqntAmount = Math.max(0, QualExpenses["AOC"] - QualExpenses[progCode[progIdx]]);
 				PlotCanv.beginPath();
 				PlotCanv.strokeStyle = progColor[progIdx];
 				PlotCanv.fillStyle = progColor[progIdx];
@@ -2729,7 +2365,7 @@
 					xy = plotProgram[iData].split(",");
 					x0 = "";
 					y0 = (iData == 0) ? xy[progIdx + 2] : "";
-					x1 = Math.max(0, xy[0] - nqntAmount);
+					x1 = xy[0];
 					AddPlot(x0, y0, x1, xy[progIdx + 2]);
 				}
 			}
@@ -2817,13 +2453,15 @@
 	// This function checks for an entry in the NonRefundable credit entry on the optimizer
 	function NRCreditCheck() {
 	//----------------------------------------------------------------------------------------
-		if (NRCreditTax.value === "") {
-			alert('Please enter a value in the taxpayer\'s "Total Nonrefundable Credits" line');
-			return(1);
-		}
-		else if (+NRCreditTax.value > +TaxTax.innerHTML) {
-			alert('"Taxpayer\'s Total Nonrefundable Credits" cannot be more than the tax amount');
-			return(1);
+		if ((+FTCTax.value >  0)
+		|| (+AllowedCareTax.value > 0)
+		|| (+LLCTax.value > 0)
+		|| (+MaxRetireTax.value > 0)
+	 	|| (+CTCTax.innerHTML > 0)) {
+			if (NRCreditTax.value === "") {
+				alert('Please enter a value in the taxpayer\'s "Total Nonrefundable Credits" line'); return(1); }
+			if (+NRCreditTax.value > +TaxTax.innerHTML) {
+				alert('"Taxpayer\'s Total Nonrefundable Credits" cannot be more than the tax amount'); return(1); }
 		}
 		else return(0);
 	}
@@ -2944,11 +2582,10 @@
 	columns because the fields used rely on certain TaxSlayer calculations.
 	The results are the estimated amount of change to the taxpayer&apos;s refund (or tax owed) for each option
 	based on the original return figures.
-	<br />For years other than 2018 and 2019, the optimizer prevents activating the &quot;Kiddie Tax&quot;
+	<br />For years prior to 2018, the optimizer prevents activating the &quot;Kiddie Tax&quot;
 	due to the complexity and interactions with the parent&apos;s tax return. In 2018, that complexity was
 	alleviated by using the Trust tax rates when the Kiddie Tax threshhold was crossed, making the calculation more
-	straight-forward but the change was rescinded for tax year 2020.
-	2018 and 2019 may be amended to use the original method (but is OUT OF SCOPE).
+	straight-forward.
 	<br />
 	<br />Clicking the optimize button below the results modifies the amount of scholarship amount to be made taxable,
 	seeking a better result.
@@ -2957,17 +2594,17 @@
 	<ul>
 		<li>Effect of taxable amount of Social Security due to change in income and it&apos;s ripple effect with other items.</li>
 		<li>Significant 1250 gain and 28% gain dividend income (doesn&apos;t account for different tax rates)</li>
-		<li>QBI calculations for 199A dividends
 		<li>Significant tax-free interest relative to other investment income</li>
-		<li>Education deductible on Schedule C</li>
+		<li>Education deductible on Schedule C - see the
+			<a href="http://docs.cotaxaide.org/Education Cookbook.pdf" target="_blank">Education Cookbook</a></li>
 		<li>Effect of an IRA deduction due to change in income</li>
 		<li>Effect of Student loan interest deduction due to change in income</li>
-		<li>Education deductible on Schedule A</li>
-		<li>Charitable deductions for taxpayers not itemizing</li>
+		<li>Education deductible on Schedule A - see the
+			<a href="http://docs.cotaxaide.org/Education Cookbook.pdf" target="_blank">Education Cookbook</a></li>
 		<li>Employer education assistance benefits</li>
 		<li>Reduction of exemption amount for high income taxpayers</li>
 		<li>Employer provided child care benefits, carryovers, prior year expenses</li>
-		<li>Schedule R reduction of the education credit</li>
+		<li>Shared Responsibility Payment required of the taxpayer</li>
 		<li>Income deductions on the student&apos;s return when the student is a dependent of the TP</li>
 		<li>Unearned income other than that calculated here for a dependent subject to the kiddie tax</li>
 		<li>Effect on state returns</li>
@@ -2975,21 +2612,21 @@
 	As an example of how the optimizer works, try the following:
 	<div class="example">
 		<ul class="circle">
-			<li>In tax year 2022, George is a 25 year old taxpayer attending
+			<li>In tax year 2015, George is a 25 year old taxpayer attending
 			a school half time that qualifies for the American opportunity credit.
-			He and his wife Sally have one child and earned income of $24,500 for the year.</li>
-			<li>George has received an unrestricted grant of $4,000, 
-			used to pay for his $4,000 tuition and $500 for books.</li>
+			He and his wife Sally have one child and they earned income of $21,000 for the year.</li>
+			<li>George has received an unrestricted grant of $7,000,
+			used to pay for his $3,000 tuition and $1,000 for books which he bought second hand
+			and $8,000 that they used for living expenses.</li>
 		</ul>
 	</div>
 	<ul>
-		<li>Without optimizing, the entire grant is used to pay for the tuition, they owe no tax
-		and they will receive a refundable $200 for AOC, $1500 for ACTC and $3,733 earned income credit.
-		Sounds pretty good, right?</li>
-		<li>But if you optimize, using $4,000 as living expenses,
-		you will find that they will now have to pay a little tax by declaring $1,794 taxable, 
-		but will gain an additional $828 by receiving $830 in AOC and $39 education credit, which offsets
-		the resulting tax and the decrease (-$2) in the earned income credit.
+		<li>Without optimizing, you will find that they will lose $63 in earned income credit
+		due to the increased AGI ($3,000 for the housing expense is taxable) and since his expenses were paid,
+		there&apos;s no AOC.</li>
+		<li>When you do optimize, you will find that they will have to pay a little more
+		tax by declaring $4,999 taxable, 
+		but will gain $425 by receiving $939 in AOC which offsets an additional decrease in the earned income credit and then some.
 		To see what&apos;s happening, <button class="noPrint" onclick="ShowExample(true)">click here</button>.</li>
 		<span id="exampleGraph" class="noPrint center">
 				<button onclick="ShowExample(false)">Click to close graph</button>
@@ -3019,19 +2656,19 @@
 				title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td></tr>
 		<tr title="Select the tax year being prepared and the location of the taxpayer's home.">
 			<td>Tax Year:</td>
-			<td><select id="TaxYear" onchange="ChangeInfo(this.id);"></select></td>
-			<td colspan="2"><span id="FilingIn">Filing in:
+			<td><select id="TaxYear"></select></td>
+			<td id="FilingIn" colspan="2">Filing in:
 				<input name="Region" id="RegionUS" type="radio" value="US" checked="checked" />48 states&nbsp;&nbsp;
 				<input name="Region" id="RegionAlaska" type="radio" value="Alaska" />Alaska&nbsp;&nbsp;
-				<input name="Region" id="RegionHawaii" type="radio" value="Hawaii" />Hawaii</span></td></tr>
+				<input name="Region" id="RegionHawaii" type="radio" value="Hawaii" />Hawaii </td></tr>
 		<tr title="Select the taxpayer's filing status.">
 			<td>Filing Status:</td>
 			<td><select id="FilingStatus">
 				<option value="SNG">Single</option>
-				<option value="MFJ" selected>MFJ</option>
+				<option value="MFJ">MFJ</option>
 				<option value="MFS">MFS</option>
 				<option value="HOH">HOH</option>
-				<option value="WID"><span id="TPWIDQSS">Widow(er)</span></option>
+				<option value="WID">Widow(er)</option>
 				</select>
 				<br />
 				<span id="MFJRefundShow"
@@ -3050,17 +2687,13 @@
 				<input id="SPNRA" type="checkbox" title="Taxpayer is a non-resident alien for tax purposes" /> Non-res Alien </td></tr>
 		<tr title="Number of dependents in the tax family. Do not include those you could claim but did not claim.">
 			<td>Total dependents claimed:</td>
-			<td><input id="Dependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
-		<tr title="Number of dependents who qualify for Child Tax Credit.">
+			<td><input id="Dependents" value="0" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
 		<tr title="Number of dependents who qualify for Earned Income Credit.">
-			<td>Dependents qualified for EIC:</td>
-			<td><input id="EICDependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
-		<tr title="Number of dependents who qualify for Child Tax Credit (including those under age 6).">
-			<td>Dependents qualified for CTC:</td>
-			<td><input id="CTCDependents" value="0" type="number" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
-		<tr id="Dependents0Row" title="Number of dependents who are under age 6 and are eligible for CTC.">
-			<td>&nbsp;&nbsp;&nbsp;Dependents under age 6:</td>
-			<td colspan="2"><input id="Dependents0" value="0" type="number" onkeyup="ChangeInfo(this.id)" /> (if qualified for CTC)</td><td></td></tr>
+			<td>Dependents claimed for EIC:</td>
+			<td><input id="EICDependents" value="0" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
+		<tr title="Number of dependents who qualify for Child Tax Credit.">
+			<td>Dependents claimed for CTC:</td>
+			<td><input id="CTCDependents" value="0" onkeyup="ChangeInfo(this.id)" /></td><td></td><td></td></tr>
 </table></div>
 	<br />
 	<hr />
@@ -3074,12 +2707,12 @@
 				<input name="Dependent" id="DependentNo" type="radio" onclick="ChangeInfo(this.id)" /> TP or SP </td> </tr>
 		<tr title="Is the TP or SP a parent of this dependent.">
 			<td><span class="DependentQuestion">&nbsp;&nbsp;Is the TP or SP a parent of this dependent?</span></td>
-			<td><span id="TPisParentRow" class="DependentQuestion">
+			<td><span class="DependentQuestion">
 				<input name="TPisParent" id="TPisParentYes" type="radio" checked /> Yes 
 				<input name="TPisParent" id="TPisParentNo" type="radio" /> No</span></td></tr>
 		<tr title="Was at least one of the dependent's parents alive at the end of the tax year.">
 			<td><span class="NoParentQuestion">&nbsp;&nbsp;&nbsp;&nbsp;Was at least one parent alive at the end of the tax year?</span></td>
-			<td><span id="ParentAlive2Row" class="NoParentQuestion">
+			<td><span class="NoParentQuestion">
 				<input name="ParentAlive2" id="ParentAlive2Yes" type="radio" checked /> Yes 
 				<input name="ParentAlive2" id="ParentAlive2No" type="radio" /> No</span></td></tr>
 		<tr title="What was the student's age at the end of the tax year.">
@@ -3089,8 +2722,7 @@
 				<input name="StudentAge" id="StudentAge17" type="radio" /> 17
 				<input name="StudentAge" id="StudentAge18" type="radio" /> 18 
 				<input name="StudentAge" id="StudentAge19" type="radio" checked /> 19-23 
-				<input name="StudentAge" id="StudentAge24" type="radio" > 24
-				<input name="StudentAge" id="StudentAge25" type="radio" > 25+
+				<input name="StudentAge" id="StudentAge24" type="radio" > 24+
 				<input id="Disabled" type="checkbox" /> Disabled </td> </tr>
 		<tr title="If the student files a return, what would be the the student's filing status?">
 			<td><span class="DependentQuestion">&nbsp;&nbsp;What is the dependent student&apos;s filing status?</span></td>
@@ -3099,7 +2731,7 @@
 					<option value="SNG">Single</option>
 					<option value="MFJ">MFJ</option>
 					<option value="MFS">MFS</option>
-					<option value="WID"><span id="STWIDQSS">Widow(er)</span></option>
+					<option value="WID">Widow(er)</option>
 					</select>
 					<span id="StudentMFJRefundShow"
 						title="FIling MFJ only for return of withholding or estimated tax payments.">
@@ -3120,13 +2752,12 @@
 			<td><span class="ClaimedQuestion">
 				<input name="Claimed" id="ClaimedYes" type="radio" /> Yes 
 				<input name="Claimed" id="ClaimedNo" type="radio" checked="checked" /> No</span></td></tr>
-		<tr title="Check &quot;No&quot; if the student&apos;s earned income was one-half or more of their support. (Note: the earned income may not have been used for their support but added to savings, etc.)">
-			<td><span class="AOCRefundQuestions">&nbsp;&nbsp;&nbsp;&nbsp;Was the student&apos;s earned income less than one-half of their support?</span></td>
+		<tr title="Was your earned income less than one-half of your support.">
+			<td><span class="AOCRefundQuestions">&nbsp;&nbsp;&nbsp;&nbsp;Was your earned income less than one-half of your support?</span></td>
 			<td><span class="AOCRefundQuestions">
 				<input name="IncomeLess" id="IncomeLessYes" type="radio" checked /> Yes 
 				<input name="IncomeLess" id="IncomeLessNo" type="radio" /> No <i>(Scholarships are not considered support)</i></span></td></tr>
-		<tr id="ParentAliveRow"
-			title="Was at least one of the taxpayer&apos;s or spouse's parents alive at the end of the tax year.">
+		<tr title="Was at least one of the taxpayer's or spouse's parents alive at the end of the tax year.">
 			<td><span class="AOCRefundQuestions">&nbsp;&nbsp;&nbsp;&nbsp;Was at least one parent alive at the end of the tax year?</span></td>
 			<td><span class="AOCRefundQuestions">
 				<input name="ParentAlive" id="ParentAliveYes" type="radio" checked /> Yes 
@@ -3153,7 +2784,7 @@
 			<td>
 				<input name="FourYears" id="FourYearsYes" type="radio" /> Yes 
 				<input name="FourYears" id="FourYearsNo" type="radio" checked /> No </td> </tr>
-		<tr title="Has the American opportunity credit or the Hope scholarship credit already been claimed (by anyone) for this student for any 4 tax years.">
+		<tr title="Has the American opportunity credit or the Hope scholarship credit been claimed (by anyone) for this student for any 4 tax years before 2014.">
 			<td>Has the student used American Opportunity Credit for 4 years?</td>
 			<td>
 				<input name="FourYearsAOC" id="FourYearsAOCYes" type="radio" /> Yes 
@@ -3211,7 +2842,6 @@
 		However, a warning message is displayed if all the funds cannot be used.</li>
 		<li>Savings bond amounts are not included in the calculations because they do not affect the outcome.
 		However, a warning message is displayed if the bond amount exeeds the education expenses (for tuition and fees) after other sources have been used.</li>
-		<li>CARES act emergency financial aid grants (which may be reported on form 1098-T) are non-taxable and may be used for nonqualified expenses like living expenses. Do not include this amount when using this calculator. Do not reduce expenses paid by these grants.</li>
 		<li id="KiddieWarn">IMPORTANT: Go to the Optimizer tab and enter income information, if any, on the Student&apos;s tax return.</li>
 	</ul>
 
@@ -3243,29 +2873,26 @@
 			<td></td>
 			<td></td></tr>
 		<tr title="Amount that you were required under the conditions of the scholarship to use for other than qualified education expenses. The expenese covered by this should not be included in the education expenses in the Expense Information tab.">
-			<td class="FSindent">- Amount restricted (<u>required</u> to be spent on anything other than qualified education expenses):
+			<td class="FSindent">- Amount restricted (required to be spent on anything other than qualified education expenses):
 			<td><input id="ScholarRestricted" type="number" onchange="BudgetChange(this.id)" /> </td>
 			<td></td>
 			<td></td></tr>
-		<tr>
-			<td class="FSindent">- Amount (up to <span id="ScholarTaxableMax"></span>) that you wish use for nonqualified expenses for possible larger tax benefit:
+		<tr title="Amount that you wish to make taxable and thus increase income. This may increase the education benefits and overall tax results, depending on the TP's situation. The optimizer adjusts this field also if it is run.">
+			<td class="FSindent">- Amount (up to <span id="ScholarTaxableMax"></span>) that you wish to make taxable for possible larger tax benefit:
 				<span id="taxInfo" class="help"
 					onmouseover="taxInfoText.style.display='block';"
 					onmouseout="taxInfoText.style.display='none';">&nbsp;?&nbsp;
 				</span>
-				<span id="taxInfoText" class="helpText"
-					onmouseover="taxInfoText.style.display='block';"
-					onmouseout="taxInfoText.style.display='none';">
-					No need to enter anything here but you can manually change this amount to see how the funds are distributed
-					in the Expense Information tab. It is initially set to 0 to allow all funds to be used for qualified expenses.
-					<br /><br />The Optimizer tab changes this amount as it seeks the best amount to be taxable based on
-					interactions with other tax benefits.  You may limit the amount tested if you wish to do so in the next entry...
+				<span id="taxInfoText" class="helpText">
+					You can manually change this amount to see how the funds are distributed
+					in the Expense Information tab. It is initially set to 0 to allow all funds to be used
+					for qualified expenses.
+					<br /><br />The Optimizer tab changes this amount as it seeks the best amount
+					to be taxable based on interactions with other tax benefits.
+					You may limit the amount tested if you wish to do so in the next entry...
 				</span>
 			</td>
-			<td><input id="ScholarTaxable" type="number" onchange="BudgetChange(this.id)"
-				title="Amount that you wish to make taxable and thus increase income.
-This may increase the education benefits and overall tax results, depending on the TP's situation.
-The optimizer adjusts this field also if it is run." /></td> </tr>
+			<td><input id="ScholarTaxable" type="number" onchange="BudgetChange(this.id)" /></td> </tr>
 		<tr title="Amount to limit the taxable amount using the optimizer">
 			<td colspan="3" class="FSindent">- - -<input id="ScholarTaxableLimitYes" type="checkbox" />
 				Limit the taxable amount tested by the optimizer tab to:
@@ -3321,10 +2948,8 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 	<hr />
 
-	<span id="ExpenseAllowedFlag">&nbsp;&#x2714;&nbsp;<i>Check marks indicate expenses allowed for scholarships or other funds.</i></span>
+	<span id="ExpenseAllowed">&nbsp;&#x2714;&nbsp;<i>Check marks indicate expenses allowed for scholarships or other funds.</i></span>
 	<table id="EItable" onchange="BudgetChange()">
-		<tr>	<td><center><b>&darr;</b></center></td>
-			<td><i>Check the box if the scholarship or other funds <u>can</u> be used to pay for the expenses:</i></td></tr>
 		<tr>
 			<th></th>
 			<th>Expense category</th>
@@ -3374,31 +2999,15 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="TNFClass" id="SuppliesTNF"></td>
 			<td class="SCHClass" id="SuppliesSCH"></td></tr>
 		<tr>
-			<td><span id="OtherStuffAllowed"></span></td>
+			<td><span id="NotSuppliesAllowed"></span></td>
 			<td>Required supplies and equipment fees NOT paid to the institution:</td>
-			<td><input id="OtherStuff" type="number" /></td>
-			<td class="AOCClass" id="OtherStuffAOC"></td>
-			<td class="LLCClass" id="OtherStuffLLC"></td>
-			<td class="TNFClass" id="OtherStuffTNF"></td>
-			<td class="SCHClass" id="OtherStuffSCH"></td></tr>
-		<tr>
-			<td><input id="LivingOption" type="checkbox" /><span id="LivingAllowed"></span></td>
-			<td>Living Expenses:</td>
-			<td><input id="Living" type="number" /></td>
-			<td class="AOCClass" id="LivingAOC"></td>
-			<td class="LLCClass" id="LivingLLC"></td>
-			<td class="TNFClass" id="LivingTNF"></td>
-			<td class="SCHClass" id="LivingSCH"></td></tr>
-		<tr>
-			<td><input id="InsuranceOption" type="checkbox" /><span id="InsuranceAllowed"></span></td>
-			<td>Insurance or student health fees:</td>
-			<td><input id="Insurance" type="number" /></td>
-			<td class="AOCClass" id="InsuranceAOC"></td>
-			<td class="LLCClass" id="InsuranceLLC"></td>
-			<td class="TNFClass" id="InsuranceTNF"></td>
-			<td class="SCHClass" id="InsuranceSCH"></td></tr>
-		<tr>
-			<td><input id="ServicesOption" type="checkbox" /><span id="ServicesAllowed"></span></td>
+			<td><input id="NotSupplies" type="number" /></td>
+			<td class="AOCClass" id="NotSuppliesAOC"></td>
+			<td class="LLCClass" id="NotSuppliesLLC"></td>
+			<td class="TNFClass" id="NotSuppliesTNF"></td>
+			<td class="SCHClass" id="NotSuppliesSCH"></td></tr>
+		<tr title="The purchase of computer technology or equipment is only a qualified education expense if the computer technology or equipment is required for enrollment or attendance at an eligible institution.">
+			<td><span id="ServicesAllowed"></span></td>
 			<td>Expenses for special needs services:</td>
 			<td><input id="Services" type="number" /></td>
 			<td class="AOCClass" id="ServicesAOC"></td>
@@ -3406,15 +3015,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="TNFClass" id="ServicesTNF"></td>
 			<td class="SCHClass" id="ServicesSCH"></td></tr>
 		<tr>
-			<td><input id="TransportOption" type="checkbox" /><span id="TransportAllowed"></span></td>
-			<td>Transportation or parking fees:</td>
-			<td><input id="Transport" type="number" /></td>
-			<td class="AOCClass" id="TransportAOC"></td>
-			<td class="LLCClass" id="TransportLLC"></td>
-			<td class="TNFClass" id="TransportTNF"></td>
-			<td class="SCHClass" id="TransportSCH"></td></tr>
-		<tr>
-			<td><input id="SportsOption" type="checkbox" /><span id="SportsAllowed"></span></td>
+			<td><span id="SportsAllowed"></span></td>
 			<td>Sports:</td>
 			<td><input id="Sports" type="number" /></td>
 			<td class="AOCClass" id="SportsAOC"></td>
@@ -3422,7 +3023,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="TNFClass" id="SportsTNF"></td>
 			<td class="SCHClass" id="SportsSCH"></td></tr>
 		<tr>
-			<td><input id="NonCreditOption" type="checkbox" /><span id="NonCreditAllowed"></span></td>
+			<td><span id="NonCreditAllowed"></span></td>
 			<td>Games, hobbies, non-credit courses:</td>
 			<td><input id="NonCredit" type="number" /></td>
 			<td class="AOCClass" id="NonCreditAOC"></td>
@@ -3430,34 +3031,35 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="TNFClass" id="NonCreditTNF"></td>
 			<td class="SCHClass" id="NonCreditSCH"></td></tr>
 		<tr>
-			<td><input id="ClericalOption" type="checkbox" /><span id="ClericalAllowed"></span></td>
-			<td>Clerical or research fees or expenses:</td>
-			<td><input id="Clerical" type="number" /></td>
-			<td class="AOCClass" id="ClericalAOC"></td>
-			<td class="LLCClass" id="ClericalLLC"></td>
-			<td class="TNFClass" id="ClericalTNF"></td>
-			<td class="SCHClass" id="ClericalSCH"></td></tr>
+			<td><span id="HousingAllowed"></span></td>
+			<td>Living Expenses:</td>
+			<td><input id="Housing" type="number" /></td>
+			<td class="AOCClass" id="HousingAOC"></td>
+			<td class="LLCClass" id="HousingLLC"></td>
+			<td class="TNFClass" id="HousingTNF"></td>
+			<td class="SCHClass" id="HousingSCH"></td></tr>
+		<tr>
+			<td><span id="InsuranceAllowed"></span></td>
+			<td>Insurance, student health fees, transportation, clerical or research:</td>
+			<td><input id="Insurance" type="number" /></td>
+			<td class="AOCClass" id="InsuranceAOC"></td>
+			<td class="LLCClass" id="InsuranceLLC"></td>
+			<td class="TNFClass" id="InsuranceTNF"></td>
+			<td class="SCHClass" id="InsuranceSCH"></td></tr>
 
 		<tr><td colspan="7"><hr /></td></tr>
 
 		<tr>
 			<td></td>
-			<td>Total education expenses not allowed for the credit:</td>
-			<td id="NQTotal"></td>
-			<td class="AOCClass nqexpense" id="NQTotalAOC"></td>
-			<td class="LLCClass nqexpense" id="NQTotalLLC"></td>
-			<td class="TNFClass nqexpense" id="NQTotalTNF"></td></tr>
+			<td>Total nonqualified education expenses:</td>
+			<td id="Living"></td>
+			<td class="AOCClass nqexpense" id="LivingAOC"></td>
+			<td class="LLCClass nqexpense" id="LivingLLC"></td>
+			<td class="TNFClass nqexpense" id="LivingTNF"></td></tr>
 		<tr>
 			<td></td>
-			<td>Nonqualified education expenses that are not taxable:</td>
-			<td id="NQAvail"></td>
-			<td class="AOCClass nqexpense" id="NQNTAOC"></td>
-			<td class="LLCClass nqexpense" id="NQNTLLC"></td>
-			<td class="TNFClass nqexpense" id="NQNTTNF"></td></tr>
-		<tr>
-			<td></td>
-			<td>Funds that can be used for nonqualified expenses:</td>
-			<td id="NQAvail"></td>
+			<td>Nonqualified education expenses that can be used:</td>
+			<td id="Living"></td>
 			<td class="AOCClass nqexpense" id="NQAvailAOC"></td>
 			<td class="LLCClass nqexpense" id="NQAvailLLC"></td>
 			<td class="TNFClass nqexpense" id="NQAvailTNF"></td></tr>
@@ -3473,7 +3075,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 		<tr>
 			<td></td>
-			<td>Total education expenses allowed for the credit:</td>
+			<td>Total qualified education expenses:</td>
 			<td id="Expenses"></td>
 			<td class="AOCClass qexpense" id="ExpensesAOC"></td>
 			<td class="LLCClass qexpense" id="ExpensesLLC"></td>
@@ -3487,9 +3089,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 					onmouseover="gapInfoText.style.display='block';"
 					onmouseout="gapInfoText.style.display='none';">&nbsp;?&nbsp;
 				</span>
-				<span id="gapInfoText" class="helpText"
-					onmouseover="gapInfoText.style.display='block';"
-					onmouseout="gapInfoText.style.display='none';">
+				<span id="gapInfoText" class="helpText">
 					<u>Use maximum</u> allocates all scholarship(s) available,
 					after any designated as taxable in the funding sources tab,
 					to qualified expenses before diverting allowed amounts to nonqualified expenses.
@@ -3509,32 +3109,14 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 		<tr>
 			<td></td>
-			<td>Maximum qualified expenses allowed for the credit by tax law:</td>
+			<td>Maximum qualified expenses allowed for tax benefit by law:</td>
 			<td id="Max"></td>
 			<td class="AOCClass" id="MaxAOC"></td>
 			<td class="LLCClass" id="MaxLLC"></td>
 			<td class="TNFClass" id="MaxTNF"></td></tr>
 		<tr>
 			<td></td>
-			<td>Amount used for IRS qualified expenses but not allowed for credit:
-			<span id="ntnqInfo" class="help"
-					onmouseover="ntnqInfoText.style.display='block';"
-					onmouseout="ntnqInfoText.style.display='none';">&nbsp;?&nbsp;
-				</span>
-				<span id="ntnqInfoText" class="helpText"
-					onmouseover="ntnqInfoText.style.display='block';"
-					onmouseout="ntnqInfoText.style.display='none';">
-					Although not allowed for a benefit, some items may still
-					be an IRS qualifed expense that can be paid without being taxed.
-				</span>
-			</td>
-			<td></td>
-			<td class="AOCClass" id="NontaxableAOC">0</td>
-			<td class="LLCClass" id="NontaxableLLC">0</td>
-			<td class="TNFClass" id="NontaxableTNF">0</td></tr>
-		<tr>
-			<td></td>
-			<td class="bold">Amount of education expenses for TP&apos;s tax return:</td>
+			<td class="bold">Qualified education expenses for TP's tax return:</td>
 			<td></td>
 			<td class="AOCClass" id="QualExpensesAOC"></td>
 			<td class="LLCClass" id="QualExpensesLLC"></td>
@@ -3563,12 +3145,12 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			you must use the Optimizer tab to enter that income to avoid any possible kiddie tax.</span>
 		<span id="messageAllMaxedOut">Because expenses exceed scholarships,
 			there is no point in optimizing however,
-			you can still use the optimizer to view the tax return details</span>
+			you can still use the optimizer to view the option details</span>
 		<span id="messageNoUnqualified">Because there are no unqualified expenses,
 			there is no point in optimizing however,
-			you can still use the optimizer to view the tax return details</span>
+			you can still use the optimizer to view the option details</span>
 		<span id="messageNoScholar">Although there are no scholarships that can be diverted to certain nonqualified expenses,
-			you can still use the optimizer to view the tax return details</span>
+			you can still use the optimizer to view the option details</span>
 		<span id="messageAOCMaxedOut">Expenses exceed scholarships by more than the limit
 			for American Opportunity Credit.
 			There is no point in optimizing if that is your best choice.</span>
@@ -3595,6 +3177,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 	<div class="noPrint">
 		<br />This worksheet provides a place for comparing the various education options.
 		<br />You can also use the Optimizer tab's Worksheet although it has limitations.
+		<br />For additional guidance, especially for work-related education benefits, see Deb Fisher's <a href="http://docs.cotaxaide.org/Education Cookbook.pdf" target="_blank">Education Cookbook</a>.
 		<br />
 		<br />
 		Education credits are entered in TaxSlayer at: Federal Section &gt; Deductions &gt; Credits Menu &gt; Education Credits (Form 1098-T)
@@ -3791,18 +3374,11 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 	Taxable scholarships are entered in TaxSlayer at: Federal Section &gt; Income &gt; Other Compensation &gt; Scholarships and Grants
 	</span>
 	<ul>
-		<li>Complete the taxpayer&apos;s tax return except for the education credits.</li>
-		<li>Enter the information from the taxpayer&apos;s tax return below.</li>
-		<li>If the student is a dependent:</li>
-			<ul>
-				<li>Begin a tax return for the student if they have any income.</li>
-				<li>Enter data from their tax return in the student&apos;s section below.</li>
-			</ul>
+		<li>For the first student, enter the information from the taxpayer&apos;s return before the education choice is made.</li>
+		<li>If the student is a dependent, go to the student&apos;s return below and enter data from their return as well.</li>
+		<li>For subsequent students, change all entries to reflect inclusion of previous students&apos; education choice(s).</li>
 		<li>Estimated values for each option will then be shown in the columns on the right.</li>
 		<li>Finally, click the optimize button at the bottom to see if taxing part of the scholarship gives better results.</li>
-		<li>Add the scholarship information into the tax returns.</li>
-		<li>For additional students, change all taxpayer entries to reflect inclusion of previous students&apos; education choice(s)
-			and repeat the above process.</li>
 	</ul>
 	</div>
 
@@ -3815,37 +3391,16 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<th>Tax return<br />amount</th>
 			<th>American<br />Opportunity</th>
 			<th>Lifetime<br />Learning</th>
-			<th>Tuition &amp;<br />Fees</th></tr>
+			<th>Tuition &<br />Fees</th></tr>
 		<tr id="TPScholarIncome">
 			<td>Calculated scholarship income</td>
-			<td>TS Schol &amp; Grants</td>
+			<td>TS Schol & Grants</td>
 			<td></td>
 			<td class="AOCClass" id="ScholarAOC"> </td>
 			<td class="LLCClass" id="ScholarLLC"> </td>
 			<td class="TNFClass" id="ScholarTNF"> </td></tr>
-		<tr id="SalaryRow">
-			<td>Wages, Salary and Tips</td>
-			<td>1040 line <span id="SalaryLineNoA">7</span></td>
-			<td><input class="taxreturn" id="SalaryTax" type="number" /></td>
-			<td class="AOCClass" id="SalaryAOC"> </td>
-			<td class="LLCClass" id="SalaryLLC"> </td>
-			<td class="TNFClass" id="SalaryTNF"> </td></tr>
-		<tr id="BusinessRow">
-			<td>Business Income</td>
-			<td>1040 line <span id="BusinessLineNoA">12</span></td>
-			<td><input class="taxreturn" id="BusinessTax" type="number" /></td>
-			<td class="AOCClass" id="BusinessAOC"> </td>
-			<td class="LLCClass" id="BusinessLLC"> </td>
-			<td class="TNFClass" id="BusinessTNF"> </td></tr>
-		<tr id="SEHIRow">
-			<td>Self employed health insurance</td>
-			<td>1040 line <span id="SEHILineNoA">??</span></td>
-			<td><input class="taxreturn" id="SEHITax" type="number" /></td>
-			<td class="AOCClass" id="SEHIAOC"> </td>
-			<td class="LLCClass" id="SEHILLC"> </td>
-			<td class="TNFClass" id="SEHITNF"> </td></tr>
-		<tr id="EarnedRow">
-			<td>Earned Income</td>
+		<tr>
+			<td>Earned Income (not Total Income)</td>
 			<td>1040 lines <span id="EarnedLineNoA">7+12</span></td>
 			<td><input class="taxreturn" id="EarnedTax" type="number" /></td>
 			<td class="AOCClass" id="EarnedAOC"> </td>
@@ -3874,11 +3429,18 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="TNFClass" id="MedicalTNF"></td></tr>
 		<tr>
 			<td>Itemized deduction amount (used or not)</td>
-			<td>Sched A line <span id="ItemDedLineNoA">29</span></td>
+			<td>Sched A line 29</td>
 			<td><input class="taxreturn" id="ItemizedTax" type="number" /></td>
 			<td class="AOCClass" id="ItemizedAOC"></td>
 			<td class="LLCClass" id="ItemizedLLC"></td>
-			<td class="TNFClass" id="ItemizedTNF"></td>
+			<td class="TNFClass" id="ItemizedTNF"></td></tr>
+		<tr>
+			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
+			<td>1040 line 40</td>
+			<td class="calculatedEntry" id="DeductionTax"></td>
+			<td class="AOCClass" id="DeductionAOC"></td>
+			<td class="LLCClass" id="DeductionLLC"></td>
+			<td class="TNFClass" id="DeductionTNF"></td></tr>
 		<tr>
 			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="CapGainsLineNoA">??</span></td>
 			<td>QD&amp;CG Wkt line <span id="CapGainsLineNoB">??</span></td>
@@ -3887,22 +3449,8 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="LLCClass" id="CapGainsLLC"></td>
 			<td class="TNFClass" id="CapGainsTNF"></td></tr>
 		<tr>
-			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
-			<td>1040 line <span id="DeductionsLineNoB">40</span></td>
-			<td class="calculatedEntry" id="DeductionTax"></td>
-			<td class="AOCClass" id="DeductionAOC"></td>
-			<td class="LLCClass" id="DeductionLLC"></td>
-			<td class="TNFClass" id="DeductionTNF"></td></tr>
-		<tr id="QBIRow">
-			<td>QBI deduction amount</td>
-			<td>1040 line <span id="QBILineNoA">??</span></td>
-			<td class="calculatedEntry" id="QBITax"></td>
-			<td class="AOCClass" id="QBIAOC"></td>
-			<td class="LLCClass" id="QBILLC"></td>
-			<td class="TNFClass" id="QBITNF"></td></tr>
-		<tr>
 			<td class="bold">Tax amount:</td>
-			<td>1040 line <span id="TaxAmountLineNoB">44</span></td>
+			<td>1040 line 44</td>
 			<td class="calculatedEntry" id="TaxTax"></td>
 			<td class="AOCClass" id="TaxAOC"></td>
 			<td class="LLCClass" id="TaxLLC"></td>
@@ -4015,7 +3563,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="LLCClass" id="RetireLLC"></td>
 			<td class="TNFClass" id="RetireTNF"></td></tr>
 		<tr>
-			<td>&nbsp;&nbsp;&nbsp;Child and other dependents</span> Tax Credit</td>
+			<td>&nbsp;&nbsp;&nbsp;Child<span id="FTC"> and Family</span> Tax Credit</td>
 			<td>1040 line <span id="CTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="CTCTax"></td>
 			<td class="AOCClass" id="CTCAOC"></td>
@@ -4045,17 +3593,16 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="LLCClass"></td>
 			<td class="TNFClass"></td></tr>
 		<tr>
-			<td>Earned income credit (check "No" if not qualfied
+			<td>Earned income credit (check "No" if not qualfied)
 				<span id="EICInfo" class="help"
 					onmouseover="EICInfoText.style.display='block';"
 					onmouseout="EICInfoText.style.display='none';">&nbsp;?&nbsp;
-				</span>)
+				</span>
 				<span id="EICInfoText" class="helpText"
 					onmouseover="EICInfoText.style.display='block';"
 					onmouseout="EICInfoText.style.display='none';">
 					Not qualified if any of the following:
 					<ul>
-						<li>TP is student and age less than <span id="EICLower">25</span> <span id="EICUpper">or greater than 64</span> and no children</li>
 						<li>Investment income (Interest + Tax-free interest + Dividends + Capital gains) more than $<span id="EICInvest">limit</span></li>
 						<li>Married filing seperately</li>
 						<li>TP or SP not have a SSN that allows to work and valid for EIC</li>
@@ -4063,24 +3610,17 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 					</ul>
 				</span></td>
 			<td>No:<input id="NoEIC" type="checkbox"> 1040 line <span id="EICLineNoB">??</span></td>
-			<td class="calculatedEntry" id="EICTax"></td>
+			<td><input class="taxreturn" id="EICTax" type="number"></td>
 			<td class="AOCClass" id="EICAOC"></td>
 			<td class="LLCClass" id="EICLLC"></td>
 			<td class="TNFClass" id="EICTNF"></td></tr>
 		<tr>
-			<td id="ACTCLabel">Additional Child Tax Credit</td>
+			<td>Additional Child Tax Credit</td>
 			<td>1040 line <span id="ACTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="ACTCTax"></td>
 			<td class="AOCClass" id="ACTCAOC"></td>
 			<td class="LLCClass" id="ACTCLLC"></td>
 			<td class="TNFClass" id="ACTCTNF"></td></tr>
-		<tr id="RefCareLine">
-			<td>Refundable Child and Dependent Care Credit</td>
-			<td>1040 line <span id="RefCareLineNoB">??</span></td>
-			<td class="calculatedEntry" id="RefCareTax"></td>
-			<td class="AOCClass" id="RefCareAOC"></td>
-			<td class="LLCClass" id="RefCareLLC"></td>
-			<td class="TNFClass" id="RefCareTNF"></td></tr>
 		<tr>
 			<td>Refundable american opportunity credit</td>
 			<td>1040 line <span id="AOCLineNoB">??</span></td>
@@ -4110,11 +3650,8 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 	<div id="StudentTaxFormDiv">
 		<p style="page-break-before: always;"></p>
 		<hr /><div class="TaxReturnHeader">Student&apos;s return:
-			<span id="KiddieAllowOption"> 
-				(<input id="KiddieAllow" type="checkbox"
-				onchange="BudgetChange();"
-				title="check to allow kiddie tax calculation" />
-				Check to optimize using kiddie tax with trust tax rates)
+			<span id="KiddieOverrideOption"> (<input id="KiddieOverride" type="checkbox"
+				title= "check to allow kiddie tax calculation" /> Allow kiddie tax)
 			</span>
 		</div>
 	<table id="StudentTaxForm" onchange="BudgetChange()">
@@ -4132,28 +3669,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="AOCClass" id="StudScholarAOC"> </td>
 			<td class="LLCClass" id="StudScholarLLC"> </td>
 			<td class="TNFClass" id="StudScholarTNF"> </td></tr>
-		<tr id="StudSalaryRow">
-			<td>Wages, Salary and Tips</td>
-			<td>1040 line <span id="SalaryLineNoB">7</span></td>
-			<td><input class="taxreturn" id="StudSalaryTax" type="number" /></td>
-			<td class="AOCClass" id="StudSalaryAOC"> </td>
-			<td class="LLCClass" id="StudSalaryLLC"> </td>
-			<td class="TNFClass" id="StudSalaryTNF"> </td></tr>
-		<tr id="StudBusinessRow">
-			<td>Business Income</td>
-			<td>1040 line <span id="BusinessLineNoB">12</span></td>
-			<td><input class="taxreturn" id="StudBusinessTax" type="number" /></td>
-			<td class="AOCClass" id="StudBusinessAOC"> </td>
-			<td class="LLCClass" id="StudBusinessLLC"> </td>
-			<td class="TNFClass" id="StudBusinessTNF"> </td></tr>
-		<tr id="StudSEHIRow">
-			<td>Self employed health insurance</td>
-			<td>1040 line <span id="SEHILineNoB">??</span></td>
-			<td><input class="taxreturn" id="StudSEHITax" type="number" /></td>
-			<td class="AOCClass" id="StudSEHIAOC"> </td>
-			<td class="LLCClass" id="StudSEHILLC"> </td>
-			<td class="TNFClass" id="StudSEHITNF"> </td></tr>
-		<tr id="StudEarnedRow">
+		<tr>
 			<td>Earned Income (not Total Income)</td>
 			<td>1040 lines <span id="EarnedLineNoB">7+12</span></td>
 			<td><input class="taxreturn" id="StudEarnedTax" type="number" /></td>
@@ -4169,11 +3685,18 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="TNFClass" id="StudAGITNF"></td></tr>
 		<tr>
 			<td>Itemized deduction amount (used or not)</td>
-			<td>Sched A line <span id="ItemDedLineNoB">29</span></td>
+			<td>Sched A line 29</td>
 			<td><input class="taxreturn" id="StudItemizedTax" type="number" /></td>
 			<td class="AOCClass" id="StudItemizedAOC"></td>
 			<td class="LLCClass" id="StudItemizedLLC"></td>
 			<td class="TNFClass" id="StudItemizedTNF"></td></tr>
+		<tr>
+			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
+			<td>1040 line 40</td>
+			<td class="calculatedEntry" id="StudDeductionTax"></td>
+			<td class="AOCClass" id="StudDeductionAOC"></td>
+			<td class="LLCClass" id="StudDeductionLLC"></td>
+			<td class="TNFClass" id="StudDeductionTNF"></td></tr>
 		<tr>
 			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="StudCapGainsLineNoA">??</span></td>
 			<td>QD&amp;CG Wkt line <span id="StudCapGainsLineNoB">??</span></td>
@@ -4182,22 +3705,8 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="LLCClass" id="StudCapGainsLLC"></td>
 			<td class="TNFClass" id="StudCapGainsTNF"></td></tr>
 		<tr>
-			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
-			<td>1040 line <span id="DeductionsLineNoA">40</span></td>
-			<td class="calculatedEntry" id="StudDeductionTax"></td>
-			<td class="AOCClass" id="StudDeductionAOC"></td>
-			<td class="LLCClass" id="StudDeductionLLC"></td>
-			<td class="TNFClass" id="StudDeductionTNF"></td></tr>
-		<tr id="StudQBIRow">
-			<td>QBI deduction amount</td>
-			<td>1040 line <span id="QBILineNoB">??</span></td>
-			<td class="calculatedEntry" id="StudQBITax"></td>
-			<td class="AOCClass" id="StudQBIAOC"></td>
-			<td class="LLCClass" id="StudQBILLC"></td>
-			<td class="TNFClass" id="StudQBITNF"></td></tr>
-		<tr>
 			<td class="bold">Tax amount:</td>
-			<td>1040 line <span id="TaxAmountLineNoA">44</span></td>
+			<td>1040 line 44</td>
 			<td class="calculatedEntry" id="StudTaxTax"></td>
 			<td class="AOCClass" id="StudTaxAOC"></td>
 			<td class="LLCClass" id="StudTaxLLC"></td>
@@ -4292,12 +3801,10 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 	<table id="OptimizeButtons">
 		<tr class="noPrint">
-			<td>Click the OPTIMIZE button to optimize using some scholarship funds as income for this tax return;
+			<td>Click this button to optimize using some scholarship funds as income for this tax return;
 				<br />&nbsp;&nbsp;this adjusts the amount taxed in the Funding Sources tab.</td>
-			<td><input id="OptimizeButton" type="button" value="OPTIMIZE" onclick="Optimize();" />
-				<br /><input id="DataButton" type="button" value="Plot Data" onclick="DataPlot();" />
-				<br /><br /><input id="Pbutton2" type="button" value="Print all tabs" onclick="PrintAll();" />
-		</td></tr>
+			<td><input id="OptimizeButton" type="button" value="Click to optimize" onclick="Optimize()" />
+				<br /><input id="DataButton" type="button" value="Click to plot data" onclick="DataPlot()" /></td></tr>
 	</table>
 
 	<div id="NoOptimize1">
