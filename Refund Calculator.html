@@ -233,7 +233,9 @@
 	// To Do:
 	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.24, 1/17/2023)";
+	VERSION = "(Version 2.24a, 1/27/2023)";
+	//	Fixed post-nonrefundable line to take from Tax_Data vs manual
+	//VERSION = "(Version 2.24, 1/17/2023)";
 	//	Residential energy credit row hidden but needs entry to continue
 	//VERSION = "(Version 2.23a, 1/13/2023)";
 	//	Minor text change
@@ -330,7 +332,7 @@
 	//	Deb Fisher		Lance Lauerhass		Dave Butner
 	//	Paul Peyser		Maria Maggio		Frank Krider
 	//	Vern Chartrand		Brad Kirby		Alvin Young
-	//	Eric Mueller		Lynn Kinch
+	//	Eric Mueller		Lynn Kinch		Barbara Smith-Thomas
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -487,7 +489,7 @@
 		Dependents.value = "";
 		TaxableStateLabel.innerHTML = "Schedule 1 line 1";
 		TaxableSalesLabel.innerHTML = "Schedule 1 line 8";
-		PostCreditLineNo.innerHTML = "1040 line 13";
+		PostCreditLineNo.innerHTML = "1040 line " + (+_LineNo[CY + ":NRCredit"] + 1);
 		SalesTaxText.style.display = "none";
 		StateWHBox.style.display = "none";
 		StateWHRow.style.display = "table-row";
@@ -1963,7 +1965,7 @@
 		Check this box to skip this test if either:
 		<ul>
 			<li>all credits were used &mdash; the tax amount <u>after</u> non-refundable credits
-			(<span id="PostCreditLineNo">1040 line 13</span>) was not zero, or</li>
+			(<span id="PostCreditLineNo">1040 line 22</span>) was not zero, or</li>
 			<li>you know that the taxpayer has no eligible non-refundable credits</li>
 		</ul>
 		<table id="NonRefundableTable" class="data_entry">
