@@ -4,7 +4,7 @@
 //	DATA = County tax rate ":" IRS Code ":" Other taxes
 //	Remember to add a new city to the 2000.js file as well
 //	Updated DR 1002 7/01/21
-State_Tax['2022'] = '2.9';
+State_Tax['CO:2022'] = '4.4';
 County_Tax['Adams:2022'] = '0.75::RTD=1:CD=0.1';
 County_Tax['Alamosa:2022'] = '3:';
 County_Tax['Arapahoe:2022'] = '0.25::RTD=1:CD=0.1';

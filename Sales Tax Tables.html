@@ -46,6 +46,10 @@ var d = new Date(); // set cookie expiration date
 //***************************************************************************************************
 //                                Revision history
 //    Nx.nn -> N=code restructure, x=minor code changes, nn=cosmetic changes only
+var VERSION;
+VERSION = "v1.0, 5/1/2023";
+//	Remamed from Sales Tax Calculator
+//	Added 2023 column, data not yet updated
 //***************************************************************************************************
 //                                Known problems
 //***************************************************************************************************
@@ -73,6 +77,7 @@ function Resize() {
 // Gets external js files that have city and county data in them
 //***************************************************************************************************
 function Initialize() {
+	version.innerHTML = VERSION;
 	cityListHeadElem = document.getElementById("citylisthead");
 	cityListBodyElem = document.getElementById("citylistbody");
 	countyListBodyElem = document.getElementById("countylistbody");
@@ -297,12 +302,12 @@ function AddCounty(countyIdx2) {
 function AddState() {
 	trElem = document.createElement("tr");
 	cityListBodyElem.appendChild(trElem);
-	countyElem = AddData(trElem,"COLORADO STATE");
+	countyElem = AddData(trElem,"(CO INCOME TAX)");
 	countyElem.style.textAlign = "left";
 	countyElem.style.fontWeight = "bold";
 	for (yr in Tax_Year) {
 		AddData(trElem,"");
-		AddData(trElem,State_Tax[yr],"");
+		AddData(trElem,State_Tax["CO:" + yr],"");
 	}
 }
 
@@ -404,6 +409,7 @@ function AddData(trElem,text,title) {
 <div class="citylist" id="citylist">
 	<center>
 	<h1>Local Sales Tax Table</h1>
+	Version <span id="version"></span>
 	<br /><br />Click the county on the map above to add or remove cities in that county.
 	<table style="border:0;">
 		<tr><td style="width:20%; vertical-align:top;">

@@ -3,7 +3,7 @@
 //	INDEX = City ":" Year
 //	DATA = County tax rate ":" IRS Code ":" Other taxes
 //	Updated DR 1002 6/30/20
-State_Tax['2020'] = '2.9';
+State_Tax['CO:2020'] = '4.5';
 County_Tax['Adams:2020'] = '0.75::RTD=1:CD=0.1';
 County_Tax['Alamosa:2020'] = '3:';
 County_Tax['Arapahoe:2020'] = '0.25::RTD=1:CD=0.1';
