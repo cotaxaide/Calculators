@@ -131,8 +131,14 @@
 
 	// Self-employment tax rates
 		_SESocSec[_TY] = 0.124;		
-		_SEMedicare[_TY] = 0.029;	
+		_SEMedicare[_TY] = 0.029;
 		_SEMaxWages[_TY] = 128400;	
+		_SEMedicarePlus[_TY] = 0.009;
+		_SEMedicarePlusAGI[_TY+":WID"] =
+		_SEMedicarePlusAGI[_TY+":HOH"] =
+		_SEMedicarePlusAGI[_TY+":SNG"] = 200000;
+		_SEMedicarePlusAGI[_TY+":MFJ"] = 250000;
+		_SEMedicarePlusAGI[_TY+":MFS"] = 12500;
 
 	// var MedicalExclusion = [];
 		_MedicalExclusion[_TY] = "0.075, 0.075";	

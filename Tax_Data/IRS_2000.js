@@ -19,6 +19,8 @@ var _AffordRateEmployerSelf = [];
 var _SESocSec = [];
 var _SEMedicare = [];
 var _SEMaxWages = [];
+var _SEMedicarePlus[]; // Rate above SEMaxWages
+var _SEMedicarePlusAGI = []; // AGI above which MedicarePlus applies
 var _QBILimits = [];
 var _NIITLimits = [];
 var _AMT = [];

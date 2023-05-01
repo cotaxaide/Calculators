@@ -115,7 +115,7 @@
                 _TaxRates[_TY+":QSS"] = "22000, 89450, 190750, 364200, 462500, 693750";
                 _TaxRates[_TY+":WID"] = "22000, 89450, 190750, 364200, 462500, 693750";
                 _TaxRates[_TY+":HOH"] = "15700, 59850,  95350, 182100, 231250, 578100";
-                _TaxRates[_TY+":TRUST"]=" 2750,  2750,   2750,   9850,   9850,  13450";		// Need update
+                _TaxRates[_TY+":TRUST"]=" 2900,  2900,   2900,  10550,  10550,  14450";
 
 	// CGRates
                 _CGRates[_TY+":PCT"] = "    0,   0.15,   0.20";
@@ -130,13 +130,19 @@
 	// Self-employment tax rates
 		_SESocSec[_TY] = 0.124;
 		_SEMedicare[_TY] = 0.029;
-		_SEMaxWages[_TY] = 128400;		// Need update
+		_SEMedicarePlus[_TY] = 0.009;
+		_SEMaxWages[_TY] = 16200;
+		_SEMedicarePlusAGI[_TY+":MFS"] = 12500;
+		_SEMedicarePlusAGI[_TY+":MFJ"] = 250000;
+		_SEMedicarePlusAGI[_TY+":WID"] =
+		_SEMedicarePlusAGI[_TY+":HOH"] =
+		_SEMedicarePlusAGI[_TY+":SNG"] = 200000;
 
 	// var MedicalExclusion = [];
-		_MedicalExclusion[_TY] = "0.075, 0.075";		// Need update
+		_MedicalExclusion[_TY] = "0.075, 0.075";
 
 	// StateTaxCap
-		_SALT[_TY] = 10000;		// Need update
+		_SALT[_TY] = 10000;
 
         // var CTCLimits = [];
                 // Source: 1040 instructions for line 52 and Form 8812
