@@ -176,6 +176,7 @@
 <script src="Tax_Data/IRS_2021.js"></script>
 <script src="Tax_Data/IRS_2022.js"></script>
 <script src="Tax_Data/IRS_2023.js"></script>
+<script src="Tax_Data/IRS_2024.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	// --------------------------------------------------------------------------------
@@ -196,7 +197,10 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.43a, 4/15/2023)";
+	var VERSION = "(Version 3.44, 6/15/2023)";
+	//	Removed red from QBIDividends since it could be more than Dividends due to K-1s
+	//	Hid code for SS overpayment due to multiple employers - not enough info
+	//var VERSION = "(Version 3.43a, 4/15/2023)";
 	//	Added source of tax calculation
 	//var VERSION = "(Version 3.43, 4/12/2023)";
 	//	Fixed ACTC error
@@ -605,7 +609,7 @@
 			itemlist[itno].style.display = (IExp) ? "table-row" : "none";
 		}
 
-		// 2019 tax form changes
+		// 2018 tax form changes
 		AGILimitRow.style.display =
 		MFJMFSAGILimitRow.style.display =
 		MiscellaneousRow.style.display =
@@ -780,10 +784,8 @@
 		if (isNaN(tev)) { thisElement.style.backgroundColor = "hotpink"; return; }
 
 		// Check inconsistencies
-		QualDividends.style.backgroundColor = "white";
-		if (+QualDividends.value > +Dividends.value) { QualDividends.style.backgroundColor ="hotpink"; } //return; }
-		QBIDividends.style.backgroundColor = "white";
-		if (+QBIDividends.value > +Dividends.value) { QBIDividends.style.backgroundColor = "hotpink"; } //return; }
+		QualDividends.style.backgroundColor = (+QualDividends.value > +Dividends.value) ? "hotpink" : "white" ;
+		//QBIDividends.style.backgroundColor = (+QBIDividends.value > +Dividends.value) ? "hotpink" : "white" ;
 		SEInsurance.disabled = SESEP.disabled = (+SEIncome.value == 0);
 		if (SEInsurance.disabled) SEInsurance.value = "";
 		NoInsurance.style.display = (+SEInsurance.value) ? "inline" : "none";
@@ -876,46 +878,46 @@
 		SEresult = _SETax(TY, +CalcIn["SEIncome"], CalcIn["Wages"]);
 		CalcOut["SETax"] = +SEresult["SE_tax"];
 		CalcOut["SETaxCredit"] = +SEresult["deductible"];
-		excessSStotal = 0;
-		SSexcess.innerHTML = "";
-		if (+SEresult["excessSS"]) {
-			if (MFJMFS.checked) {
-				if (CalcType === "T") TPRefundable.innerHTML = TPMFS["Refundable"] = TPMFS["SSRefundable"] = SEresult["excessSS"];
-				if (CalcType === "S") SPRefundable.innerHTML = SPMFS["Refundable"] = SPMFS["SSRefundable"] = SEresult["excessSS"];
-				if (CalcType === "J") Refundable.value = TPMFJ["SSRefundable"] = +SPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
-			}
-			else { // not MFJMFS
-				if (FilingStatusValue !== "MFJ") { // create the info message
-					SSexcess.innerHTML = "(include excess SS WH of " + SEresult["excessSS"] + ")";
-					Refundable.style.backgroundColor = (Refundable.value < +SEresult["excessSS"]) ? "hotpink" : "white" ;
-				}
-				else {
-					SSexcess.innerHTML = "(possible excess SS withholding, try MFJ/MFS option)";
-				}
-			}
-		}
-		else { // no excessSS
-				if (CalcType === "T") TPMFS["SSRefundable"] = 0;
-				if (CalcType === "S") SPMFS["SSRefundable"] = 0;
-			if (MFJMFS.checked) {
-				if (CalcType === "J") TPMFJ["SSRefundable"] = +TPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
-			}
-			else { // not MFJMFS
-				if (CalcType === "J") TPMFJ["SSRefundable"] = 0;
-			}
-		}
-		if (MFJMFS.checked && (+TPMFS["SSRefundable"] || +SPMFS["SSRefundable"])) {
-			if (FilingStatusValue === "MFJ") { // create the info message
-				SSmessage = "(include excess SS WH of ";
-				if (TPMFS["SSRefundable"]) SSmessage += (TPMFS["SSRefundable"] + " (TP)");
-				if (SPMFS["SSRefundable"] && TPMFS["Refundable"]) SSmessage += " and ";
-				if (SPMFS["SSRefundable"]) SSmessage += (SPMFS["SSRefundable"] + " (SP)");
-				SSexcess.innerHTML = SSmessage + ")";
-				Refundable.click();
-				SAVEButton.click();
-				Refundable.style.backgroundColor = (Refundable.value < +TPMFJ["SSRefundable"]) ? "hotpink" : "none" ;
-			}
-		}
+//		excessSStotal = 0;
+//		SSexcess.innerHTML = "";
+//		if (+SEresult["excessSS"]) {
+//			if (MFJMFS.checked) {
+//				if (CalcType === "T") TPRefundable.innerHTML = TPMFS["Refundable"] = TPMFS["SSRefundable"] = SEresult["excessSS"];
+//				if (CalcType === "S") SPRefundable.innerHTML = SPMFS["Refundable"] = SPMFS["SSRefundable"] = SEresult["excessSS"];
+//				if (CalcType === "J") Refundable.value = TPMFJ["SSRefundable"] = +SPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
+//			}
+//			else { // not MFJMFS
+//				if (FilingStatusValue !== "MFJ") { // create the info message
+//					SSexcess.innerHTML = "(include excess SS WH of " + SEresult["excessSS"] + ")";
+//					Refundable.style.backgroundColor = (Refundable.value < +SEresult["excessSS"]) ? "hotpink" : "white" ;
+//				}
+//				else {
+//					SSexcess.innerHTML = "(possible excess SS withholding, try MFJ/MFS option)";
+//				}
+//			}
+//		}
+//		else { // no excessSS
+//				if (CalcType === "T") TPMFS["SSRefundable"] = 0;
+//				if (CalcType === "S") SPMFS["SSRefundable"] = 0;
+//			if (MFJMFS.checked) {
+//				if (CalcType === "J") TPMFJ["SSRefundable"] = +TPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
+//			}
+//			else { // not MFJMFS
+//				if (CalcType === "J") TPMFJ["SSRefundable"] = 0;
+//			}
+//		}
+//		if (MFJMFS.checked && (+TPMFS["SSRefundable"] || +SPMFS["SSRefundable"])) {
+//			if (FilingStatusValue === "MFJ") { // create the info message
+//				SSmessage = "(include excess SS WH of ";
+//				if (TPMFS["SSRefundable"]) SSmessage += (TPMFS["SSRefundable"] + " (TP)");
+//				if (SPMFS["SSRefundable"] && TPMFS["Refundable"]) SSmessage += " and ";
+//				if (SPMFS["SSRefundable"]) SSmessage += (SPMFS["SSRefundable"] + " (SP)");
+//				SSexcess.innerHTML = SSmessage + ")";
+//				Refundable.click();
+//				SAVEButton.click();
+//				Refundable.style.backgroundColor = (Refundable.value < +TPMFJ["SSRefundable"]) ? "hotpink" : "none" ;
+//			}
+//		}
 
 		// Total the adjustments
 		CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
@@ -993,7 +995,7 @@
 			charityLimit = Math.min(charityLimit, Math.max(0, (IncomeNoSS + +SSresult[0])));
 			SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
 		}
-		if (TY > 2020) { // 300 unless MFJ, then 600
+		if (TY == 2021) { // 300 unless MFJ, then 600
 			charityLimit = (FilingStatusValue === "MFJ") ? 600 : 300 ;
 		}
 		SSresult = _TaxableSS(TY, FilingStatusValue, +CalcIn["SS"],
