@@ -117,10 +117,12 @@
                 _CGRates[_TY+":TRUST"]=" 2650,  12950";
 
 	// Self-employment tax rates
-		_SESocSec[_TY] = 0.124;
-		_SEMedicare[_TY] = 0.029;
-		_SEMaxWages[_TY] = 132900;
-
+		_SETaxRate[_TY+":SSRate"] = 0.124;
+		_SETaxRate[_TY+":MCRate"] = 0.029;
+		_SETaxRate[_TY+":SSWageCap"] = 132900;
+		_SETaxRate[_TY+":AMCRate"] = 0.000;
+		_SETaxRate[_TY+":AMCStart"] = 200000;
+		
 	// var MedicalExclusion = [];
 		_MedicalExclusion[_TY] = "0.075, 0.075";
 

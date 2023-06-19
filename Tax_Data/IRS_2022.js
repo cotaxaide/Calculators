@@ -129,15 +129,11 @@
                 _CGRates[_TY+":TRUST"]=" 2800,  13700";
 
 	// Self-employment tax rates
-		_SESocSec[_TY] = 0.124;
-		_SEMedicare[_TY] = 0.029
-		_SEMedicarePlus[_TY] = 0.009;
-		_SEMaxWages[_TY] = 147000;
-		_SEMedicarePlusAGI[_TY+":WID"] =
-		_SEMedicarePlusAGI[_TY+":HOH"] =
-		_SEMedicarePlusAGI[_TY+":SNG"] = 200000;
-		_SEMedicarePlusAGI[_TY+":MFJ"] = 250000;
-		_SEMedicarePlusAGI[_TY+":MFS"] = 12500;
+		_SETaxRate[_TY+":SSRate"] = 0.124;
+		_SETaxRate[_TY+":MCRate"] = 0.029;
+		_SETaxRate[_TY+":SSWageCap"] = 147000;
+		_SETaxRate[_TY+":AMCRate"] = 0.000;
+		_SETaxRate[_TY+":AMCStart"] = 200000;
 
 
 	// var MedicalExclusion = [];
@@ -166,7 +162,7 @@
 		_CTCLimits[_TY+":ACTCThreshold"] = 2500;
 
        	// var CareRates = [];
-		// Source: Pub 503
+		// Source: Pub 503, Form 2441
 		_CareLimits[_TY+":RateMax"] = 35;	// Needs update
 		_CareLimits[_TY+":RateMin"] = 20;	// Needs update
 		_CareLimits[_TY+":AGICap"] = 15000;	// Needs update

@@ -15,6 +15,8 @@
 //	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
 //
+// Version 1.18 6/14/2023
+// 	Added high income medicare rate
 // Version 1.17 11/23/2022
 // 	Moved hard coded number for kiddie tax increment to databases
 // Version 1.16 8/27/2022
@@ -59,39 +61,39 @@
 function _SETax (	// Self-employment tax
 	taxYear,	// tax year tables to use (not currently needed but here for consistency)
 	SEIncome,	// Self-employment income
-	wages		// Wages with SS/MC withheld (optional)
+	wages = 0		// Wages with SS/MC withheld (optional)
 		) {
 // returns an array: [self-employment tax amount, deductible amount,
-// 			"SE_tax", "deductible", "medicare", "socialsecurity", "excessSS"]
-// does not include additional medicare tax for high income
+// 			"SE_tax", "deductible", "medicare", "socialsecurity"]
 //----------------------------------------------------------------------------------------
 	if (wages === undefined) wages = 0;
-	wagessoc = (Math.min(wages, +_SEMaxWages[TaxYear.value]) * +_SESocSec[TaxYear.value]);
+	TY = TaxYear.value;
 
 	SEresult = [];
-	var selfamt = +SEIncome;
+	var selfamt = +SEIncome; // Schedule SE line 3
 	var selfmed = 0;
 	var selfsoc = 0;
 	var selftax = 0;
-	var selftest = selfamt * 0.9235;
+	var selftest = selfamt * 0.9235; // Schedule SE line 4a-6
 
-	// No tax if less than $400
+	// No SS tax if less than $400
 	if (selftest > 400) {
-		selfmed = selftest * +_SEMedicare[TaxYear.value];
-		selfsoc = (Math.min(selftest, +_SEMaxWages[TaxYear.value]) * +_SESocSec[TaxYear.value]);
-		selftax = selfmed + selfsoc;
+		selflimit = Math.max(0, +_SETaxRate[TY + ":SSWageCap"] - wages); // SE line 7-9
+		selfsoc = (Math.min(selftest, selflimit) * +_SETaxRate[TY + ":SSRate"]); // SE line 10
+		selfmed = selftest * +_SETaxRate[TY + ":MCRate"];
+		selfamed = (Math.max(0, selfamt - +_SETaxRate[TY + ":AMCStart"]) * +_SETaxRate[TY + ":AMCRate"]);
+		selftax = selfmed + selfamed + selfsoc;
 	}
 
-	// Deductible amount
+	// Return results
 	SEresult["SE_tax"] = SEresult[0] = Math.round(selftax);
 	SEresult["deductible"] = SEresult[1] = Math.round(selftax/2);
 	SEresult["medicare"] = Math.round(selfmed);
 	SEresult["socialsecurity"] = Math.round(selfsoc);
 
-	// Is there excess SS withholding?
-	totalsoc = selfsoc + wagessoc;
-	maxsoc = +_SEMaxWages[TaxYear.value] * +_SESocSec[TaxYear.value];
-	SEresult["excessSS"] = Math.round(Math.max(0, totalsoc - maxsoc));
+	// If more than 1 employer for TP, too much SS withholding might result
+	// Not enough info to calc that here however (for now)
+	SEresult["excessSS"] = 0;
 
 	return (SEresult);
 }

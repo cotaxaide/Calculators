@@ -16,11 +16,7 @@ var _FPL = []; // Federal Poverty Line
 var _PTCFactorVal = [];
 var _AffordRate = [];
 var _AffordRateEmployerSelf = [];
-var _SESocSec = [];
-var _SEMedicare = [];
-var _SEMaxWages = [];
-var _SEMedicarePlus[]; // Rate above SEMaxWages
-var _SEMedicarePlusAGI = []; // AGI above which MedicarePlus applies
+var _SETaxRate = [];
 var _QBILimits = [];
 var _NIITLimits = [];
 var _AMT = [];

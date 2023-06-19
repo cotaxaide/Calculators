@@ -128,15 +128,11 @@
                 _CGRates[_TY+":TRUST"]=" 3000,  14650";
 
 	// Self-employment tax rates
-		_SESocSec[_TY] = 0.124;
-		_SEMedicare[_TY] = 0.029;
-		_SEMedicarePlus[_TY] = 0.009;
-		_SEMaxWages[_TY] = 16200;
-		_SEMedicarePlusAGI[_TY+":MFS"] = 12500;
-		_SEMedicarePlusAGI[_TY+":MFJ"] = 250000;
-		_SEMedicarePlusAGI[_TY+":WID"] =
-		_SEMedicarePlusAGI[_TY+":HOH"] =
-		_SEMedicarePlusAGI[_TY+":SNG"] = 200000;
+		_SETaxRate[_TY+":SSRate"] = 0.124;
+		_SETaxRate[_TY+":MCRate"] = 0.029;
+		_SETaxRate[_TY+":SSWageCap"] = 160200;
+		_SETaxRate[_TY+":AMCRate"] = 0.009;
+		_SETaxRate[_TY+":AMCStart"] = 200000;
 
 	// var MedicalExclusion = [];
 		_MedicalExclusion[_TY] = "0.075, 0.075";
@@ -159,15 +155,15 @@
 		_CTCLimits[_TY+":CTC0Rate"] = 0;		// Need update
 		_CTCLimits[_TY+":CTC6Rate"] = 1000;		// Need update
 		_CTCLimits[_TY+":FTCRate"] = 500;		// Need update
-		_CTCLimits[_TY+":ACTCRate"] = 1600;
+		_CTCLimits[_TY+":ACTCRate"] = 1500;
 		_CTCLimits[_TY+":ACTCThreshold"] = 2500;		// Need update
 
        	// var CareRates = [];
 		// Source: Pub 503
-		_CareLimits[_TY+":RateMax"] = 35;	// Needs update		// Need update
-		_CareLimits[_TY+":RateMin"] = 20;	// Needs update		// Need update
-		_CareLimits[_TY+":AGICap"] = 15000;	// Needs update		// Need update
-		_CareLimits[_TY+":AGICap2"] = 400000;	// Needs update		// Need update
+		_CareLimits[_TY+":RateMax"] = 35;	// Needs update	
+		_CareLimits[_TY+":RateMin"] = 20;	// Needs update
+		_CareLimits[_TY+":AGICap"] = 15000;	// Needs update
+		_CareLimits[_TY+":AGICap2"] = 400000;	// Needs update
 
         // var EICRates = [];
                 // Source: search IRS web site "EIC limits" (easier than 1040 instructions)
@@ -180,19 +176,19 @@
 		// RATEDOWN is the ramp-down rate from the cap
 		// INVEST is the max investment limit to qualify for EIC
                 // Columns are:			   0       1       2       3+ children
-                _EICRates[_TY+":AGISNG"] =   "  9800,  21560,  21560,  21560";
-                _EICRates[_TY+":AGIMFJ"] =   " 16370,  28120,  28120,  28120";
-                _EICRates[_TY+":SNG"] =      " 17640,  46560,  52918,  56838";
-                _EICRates[_TY+":MFJ"] =      " 24210,  53120,  59478,  63398";
-                _EICRates[_TY+":MAX"] =      "   600,   3995,   6604,   7430";
+                _EICRates[_TY+":AGISNG"] =   "  9800,  21560,  21560,  21560";		// Need update
+                _EICRates[_TY+":AGIMFJ"] =   " 16370,  28120,  28120,  28120";		// Need update
+                _EICRates[_TY+":SNG"] =      " 17640,  46560,  52918,  56838";		// Need update
+                _EICRates[_TY+":MFJ"] =      " 24210,  53120,  59478,  63398";		// Need update
+                _EICRates[_TY+":MAX"] =      "   600,   3995,   6604,   7430";		// Need update
                 _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";		// Need update
                 _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";		// Need update
                 _EICRates[_TY+":INVEST"] = 10300;		// Need update
 
 	// var FPL = [];
-		_FPL[_TY+":US"] =     "12880, 4540";	// Needs update		// Need update
-		_FPL[_TY+":Alaska"] = "16090, 5680";	// Needs update		// Need update
-		_FPL[_TY+":Hawaii"] = "14820, 5220";	// Needs update		// Need update
+		_FPL[_TY+":US"] =     "12880, 4540";	// Needs update
+		_FPL[_TY+":Alaska"] = "16090, 5680";	// Needs update
+		_FPL[_TY+":Hawaii"] = "14820, 5220";	// Needs update
 
 	// var PTCFactorVal = [];
 		// A,B are FPL% ranges, C-D are PTC multipliers * 100
@@ -248,8 +244,8 @@
 		_AMT[_TY+":KIDDIE"]="8200,   510300";		// (Exempt + earned) up to SNG rate		// Need update
 		
 	// Health Savings Account (HSA) Contribution limits
-		_HSA[_TY+":IND"] = 3950;		// Need update
-		_HSA[_TY+":FAM"] = 7900;		// Need update
+		_HSA[_TY+":IND"] = 3850;
+		_HSA[_TY+":FAM"] = 7750;
 
 	// Retirement Savings Contribution (Form 8880)
 		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";		// Need update

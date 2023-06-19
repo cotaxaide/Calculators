@@ -124,15 +124,12 @@
                 _CGRates[_TY+":TRUST"]=" 2650,  13250";
 
 	// Self-employment tax rates
-		_SESocSec[_TY] = 0.124;
-		_SEMedicare[_TY] = 0.029
-		_SEMedicarePlus[_TY] = 0.009;
-		_SEMaxWages[_TY] = 128400;
-		_SEMedicarePlusAGI[_TY+":WID"] =
-		_SEMedicarePlusAGI[_TY+":HOH"] =
-		_SEMedicarePlusAGI[_TY+":SNG"] = 200000;
-		_SEMedicarePlusAGI[_TY+":MFJ"] = 250000;
-		_SEMedicarePlusAGI[_TY+":MFS"] = 12500;
+	// SEMedicarePlus is the additional increment when SEMedicarePlusAGI is exceded
+		_SETaxRate[_TY+":SSRate"] = 0.124;
+		_SETaxRate[_TY+":MCRate"] = 0.029;
+		_SETaxRate[_TY+":SSWageCap"] = 142800;
+		_SETaxRate[_TY+":AMCRate"] = 0.000;
+		_SETaxRate[_TY+":AMCStart"] = 200000;
 
 
 	// var MedicalExclusion = [];
