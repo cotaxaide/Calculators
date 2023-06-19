@@ -7,26 +7,43 @@
 		
 		<title>Pension Exclusion Calculator</title>
 	<style type="text/css">
-		html { background-color: #cccccc; }
-		body { background-color: #eeeeee;
+		html {
+			background-color: #cccccc;
+		}
+		body {
+			background-color: #eeeeee;
 			font-family: sans-serif;
 			font-size: 0.9em;
 		}
-		h1 {	text-align: center;
+		h1 {
+			text-align: center;
 			font-size: 1.1em;
 			font-weight: bold;
 			text-decoration: underline;
 		}
-		table, td { border: 1px solid black; border-collapse: collapse; }
-		button { background-color: lightblue; }
-	
-		.bold { font-weight: bold; }
-		.border { border:
-			1px solid black;
+		table, td {
+			border: 1px solid black;
+			border-collapse: collapse;
 		}
-		.center { text-align: center; }
-		.hidden { display: none; }
-		.invisible { display: none; }
+		button {
+			background-color: lightblue;
+		}
+	
+		.bold {
+			font-weight: bold;
+		}
+		.border {
+			border: 1px solid black;
+		}
+		.center {
+			text-align: center;
+		}
+		.hidden {
+			display: none;
+		}
+		.invisible {
+			display: none;
+		}
 		#mainheader {
 			//position: relative;
 			width: 47em; border:
@@ -50,26 +67,70 @@
 			top: 1.8em;
 			left: calc(50% - 24em);
 		}
-		.commentfield1 { width: 22em; background-color: tan; text-align: center; }
-		.commentfield2 { width: 15em; background-color: tan; text-align: center; }
-		.commentfield3 { width: 13em; background-color: tan; text-align: center; }
-		.tooltitle { font-size:125%; font-weight:bold; }
-		.tableMaker { text-align: center; font-size: 150%; }
-		.tableMaker>tr.nth-child(odd) { background-color: #eeeeee; }
-		.tr0 { background-color: #cccccc; }
-		.tr1 { background-color: #fcfcfc; }
-		.tr2 { background-color: #88ff88; font-weight: bold; }
-		.white { background-color: white; }
-		.ColYear, .ColPrior, .ColExclusion, .ColRemaining {
+		.commentfield1 {
+			width: 22em;
+			background-color: tan;
+			text-align: center;
+		}
+		.commentfield2 {
+			width: 15em;
+			background-color: tan;
+			text-align: center;
+		}
+		.commentfield3 {
+			width: 13em;
+			background-color: tan;
+			text-align: center;
+		}
+		.tooltitle {
+			font-size:125%;
+			font-weight:bold;
+		}
+		.tableMaker {
+			text-align: center;
+			font-size: 150%;
+		}
+		.tableMaker>tr.nth-child(odd) {
+			background-color: #eeeeee;
+		}
+		.tr0 {
+			background-color: #cccccc;
+		}
+		.tr1 {
+			background-color: #fcfcfc;
+		}
+		.tr2 {
+			background-color: #88ff88;
+			font-weight: bold;
+		}
+		.white {
+			background-color: white;
+		}
+		.ColYear,
+		.ColPrior,
+		.ColExclusion,
+		.ColRemaining {
 			font-size: 0.8em;
 			text-align: center;
 		}
-			.ColYear { width: 15%; }
-			.ColPrior { width: 25%; }
-			.ColExclusion { width: 25%; }
-			.ColRemaining { width: 25%; }
-		.printalternative { display:none; }
-		.inputfield { background-color: yellow; }
+		.ColYear {
+			width: 15%;
+		}
+		.ColPrior {
+			width: 25%;
+		}
+		.ColExclusion {
+			width: 25%;
+		}
+		.ColRemaining {
+			width: 25%;
+		}
+		.printalternative {
+			display:none;
+		}
+		.inputfield {
+			background-color: yellow;
+		}
 		.inputfield #TPName {
 			width: 25em;
 			margin: 3px;
@@ -106,14 +167,43 @@
 			top: 16em;
 			right: 16em;
 		}
-		#TSform table, #TSform tr, #TSform td { border: 0; }
-		#NTIncomeTable table, #NTIncomeTable tr, #NTIncomeTable td { border: 0; }
-		#MedTable table, #MedTable tr, #MedTable td { border: 0; }
-		#DeathTable table, #DeathTable tr, #DeathTable td { border: 0; }
-		#TPdecQ, #SPdecQ, #SPdiedQ { display: none; }
-		#deathMessage { background-color: white; }
-		#DiedRow { display: none; }
-		#Disability { background-color: yellow; }
+		#TSform table, #TSform tr, #TSform td {
+			border: 0;
+		}
+		#TSNote {
+			width: 50em;
+			font-style: italic;
+			text-align: left;
+		}
+		#NTIncomeTable table,
+		#NTIncomeTable tr,
+		#NTIncomeTable td {
+			border: 0;
+		}
+		#MedTable table,
+		#MedTable tr,
+		#MedTable td {
+			border: 0;
+		}
+		#DeathTable table,
+		#DeathTable tr,
+		#DeathTable td {
+			border: 0;
+		}
+		#TPdecQ,
+		#SPdecQ,
+		#SPdiedQ {
+			display: none;
+		}
+		#deathMessage {
+			background-color: white;
+		}
+		#DiedRow {
+			display: none;
+		}
+		#Disability {
+			background-color: yellow;
+		}
 		#DisabilityQBox {
 			display: none;
 			position: absolute;
@@ -151,8 +241,13 @@
 		#DPSO_amount {
 			background-color: white;
 		}
-		#userInput { margin-top: 0.5em; margin-bottom: 0.5em; }
-		#ButtonBox { margin-bottom: 0.5em; }
+		#userInput {
+			margin-top: 0.5em;
+			margin-bottom: 0.5em;
+		}
+		#ButtonBox {
+			margin-bottom: 0.5em;
+		}
 		#RetAgeHelpBox {
 			display: none;
 			border: 2px solid black;
@@ -170,9 +265,15 @@
 			background-color: white;
 			font-size: 110%;
 		}
-		#RetAgeHelpBox ul { list-style-type: none; }
-		#RetAgeHelpBox table { border: none; }
-		#RetAgeHelpBox table tr td:first-child { border: none; }
+		#RetAgeHelpBox ul {
+			list-style-type: none;
+		}
+		#RetAgeHelpBox table {
+			border: none;
+		}
+		#RetAgeHelpBox table tr td:first-child {
+			border: none;
+		}
 		#DeathTable .entrytable,
 		#TSform .entrytable,
 		#NTIncomeTable .entrytable,
@@ -260,10 +361,10 @@
 	</style>
 	
 	<script src="Tax_Data/IRS_2000.js"></script>
-	<script src="Tax_Data/IRS_2019.js"></script>
 	<script src="Tax_Data/IRS_2020.js"></script>
 	<script src="Tax_Data/IRS_2021.js"></script>
 	<script src="Tax_Data/IRS_2022.js"></script>
+	<script src="Tax_Data/IRS_2023.js"></script>
 	<script type="text/javascript">
 	// --------------------------------------------------------------------
 	// Contributors:
@@ -278,7 +379,10 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.28, 12/31/2022)";
+		var VERSION = "(version 10.29, 6/18/2023)";
+		//	Added comment about TaxSlayer not carrying forward
+		//	Removed some unnecessary getElementById code
+		//var VERSION = "(version 10.28, 12/31/2022)";
 		//	Supress age if annuity has not started due to disability
 		//var VERSION = "(version 10.27, 3/8/2022)";
 		//	Including cents in insurance exclusion caused error
@@ -492,22 +596,22 @@
 			DiedMoYR.innerHTML = SPdiedQYR.innerHTML = TPdiedQYR.innerHTML = SGRW_YEAR.innerHTML = TAX_YR = +_DefaultYear;
 		
 			Version.innerHTML = VERSION;
-			document.getElementById("TPName").value = "";
-			document.getElementById("PSO").checked = false;
+			TPName.value = "";
+			PSO.checked = false;
 			PSO_Change();
 			Disability_Change();
-			document.getElementById("ANNUITY").value = "";
-			document.getElementById("TP").value = "";
-			document.getElementById("SP").value = "";
-			document.getElementById("TPGROSS").value = "";
-			document.getElementById("SPGROSS").value = "";
-			document.getElementById("CONTR").value = "";
-			document.getElementById("TPName").focus();
-			document.getElementById("LYR_MSG").value = "";
+			ANNUITY.value = "";
+			TP.value = "";
+			SP.value = "";
+			TPGROSS.value = "";
+			SPGROSS.value = "";
+			CONTR.value = "";
+			TPName.focus();
+			LYR_MSG.value = "";
 			LYR_MSG.style.backgroundColor = "tan";
-			document.getElementById("GROSSc").value = "";
+			GROSSc.value = "";
 			GROSSc.style.backgroundColor = "tan";
-			document.getElementById("CONTRc").value = "";
+			CONTRc.value = "";
 			CONTRc.style.backgroundColor = "tan";
 			PSOtitleBox.innerHTML = PSOtitle;
 			DistitleBox.innerHTML = Distitle;
@@ -2022,8 +2126,14 @@
 		// New_TAX_YR = New tax year to populate the TS worksheets with
 		// This function calculates the values for fields 4-7 in the Exclusion Worksheet
 		//----------------------------------------------------------------------------------------
-			//ANN_410 = new Date() ;
-			//alert ("10/" + (New_TAX_YR - 35));
+			// Earliest date when exclusion can be used
+			//ANN_410 = ((new Date("Jan 1, " + New_TAX_YR)).getFullYear() - 35);
+			//if (ANN_YR < ANN_410) {
+			//	message = "All exclusion has been used if retirement was before " + ANN_410 ;
+			//	alert(message);
+			//	Clear_Tbody();
+			//	return;
+			//}
 
 			if (New_TAX_YR < ANN_YR) {
 				message = "Annuity exclusion doesn't start until " + ANN_YR ;
@@ -2415,6 +2525,16 @@
 						</table>
 					</div></td></tr>
 			</table>
+			<div id="TSNote">
+				NOTE: TaxSlayer does not carry forward data entered into its Simplified General Rule Worksheet.
+					It also does not calculate the final tax year nor its partial exclusion which can result
+					in errors if the amount previously recovered is not known. 
+					Thus, no point in entering that information in the Worksheet.
+					<br /><u>We do recommend </u>adding a note to the tax return and the taxpayer envelope
+					for next year&apos;s tax preparer that shows the date of retirement,
+					the annual exclusion amount, the final year, and partial exclusion for that year.
+					Also, print and include this table in the taxpayer envelope.
+			</div>
 		</div> <!-- FORM1099DIV -->
 		
 		<div id="NTIncomeTable" class="hidden">
