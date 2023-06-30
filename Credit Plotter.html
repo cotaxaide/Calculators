@@ -67,11 +67,11 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
 <script src="Tax_Data/IRS_2022.js"></script>
 <script src="Tax_Data/IRS_2023.js"></script>
+<script src="Tax_Data/IRS_2024.js"></script>
 <script src="CommonRoutines.js"></script>
 <script>
 	var VERSION;
@@ -668,7 +668,7 @@
 					<input type="checkbox" id="MFJ" class="FSClass" value="0" />MFJ
 					<input type="checkbox" id="MFS" class="FSClass" value="0" />MFS
 					<input type="checkbox" id="HOH" class="FSClass" value="0" />HOH
-					<input type="checkbox" id="WID" class="FSClass" value="0" />QSS
+					<input type="checkbox" id="QSS" class="FSClass" value="0" />QSS
 				<br />	<input type="checkbox" id="Children0" class="ChildClass" value="0" />0
 					<input type="checkbox" id="Children1" class="ChildClass" value="1" />1
 					<input type="checkbox" id="Children2" class="ChildClass" value="2" />2
@@ -695,5 +695,12 @@
 	<canvas id="Mycanvas" onclick="Show_Data(event);"></canvas>
 </div>
 
+<div class="noPrint section">
+	Please send corrections and suggestions to
+	<a href="mailto:tools@cotaxaide.org">tools@cotaxaide.org</a>
+  	<span id="printbutton2" style="float: right;">
+		<button onclick="window.print()">Print a taxpayer copy</button>
+	</span>
+</div>
 </body>
 </html>
