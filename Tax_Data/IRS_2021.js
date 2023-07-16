@@ -45,7 +45,7 @@
 		// Schedule A
 	        _LineNo[_TY+":StateWH"] = "5a"; 
 	        _LineNo[_TY+":Property"] = "5b"; 
-		_LineNo[_TY+":SALT"] = "5e";
+		_LineNo[_TY+":SALT"] = "5d";
                 _LineNo[_TY+":CashContrib"] = "11";
                 _LineNo[_TY+":ItemDed"] = "17";	
 		_LineNo[_TY+":UseSchedA"] = "18";

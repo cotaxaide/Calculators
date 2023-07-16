@@ -6,25 +6,26 @@
         // Form line numbers
         // var LineNo = [];
 		// 1040
-		_LineNo[_TY+":Salary"] = "1z";		// Need update
-                _LineNo[_TY+":Earned"] = "1z&S1-3";		// Need update
-                _LineNo[_TY+":TaxExInc"] = "2a";		// Need update
-                _LineNo[_TY+":QualDiv"] = "3a";		// Need update
-		_LineNo[_TY+":Pension"] = "4b+5b";		// Need update
-                _LineNo[_TY+":SSI"] = "6a";		// Need update
-                _LineNo[_TY+":SST"] = "6b";		// Need update
-                _LineNo[_TY+":CapGains"] = "7";		// Need update
-                _LineNo[_TY+":AGI"] = "11";		// Need update
-                _LineNo[_TY+":Deductions"] = "12";		// Need update
-                _LineNo[_TY+":QBI"] = "13";		// Need update
-                _LineNo[_TY+":Taxable"] = "15";		// Need update
-                _LineNo[_TY+":TaxAmount"] = "16";		// Need update
-                _LineNo[_TY+":CTC"] = "19";		// Need update
-                _LineNo[_TY+":COD"] = "19";		// Need update
-                _LineNo[_TY+":NRCredit"] = "21";		// Need update
-                _LineNo[_TY+":EIC"] = "27";		// Need update
-                _LineNo[_TY+":ACTC"] = "28";		// Need update
-                _LineNo[_TY+":AOC"] = "29";		// Need update
+		_LineNo[_TY+":Salary"] = "1z";	
+                _LineNo[_TY+":Earned"] = "1z&S1-3";
+                _LineNo[_TY+":TaxExInc"] = "2a";
+                _LineNo[_TY+":QualDiv"] = "3a";	
+		_LineNo[_TY+":IRADist"] = "4b";	
+		_LineNo[_TY+":Pension"] = "5b";	
+                _LineNo[_TY+":SSI"] = "6a";	
+                _LineNo[_TY+":SST"] = "6b";	
+                _LineNo[_TY+":CapGains"] = "7";	
+                _LineNo[_TY+":AGI"] = "11";	
+                _LineNo[_TY+":Deductions"] = "12";
+                _LineNo[_TY+":QBI"] = "13";	
+                _LineNo[_TY+":Taxable"] = "15";	
+                _LineNo[_TY+":TaxAmount"] = "16";
+                _LineNo[_TY+":CTC"] = "19";	
+                _LineNo[_TY+":COD"] = "19";	
+                _LineNo[_TY+":NRCredit"] = "21";
+                _LineNo[_TY+":EIC"] = "27";	
+                _LineNo[_TY+":ACTC"] = "28";	
+                _LineNo[_TY+":AOC"] = "29";	
 		// Schedules 1-3
 		_LineNo[_TY+":Business"] = "S1-3";		// Need update
                 _LineNo[_TY+":SEP"] = "S1-16";		// Need update
@@ -33,22 +34,22 @@
                 _LineNo[_TY+":IRADed"] = "S1-20";
                 _LineNo[_TY+":StudLoan"] = "S1-21";
                 _LineNo[_TY+":Adjustments"] = "S1-24";		// Need update
-                _LineNo[_TY+":ExcessAPTC"] = "S2-2";		// Need update
-                _LineNo[_TY+":Foreign"] = "S3-1";		// Need update
-                _LineNo[_TY+":Care"] = "S3-2";		// Need update
-                _LineNo[_TY+":LLC"] = "S3-3";		// Need update
-                _LineNo[_TY+":Retire"] = "S3-4";		// Need update
-                _LineNo[_TY+":IRP"] = "";		// Need update
-                _LineNo[_TY+":NetPTC"] = "S3-9";		// Need update
+                _LineNo[_TY+":ExcessAPTC"] = "S2-2";
+                _LineNo[_TY+":Foreign"] = "S3-1";
+                _LineNo[_TY+":Care"] = "S3-2";
+                _LineNo[_TY+":LLC"] = "S3-3";
+                _LineNo[_TY+":Retire"] = "S3-4";
+                _LineNo[_TY+":IRP"] = "";
+                _LineNo[_TY+":NetPTC"] = "S3-9";
 		// Qualified dividends and cap gains worksheet
-                _LineNo[_TY+":QDCG"] = "12";		// Need update
+                _LineNo[_TY+":QDCG"] = "12";			// Need update
 		// Schedule A
-	        _LineNo[_TY+":StateWH"] = "5a";  		// Needs update	
-	        _LineNo[_TY+":Property"] = "5b";	 	// Needs update	
-		_LineNo[_TY+":SALT"] = "5d";			// Needs update	
-                _LineNo[_TY+":CashContrib"] = "11";		// Needs update	
-                _LineNo[_TY+":ItemDed"] = "17";			// Needs update	
-		_LineNo[_TY+":UseSchedA"] = "18";		// Needs update	
+	        _LineNo[_TY+":StateWH"] = "5a"; 
+	        _LineNo[_TY+":Property"] = "5b";
+		_LineNo[_TY+":SALT"] = "5d";
+                _LineNo[_TY+":CashContrib"] = "11";
+                _LineNo[_TY+":ItemDed"] = "17";	
+		_LineNo[_TY+":UseSchedA"] = "18";
 		// Form 2555
 	        _LineNo[_TY+":F2555"] = "45 & 50";		// Needs update	
 		// Form 8962
@@ -248,13 +249,13 @@
 		_HSA[_TY+":FAM"] = 7750;
 
 	// Retirement Savings Contribution (Form 8880)
-		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";		// Need update
-		_RETIRE[_TY+":MFJ"] = "41000,	44000,	68000";		// Need update
-		_RETIRE[_TY+":HOH"] = "30750,	33000,	51000";		// Need update
+		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";
+		_RETIRE[_TY+":MFJ"] = "43500,	47500,	73000";
+		_RETIRE[_TY+":HOH"] = "32625,	35625,	54750";
 		_RETIRE[_TY+":SNG"] = 
 		_RETIRE[_TY+":QSS"] = 
 		_RETIRE[_TY+":WID"] = 
-		_RETIRE[_TY+":MFS"] = "20500,	22000,	34000";		// Need update
+		_RETIRE[_TY+":MFS"] = "21750,	23750,	36500";
 
 	// IRA Adjustment limits
 		_IRALimits[_TY+":AGE"] = 50;		// Need update

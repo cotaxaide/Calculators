@@ -446,7 +446,7 @@
 		// Initialize with no input
 		MFJMFS_Change();
 		File_Change();
-	}
+	} // end Initialize()
 
 	//----------------------------------------------------------------------------------------
 	function MFJMFS_Test(thisId) {
@@ -484,7 +484,7 @@
 		JOINTButton.style.disabled = 
 		SAVEButton.style.disabled = (MFJMFSError);
 
-	}
+	} // end MFJMFS_Test()
 
 	//----------------------------------------------------------------------------------------
 	function MFJMFS_Change() {
@@ -523,7 +523,7 @@
 			CTCDependentsMFS2.style.display =
 			EICDependentsMFS2.style.display = "none";
 		}
-	}
+	} // end MFJMFS_Change()
 
 	//----------------------------------------------------------------------------------------
 	function File_Change() {
@@ -609,7 +609,7 @@
 			itemlist[itno].style.display = (IExp) ? "table-row" : "none";
 		}
 
-		// 2018 tax form changes
+		// 2018 tax form changes (this may come back in 2025)
 		AGILimitRow.style.display =
 		MFJMFSAGILimitRow.style.display =
 		MiscellaneousRow.style.display =
@@ -633,7 +633,7 @@
 		else {
 			Input_Change("NoInput");
 		}
-	}
+	} // end File_Change()
 
 	//----------------------------------------------------------------------------------------
 	function Get_Inputs(thisId, allowNegative) {
@@ -687,7 +687,7 @@
 			EdInputBox.style.display = "none";
 		}
 	MFJMFSLastId = thisId;
-	}
+	} // end Get_Inputs()
 
 	//----------------------------------------------------------------------------------------
 	function Get_Position(thisId) {
@@ -715,7 +715,8 @@
 		}
 
 		return { x: xPosition, y: yPosition };
-	}
+
+	} // end Get_Position()
 
 	//----------------------------------------------------------------------------------------
 	function Do_Joint() {
@@ -727,7 +728,8 @@
 		// (do not use -= in next statement)
 		TPInput.value = Math.round(joint - +SPInput.value);
 		Do_Inputs("MFJMFS");
-	}
+
+	} // end Do_Joint()
 
 	//----------------------------------------------------------------------------------------
 	function Do_Inputs(inType) {
@@ -735,37 +737,40 @@
 	// This function gets inputs for taxpayer and spouse for MFJMFS comparison
 	//----------------------------------------------------------------------------------------
 		switch (inType) {
-			case "MFJMFS":
-				if (MFJMFSError) return; // bad input
-				thisId = MFSInputId.innerHTML;
-				if (thisId == "") return;
-				TPMFS[thisId] = +TPInput.value;
-				SPMFS[thisId] = +SPInput.value;
-				if (thisId === "IRADeduction") {
-					TPMFS["IRADeductionJoint"] = +TPInput.value;
-					SPMFS["IRADeductionJoint"] = +SPInput.value;
-					TPMFJ["IRADeductionJoint"] = +TPInput.value + +SPInput.value;
-				}
-				TPMFJiList[thisId].value = TPMFJ[thisId] = +TPInput.value + +SPInput.value;
-				MFSInputId.innerHTML = "";
-				MFSInputBox.style.display = "none";
-				TPMFJiList[thisId].disabled = false;
-				Input_Change(thisId, true);
-				break;
-			case "Education":
-				EdInputBox.style.display = "none";
-				Input_Change("EducationCost");
-				break;
+		case "MFJMFS":
+			if (MFJMFSError) return; // bad input
+			thisId = MFSInputId.innerHTML;
+			if (thisId == "") return;
+			TPMFS[thisId] = +TPInput.value;
+			SPMFS[thisId] = +SPInput.value;
+			if (thisId === "IRADeduction") {
+				TPMFS["IRADeductionJoint"] = +TPInput.value;
+				SPMFS["IRADeductionJoint"] = +SPInput.value;
+				TPMFJ["IRADeductionJoint"] = +TPInput.value + +SPInput.value;
+			}
+			TPMFJiList[thisId].value = TPMFJ[thisId] = +TPInput.value + +SPInput.value;
+			MFSInputId.innerHTML = "";
+			MFSInputBox.style.display = "none";
+			TPMFJiList[thisId].disabled = false;
+			Input_Change(thisId, true);
+			break;
+		case "Education":
+			EdInputBox.style.display = "none";
+			Input_Change("EducationCost");
+			break;
+		default:
+			break;
 		}
-	}
+
+	} // end Do_Inputs()
 
 	//----------------------------------------------------------------------------------------
-	function Input_Change(thisId, allowNegative) {
+	function Input_Change(thisId, allowNegative = false) {
 	// This function prepares for a recalculation due to an input change
 	//   thisId		The id of the input that has changed
 	//   allowNegative	optional field that indicates that the value is allowed to be neg.
 	//----------------------------------------------------------------------------------------
-		if (allowNegative === undefined) allowNegative = false;
+		//if (allowNegative === undefined) allowNegative = false;
 
 		// Check input validity
 		thisElement = TPMFJiList[thisId];
@@ -837,13 +842,14 @@
 		}
 
 		Do_Estimates();
-	}
+
+	} // end Input_Change()
 
 	//----------------------------------------------------------------------------------------
 	function Do_Calcs(CalcType, CalcIn, AllowUCE) {
 	// This function takes the inputs from the CalcIn array and creates the CalcOut array
 	//----------------------------------------------------------------------------------------
-		// If AllowUCE parameter no present, make it false
+		// If AllowUCE parameter not present, make it false
 		if (AllowUCE === undefined) AllowUCE = false;
 
 		// Initialize output array
@@ -856,8 +862,9 @@
 		var CTCDependentsValue = +CTCDependents.value;
 			CTCDependentsValue += 0.01 * Dependents0.value;
 		var SPCTCDependentsValue = +SPCTCDependents.value;
-			SPCTCDependentsValue += 0.01 * SPDependents0.value;
-		if (MFJMFS.checked) switch (CalcType) {
+		SPCTCDependentsValue += 0.01 * SPDependents0.value;
+		if (MFJMFS.checked) {
+			switch (CalcType) {
 			case "T":
 				FilingStatusValue = "MFS";
 				break;
@@ -872,6 +879,9 @@
 				EICDependentsValue = +SPEICDependents.value;
 				CTCDependentsValue = +SPCTCDependentsValue;
 				break;
+			default:
+				break;
+			}
 		}
 
 		// Get self-employment tax
@@ -1416,7 +1426,8 @@
 		RefundComment.style.display = (taxdue < 0) ? "inline" : "none" ;
 
 		return (CalcOut);
-	}
+
+	} // end Do_Calcs()
 
 	//----------------------------------------------------------------------------------------
 	function Show_Results(resultType) {
@@ -1433,6 +1444,8 @@
 				break;
 			case "S":
 				document.getElementById("SP" + TagId).innerHTML = (TPMFJ[TagId]) ? SPMFS[TagId] : "";
+				break;
+			default:
 				break;
 			}
 		}
@@ -1453,39 +1466,42 @@
 				document.getElementById("SP" + TagId).innerHTML =
 					SPMFS[TagId] = TagVal;
 				break;
+			default:
+				break;
 			}
 		}
 
 		switch (resultType) {
-			case "J":
-				Standard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
-				Itemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
-				Standard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
-				Itemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				break;
-			case "T":
-				TPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
-				TPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
-				TPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
-				TPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				TPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				TPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				TPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				TPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				TPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				break;
-			case "S":
-				SPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
-				SPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
-				SPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
-				SPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				SPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				SPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				SPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				SPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				SPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-				break;
-
+		case "J":
+			Standard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
+			Itemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
+			Standard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+			Itemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			break;
+		case "T":
+			TPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
+			TPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
+			TPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+			TPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			TPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			TPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			TPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			TPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			TPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			break;
+		case "S":
+			SPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
+			SPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
+			SPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
+			SPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			SPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			SPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			SPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			SPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			SPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			break;
+		default:
+			break;
 		}
 
 		// MFJ/MFS Comparison results
@@ -1517,7 +1533,8 @@
 		}						// this also avoids issues when state code isn't present
 		catch(err) {	// do nothing, just continue
 		}
-	}
+
+	} // end Show_Results()
 
 	//----------------------------------------------------------------------------------------
 	function Do_Estimates() {
@@ -1556,7 +1573,7 @@
 //		}
 
 		Do_Pay();
-	}
+	} // end Do_Estimates()
 
 	//----------------------------------------------------------------------------------------
 	function Pay_Change(id) {
@@ -1583,9 +1600,13 @@
 			payS.style.fontWeight = "bold"
 			payS.style.backgroundColor = "green";
 		       break;
+		default:
+		       break;
 		}
+
 		Do_Pay();
-	}
+
+	} // end Pay_Change()
 
 	//----------------------------------------------------------------------------------------
 	function Do_Pay() {
@@ -1621,7 +1642,7 @@
 		VoucherAmount.innerHTML = vamount;
 		QuarterAmount.innerHTML = Math.round(vamount / 4);
 		PayNotRequired.style.display = (vamount < 1000) ? "inline":"none";
-	}
+	} // end Do_Pay()
 
 </script>
 
