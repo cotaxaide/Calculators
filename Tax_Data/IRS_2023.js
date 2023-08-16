@@ -78,11 +78,11 @@
 		_EdExpenseLimits["N/A"]  = 3;	// SAV phase out starts (MFJ, QSS)
 		_EdExpenseLimits["N/A"]  = 4;	// SAV gone (MFJ, QSS)
         
-		_EdExpenseLimits[_TY+":TNF"] = "    0,     0,    0,      0,       0";		// Need update
-		_EdExpenseLimits[_TY+":LLC"] = "10000, 59000, 69000, 118000, 138000";		// Need update
-		_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";		// Need update
+		_EdExpenseLimits[_TY+":TNF"] = "    0,     0,    0,      0,       0";
+		_EdExpenseLimits[_TY+":LLC"] = "10000, 59000, 69000, 118000, 138000";
+		_EdExpenseLimits[_TY+":AOC"] = " 4000, 80000, 90000, 160000, 180000";
 		_EdExpenseLimits[_TY+":SAV"] = "  N/A, 82350, 96100, 123550, 151600";	// Tentative	// Needs update
-		_EdExpenseLimits[_TY+":INT"] = "  2500, 70000, 85000, 145000, 175000";		// Need update
+		_EdExpenseLimits[_TY+":INT"] = "  2500, 70000, 85000, 145000, 175000";
 
         // var Standard = [];	// Exemption and standard deductions
                 _Standard["Exemption"] = 0;
@@ -270,4 +270,4 @@
 		_IRALimits[_TY+":MFJ"] = "129000, 214000";		// Need update
 		
 	// Medicare PartB MFS Premium Threshhold
-		_MEDBMFS[_TY] = 91000;		// Need update
+		_MEDBMFS[_TY] = 97000;
