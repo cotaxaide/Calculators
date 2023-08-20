@@ -60,13 +60,15 @@
 //	Patricia Palanker	Paul Renard		David Herman		George Shevchuk
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
-//	Mary Jennings		Debbie Geldis		Ed Hondl
+//	Mary Jennings		Debbie Geldis		Ed Hondl		Lance Lauerhass
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.11 3/31/2023";
+var VERSION = "7.12 8/19/2023";
+//	Fixed error where if given to another TP, the parent still shows eligibility
+//var VERSION = "7.11 3/31/2023";
 //	Fixed Decendent as nice/nephew qualifies for HOH if a child dependent
 //	Minor text and formatting changes
 //var VERSION = "7.10 12/16/2022";
@@ -990,7 +992,7 @@ function CalcStatus(from_age_calc) {
 		if ((MSRBoxActive) && (QualRelative.value != NO)) SetMessage(HOH,"- Multiple support person is not an HOH dependent");
 		if ((DEP_Relation != "PARENT") && (DEP_Residency < 7)) SetMessage(HOH,"- Failed residency test");
 		if (! HHCost.checked) SetMessage(HOH,"- TP must provide >50% of household costs");
-		if (QualChildOfAnother.checked && (QCAtest != "TP") && (QCAtest != "OTHER_NO_HOH")) SetMessage(HOH,"- TP is not claiming child as a dependent");
+		if (QualChildOfAnother.checked && (QCAtest == "OTHER_NO_HOH")) SetMessage(HOH,"- TP is not claiming child as a dependent");
 		if (TP_Filing == "MFJ") SetMessage(HOH,"- TP filing as married");
 		if ((TP_Filing == "MFS") || (TP_Filing == "HOH")) { // TP may be able to file HOH
 			if (TPDivorced.checked && (! TP_DivorceApplies)) { // still married but living apart - dependent restrictions apply
@@ -1355,8 +1357,9 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			QCA_AGITest.style.display = "none";
 			if (NoParentClaims.checked || TP_IsParent) QCAtest = "TP"; // must precede next test
 			if (OtherTPisParent.checked || ParentGives.checked) QCAtest = "OTHER";
-			if ((! OtherTPisParent.checked) && PermissionGiven.checked) QCAtest = "TP_GIVEN";
+			//if ((! OtherTPisParent.checked) && PermissionGiven.checked) QCAtest = "TP_GIVEN"; // removed in V 7.12
 			if (PermissionGiven.checked || NoParentClaims.checked) QCAtest = "TP"; // Added in Version 6.26
+			if ((QCAtest == "TP") && PermissionGiven.checked) QCAtest = "TP_GIVEN"; // added in V 7.12
 		}
 	}
 	else {
@@ -1384,7 +1387,7 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 			TieBreaker.innerHTML = "";
 			break;
 		case (QCAtest == "TP_GIVEN"):
-			QCAtest = "OTHER";
+			//QCAtest = "OTHER"; // removed in v 7.12
 			// no break
 		case (QCAtest == "OTHER_NO_HOH"): // Don't change this to OTHER
 		case (QCAtest == "TP"):
@@ -1407,6 +1410,9 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 	}
 	QCAreason = "";
 	switch (QCAtest) {
+		case "TP_GIVEN":  QCAreason = "- The child has been given to another taxpayer"; // v added 7.12
+				  QCAtest = "OTHER_NO_HOH";
+				  break;
 		case "OTHER":     QCAreason = "- Qualified child of another"; break;
 		case "OTHER_PAR": QCAreason = "- The child's parent filed and claimed the exemption"; break;
 		case "OTHER_RES": QCAreason = "- The child resided with the other parent longer"; break;
