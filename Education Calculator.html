@@ -34,7 +34,6 @@
 	.calcHeader { text-align: center; background-color: #bbeecc; padding: 3px; height: 3.5em; }
 	.calculatedEntry { text-align: right; }
 	.LLCClass,
-	.TNFClass,
 	.AOCClass { padding-right: 1em; }
 	.qexpense { color: green; }
 	.nqexpense { color: red; }
@@ -80,14 +79,12 @@
 	#EItable tr td:nth-child(3) { width: 11%; }
 	#EItable tr td:nth-child(4) { width: 10%; }
 	#EItable tr td:nth-child(5) { width: 10%; }
-	#EItable tr td:nth-child(6) { width: 10%; }
-	#EItable tr td:nth-child(7) { width:  2%; }
+	#EItable tr td:nth-child(6) { width:  2%; }
 	#MCtable tr th { text-align: left; }
 	#MCtable tr td:first-child { width: 28%; font-weight: bold; }
 	#MCtable tr td:nth-child(2) { width: 18%; }
 	#MCtable tr td:nth-child(3) { width: 18%; }
 	#MCtable tr td:nth-child(4) { width: 18%; }
-	#MCtable tr td:nth-child(5) { width: 18%; }
 	#AGIdiv { width: 33em; border: 3px black solid; padding: 3px; }
 	#AGItable { text-align: right; }
 	#AGItable tr td:first-child { width: 50%; text-align: left; }
@@ -129,7 +126,6 @@
 	#optDiv th, #optDiv td:first-child { text-align: left; }
 	#optDiv td:nth-child(2) { text-align: right; }
 	#testPrint {color: red; font-size: 60%; float: right; cursor: none; }
-	#KiddieAllowOption { padding-left: 2em; }
 	#messageNoUnqualified,
 	#NoOptimize1,
 	#NoOptimize2,
@@ -169,21 +165,26 @@
 		table input[type="number"] { font-size: 70%; }
 		.noPrint { display: none; !important }
 		.doPrint { display: inline; !important }
+		.help { display: none; }
 	       }
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
 <!-- Keep current plus 4 prior years (for ACA) -->
-<script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
 <script src="Tax_Data/IRS_2022.js"></script>
+<script src="Tax_Data/IRS_2023.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.39, 3/11/2023";
+	var VERSION = "Version 3.40, 8/17/2023";
+	//	Removed T&S column
+	//	Removed Kiddie tax option available for 2018-2019
+	//	hide circled question marks (help comments) on print
+	//var VERSION = "Version 3.39, 3/11/2023";
 	//	Corrected premature end of optimization when refund change is negative
 	//var VERSION = "Version 3.38, 2/24/2023";
 	//	Corrected expenses for federal limits
@@ -357,8 +358,7 @@
 	var MaxRefundTaxable = 0;
 	var Optimizing = false;
 	var Optimized = false;
-	var OptimizedValue = 0;
-	var OptimizedIncome = 0;
+	var OptimizedTaxableFound = 0;
 	var PlotCanv;
 	var Plotview;
 	var PlotHeight = 600;
@@ -373,7 +373,7 @@
 	var PlotDiffRefund = 0;
 	var PlotLowSch = 0;
 	var PlotHighSch = 0;
-	var Program = ["AOC","LLC","TNF"];
+	var Program = ["AOC","LLC"];
 	var ScholarAvailable = 0;
 	var ScholarIncome = 0;
 	var ScholarNQMax = 0;
@@ -389,7 +389,6 @@
 	var StudKiddieTax = [];
 	var StudKiddieAOC = [];
 	var StudKiddieLLC = [];
-	var StudKiddieTNF = [];
 	var ScholarReduction = 0;
 	var ScholarReductionMax = 0;
 
@@ -577,10 +576,8 @@
 		ItemDedLineNoA.innerHTML = ItemDedLineNoB.innerHTML = _LineNo[TaxYear.value + ":ItemDed"];
 		DeductionsLineNoA.innerHTML = DeductionsLineNoB.innerHTML = _LineNo[TaxYear.value + ":Deductions"];
 		TaxAmountLineNoA.innerHTML = TaxAmountLineNoB.innerHTML = _LineNo[TaxYear.value + ":TaxAmount"];
-		TNFLineNo.innerHTML = _LineNo[TaxYear.value + ":TNF"];
 		ExcessAPTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":ExcessAPTC"];
 		CareLineNoB.innerHTML = _LineNo[TaxYear.value + ":Care"];
-		RefCareLineNoB.innerHTML = "S3-13g"; // 2021 only
 		LLCLineNoB.innerHTML = _LineNo[TaxYear.value + ":LLC"];
 		RetireLineNoB.innerHTML = _LineNo[TaxYear.value + ":Retire"];
 		CTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":CTC"];
@@ -597,6 +594,7 @@
 		//F8962MAGILineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962MAGI"];
 
 		// Child Tax Credit and Refundable Care change in 2021
+		RefCareLineNoB.innerHTML = "S3-13g"; // 2021 only
 		RefCareLine.style.display = Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
 		ACTCLabel.innerHTML = (TaxYear.value == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit" ;
 
@@ -652,9 +650,6 @@
 		}
 		else { // Student is a dependent
 			KiddieWarn.style.display = "list-item";
-			if (whatChanged == "TaxYear") {
-				if ((+TaxYear.value < 2018) || (+TaxYear.value > 2019)) KiddieAllow.checked = false;
-			}
 		}
 		Exemptions += +Dependents.value;
 
@@ -717,10 +712,6 @@
 			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 		}
 		
-		// Kiddie tax method change in 2018 but rescinded in 2020
-		KiddieAllowOption.style.display =
-		KTdiv.style.display = ((KiddieTaxApplies) && ((+TaxYear.value == 2018) || (+TaxYear.value == 2019))) ? "inline" : "none"; // v3.4
-
 		// Hide tax return results line if student not a dependent
 		StudentInput.style.display = (DependentNo.checked) ? "none" : "inline";
 
@@ -774,16 +765,9 @@
 		    MaxLLC.innerHTML = 0;
 		if (DegreeNo.checked && SkillsNo.checked) MaxLLC.innerHTML = 0;
 
-		MaxTNFValue = _EdExpenseLimits[TaxYear.value + ":TNF"].split(",")[0];
-		TNFRow.style.display = (MaxTNFValue > 0) ? "table-row" : "none";
-		if (+TNFTax.value > MaxTNFValue) TNFTax.value = MaxTNFValue; // Limit for all students combined
-		MaxTNF.innerHTML = MaxTNFValue - +TNFTax.value;
-		if ((DependentNo.checked && ClaimedYes.checked) || (FilingStatus.value == "MFS")) MaxTNF.innerHTML = 0;
-
 		// Show qualification status on the Taxpayer Information tab
 		StudentAOC.innerHTML = (+MaxAOC.innerHTML == 0) ? "No" : "Yes";
 		StudentLLC.innerHTML = (+MaxLLC.innerHTML == 0) ? "No" : "Yes";
-		StudentTNF.innerHTML = (+MaxTNF.innerHTML == 0) ? "No" : "Yes";
 		StudentAOCR.innerHTML = ((DependentNo.checked && ClaimedNo.checked && KiddieTaxApplies) 
 				|| (+MaxAOC.innerHTML == 0)) ? "No" : "Yes";
 
@@ -802,12 +786,6 @@
 		amount = _EdExpenseLimits[TaxYear.value + ":LLC"].split(",")[2 + MFJIndex2];
 		LimitTableLLC2b.innerHTML = Comma(amount);
 		LimitTableLLC3a.innerHTML = Comma(+amount + 1);
-		amount = _EdExpenseLimits[TaxYear.value + ":TNF"].split(",")[1] * (1+MFJIndex);
-		LimitTableTNF1b.innerHTML = Comma(amount);
-		LimitTableTNF2a.innerHTML = Comma(+amount + 1);
-		amount = _EdExpenseLimits[TaxYear.value + ":TNF"].split(",")[3] * (1+MFJIndex);
-		LimitTableTNF2b.innerHTML = Comma(amount);
-		LimitTableTNF3a.innerHTML = Comma(+amount + 1);
 		var vEICTable = TaxYear.value + ":" + ((FilingStatus.value == "MFJ") ? "MFJ" : "SNG");
 		var vEICDependents = Math.min(3, +EICDependents.value);
 		var vEICLookupMax = _EICRates[vEICTable].split(",")[vEICDependents];
@@ -933,7 +911,7 @@
 		var taxableLimit = Math.min(+Nonrestricted.value, ScholarAvailable);
 
 		// Limit taxable to dependent child to avoid the kiddie tax
-		if (KiddieTaxApplies && (! KiddieAllow.checked)) {
+		if (KiddieTaxApplies) {
 			// Get the student's current unearned income amount and determine if must file
 
 			// Taxable scholarship is earned income for this test
@@ -1056,15 +1034,14 @@
 		ScholarNQMax = ScholarAvailable; // v 3.37
 		var scholarAvailableAOC = ScholarAvailable;
 		var scholarAvailableLLC = ScholarAvailable;
-		var scholarAvailableTNF = ScholarAvailable;
 		//ExpenseAllowedFlag.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
 
 		//-----------------------Expense calculations --------------------------------
 
 		// Calculate qualified expenses for each category and set tax-free amount flags
-		QualExpenses["AOC"] = QualExpenses["LLC"] = QualExpenses["TNF"] = 0;
-		NonqualExpenses["AOC"] = NonqualExpenses["LLC"] = NonqualExpenses["TNF"] = 0;
-		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = AllowedExpenses["TNF"] = 0;
+		QualExpenses["AOC"] = QualExpenses["LLC"] = 0;
+		NonqualExpenses["AOC"] = NonqualExpenses["LLC"] = 0;
+		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = 0;
 
 		// Must be at least half time to apply funds to living expenses
 		var livingAvailable = (! TimePart.checked) ? (+ScholarNQMax + +ScholarIRA.value) : 0;
@@ -1072,31 +1049,28 @@
 		ScholarReduction = 0;
 		ScholarReductionMax = ScholarAvailable;
 
-		// VerifyExpense(Category,   AOC,   LLC,   TNF,   LIMIT
-		VerifyExpense("Tuition",     true,  true,  true,  ScholarAvailable);
-		VerifyExpense("Fees",	     true,  true,  true,  ScholarAvailable);
-		VerifyExpense("InstBooks",   true,  true,  true,  ScholarAvailable);
-		VerifyExpense("SecondBooks", true,  false, false, ScholarAvailable);
-		VerifyExpense("Supplies",    true,  true,  true , ScholarAvailable);
-		VerifyExpense("OtherStuff",  true,  false, false, ScholarAvailable);
-		VerifyExpense("Living",      false, false, false, livingAvailable);
-		VerifyExpense("Insurance",   false, false, false, 0);
-		VerifyExpense("Services",    false, false, false, servicesAvailable);
-		VerifyExpense("Transport",   false, false, false, 0);
-		VerifyExpense("Sports",      false, false, false, 0);
-		VerifyExpense("NonCredit",   false, false, false, 0);
-		VerifyExpense("Clerical",    false, false, false, 0);
+		// VerifyExpense(Category,   AOC,   LLC,   LIMIT
+		VerifyExpense("Tuition",     true,  true,  ScholarAvailable);
+		VerifyExpense("Fees",	     true,  true,  ScholarAvailable);
+		VerifyExpense("InstBooks",   true,  true,  ScholarAvailable);
+		VerifyExpense("SecondBooks", true,  false, ScholarAvailable);
+		VerifyExpense("Supplies",    true,  true,  ScholarAvailable);
+		VerifyExpense("OtherStuff",  true,  false, ScholarAvailable);
+		VerifyExpense("Living",      false, false, livingAvailable);
+		VerifyExpense("Insurance",   false, false, 0);
+		VerifyExpense("Services",    false, false, servicesAvailable);
+		VerifyExpense("Transport",   false, false, 0);
+		VerifyExpense("Sports",      false, false, 0);
+		VerifyExpense("NonCredit",   false, false, 0);
+		VerifyExpense("Clerical",    false, false, 0);
 
 		// show the expense totals
 		NQTotalAOC.innerHTML = NonqualExpenses["AOC"];
 		NQTotalLLC.innerHTML = NonqualExpenses["LLC"];
-		NQTotalTNF.innerHTML = NonqualExpenses["TNF"];
 		NQAvailAOC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"];
 		NQAvailLLC.innerHTML = (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["LLC"]) : NonqualExpenses["LLC"];
-		NQAvailTNF.innerHTML = (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["TNF"]) : NonqualExpenses["TNF"];
 		ExpensesAOC.innerHTML = QualExpenses["AOC"];
 		ExpensesLLC.innerHTML = QualExpenses["LLC"];
-		ExpensesTNF.innerHTML = QualExpenses["TNF"];
 
 		// Allocate funds available
 
@@ -1107,7 +1081,7 @@
 		// Adjust scholarship total for "manually checked" expenses
 		ScholarAvailable -= ScholarReduction;
 
-		NQExpenses["AOC"] = NQExpenses["LLC"] = NQExpenses["TNF"] = 0;
+		NQExpenses["AOC"] = NQExpenses["LLC"] = 0;
 		NQExpense("Tuition");
 		NQExpense("Fees");
 		NQExpense("InstBooks");
@@ -1124,12 +1098,10 @@
 
 		NQAvailAOC.innerHTML = NQExpenses["AOC"];
 		NQAvailLLC.innerHTML = NQExpenses["LLC"];
-		NQAvailTNF.innerHTML = NQExpenses["TNF"];
 
 		// Distribute the scholarship between q and non-q expenses
 		Distribute("AOC");
 		Distribute("LLC");
-		Distribute("TNF")
 
 		// Warning messages for supplementary funds
 
@@ -1164,8 +1136,7 @@
 		}
 		if (ScholarSAV.value > 0) {
 			if ((ScholarSAV.value > QualExpensesAOC.innerHTML) ||
-			    (ScholarSAV.value > QualExpensesLLC.innerHTML) ||
-			    (ScholarSAV.value > QualExpensesTNF.innerHTML)) {
+			    (ScholarSAV.value > QualExpensesLLC.innerHTML)) {
 				WarningMessage += "<br />The Savings Bond amount exceeds the";
 				WarningMessage += " qualified education expenses claimed on the";
 				WarningMessage += " TP&apos;s tax return for one or more of the credits above.";
@@ -1181,7 +1152,6 @@
 		messageOver65.style.display =
 		messageAOCMaxedOut.style.display =
 		messageLLCMaxedOut.style.display =
-		messageTNFMaxedOut.style.display =
 		messageAllMaxedOut.style.display =
 		messageNoUnqualified.style.display =
 		NoOptimize1.style.display =
@@ -1191,7 +1161,7 @@
 		if (+ScholarTaxableMax.innerHTML > 0) {
 			messageNoScholar.style.display = "none";
 			OptimizeButtons.style.display = "block";
-			if (+NQExpenses["AOC"] + +NQExpenses["LLC"] + +NQExpenses["TNF"] == 0) {
+			if (+NQExpenses["AOC"] + +NQExpenses["LLC"] == 0) {
 				messageNoUnqualified.style.display = "list-item";
 				OptimizeButtons.style.display = "none";
 				NoOptimize1.style.display = "block";
@@ -1204,7 +1174,7 @@
 			NoOptimize3.style.display = "block";
 			showPerhaps = false;
 		}
-		else if (KiddieTaxFlag && (! KiddieAllow.checked) && (studentUnearned > KiddieTaxThreshold)) {
+		else if (KiddieTaxFlag && (studentUnearned > KiddieTaxThreshold)) {
 			messageNoUnqualified.style.display = "list-item";
 			OptimizeButtons.style.display = "none";
 			NoOptimize4.style.display = "block";
@@ -1230,7 +1200,6 @@
 		if (maxedOut == 3) {
 			messageAOCMaxedOut.style.display = "none";
 			messageLLCMaxedOut.style.display = "none";
-			messageTNFMaxedOut.style.display = "none";
 			messageAllMaxedOut.style.display = "list-item";
 		}
 		messagePerhaps.style.display = (showPerhaps) ? "list-item" : "none";
@@ -1239,31 +1208,25 @@
 		// Clear manual calcualations
 		ManualTax.style.backgroundColor =
 		ManualAOC.style.backgroundColor =
-		ManualLLC.style.backgroundColor =
-		ManualTNF.style.backgroundColor = "";
+		ManualLLC.style.backgroundColor = "";
 
 		ManualStateTax.style.backgroundColor =
 		ManualStateAOC.style.backgroundColor =
-		ManualStateLLC.style.backgroundColor =
-		ManualStateTNF.style.backgroundColor = "";
+		ManualStateLLC.style.backgroundColor = "";
 
 		ManualTax.value = "";
 		ManualAOC.value = (ManualAOC.disabled = (+QualExpensesAOC.innerHTML == 0)) ? 0 : "";
 		ManualLLC.value = (ManualLLC.disabled = (+QualExpensesLLC.innerHTML == 0)) ? 0 : "";
-		ManualTNF.value = (ManualTNF.disabled = (+QualExpensesTNF.innerHTML == 0)) ? 0 : "";
 
 		ManualStateTax.value = "";
 		ManualStateAOC.value = (ManualStateAOC.disabled = (+QualExpensesAOC.innerHTML == 0)) ? 0 : "";
 		ManualStateLLC.value = (ManualStateLLC.disabled = (+QualExpensesLLC.innerHTML == 0)) ? 0 : "";
-		ManualStateTNF.value = (ManualStateTNF.disabled = (+QualExpensesTNF.innerHTML == 0)) ? 0 : "";
 
 		liClaimedQuestionAOC.innerHTML = 0;
 		liClaimedQuestionLLC.innerHTML = 0;
-		liClaimedQuestionTNF.innerHTML = 0;
 
 		ManualQETextAOC.innerHTML = QualExpensesAOC.innerHTML;
 		ManualQETextLLC.innerHTML = QualExpensesLLC.innerHTML;
-		ManualQETextTNF.innerHTML = QualExpensesTNF.innerHTML;
 
 		//-----------------------Tax return calculations --------------------------------
 
@@ -1273,66 +1236,51 @@
 		// Taxable scholarship lines
 		ScholarAOC.innerHTML = +((DependentNo.checked) ? +IncomeAOC.innerHTML : 0);
 		ScholarLLC.innerHTML = +((DependentNo.checked) ? +IncomeLLC.innerHTML : 0);
-		ScholarTNF.innerHTML = +((DependentNo.checked) ? +IncomeTNF.innerHTML : 0);
 		liClaimedQuestionAOC.innerHTML = 
 			StudScholarAOC.innerHTML = +IncomeAOC.innerHTML;
 		liClaimedQuestionLLC.innerHTML = 
 			StudScholarLLC.innerHTML = +IncomeLLC.innerHTML;
-		liClaimedQuestionTNF.innerHTML = 
-			StudScholarTNF.innerHTML = +IncomeTNF.innerHTML;
 
 		// Earned income lines
 		if (isNaN(SalaryTax.value)) SalaryTax.value = "";
 		if (isNaN(BusinessTax.value)) BusinessTax.value = "";
-		SEHIAOC.innerHTML = SEHILLC.innerHTML = SEHITNF.innerHTML = SEHITax.value;
-		BusinessAOC.innerHTML = BusinessLLC.innerHTML = BusinessTNF.innerHTML = BusinessTax.value;
+		SEHIAOC.innerHTML = SEHILLC.innerHTML = SEHITax.value;
+		BusinessAOC.innerHTML = BusinessLLC.innerHTML = BusinessTax.value;
 		EarnedTax.value = +SalaryTax.value + +BusinessTax.value;
 		SalaryAOC.innerHTML = +SalaryTax.value + +ScholarAOC.innerHTML;
 		EarnedAOC.innerHTML = +EarnedTax.value + +ScholarAOC.innerHTML;
 		SalaryLLC.innerHTML = +SalaryTax.value + +ScholarLLC.innerHTML;
 		EarnedLLC.innerHTML = +EarnedTax.value + +ScholarLLC.innerHTML;
-		SalaryTNF.innerHTML = +SalaryTax.value + +ScholarTNF.innerHTML;
-		EarnedTNF.innerHTML = +EarnedTax.value + +ScholarTNF.innerHTML;
 		if (DependentYes.checked) {
 			if (isNaN(StudSalaryTax.value)) StudSalaryTax.value = "";
 			if (isNaN(StudBusinessTax.value)) StudBusinessTax.value = "";
-			StudSEHIAOC.innerHTML = StudSEHILLC.innerHTML = StudSEHITNF.innerHTML = StudSEHITax.value;
-			StudBusinessAOC.innerHTML = StudBusinessLLC.innerHTML = StudBusinessTNF.innerHTML = StudBusinessTax.value;
+			StudSEHIAOC.innerHTML = StudSEHILLC.innerHTML = StudSEHITax.value;
+			StudBusinessAOC.innerHTML = StudBusinessLLC.innerHTML = StudBusinessTax.value;
 			StudEarnedTax.value = +StudSalaryTax.value + +StudBusinessTax.value;
 			StudSalaryAOC.innerHTML = +StudSalaryTax.value + +StudScholarAOC.innerHTML;
 			StudEarnedAOC.innerHTML = +StudEarnedTax.value + +StudScholarAOC.innerHTML;
 			StudSalaryLLC.innerHTML = +StudSalaryTax.value + +StudScholarLLC.innerHTML;
 			StudEarnedLLC.innerHTML = +StudEarnedTax.value + +StudScholarLLC.innerHTML;
-			StudSalaryTNF.innerHTML = +StudSalaryTax.value + +StudScholarTNF.innerHTML;
-			StudEarnedTNF.innerHTML = +StudEarnedTax.value + +StudScholarTNF.innerHTML;
 		}
-
-		// Tuition and Fees line (TP only)
-		if (isNaN(TNFTax.value)) TNFTax.value = "";
-		CalculateTNFforAGI();
 
 		// AGI lines
 		if (isNaN(AGITax.value)) AGITax.value = "";
 		AGIAOC.innerHTML = +AGITax.value + +ScholarAOC.innerHTML;
 		AGILLC.innerHTML = +AGITax.value + +ScholarLLC.innerHTML;
-		AGITNF.innerHTML = Math.max(0, (+AGITax.value + +ScholarTNF.innerHTML - +TNFTNF.innerHTML));
 		if (DependentYes.checked) {
 			if (isNaN(StudAGITax.value)) StudAGITax.value = "";
 			StudAGIAOC.innerHTML = +StudAGITax.value + +IncomeAOC.innerHTML;
 			StudAGILLC.innerHTML = +StudAGITax.value + +IncomeLLC.innerHTML;
-			StudAGITNF.innerHTML = +StudAGITax.value + +IncomeTNF.innerHTML;
 		}
 
 		// Capital Gains lines
 		if (isNaN(CapGainsTax.value)) CapGainsTax.value = "";
 		CapGainsAOC.innerHTML =
-		CapGainsLLC.innerHTML =
-		CapGainsTNF.innerHTML = CapGainsTax.value;
+		CapGainsLLC.innerHTML = CapGainsTax.value;
 		if (DependentYes.checked) {
 			if (isNaN(StudCapGainsTax.value)) StudCapGainsTax.value = "";
 			StudCapGainsAOC.innerHTML =
-			StudCapGainsLLC.innerHTML =
-			StudCapGainsTNF.innerHTML = StudCapGainsTax.value;
+			StudCapGainsLLC.innerHTML = StudCapGainsTax.value;
 		}
 
 		// Deduction and Tax lines
@@ -1350,10 +1298,6 @@
 			DeductionLLC.innerHTML = result.deduction;
 			TaxLLC.innerHTML = result.tax;
 			QBILLC.innerHTML = result.qbi;
-		result = CalculateTax(AGITNF.innerHTML, EarnedTNF.innerHTML, ScholarTNF.innerHTML, CapGainsTNF.innerHTML, false);
-			DeductionTNF.innerHTML = result.deduction;
-			TaxTNF.innerHTML = result.tax;
-			QBITNF.innerHTML = result.qbi;
 		if (DependentYes.checked) {
 			if (isNaN(StudItemizedTax.value)) StudItemizedTax.value = "";
 			result = CalculateTax(StudAGITax.value, StudEarnedTax.value, 0, StudCapGainsTax.value, true);
@@ -1371,11 +1315,6 @@
 				StudTaxLLC.innerHTML = result.tax;
 				StudKiddieLLC = result;
 				StudQBILLC.innerHTML = result.qbi;
-			result = CalculateTax(StudAGITNF.innerHTML, StudEarnedTNF.innerHTML, StudScholarTNF.innerHTML, StudCapGainsTNF.innerHTML, true);
-				StudDeductionTNF.innerHTML = result.deduction;
-				StudTaxTNF.innerHTML = result.tax;
-				StudKiddieTNF = result;
-				StudQBITNF.innerHTML = result.qbi;
 		}
 
 		// Determine new APTC and Net PTC amounts
@@ -1403,10 +1342,6 @@
 				F8962ATax.value, F8962BTax.value, F8962FTax.value, ACAMonths.value);
 			ExcessAPTCLLC.innerHTML = +result.APTC;
 			NetPTCLLC.innerHTML = +result.PTCNet;
-			result = CalculateAPTC(+AGITNF.innerHTML + +((+StudTaxTNF.innerHTML) ? StudAGITNF.innerHTML : 0),
-				F8962ATax.value, F8962BTax.value, F8962FTax.value, ACAMonths.value);
-			ExcessAPTCTNF.innerHTML = +result.APTC;
-			NetPTCTNF.innerHTML = +result.PTCNet;
 			}
 
 		// Determine how much of the credits can be used and adjust Nonrefundable credits
@@ -1430,21 +1365,17 @@
 		if (isNaN(AOCTax.value)) AOCTax.value = "";
 		CalculateAOC();
 		CalculateLLC();
-		CalculateTNF();
 
 		// Calculate nonrefundable credits for the student
 		if (DependentYes.checked) {
 			StudFTCAOC.innerHTML =
-			StudFTCLLC.innerHTML =
-			StudFTCTNF.innerHTML = StudFTCTax.value;
+			StudFTCLLC.innerHTML = StudFTCTax.value;
 			StudNRCreditTax.innerHTML =
 			StudForeignTax.innerHTML = Math.min(+StudFTCTax.value, +StudTaxTax.innerHTML);
 			StudNRCreditAOC.innerHTML =
 			StudForeignAOC.innerHTML = Math.min(+StudFTCTax.value, +StudTaxAOC.innerHTML);
 			StudNRCreditLLC.innerHTML =
 			StudForeignLLC.innerHTML = Math.min(+StudFTCTax.value, +StudTaxLLC.innerHTML);
-			StudNRCreditTNF.innerHTML =
-			StudForeignTNF.innerHTML = Math.min(+StudFTCTax.value, +StudTaxTNF.innerHTML);
 		}
 
 		// Calculate Earned Income Credits
@@ -1470,8 +1401,7 @@
 			// Probable high investment income, NR Alien, underage, retired, or dependent
 			EICTax.innerHTML = "";
 			EICAOC.innerHTML =
-			EICLLC.innerHTML =
-			EICTNF.innerHTML = "";
+			EICLLC.innerHTML = "";
 		}
 		else {
 			EICInvest.innerHTML = _EICRates[TaxYear.value + ':INVEST'];
@@ -1484,9 +1414,6 @@
 			EICLLC.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
 				+EarnedLLC.innerHTML - +ScholarLLC.innerHTML - BusinessSETax,
 				CapGainsLLC.innerHTML, AGILLC.innerHTML, TP65.checked, SP65.checked);
-			EICTNF.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
-				+EarnedTNF.innerHTML - +ScholarTNF.innerHTML - BusinessSETax,
-				CapGainsTNF.innerHTML, AGITNF.innerHTML, TP65.checked, SP65.checked);
 		}
 
 		// Calculate the refund fields
@@ -1500,14 +1427,9 @@
 		TaxpayerRefundLLC.innerHTML = BaseRefund - (Math.max(0, +TaxLLC.innerHTML - +NRCreditLLC.innerHTML)
 			+ +ExcessAPTCLLC.innerHTML
 			- +ACTCLLC.innerHTML - +AOCLLC.innerHTML - +EICLLC.innerHTML - +NetPTCLLC.innerHTML);
-		TaxpayerRefundTNF0.innerHTML =
-		TaxpayerRefundTNF.innerHTML = BaseRefund - (Math.max(0, +TaxTNF.innerHTML - +NRCreditTNF.innerHTML)
-			+ +ExcessAPTCTNF.innerHTML
-			- +ACTCTNF.innerHTML - +AOCTNF.innerHTML - +EICTNF.innerHTML - +NetPTCTNF.innerHTML);
 		if (DependentNo.checked) {
 			StudentRefundAOC.innerHTML = 
-			StudentRefundLLC.innerHTML = 
-			StudentRefundTNF.innerHTML = 0;
+			StudentRefundLLC.innerHTML = 0; 
 		}
 		else {
 			BaseRefund = Math.max(0, +StudTaxTax.innerHTML - +StudNRCreditTax.innerHTML) - +AOCTax.value;
@@ -1517,37 +1439,18 @@
 			StudentRefundLLC0.innerHTML =
 			StudentRefundLLC.innerHTML =
 				BaseRefund - (Math.max(0, +StudTaxLLC.innerHTML - +StudNRCreditLLC.innerHTML));
-			StudentRefundTNF0.innerHTML =
-			StudentRefundTNF.innerHTML = 
-				BaseRefund - (Math.max(0, +StudTaxTNF.innerHTML - +StudNRCreditTNF.innerHTML));
 		}
 
 		RefundAOC.innerHTML = Math.round(+TaxpayerRefundAOC.innerHTML + +StudentRefundAOC.innerHTML);
 		RefundLLC.innerHTML = Math.round(+TaxpayerRefundLLC.innerHTML + +StudentRefundLLC.innerHTML);
-		RefundTNF.innerHTML = Math.round(+TaxpayerRefundTNF.innerHTML + +StudentRefundTNF.innerHTML);
 
 		// Determine the best choice
 		ClearUneligibles();
 		MaxRefund = Math.max(
 				(StudentAOC.innerHTML == "No") ? -100000 : +RefundAOC.innerHTML,
-			       	(StudentLLC.innerHTML == "No") ? -100000 : +RefundLLC.innerHTML, 
-				(StudentTNF.innerHTML == "No") ? -100000 : +RefundTNF.innerHTML);
+			       	(StudentLLC.innerHTML == "No") ? -100000 : +RefundLLC.innerHTML); 
 
 		// Highlight fields and show best results in the summary section
-		if ((+RefundTNF.innerHTML == MaxRefund)) {
-			RefundTNF.style.backgroundColor = "lightgreen";
-			ResultingProgram = "Tuition and fees adjustment";
-			ResultingIncome = +IncomeTNF.innerHTML;
-			ResultingExpense = +QualExpensesTNF.innerHTML;
-			MaxRefundAGI = +AGITNF.innerHTML;
-			MaxRefundTaxable = +IncomeTNF.innerHTML;
-			KiddieIncomeStandard.innerHTML = StudKiddieTNF.kiddieIncomeStandard;
-			KiddieResultStandard.innerHTML = StudKiddieTNF.kiddieResultStandard;
-			KiddieIncomeTrust.innerHTML = StudKiddieTNF.kiddieIncomeTrust;
-			KiddieResultTrust.innerHTML = StudKiddieTNF.kiddieResultTrust;
-		}
-		else RefundTNF.style.backgroundColor = "hotpink";
-
 		if ((+RefundLLC.innerHTML == MaxRefund)) {
 			RefundLLC.style.backgroundColor = "lightgreen";
 			ResultingProgram = "Lifetime learning credit";
@@ -1555,10 +1458,6 @@
 			ResultingExpense = +QualExpensesLLC.innerHTML;
 			MaxRefundAGI = +AGILLC.innerHTML;
 			MaxRefundTaxable = +IncomeLLC.innerHTML;
-			KiddieIncomeStandard.innerHTML = StudKiddieLLC.kiddieIncomeStandard;
-			KiddieResultStandard.innerHTML = StudKiddieLLC.kiddieResultStandard;
-			KiddieIncomeTrust.innerHTML = StudKiddieLLC.kiddieIncomeTrust;
-			KiddieResultTrust.innerHTML = StudKiddieLLC.kiddieResultTrust;
 		}
 		else RefundLLC.style.backgroundColor = "hotpink";
 			
@@ -1569,10 +1468,6 @@
 			ResultingExpense = +QualExpensesAOC.innerHTML;
 			MaxRefundAGI = +AGIAOC.innerHTML;
 			MaxRefundTaxable = +IncomeAOC.innerHTML;
-			KiddieIncomeStandard.innerHTML = StudKiddieAOC.kiddieIncomeStandard;
-			KiddieResultStandard.innerHTML = StudKiddieAOC.kiddieResultStandard;
-			KiddieIncomeTrust.innerHTML = StudKiddieAOC.kiddieIncomeTrust;
-			KiddieResultTrust.innerHTML = StudKiddieAOC.kiddieResultTrust;
 		}
 		else RefundAOC.style.backgroundColor = "hotpink";
 
@@ -1610,7 +1505,7 @@
 	//----------------------------------------------------------------------------------------
 	// This function distributes the scholarship to qualified and non-qualified expenses
 	function Distribute(
-		type	// AOC, LLC or TNF
+		type	// AOC or LLC
 		) {
 	// returns true if kiddie tax was encountered
 	//----------------------------------------------------------------------------------------
@@ -1621,7 +1516,6 @@
 		switch (type) {
 			case "AOC": var qeeLimit = +MaxAOC.innerHTML; break;
 			case "LLC": var qeeLimit = +MaxLLC.innerHTML; break;
-			case "TNF": var qeeLimit = +MaxTNF.innerHTML; break;
 		}
 
 		// nqntAmount is the non-qualified amount that is not taxable
@@ -1665,16 +1559,18 @@
 		nqExpenses -= suppPay;
 		suppRemainder -= suppPay; // hopefully will be 0
 
-		if (GapGap.checked) { 
+		if (GapGap.checked) {
+			gapAmount = Math.max(0, qeeLimit - qAmount);
 			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntAmount, saAmount);
+			nqntPay = Math.min(nqntAmount, saAmount, gapAmount);
 			nqntAmount -= nqntPay;
 			nqAmount += nqntPay;
 			saAmount -= nqntPay;
 			nqExpenses -= nqntPay;
+			gapAmount -= nqntPay;
 
 			// Pay any scholarship funds to nonqualified amounts
-			var nqPay = Math.min(nqExpenses, saAmount);
+			var nqPay = Math.min(nqExpenses, saAmount, gapAmount);
 			//nqAmount += nqPay;
 			saAmount -= nqPay;
 			incomeAmount += nqPay;
@@ -1702,7 +1598,7 @@
 		nqAmount += (Math.min(incomeAmount, NQExpenses["AOC"]));
 
 		// adjust for kiddie tax avoidance
-		if (KiddieTaxApplies && ((+TaxYear.value > 2019) || (! KiddieAllow.checked))) {
+		if (KiddieTaxApplies) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
@@ -1737,17 +1633,6 @@
 				QualExpensesLLC2.innerHTML = Math.min(qExpenses, qeeLimit);
 				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
 				break;
-
-			case "TNF":
-				NQAvailTNF.innerHTML = +NQAvailTNF.innerHTML + ScholarReduction; // v3.1
-				NQNTTNF.innerHTML = nqntAmount0; // v3.37
-				QUsedTNF.innerHTML = qAmount;
-				NQUsedTNF.innerHTML = nqAmount; // v3.37
-				NontaxableTNF.innerHTML = nqntPay; // v3.37
-				QualExpensesTNF.innerHTML =
-				QualExpensesTNF2.innerHTML = Math.min(qExpenses, qeeLimit);
-				IncomeTNF.innerHTML = IncomeTNF2.innerHTML = incomeAmount; // v3.33
-				break;
 		}
 		// return true if kiddie tax was encountered
 		return (DependentYes.checked
@@ -1759,7 +1644,7 @@
 	// This function determines the best choice of manually entered amounts after all are entered
 	function ManualChange() {
 	//----------------------------------------------------------------------------------------
-		var changeAOC = changeLLC = changeTNF = ""; // null, not 0
+		var changeAOC = changeLLC = ""; // null, not 0
 
 		// Calculate changes
 		var originalRefund = +ManualTax.value + +ManualStateTax.value;
@@ -1770,24 +1655,19 @@
 		if (! ManualLLC.disabled)
 			changeLLC = +ManualLLC.value + +ManualStateLLC.value - originalRefund;
 			if (ManualLLC != "") ManualDiffLLC.innerHTML = changeLLC;
-		if (! ManualTNF.disabled)
-			changeTNF = +ManualTNF.value + +ManualStateTNF.value - originalRefund;
-			if (ManualTNF != "") ManualDiffTNF.innerHTML = changeTNF;
 
 		// Don't display colors until all applicable fields are filled in
 		if (ManualTax.value == "") return;
 		if (ManualAOC.value == "") return;
 		if (ManualLLC.value == "") return;
-		if (ManualTNF.value == "") return;
 
 		if (ManualStateTax.value != "") {
 			if (ManualStateAOC.value == "") return;
 			if (ManualStateLLC.value == "") return;
-			if (ManualStateTNF.value == "") return;
 		}
 
 		// Determine the best choice
-		var MaxRefund = Math.max(changeAOC,changeLLC,changeTNF,0);
+		var MaxRefund = Math.max(changeAOC,changeLLC,0);
 
 		// Highlight the choice totals
 		ManualDiffTax.style.backgroundColor = (MaxRefund == 0) ? "lightgreen" : "";
@@ -1797,9 +1677,6 @@
 		if (! ManualLLC.disabled)
 			ManualDiffLLC.style.backgroundColor =
 				((changeLLC < MaxRefund) || (changeLLC == 0)) ? "hotpink" : "lightgreen";
-		if (! ManualTNF.disabled)
-			ManualDiffTNF.style.backgroundColor =
-				((changeTNF < MaxRefund) || (changeTNF == 0)) ? "hotpink" : "lightgreen";
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -1808,7 +1685,6 @@
 		category,	// the expense category
 		valAOC,		// qualified expense (true/false)
 		valLLC,		// qualified expense (true/false)
-		valTNF,		// qualified expense (true/false)
 		limit) {
 	//----------------------------------------------------------------------------------------
 		ExpenseCategoryAmount = document.getElementById(category);
@@ -1883,7 +1759,7 @@
 			if ((! ExpenseOption.checked) && (LivingAllowed.innerHTML === "")) return;
 		}
 
-		for (var eni=0; eni < 3; eni++) {
+		for (var eni=0; eni < 2; eni++) {
 			ProgramElement = document.getElementById(category + Program[eni]);
 			AllowedAmount = document.getElementById(category + "SCH");
 			if (ProgramElement.style.color == NonqualColor) {
@@ -1891,54 +1767,6 @@
 				NQExpenses[Program[eni]] = Math.min(amount, ScholarNQMax);
 			}
 		}
-	}
-
-	//----------------------------------------------------------------------------------------
-	// This function calculates the tax benefit for the Tuition and Fees credit
-	function CalculateTNFforAGI() {
-	//----------------------------------------------------------------------------------------
-		var magi = +AGITax.value - +TNFTax.value;
-		var expenses = +(QualExpensesTNF.innerHTML);
-		var limits = _EdExpenseLimits[TaxYear.value + ":TNF"].split(",");
-		var limit = limits[0]
-		switch (FilingStatus.value) {
-			case "MFJ":
-				if (magi >= (limits[1] * 2)) limit = limits[2];
-				if (magi >= (limits[3] * 2)) limit = limits[4];
-				break;
-			case "MFS":
-				limit = 0;
-				break;
-			default:
-				if (magi >= limits[1]) limit = limits[2];
-				if (magi >= limits[3]) limit = limits[4];
-		}
-
-		TNFTax.style.backgroundColor = "";
-		if (TNFTax.value > limit) {
-			alert("Your Tuiton and Fees amount that was entered is greater than the amount allowed for your filing status and income ($ " + Comma(limit) + ").");
-			TNFTax.style.backgroundColor = "pink";
-		}
-
-		TNFAOC.innerHTML = +TNFTax.value;
-		TNFLLC.innerHTML = +TNFTax.value;
-		TNFTNF.innerHTML = Math.min(expenses + +TNFTax.value, limit);
-	}
-
-	//----------------------------------------------------------------------------------------
-	// This function calculates the tax benefit for the Tuition and fees credit
-	function CalculateTNF() {
-	// Returns:
-	//----------------------------------------------------------------------------------------
-		result = CalculateNonrefundable("TNF", +LLCTax.value, +AGITNF.innerHTML);
-			ForeignTNF.innerHTML = result.Foreign;
-			CareTNF.innerHTML = result.Care;
-			RefCareTNF.innerHTML = result.RefCare;
-			LLCTNF.innerHTML = result.Ed;
-			RetireTNF.innerHTML = result.Retire;
-			CTCTNF.innerHTML = result.CTC + result.FTC;
-			NRCreditTNF.innerHTML = result.NRC;
-			ACTCTNF.innerHTML = result.ACTC;
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -2007,7 +1835,6 @@
 		var nonrefundable = available - AOCRefundable + +LLCTax.value;
 		AOCAOC.innerHTML = AOCRefundable + +AOCTax.value;
 		AOCLLC.innerHTML = +AOCTax.value;
-		AOCTNF.innerHTML = +AOCTax.value;
 
 		result = CalculateNonrefundable("AOC", nonrefundable, +AGIAOC.innerHTML)
 			ForeignAOC.innerHTML = result.Foreign;
@@ -2096,91 +1923,8 @@
 		taxable = Math.max(0, taxable - +result.qbi);
 
 		// Look up the tax
-
-		// Kiddie tax in scope in 2019 when rules changed
-		if ((TaxYear.value == 2019) && isStudent && KiddieAllow.checked) {
-			// Definition of earned/unearned is different if kiddie tax applies
-			ctEarned = Math.max(0, ctEarned - ctScholar);
-			var unearnedIncome = Math.max(0, ctAGI - ctEarned);
-
-			// Is student subject to kiddie tax
-			Form8615P1L3 = Math.max( 0 , unearnedIncome - KiddieTaxThreshold);
-			Form8615P1L5 = Math.min( taxable , Form8615P1L3);
-			if ((Form8615P1L3 > 0) && (Form8615P1L5 > 0)) { // Yes
-				Form8615P1L6 = Math.max( 0 , taxable - Form8615P1L5);
-
-				// Use normal rate for taxable earned income and Kiddie Tax threshold amount
-				var standardTax = 0;
-				var trustTax = 0;
-				var kiddieStandard = Math.min(KiddieTaxThreshold, unearnedIncome);
-				if (KiddieTaxApplies) {
-					if (StudCapGainsTax.value) {
-						trustTaxable = Math.max(0, taxable);
-						standardTaxable = 0;
-					}
-					else {
-						trustTaxable = Math.max(0, unearnedIncome - kiddieStandard);
-						standardTaxable = Math.max(0, ctEarned + kiddieStandard - result.deduction);
-					}
-				}
-				else {
-					result.tax = _TaxLookup(TaxYear.value, StudentFilingStatus.value, taxable, ctCG, true)["tax"];
-					result.kiddieResultStandard =
-					result.kiddieIncomeStandard =
-					result.kiddieIncomeTrust =
-					result.kiddieResultTrust = 0;
-					return(result);
-				}
-
-				if (standardTaxable > 0) { // get the tax amount at the standard rate
-					stdCG.style.display = "none";
-					standardTax = standardTaxable * _TaxRates[TaxYear.value + ":PCT"].split(",")[0];
-				}
-				else { // Unused deductions go to reduce the trustTaxable
-					trustTaxable += standardTaxable;
-					standardTaxable = 0;
-					stdCG.style.display = "none";
-				}
-
-				// Use TRUST rate for unearned over the kiddie tax threshhold
-				if (trustTaxable > 0) { // get the tax amount
-					truCG.style.display = (+ctCG > 0) ? "inline" : "none";
-					trustTax = _TaxLookup(TaxYear.value, "TRUST", trustTaxable, +ctCG, true, Form8615P1L6)["tax"];
-				}
-				else {
-					trustTaxable = 0;
-					truCG.style.display = "none";
-				}
-
-				// Add the two tax rate results and return
-				result.kiddieIncomeStandard = standardTaxable;
-				result.kiddieResultStandard = standardTax;
-				result.kiddieIncomeTrust = trustTaxable;
-				result.kiddieResultTrust = trustTax;
-				result.tax = standardTax + trustTax;
-				if (KiddieTaxApplies && KiddieAllow.checked && (standardTaxable + trustTaxable)) {
-					KiddieResults.style.display = "block";
-				}
-				else {
-					KiddieResults.style.display = "none";
-				}
-				return(result);
-			}
-			else { // Dependent not subject to kiddie tax - use normal rates
-				var filingStatus = StudentFilingStatus.value;
-			}
-		}
-		else {
-			var filingStatus = FilingStatus.value;
-		}
-
+		var filingStatus = FilingStatus.value;
 		result.tax = _TaxLookup(TaxYear.value, filingStatus, taxable, ctCG, true)["tax"];
-
-		KiddieIncomeStandard.innerHTML =
-		KiddieResultStandard.innerHTML =
-		KiddieIncomeTrust.innerHTML =
-		KiddieResultTrust.innerHTML = 0;
-		KiddieResults.style.display = "none";
 
 		return(result);
 	}
@@ -2272,7 +2016,7 @@
 	//----------------------------------------------------------------------------------------
 	// This function adjusts the nonrefundable amounts
 	function CalculateNonrefundable(
-		type,	// AOC/LLC/TNF, to get Tax amount
+		type,	// AOC/LLC, to get Tax amount
 		edNR,	// Amount of nonrefundable education credits
 		testAGI	// AGI for this type
 		) {
@@ -2293,7 +2037,6 @@
 			case "TAX": availableNRC = TaxTax.innerHTML; break;
 			case "AOC": availableNRC = TaxAOC.innerHTML; break;
 			case "LLC": availableNRC = TaxLLC.innerHTML; break;
-			case "TNF": availableNRC = TaxTNF.innerHTML; break;
 		}
 
 		// Space for foreign tax credits
@@ -2307,7 +2050,6 @@
 		case "TAX": iCare = CalculateCareCredit(+AGITax.value); break;
 		case "AOC": iCare = CalculateCareCredit(+AGIAOC.innerHTML); break;
 		case "LLC": iCare = CalculateCareCredit(+AGILLC.innerHTML); break;
-		case "TNF": iCare = CalculateCareCredit(+AGITNF.innerHTML); break;
 		}
 		if (TaxYear.value == 2021) {
 			result.RefCare = iCare;
@@ -2340,7 +2082,6 @@
 			case "TAX": earnedCTC = EarnedTax.value; break;
 			case "AOC": earnedCTC = EarnedAOC.innerHTML - +ScholarAOC.innerHTML; break;
 			case "LLC": earnedCTC = EarnedLLC.innerHTML - +ScholarLLC.innerHTML; break;
-			case "TNF": earnedCTC = EarnedTNF.innerHTML - +ScholarTNF.innerHTML; break;
 		}
 		CTCAmount = FTCAmount = ACTCAmount = 0;
 		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value,
@@ -2451,7 +2192,11 @@
 		BudgetChange();
 		Optimizing = false;
 		Optimized = true;
+
+		// Remember the optimum for later use by the plotter
+		OptimizedTaxableFound = optimizedTaxable;
 	}
+
 
 	//----------------------------------------------------------------------------------------
 	// This function clears calculations for credits for which the person is not eligible
@@ -2497,25 +2242,6 @@
 			}
 		}
 
-		elist = document.getElementsByClassName("TNFClass");
-		for (eli = 0; eli < elist.length; eli++) {
-			if (StudentTNF.innerHTML == "No") {
-				elist[eli].style.backgroundColor = "#ffcccc";
-				if (eli == 0) {
-					ManualStateTNF.style.backgroundColor =
-					ManualTNF.style.backgroundColor = "#ffcccc";
-				}
-				elist[eli].innerHTML = "";
-			}
-			else {
-				elist[eli].style.backgroundColor = "#ccccff";
-				if (eli == 0) {
-					ManualStateTNF.style.backgroundColor =
-					ManualTNF.style.backgroundColor = "#fff"; // white
-				}
-				if (elist[eli].innerHTML != "") elist[eli].innerHTML = Math.round(+elist[eli].innerHTML);
-			}
-		}
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -2529,16 +2255,13 @@
 		Dataview.document.writeln("<table><tr>");
 		Dataview.document.writeln("<td>TaxedSchol</td>");
 		Dataview.document.writeln("<td>AGIAOC</td>");
-		Dataview.document.writeln("<td>AGITNF</td>");
 		Dataview.document.writeln("<td>TaxAOC</td>");
-		Dataview.document.writeln("<td>TaxTNF</td>");
 		Dataview.document.writeln("<td>LLCAOC</td>");
 		Dataview.document.writeln("<td>CTCAOC</td>");
 		Dataview.document.writeln("<td>EICAOC</td>");
 		Dataview.document.writeln("<td>ACTCAOC</td>");
 		Dataview.document.writeln("<td>AOC</td>");
 		Dataview.document.writeln("<td>LLC</td>");
-		Dataview.document.writeln("<td>TNF</td>");
 		Dataview.document.writeln("</tr>");
 		Optimizing = true;
 		ScholarTaxable.value = 0;
@@ -2553,16 +2276,13 @@
 			Dataview.document.writeln("<tr>");
 			Dataview.document.writeln("<td>",testval,"</td>");
 			Dataview.document.writeln("<td>",AGIAOC.innerHTML,"</td>");
-			Dataview.document.writeln("<td>",AGITNF.innerHTML,"</td>");
 			Dataview.document.writeln("<td>",TaxAOC.innerHTML,"</td>");
-			Dataview.document.writeln("<td>",TaxTNF.innerHTML,"</td>");
 			Dataview.document.writeln("<td>",LLCAOC.innerHTML,"</td>");
 			Dataview.document.writeln("<td>",CTCAOC.innerHTML,"</td>");
 			Dataview.document.writeln("<td>",EICAOC.innerHTML,"</td>");
 			Dataview.document.writeln("<td>",ACTCAOC.innerHTML,"</td>");
 			Dataview.document.writeln("<td>",RefundAOC.innerHTML,"</td>");
 			Dataview.document.writeln("<td>",RefundLLC.innerHTML,"</td>");
-			Dataview.document.writeln("<td>",RefundTNF.innerHTML,"</td>");
 			Dataview.document.writeln("</tr>");
 		}
 		Dataview.document.writeln("</table>");
@@ -2637,18 +2357,14 @@
 			plotProgram[testval/stepsize] = testval +
 				"," + AGIAOC.innerHTML +
 				"," + RefundAOC.innerHTML +
-				"," + RefundLLC.innerHTML +
-				"," + RefundTNF.innerHTML +
-				"," + AGITNF.innerHTML;
+				"," + RefundLLC.innerHTML;
 
 			PlotMinRefund = Math.min(PlotMinRefund, 
 					(StudentAOC.innerHTML == "Yes") ? RefundAOC.innerHTML : 1000000,
-					(StudentLLC.innerHTML == "Yes") ? RefundLLC.innerHTML : 1000000,
-					(StudentTNF.innerHTML == "Yes") ? RefundTNF.innerHTML : 1000000);
+					(StudentLLC.innerHTML == "Yes") ? RefundLLC.innerHTML : 1000000 );
 			PlotMaxRefund = Math.max(PlotMaxRefund,
 					(StudentAOC.innerHTML == "Yes") ? RefundAOC.innerHTML : -1000000,
-					(StudentLLC.innerHTML == "Yes") ? RefundLLC.innerHTML : -1000000,
-					(StudentTNF.innerHTML == "Yes") ? RefundTNF.innerHTML : -1000000);
+					(StudentLLC.innerHTML == "Yes") ? RefundLLC.innerHTML : -1000000 );
 			if (PlotMaxRefund > optimizedRefund) {
 				optimizedRefund = PlotMaxRefund;
 				optimizedTaxable = testval;
@@ -2713,9 +2429,9 @@
 		}	
 
 		// Add the data
-		var eligible = [StudentAOC.innerHTML == "Yes", StudentLLC.innerHTML == "Yes", StudentTNF.innerHTML == "Yes"]
-		var progColor = ["blue", "orange", "red"];
-		var progCode = ["AOC", "LLC", "TNF"];
+		var eligible = [StudentAOC.innerHTML == "Yes", StudentLLC.innerHTML == "Yes"]
+		var progColor = ["blue", "orange"];
+		var progCode = ["AOC", "LLC"];
 
 		for (var progIdx = 0; progIdx < 3; progIdx++) {
 			if (eligible[progIdx]) {
@@ -2761,7 +2477,7 @@
 		Plotview.document.write("</canvas></body></ht");
 		Plotview.document.write("ml>");
 		
-		ScholarTaxable.value = optimizedTaxable;
+		ScholarTaxable.value = OptimizedTaxableFound;
 		BudgetChange();
 		Optimizing = false;
 	}
@@ -2919,8 +2635,8 @@
 	Unrestricted scholarships can be used for living expenses if the student is willing to make those amounts taxable.
 	<br />
 	<br />Then enter education expenses in the <b><u>Expense Information</u></b> tab.
-	The columns to the right will show what expenses qualify for the American Opportunity Credit,
-	Lifetime Learning credit, or for Tuition and Fees adjustment.
+	The columns to the right will show what expenses qualify for the American Opportunity Credit
+	or the Lifetime Learning credit.
 	A check-mark to the left of each expense catagory indicates funds that can be used for the
 	funding amounts in the Funding Sources tab (scholarship amounts used will be taxable).
 	An option in the qualified expenses row, allows you to use all available funds to be spent on
@@ -3181,10 +2897,6 @@
 				<td></td>
 				<td>&nbsp;&nbsp;Lifetime learning credit:</td>
 				<td id="StudentLLC"></td></tr>
-			<tr id="TNFTaxOption">
-				<td></td>
-				<td>&nbsp;&nbsp;Tuition and fees adjustment:</td>
-				<td id="StudentTNF"></td></tr>
 		</table>
 
 		<div id="KTdiv">
@@ -3248,7 +2960,7 @@
 			<td></td>
 			<td></td></tr>
 		<tr>
-			<td class="FSindent">- Amount (up to <span id="ScholarTaxableMax"></span>) that you wish use for nonqualified expenses for possible larger tax benefit:
+			<td class="FSindent">- Amount (up to <span id="ScholarTaxableMax"></span>) that you wish to use for nonqualified expenses for possible larger tax benefit:
 				<span id="taxInfo" class="help"
 					onmouseover="taxInfoText.style.display='block';"
 					onmouseout="taxInfoText.style.display='none';">&nbsp;?&nbsp;
@@ -3283,7 +2995,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td></td>
 			<td><input id="ScholarQTP" type="number" /></td></tr>
 		<tr title="Early distribution from IRAs can be used for tuition, fees, books, supplies and equipment, special needs services, room & board if at least a half-time student, but an early distribution penalty is applied to unused funds.">
-			<td>&#x2605; Early distributions from IRAs (with no early distribution penalty):</td>
+			<td>&#x2605; Early distributions from IRAs (for education, with no early distribution penalty):</td>
 			<td><input id="ScholarIRA" type="number" /></td>
 			<td></td></tr>
 		<tr title="Distribution from Savings bonds can be used for tuition and fees after all other tax-free funds have been expended, and any interest on unused funds is taxable.">
@@ -3330,16 +3042,13 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<th>Expense category</th>
 			<th>Amount</th>
 			<th>American Opportunity</th>
-			<th>Lifetime Learning</th>
-			<th>Tuition & Fees</th>
-			<th></th></tr>
+			<th>Lifetime Learning</th></tr>
 		<tr>
 			<td><span id="TuitionAllowed"></span></td>
 			<td>Tuition:</td>
 			<td><input id="Tuition" type="number" /></td>
 			<td class="AOCClass" id="TuitionAOC"></td>
 			<td class="LLCClass" id="TuitionLLC"></td>
-			<td class="TNFClass" id="TuitionTNF"></td>
 			<td class="SCHClass" id="TuitionSCH"></td></tr>
 		<tr>
 			<td><span id="FeesAllowed"></span></td>
@@ -3347,7 +3056,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Fees" type="number" /></td>
 			<td class="AOCClass" id="FeesAOC"></td>
 			<td class="LLCClass" id="FeesLLC"></td>
-			<td class="TNFClass" id="FeesTNF"></td>
 			<td class="SCHClass" id="FeesSCH"></td></tr>
 		<tr title="Amounts required to be paid to the institution for course-related books.">
 			<td><span id="InstBooksAllowed"></span></td>
@@ -3355,7 +3063,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="InstBooks" type="number" /></td>
 			<td class="AOCClass" id="InstBooksAOC"></td>
 			<td class="LLCClass" id="InstBooksLLC"></td>
-			<td class="TNFClass" id="InstBooksTNF"></td>
 			<td class="SCHClass" id="InstBooksSCH"></td></tr>
 		<tr>
 			<td><span id="SecondBooksAllowed"></span></td>
@@ -3363,7 +3070,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="SecondBooks" type="number" /></td>
 			<td class="AOCClass" id="SecondBooksAOC"></td>
 			<td class="LLCClass" id="SecondBooksLLC"></td>
-			<td class="TNFClass" id="SecondBooksTNF"></td>
 			<td class="SCHClass" id="SecondBooksSCH"></td></tr>
 		<tr title="amounts required to be paid to the institution for course-related supplies, and equipment">
 			<td><span id="SuppliesAllowed"></span></td>
@@ -3371,7 +3077,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Supplies" type="number" /></td>
 			<td class="AOCClass" id="SuppliesAOC"></td>
 			<td class="LLCClass" id="SuppliesLLC"></td>
-			<td class="TNFClass" id="SuppliesTNF"></td>
 			<td class="SCHClass" id="SuppliesSCH"></td></tr>
 		<tr>
 			<td><span id="OtherStuffAllowed"></span></td>
@@ -3379,7 +3084,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="OtherStuff" type="number" /></td>
 			<td class="AOCClass" id="OtherStuffAOC"></td>
 			<td class="LLCClass" id="OtherStuffLLC"></td>
-			<td class="TNFClass" id="OtherStuffTNF"></td>
 			<td class="SCHClass" id="OtherStuffSCH"></td></tr>
 		<tr>
 			<td><input id="LivingOption" type="checkbox" /><span id="LivingAllowed"></span></td>
@@ -3387,7 +3091,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Living" type="number" /></td>
 			<td class="AOCClass" id="LivingAOC"></td>
 			<td class="LLCClass" id="LivingLLC"></td>
-			<td class="TNFClass" id="LivingTNF"></td>
 			<td class="SCHClass" id="LivingSCH"></td></tr>
 		<tr>
 			<td><input id="InsuranceOption" type="checkbox" /><span id="InsuranceAllowed"></span></td>
@@ -3395,7 +3098,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Insurance" type="number" /></td>
 			<td class="AOCClass" id="InsuranceAOC"></td>
 			<td class="LLCClass" id="InsuranceLLC"></td>
-			<td class="TNFClass" id="InsuranceTNF"></td>
 			<td class="SCHClass" id="InsuranceSCH"></td></tr>
 		<tr>
 			<td><input id="ServicesOption" type="checkbox" /><span id="ServicesAllowed"></span></td>
@@ -3403,7 +3105,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Services" type="number" /></td>
 			<td class="AOCClass" id="ServicesAOC"></td>
 			<td class="LLCClass" id="ServicesLLC"></td>
-			<td class="TNFClass" id="ServicesTNF"></td>
 			<td class="SCHClass" id="ServicesSCH"></td></tr>
 		<tr>
 			<td><input id="TransportOption" type="checkbox" /><span id="TransportAllowed"></span></td>
@@ -3411,7 +3112,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Transport" type="number" /></td>
 			<td class="AOCClass" id="TransportAOC"></td>
 			<td class="LLCClass" id="TransportLLC"></td>
-			<td class="TNFClass" id="TransportTNF"></td>
 			<td class="SCHClass" id="TransportSCH"></td></tr>
 		<tr>
 			<td><input id="SportsOption" type="checkbox" /><span id="SportsAllowed"></span></td>
@@ -3419,7 +3119,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Sports" type="number" /></td>
 			<td class="AOCClass" id="SportsAOC"></td>
 			<td class="LLCClass" id="SportsLLC"></td>
-			<td class="TNFClass" id="SportsTNF"></td>
 			<td class="SCHClass" id="SportsSCH"></td></tr>
 		<tr>
 			<td><input id="NonCreditOption" type="checkbox" /><span id="NonCreditAllowed"></span></td>
@@ -3427,7 +3126,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="NonCredit" type="number" /></td>
 			<td class="AOCClass" id="NonCreditAOC"></td>
 			<td class="LLCClass" id="NonCreditLLC"></td>
-			<td class="TNFClass" id="NonCreditTNF"></td>
 			<td class="SCHClass" id="NonCreditSCH"></td></tr>
 		<tr>
 			<td><input id="ClericalOption" type="checkbox" /><span id="ClericalAllowed"></span></td>
@@ -3435,7 +3133,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="Clerical" type="number" /></td>
 			<td class="AOCClass" id="ClericalAOC"></td>
 			<td class="LLCClass" id="ClericalLLC"></td>
-			<td class="TNFClass" id="ClericalTNF"></td>
 			<td class="SCHClass" id="ClericalSCH"></td></tr>
 
 		<tr><td colspan="7"><hr /></td></tr>
@@ -3445,29 +3142,25 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td>Total education expenses not allowed for the credit:</td>
 			<td id="NQTotal"></td>
 			<td class="AOCClass nqexpense" id="NQTotalAOC"></td>
-			<td class="LLCClass nqexpense" id="NQTotalLLC"></td>
-			<td class="TNFClass nqexpense" id="NQTotalTNF"></td></tr>
+			<td class="LLCClass nqexpense" id="NQTotalLLC"></td></tr>
 		<tr>
 			<td></td>
 			<td>Nonqualified education expenses that are not taxable:</td>
 			<td id="NQAvail"></td>
 			<td class="AOCClass nqexpense" id="NQNTAOC"></td>
-			<td class="LLCClass nqexpense" id="NQNTLLC"></td>
-			<td class="TNFClass nqexpense" id="NQNTTNF"></td></tr>
+			<td class="LLCClass nqexpense" id="NQNTLLC"></td></tr>
 		<tr>
 			<td></td>
 			<td>Funds that can be used for nonqualified expenses:</td>
 			<td id="NQAvail"></td>
 			<td class="AOCClass nqexpense" id="NQAvailAOC"></td>
-			<td class="LLCClass nqexpense" id="NQAvailLLC"></td>
-			<td class="TNFClass nqexpense" id="NQAvailTNF"></td></tr>
+			<td class="LLCClass nqexpense" id="NQAvailLLC"></td></tr>
 		<tr>
 			<td></td>
 			<td>Amount from funds used:</td>
 			<td id="NQUsed"></td>
 			<td class="AOCClass" id="NQUsedAOC"></td>
-			<td class="LLCClass" id="NQUsedLLC"></td>
-			<td class="TNFClass" id="NQUsedTNF"></td></tr>
+			<td class="LLCClass" id="NQUsedLLC"></td></tr>
 
 		<tr><td colspan="7"><hr /></td></tr>
 
@@ -3476,8 +3169,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td>Total education expenses allowed for the credit:</td>
 			<td id="Expenses"></td>
 			<td class="AOCClass qexpense" id="ExpensesAOC"></td>
-			<td class="LLCClass qexpense" id="ExpensesLLC"></td>
-			<td class="TNFClass qexpense" id="ExpensesTNF"></td></tr>
+			<td class="LLCClass qexpense" id="ExpensesLLC"></td></tr>
 		<tr>
 			<td></td>
 			<td colspan="2" onchange="ScholarTaxable.value = 0;">Amount from funds used: 
@@ -3502,8 +3194,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 				</span>
 				</td>
 			<td class="AOCClass" id="QUsedAOC"></td>
-			<td class="LLCClass" id="QUsedLLC"></td>
-			<td class="TNFClass" id="QUsedTNF"></td></tr>
+			<td class="LLCClass" id="QUsedLLC"></td></tr>
 
 		<tr><td colspan="7"><hr /></td></tr>
 
@@ -3512,8 +3203,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td>Maximum qualified expenses allowed for the credit by tax law:</td>
 			<td id="Max"></td>
 			<td class="AOCClass" id="MaxAOC"></td>
-			<td class="LLCClass" id="MaxLLC"></td>
-			<td class="TNFClass" id="MaxTNF"></td></tr>
+			<td class="LLCClass" id="MaxLLC"></td></tr>
 		<tr>
 			<td></td>
 			<td>Amount used for IRS qualified expenses but not allowed for credit:
@@ -3530,22 +3220,19 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			</td>
 			<td></td>
 			<td class="AOCClass" id="NontaxableAOC">0</td>
-			<td class="LLCClass" id="NontaxableLLC">0</td>
-			<td class="TNFClass" id="NontaxableTNF">0</td></tr>
+			<td class="LLCClass" id="NontaxableLLC">0</td></tr>
 		<tr>
 			<td></td>
 			<td class="bold">Amount of education expenses for TP&apos;s tax return:</td>
 			<td></td>
 			<td class="AOCClass" id="QualExpensesAOC"></td>
-			<td class="LLCClass" id="QualExpensesLLC"></td>
-			<td class="TNFClass" id="QualExpensesTNF"></td></tr>
+			<td class="LLCClass" id="QualExpensesLLC"></td></tr>
 		<tr>
 			<td></td>
 			<td class="bold">Additional taxable income for the student:</td>
 			<td></td>
 			<td class="AOCClass" id="IncomeAOC"></td>
-			<td class="LLCClass" id="IncomeLLC"></td>
-			<td class="TNFClass" id="IncomeTNF"></td></tr>
+			<td class="LLCClass" id="IncomeLLC"></td></tr>
 
 		<tr><td colspan="7"><hr /></td></tr>
 	
@@ -3575,9 +3262,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		<span id="messageLLCMaxedOut">Expenses exceed scholarships by more than the limit
 			for Lifetime Learning Credit.
 			There is no point in optimizing if that is your best choice.</span>
-		<span id="messageTNFMaxedOut">Expenses exceed scholarships by more than the limit
-			for Tuition and Fees Adjustment.
-			There is no point in optimizing if that is your best choice.</span>
 		<span id="messageOver65">Because one or both of the taxpayers is over age 65,
 			the results of the optimizer may not be exact if there are interactions with
 			untaxed social security benefits.</span>
@@ -3603,17 +3287,9 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		<ol>
 			<li>Check the taxpayer&apos;s AGI against the credit limit table below to see for which, if any, the taxpayer qualifies.</li>
 			<li>Enter the current Refund Monitor amounts in the Tax return amount column (prior to these education expenses).</li>
-			<li>For each education option, enter the amounts into TaxSlayer, record the Refund Monitor amounts. Test the Tuition & Fees option first since the required school information for the others will be erased when that option is chosen.</li>
+			<li>For each education option, enter the amounts into TaxSlayer, record the Refund Monitor amounts.</li>
 		</ol>
 		<ul>
-			<span id="TNFManualInstruction"><li>For the Tuition and Fees adjustment:
-			<ul>
-				<li>Use qualified expenses of <span id="ManualQETextTNF">0</span> for TP's tax return</li>
-				<span class="liClaimedQuestion">and enter the Additional taxable income of
-					<span id="liClaimedQuestionTNF">0</span>.</span>
-				<li>record the Refund Monitor amount and remove the above entries.</li>
-			</ul></li></span>
-
 			<li>For the American opportunity credit:
 			<ul>
 				<li>Use qualified expenses of <span id="ManualQETextAOC">0</span> for TP's tax return.</li>
@@ -3638,28 +3314,17 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<th></th>
 			<th>Tax return amount</th>
 			<th>American Opportunity</th>
-			<th>Lifetime Learning</th>
-			<th>Tuition & Fees</th></tr>
-	<!--
-		<tr>
-			<td>Qualified education expenses from Expense Information tab:</td>
-			<td class="calculatedEntry" id="QualifiedTax"></td>
-			<td class="calculatedEntry" id="QualifiedAOC"></td>
-			<td class="calculatedEntry" id="QualifiedLLC"></td>
-			<td class="calculatedEntry" id="QualifiedTNF"></td>
-	-->
+			<th>Lifetime Learning</th></tr>
 		<tr>
 			<td>TaxSlayer Federal Refund:</td>
 			<td><input id="ManualTax" type="number" /></td>
 			<td><input id="ManualAOC" type="number" /></td>
 			<td><input id="ManualLLC" type="number" /></td>
-			<td><input id="ManualTNF" type="number" /></td> </tr>
 		<tr>
 			<td>TaxSlayer State Refund:</td>
 			<td><input id="ManualStateTax" type="number" /></td>
 			<td><input id="ManualStateAOC" type="number" /></td>
-			<td><input id="ManualStateLLC" type="number" /></td>
-			<td><input id="ManualStateTNF" type="number" /></td> </tr>
+			<td><input id="ManualStateLLC" type="number" /></td></tr>
 
 		<tr><td colspan="5"><hr /></td></tr>
 
@@ -3667,8 +3332,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td>Change in total refund amount:</td>
 			<td id="ManualDiffTax"></td>
 			<td id="ManualDiffAOC"></td>
-			<td id="ManualDiffLLC"></td>
-			<td id="ManualDiffTNF"></td> </tr>
+			<td id="ManualDiffLLC"></td></tr>
 		<tr>
 			<td></td>
 			<td colspan="4">Choose the green option, or choose none if the original amount is green.</td></tr>
@@ -3721,25 +3385,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<tr>
 				<td></td>
 				<td id="LimitTableLLC3a"></td>
-				<td>&nbsp;-&nbsp;</td>
-				<td></td>
-				<td>0</td></tr>
-			<tr><td colspan="5"><hr /></td></tr>
-			<tr>
-				<td>Tuition and fees deduction</td>
-				<td>0</td>
-				<td>&nbsp;-&nbsp;</td>
-				<td id="LimitTableTNF1b"></td>
-				<td>4,000</td></tr>
-			<tr>
-				<td></td>
-				<td id="LimitTableTNF2a"></td>
-				<td>&nbsp;-&nbsp;</td>
-				<td id="LimitTableTNF2b"></td>
-				<td>2,000</td></tr>
-			<tr>
-				<td></td>
-				<td id="LimitTableTNF3a"></td>
 				<td>&nbsp;-&nbsp;</td>
 				<td></td>
 				<td>0</td></tr>
@@ -3814,99 +3459,79 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<th>Form and line<br />number</th>
 			<th>Tax return<br />amount</th>
 			<th>American<br />Opportunity</th>
-			<th>Lifetime<br />Learning</th>
-			<th>Tuition &amp;<br />Fees</th></tr>
+			<th>Lifetime<br />Learning</th></tr>
 		<tr id="TPScholarIncome">
 			<td>Calculated scholarship income</td>
 			<td>TS Schol &amp; Grants</td>
 			<td></td>
 			<td class="AOCClass" id="ScholarAOC"> </td>
-			<td class="LLCClass" id="ScholarLLC"> </td>
-			<td class="TNFClass" id="ScholarTNF"> </td></tr>
+			<td class="LLCClass" id="ScholarLLC"> </td></tr>
 		<tr id="SalaryRow">
 			<td>Wages, Salary and Tips</td>
 			<td>1040 line <span id="SalaryLineNoA">7</span></td>
 			<td><input class="taxreturn" id="SalaryTax" type="number" /></td>
 			<td class="AOCClass" id="SalaryAOC"> </td>
-			<td class="LLCClass" id="SalaryLLC"> </td>
-			<td class="TNFClass" id="SalaryTNF"> </td></tr>
+			<td class="LLCClass" id="SalaryLLC"> </td></tr>
 		<tr id="BusinessRow">
 			<td>Business Income</td>
 			<td>1040 line <span id="BusinessLineNoA">12</span></td>
 			<td><input class="taxreturn" id="BusinessTax" type="number" /></td>
 			<td class="AOCClass" id="BusinessAOC"> </td>
-			<td class="LLCClass" id="BusinessLLC"> </td>
-			<td class="TNFClass" id="BusinessTNF"> </td></tr>
+			<td class="LLCClass" id="BusinessLLC"> </td></tr>
 		<tr id="SEHIRow">
 			<td>Self employed health insurance</td>
 			<td>1040 line <span id="SEHILineNoA">??</span></td>
 			<td><input class="taxreturn" id="SEHITax" type="number" /></td>
 			<td class="AOCClass" id="SEHIAOC"> </td>
-			<td class="LLCClass" id="SEHILLC"> </td>
-			<td class="TNFClass" id="SEHITNF"> </td></tr>
+			<td class="LLCClass" id="SEHILLC"> </td></tr>
 		<tr id="EarnedRow">
 			<td>Earned Income</td>
 			<td>1040 lines <span id="EarnedLineNoA">7+12</span></td>
 			<td><input class="taxreturn" id="EarnedTax" type="number" /></td>
 			<td class="AOCClass" id="EarnedAOC"> </td>
-			<td class="LLCClass" id="EarnedLLC"> </td>
-			<td class="TNFClass" id="EarnedTNF"> </td></tr>
-		<tr id="TNFRow">
-			<td>Tuition and fees adjustment</td>
-			<td>1040 line <span id="TNFLineNo">34</span></td>
-			<td><input class="taxreturn" id="TNFTax" type="number" /></td>
-			<td class="AOCClass" id="TNFAOC"></td>
-			<td class="LLCClass" id="TNFLLC"></td>
-			<td class="TNFClass" id="TNFTNF"></td></tr>
+			<td class="LLCClass" id="EarnedLLC"> </td></tr>
 		<tr>
 			<td>AGI</td>
 			<td>1040 line <span id="AGILineNoA">7</span></td>
 			<td><input class="taxreturn" id="AGITax" type="number" /></td>
 			<td class="AOCClass" id="AGIAOC"></td>
-			<td class="LLCClass" id="AGILLC"></td>
-			<td class="TNFClass" id="AGITNF"></td></tr>
+			<td class="LLCClass" id="AGILLC"></td></tr>
 		<tr>
 			<td>Unreimbursed medical expenses <span id="MedicalSpouse">(<input type="checkbox" id="Medical65" /> SP 65+)</span></td>
 			<td>Sched A line 1</td>
 			<td><input class="taxreturn" id="MedicalTax" type="number" /></td>
 			<td class="AOCClass" id="MedicalAOC"></td>
-			<td class="LLCClass" id="MedicalLLC"></td>
-			<td class="TNFClass" id="MedicalTNF"></td></tr>
+			<td class="LLCClass" id="MedicalLLC"></td></tr>
 		<tr>
 			<td>Itemized deduction amount (used or not)</td>
 			<td>Sched A line <span id="ItemDedLineNoA">29</span></td>
 			<td><input class="taxreturn" id="ItemizedTax" type="number" /></td>
 			<td class="AOCClass" id="ItemizedAOC"></td>
-			<td class="LLCClass" id="ItemizedLLC"></td>
-			<td class="TNFClass" id="ItemizedTNF"></td>
+			<td class="LLCClass" id="ItemizedLLC"></td></tr>
 		<tr>
 			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="CapGainsLineNoA">??</span></td>
 			<td>QD&amp;CG Wkt line <span id="CapGainsLineNoB">??</span></td>
 			<td><input class="taxreturn" id="CapGainsTax" type="number" /></td>
 			<td class="AOCClass" id="CapGainsAOC"></td>
-			<td class="LLCClass" id="CapGainsLLC"></td>
-			<td class="TNFClass" id="CapGainsTNF"></td></tr>
+			<td class="LLCClass" id="CapGainsLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
 			<td>1040 line <span id="DeductionsLineNoB">40</span></td>
 			<td class="calculatedEntry" id="DeductionTax"></td>
 			<td class="AOCClass" id="DeductionAOC"></td>
-			<td class="LLCClass" id="DeductionLLC"></td>
-			<td class="TNFClass" id="DeductionTNF"></td></tr>
+			<td class="LLCClass" id="DeductionLLC"></td></tr>
 		<tr id="QBIRow">
 			<td>QBI deduction amount</td>
 			<td>1040 line <span id="QBILineNoA">??</span></td>
 			<td class="calculatedEntry" id="QBITax"></td>
 			<td class="AOCClass" id="QBIAOC"></td>
-			<td class="LLCClass" id="QBILLC"></td>
-			<td class="TNFClass" id="QBITNF"></td></tr>
+			<td class="LLCClass" id="QBILLC"></td></tr>
 		<tr>
 			<td class="bold">Tax amount:</td>
 			<td>1040 line <span id="TaxAmountLineNoB">44</span></td>
 			<td class="calculatedEntry" id="TaxTax"></td>
 			<td class="AOCClass" id="TaxAOC"></td>
-			<td class="LLCClass" id="TaxLLC"></td>
-			<td class="TNFClass" id="TaxTNF"></td></tr>
+			<td class="LLCClass" id="TaxLLC"></td></tr>
 		<tr>
 			<td>Form 8962 line <span id="F8962ALineNoA">10A</span>
 				(<select id="ACAMonths" onchange="BudgetChange(this.id)">
@@ -3926,124 +3551,107 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td>8962 line <span id="F8962ALineNoB">??</span></td>
 			<td><input class="taxreturn" id="F8962ATax" type="number" /></td>
 			<td class="AOCClass" id="F8962AAOC"></td>
-			<td class="LLCClass" id="F8962ALLC"></td>
-			<td class="TNFClass" id="F8962ATNF"></td></tr>
+			<td class="LLCClass" id="F8962ALLC"></td></tr>
 		<tr>
 			<td>Form 8962 line <span id="F8962BLineNoA">10B</span></td>
 			<td>8962 line <span id="F8962BLineNoB">??</span></td>
 			<td><input class="taxreturn" id="F8962BTax" type="number" /></td>
 			<td class="AOCClass" id="F8962BAOC"></td>
-			<td class="LLCClass" id="F8962BLLC"></td>
-			<td class="TNFClass" id="F8962BTNF"></td></tr>
+			<td class="LLCClass" id="F8962BLLC"></td></tr>
 		<tr>
 			<td>Form 8962 line <span id="F8962FLineNoA">10F</span></td>
 			<td>8962 line <span id="F8962FLineNoB">??</span></td>
 			<td><input class="taxreturn" id="F8962FTax" type="number" /></td>
 			<td class="AOCClass" id="F8962FAOC"></td>
-			<td class="LLCClass" id="F8962FLLC"></td>
-			<td class="TNFClass" id="F8962FTNF"></td></tr>
+			<td class="LLCClass" id="F8962FLLC"></td></tr>
 <!--
 		<tr>
 			<td>Form 8962 Household MAGI</td>
 			<td>8962 line <span id="F8962MAGILineNoB">??</span></td>
 			<td><input class="taxreturn" id="F8962MAGITax" type="number" /></td>
 			<td class="AOCClass" id="F8962MAGIAOC"></td>
-			<td class="LLCClass" id="F8962MAGILLC"></td>
-			<td class="TNFClass" id="F8962MAGITNF"></td></tr>
+			<td class="LLCClass" id="F8962MAGILLC"></td></tr>
 -->
 		<tr>
 			<td>Excess advance premium tax credit repayment</td>
 			<td>1040 line <span id="ExcessAPTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="ExcessAPTCTax"></td>
 			<td class="AOCClass" id="ExcessAPTCAOC"></td>
-			<td class="LLCClass" id="ExcessAPTCLLC"></td>
-			<td class="TNFClass" id="ExcessAPTCTNF"></td></tr>
+			<td class="LLCClass" id="ExcessAPTCLLC"></td></tr>
 		<tr>
 			<td><b>Nonrefundable credits:</b>
 			<td></td>
 			<td></td>
 			<td class="AOCClass"></td>
-			<td class="LLCClass"></td>
-			<td class="TNFClass"></td></tr>
+			<td class="LLCClass"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Actual foreign tax paid</td>
 			<td>1116 top</td>
 			<td><input class="taxreturn" id="FTCTax" type="number" /></td>
 			<td class="AOCClass" id="FTCAOC"></td>
-			<td class="LLCClass" id="FTCLLC"></td>
-			<td class="TNFClass" id="FTCTNF"></td></tr>
+			<td class="LLCClass" id="FTCLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Foreign tax credit</td>
 			<td>TS Foreign Tax Credit</td>
 			<td class="calculatedEntry taxreturn" id="ForeignTax"></td>
 			<td class="AOCClass" id="ForeignAOC"></td>
-			<td class="LLCClass" id="ForeignLLC"></td>
-			<td class="TNFClass" id="ForeignTNF"></td></tr>
+			<td class="LLCClass" id="ForeignLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Allowed child and dependent care expenses</td>
 			<td>2441 line &nbsp;6</td>
 			<td><input class="taxreturn" id="AllowedCareTax" type="number" /></td>
 			<td class="AOCClass" id="AllowedCareAOC"></td>
-			<td class="LLCClass" id="AllowedCareLLC"></td>
-			<td class="TNFClass" id="AllowedCareTNF"></td></tr>
+			<td class="LLCClass" id="AllowedCareLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Credit for child and dependent care expenses</td>
 			<td>1040 line <span id="CareLineNoB">??</span></td>
 			<td class="calculatedEntry" id="CareTax"></td>
 			<td class="AOCClass" id="CareAOC"></td>
-			<td class="LLCClass" id="CareLLC"></td>
-			<td class="TNFClass" id="CareTNF"></td></tr>
+			<td class="LLCClass" id="CareLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Education credits</td>
 			<td>1040 line <span id="LLCLineNoB">??</span></td>
 			<td><input class="taxreturn" id="LLCTax" type="number" /></td>
 			<td class="AOCClass" id="LLCAOC"></td>
-			<td class="LLCClass" id="LLCLLC"></td>
-			<td class="TNFClass" id="LLCTNF"></td></tr>
+			<td class="LLCClass" id="LLCLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Allowed retirement saving contribution</td>
 			<td>8880 line 10</td>
 			<td><input class="taxreturn" id="MaxRetireTax" type="number" /></td>
 			<td class="AOCClass" id="MaxRetireAOC"></td>
-			<td class="LLCClass" id="MaxRetireLLC"></td>
-			<td class="TNFClass" id="MaxRetireTNF"></td></tr>
+			<td class="LLCClass" id="MaxRetireLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Retirement saving contribution credit</td>
 			<td>1040 line <span id="RetireLineNoB">??</span></td>
 			<td class="calculatedEntry" id="RetireTax"></td>
 			<td class="AOCClass" id="RetireAOC"></td>
-			<td class="LLCClass" id="RetireLLC"></td>
-			<td class="TNFClass" id="RetireTNF"></td></tr>
+			<td class="LLCClass" id="RetireLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Child and other dependents</span> Tax Credit</td>
 			<td>1040 line <span id="CTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="CTCTax"></td>
 			<td class="AOCClass" id="CTCAOC"></td>
-			<td class="LLCClass" id="CTCLLC"></td>
-			<td class="TNFClass" id="CTCTNF"></td></tr>
+			<td class="LLCClass" id="CTCLLC"></td></tr>
 		<tr>
 			<td>Total Nonrefundable Credits</td>
 			<td>1040 line <span id="NRCreditLineNoB">??</span></td>
 			<td><input class="taxreturn" id="NRCreditTax" type="number" /></td>
 			<td class="AOCClass" id="NRCreditAOC"></td>
-			<td class="LLCClass" id="NRCreditLLC"></td>
-			<td class="TNFClass" id="NRCreditTNF"></td></tr>
+			<td class="LLCClass" id="NRCreditLLC"></td></tr>
 <!--
 		<tr>
 			<td>Health care: Individual responsibility</td>
 			<td>1040 line <span id="IRPLineNoB">??</span></td>
 			<td><input class="taxreturn" id="IRPTax" disabled type="number" /></td>
 			<td class="AOCClass" id="IRPAOC"></td>
-			<td class="LLCClass" id="IRPLLC"></td>
-			<td class="TNFClass" id="IRPTNF"></td></tr>
+			<td class="LLCClass" id="IRPLLC"></td></tr>
 -->
 		<tr>
 			<td><b>Refundable credits:</b>
 			<td></td>
 			<td></td>
 			<td class="AOCClass"></td>
-			<td class="LLCClass"></td>
-			<td class="TNFClass"></td></tr>
+			<td class="LLCClass"></td></tr>
 		<tr>
 			<td>Earned income credit (check "No" if not qualfied
 				<span id="EICInfo" class="help"
@@ -4065,179 +3673,149 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td>No:<input id="NoEIC" type="checkbox"> 1040 line <span id="EICLineNoB">??</span></td>
 			<td class="calculatedEntry" id="EICTax"></td>
 			<td class="AOCClass" id="EICAOC"></td>
-			<td class="LLCClass" id="EICLLC"></td>
-			<td class="TNFClass" id="EICTNF"></td></tr>
+			<td class="LLCClass" id="EICLLC"></td></tr>
 		<tr>
 			<td id="ACTCLabel">Additional Child Tax Credit</td>
 			<td>1040 line <span id="ACTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="ACTCTax"></td>
 			<td class="AOCClass" id="ACTCAOC"></td>
-			<td class="LLCClass" id="ACTCLLC"></td>
-			<td class="TNFClass" id="ACTCTNF"></td></tr>
+			<td class="LLCClass" id="ACTCLLC"></td></tr>
 		<tr id="RefCareLine">
 			<td>Refundable Child and Dependent Care Credit</td>
 			<td>1040 line <span id="RefCareLineNoB">??</span></td>
 			<td class="calculatedEntry" id="RefCareTax"></td>
 			<td class="AOCClass" id="RefCareAOC"></td>
-			<td class="LLCClass" id="RefCareLLC"></td>
-			<td class="TNFClass" id="RefCareTNF"></td></tr>
+			<td class="LLCClass" id="RefCareLLC"></td></tr>
 		<tr>
 			<td>Refundable american opportunity credit</td>
 			<td>1040 line <span id="AOCLineNoB">??</span></td>
 			<td><input class="taxreturn" id="AOCTax" type="number" /></td>
 			<td class="AOCClass" id="AOCAOC"></td>
-			<td class="LLCClass" id="AOCLLC"></td>
-			<td class="TNFClass" id="AOCTNF"></td></tr>
+			<td class="LLCClass" id="AOCLLC"></td></tr>
 		<tr>
 			<td>Net premium tax credit</td>
 			<td>1040 line <span id="NetPTCLineNoB">??</span></td>
 			<td class="calculatedEntry" id="NetPTCTax"></td>
 			<td class="AOCClass" id="NetPTCAOC"></td>
-			<td class="LLCClass" id="NetPTCLLC"></td>
-			<td class="TNFClass" id="NetPTCTNF"></td></tr>
+			<td class="LLCClass" id="NetPTCLLC"></td></tr>
 		<tr>
 			<td>
 				<span class="STRefund STRefund0">Tax refund change on the taxpayer&apos;s return:</span></td>
 			<td></td>
 			<td></td>
 			<td><span class="AOCClass STRefund STRefund1" id="TaxpayerRefundAOC0">0</span></td>
-			<td><span class="LLCClass STRefund STRefund1" id="TaxpayerRefundLLC0">0</span></td>
-			<td><span class="TNFClass STRefund STRefund1" id="TaxpayerRefundTNF0">0</span></td></tr>
+			<td><span class="LLCClass STRefund STRefund1" id="TaxpayerRefundLLC0">0</span></td></tr>
 	</table>
 
 	</div> <!-- TPTaxFormDiv -->
 
 	<div id="StudentTaxFormDiv">
 		<p style="page-break-before: always;"></p>
-		<hr /><div class="TaxReturnHeader">Student&apos;s return:
-			<span id="KiddieAllowOption"> 
-				(<input id="KiddieAllow" type="checkbox"
-				onchange="BudgetChange();"
-				title="check to allow kiddie tax calculation" />
-				Check to optimize using kiddie tax with trust tax rates)
-			</span>
-		</div>
-	<table id="StudentTaxForm" onchange="BudgetChange()">
+		<hr /><div class="TaxReturnHeader">Student&apos;s return:</div>
+	    <table id="StudentTaxForm" onchange="BudgetChange()">
 		<tr>
 			<th>Tax return field</th>
 			<th>Form and line<br />number</th>
 			<th>Tax return<br />amount</th>
 			<th>American<br />Opportunity</th>
-			<th>Lifetime<br />Learning</th>
-			<th>Tuition &<br />Fees</th></tr>
+			<th>Lifetime<br />Learning</th></tr>
 		<tr>
 			<td>Calculated scholarship income</td>
 			<td>TS Schol & Grants</td>
 			<td></td>
 			<td class="AOCClass" id="StudScholarAOC"> </td>
-			<td class="LLCClass" id="StudScholarLLC"> </td>
-			<td class="TNFClass" id="StudScholarTNF"> </td></tr>
+			<td class="LLCClass" id="StudScholarLLC"> </td></tr>
 		<tr id="StudSalaryRow">
 			<td>Wages, Salary and Tips</td>
 			<td>1040 line <span id="SalaryLineNoB">7</span></td>
 			<td><input class="taxreturn" id="StudSalaryTax" type="number" /></td>
 			<td class="AOCClass" id="StudSalaryAOC"> </td>
-			<td class="LLCClass" id="StudSalaryLLC"> </td>
-			<td class="TNFClass" id="StudSalaryTNF"> </td></tr>
+			<td class="LLCClass" id="StudSalaryLLC"> </td></tr>
 		<tr id="StudBusinessRow">
 			<td>Business Income</td>
 			<td>1040 line <span id="BusinessLineNoB">12</span></td>
 			<td><input class="taxreturn" id="StudBusinessTax" type="number" /></td>
 			<td class="AOCClass" id="StudBusinessAOC"> </td>
-			<td class="LLCClass" id="StudBusinessLLC"> </td>
-			<td class="TNFClass" id="StudBusinessTNF"> </td></tr>
+			<td class="LLCClass" id="StudBusinessLLC"> </td></tr>
 		<tr id="StudSEHIRow">
 			<td>Self employed health insurance</td>
 			<td>1040 line <span id="SEHILineNoB">??</span></td>
 			<td><input class="taxreturn" id="StudSEHITax" type="number" /></td>
 			<td class="AOCClass" id="StudSEHIAOC"> </td>
-			<td class="LLCClass" id="StudSEHILLC"> </td>
-			<td class="TNFClass" id="StudSEHITNF"> </td></tr>
+			<td class="LLCClass" id="StudSEHILLC"> </td></tr>
 		<tr id="StudEarnedRow">
 			<td>Earned Income (not Total Income)</td>
 			<td>1040 lines <span id="EarnedLineNoB">7+12</span></td>
 			<td><input class="taxreturn" id="StudEarnedTax" type="number" /></td>
 			<td class="AOCClass" id="StudEarnedAOC"> </td>
-			<td class="LLCClass" id="StudEarnedLLC"> </td>
-			<td class="TNFClass" id="StudEarnedTNF"> </td></tr>
+			<td class="LLCClass" id="StudEarnedLLC"> </td></tr>
 		<tr>
 			<td>AGI</td>
 			<td>1040 line <span id="AGILineNoB">7</span></td>
 			<td><input class="taxreturn" id="StudAGITax" type="number" /></td>
 			<td class="AOCClass" id="StudAGIAOC"></td>
-			<td class="LLCClass" id="StudAGILLC"></td>
-			<td class="TNFClass" id="StudAGITNF"></td></tr>
+			<td class="LLCClass" id="StudAGILLC"></td></tr>
 		<tr>
 			<td>Itemized deduction amount (used or not)</td>
 			<td>Sched A line <span id="ItemDedLineNoB">29</span></td>
 			<td><input class="taxreturn" id="StudItemizedTax" type="number" /></td>
 			<td class="AOCClass" id="StudItemizedAOC"></td>
-			<td class="LLCClass" id="StudItemizedLLC"></td>
-			<td class="TNFClass" id="StudItemizedTNF"></td></tr>
+			<td class="LLCClass" id="StudItemizedLLC"></td></tr>
 		<tr>
 			<td>Qual Div &amp; Cap Gn Wkt pg 1 line <span id="StudCapGainsLineNoA">??</span></td>
 			<td>QD&amp;CG Wkt line <span id="StudCapGainsLineNoB">??</span></td>
 			<td><input class="taxreturn" id="StudCapGainsTax" type="number" /></td>
 			<td class="AOCClass" id="StudCapGainsAOC"></td>
-			<td class="LLCClass" id="StudCapGainsLLC"></td>
-			<td class="TNFClass" id="StudCapGainsTNF"></td></tr>
+			<td class="LLCClass" id="StudCapGainsLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Deduction amount</td>
 			<td>1040 line <span id="DeductionsLineNoA">40</span></td>
 			<td class="calculatedEntry" id="StudDeductionTax"></td>
 			<td class="AOCClass" id="StudDeductionAOC"></td>
-			<td class="LLCClass" id="StudDeductionLLC"></td>
-			<td class="TNFClass" id="StudDeductionTNF"></td></tr>
+			<td class="LLCClass" id="StudDeductionLLC"></td></tr>
 		<tr id="StudQBIRow">
 			<td>QBI deduction amount</td>
 			<td>1040 line <span id="QBILineNoB">??</span></td>
 			<td class="calculatedEntry" id="StudQBITax"></td>
 			<td class="AOCClass" id="StudQBIAOC"></td>
-			<td class="LLCClass" id="StudQBILLC"></td>
-			<td class="TNFClass" id="StudQBITNF"></td></tr>
+			<td class="LLCClass" id="StudQBILLC"></td></tr>
 		<tr>
 			<td class="bold">Tax amount:</td>
 			<td>1040 line <span id="TaxAmountLineNoA">44</span></td>
 			<td class="calculatedEntry" id="StudTaxTax"></td>
 			<td class="AOCClass" id="StudTaxAOC"></td>
-			<td class="LLCClass" id="StudTaxLLC"></td>
-			<td class="TNFClass" id="StudTaxTNF"></td></tr>
+			<td class="LLCClass" id="StudTaxLLC"></td></tr>
 		<tr>
 			<td><b>Nonrefundable credits:</b>
 			<td></td>
 			<td></td>
 			<td class="AOCClass"></td>
-			<td class="LLCClass"></td>
-			<td class="TNFClass"></td></tr>
+			<td class="LLCClass"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;Total foreign tax paid</td>
 			<td>1116 top</td>
 			<td><input class="taxreturn" id="StudFTCTax" type="number" /></td>
 			<td class="AOCClass" id="StudFTCAOC"></td>
-			<td class="LLCClass" id="StudFTCLLC"></td>
-			<td class="TNFClass" id="StudFTCTNF"></td></tr>
+			<td class="LLCClass" id="StudFTCLLC"></td></tr>
 		<tr>
 			<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Foreign tax credit</td>
 			<td>TS Foreign Tax Credit</td>
 			<td class="calculatedEntry taxreturn" id="StudForeignTax"></td>
 			<td class="AOCClass" id="StudForeignAOC"></td>
-			<td class="LLCClass" id="StudForeignLLC"></td>
-			<td class="TNFClass" id="StudForeignTNF"></td></tr>
+			<td class="LLCClass" id="StudForeignLLC"></td></tr>
 		<tr>
 			<td>Total Nonrefundable Credits</td>
 			<td>1040 line <span id="StudNRCreditLineNoB">??</span></td>
 			<td class="calculatedEntry taxreturn" id="StudNRCreditTax">0</td>
 			<td class="AOCClass" id="StudNRCreditAOC">0</td>
-			<td class="LLCClass" id="StudNRCreditLLC">0</td>
-			<td class="TNFClass" id="StudNRCreditTNF">0</td></tr>
+			<td class="LLCClass" id="StudNRCreditLLC">0</td></tr>
 		<tr>
 			<td><span class="STRefund STRefund0">Tax refund change on the student&apos;s return:</span></td>
 			<td></td>
 			<td></td>
 			<td><span class="AOCClass STRefund STRefund1" id="StudentRefundAOC0">0</span></td>
-			<td><span class="LLCClass STRefund STRefund1" id="StudentRefundLLC0">0</span></td>
-			<td><span class="TNFClass STRefund STRefund1" id="StudentRefundTNF0">0</span></td></tr>
-	</table>
+			<td><span class="LLCClass STRefund STRefund1" id="StudentRefundLLC0">0</span></td></tr>
+	    </table>
 	</div> <!-- StudentTaxForm -->
 
 	<div id="TaxFormResultsDiv">
@@ -4250,22 +3828,17 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td></td>
 			<td></td>
 			<td><span class="AOCClass STRefund" id="TaxpayerRefundAOC">0</span></td>
-			<td><span class="LLCClass STRefund" id="TaxpayerRefundLLC">0</span></td>
-			<td><span class="TNFClass STRefund" id="TaxpayerRefundTNF">0</span></td></tr>
+			<td><span class="LLCClass STRefund" id="TaxpayerRefundLLC">0</span></td></tr>
 		<tr>
 			<td><span class="STRefund">Tax refund change on the student&apos;s return:</span></td>
 			<td></td>
 			<td></td>
 			<td><span class="AOCClass STRefund" id="StudentRefundAOC">0</span></td>
-			<td><span class="LLCClass STRefund" id="StudentRefundLLC">0</span></td>
-			<td><span class="TNFClass STRefund" id="StudentRefundTNF">0</span></td></tr>
+			<td><span class="LLCClass STRefund" id="StudentRefundLLC">0</span></td></tr>
 		<tr>
-			<td class="bold">Tax refund change due to the education option:</td>
-			<td></td>
-			<td></td>
+			<td colspan="3" class="bold">Tax refund change due to the education option:</td>
 			<td class="AOCClass bold" id="RefundAOC"></td>
-			<td class="LLCClass bold" id="RefundLLC"></td>
-			<td class="TNFClass bold" id="RefundTNF"></td></tr>
+			<td class="LLCClass bold" id="RefundLLC"></td></tr>
 	
 		<tr><td colspan="6">Pink options are poor choices. Choose the green option if there is one.<span id="Refund65Warning"></span></td></tr>
 	
@@ -4276,15 +3849,13 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td></td>
 			<td></td>
 			<td class="AOCClass" id="IncomeAOC2"></td>
-			<td class="LLCClass" id="IncomeLLC2"></td>
-			<td class="TNFClass" id="IncomeTNF2"></td></tr>
+			<td class="LLCClass" id="IncomeLLC2"></td></tr>
 		<tr>
 			<td class="bold">Qualified education expenses for TP's tax return:</td>
 			<td></td>
 			<td></td>
 			<td class="AOCClass" id="QualExpensesAOC2"></td>
-			<td class="LLCClass" id="QualExpensesLLC2"></td>
-			<td class="TNFClass" id="QualExpensesTNF2"></td></tr>
+			<td class="LLCClass" id="QualExpensesLLC2"></td></tr>
 
 		<tr><td colspan="6"><hr /></td></tr>
 	</table>
@@ -4341,27 +3912,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 				<tr>
 					<td>&nbsp;&nbsp;- Scholarship as income amount:</td>
 					<td id="ScholarResultIncome"></td></tr>
-			</table>
-		</div>
-		<div id="KiddieResults">
-			<hr />
-			<table class="optResult">
-				<tr>
-					<th>Kiddie tax applies to the student&apos;s return:</th></tr>
-				<tr>
-					<td>&nbsp;&nbsp;- Income amount taxed at standard
-						<span id="stdCG">Cap Gain</span> rates:</td>
-					<td id="KiddieIncomeStandard">0</td></tr>
-				<tr>
-					<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tax amount =
-						<span id="KiddieResultStandard">0</span></td></tr>
-				<tr>
-					<td>&nbsp;&nbsp;- Income amount taxed at trust
-						<span id="truCG">Cap Gain</span> rates:</td>
-					<td id="KiddieIncomeTrust">0</td></tr>
-				<tr>
-					<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tax amount =
-						<span id="KiddieResultTrust">0</span></td></tr>
 			</table>
 		</div>
 	
