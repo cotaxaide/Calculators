@@ -193,7 +193,9 @@
 	//	Kurt Dunphy
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 2.01, 6/26/2023)";
+	VERSION = "(Version 2.02, 10/30/2023)";
+	//	Modified deceased spouse and remarried or did non own/live in home 2 years
+	//VERSION = "(Version 2.01, 6/26/2023)";
 	//	Added calculations relative to spouse death or divorce and home improvements
 	//	Split gift and inherited acquisition method due to different basis determination
 	//VERSION = "(Version 1.09a, 10/4/2022)";
@@ -526,19 +528,25 @@ function Basis_Calc(e) {
 
 	if (SPDiedY.checked) {
 		RemarriedRow.style.display = "table-row";
+		//RemarriedInstruct.style.display = (RemarriedY.checked) ? "inline" : "none";
+		TPFiveYearsRemarried.style.display = (SPDiedWithin2Years) ? "inline" : "none";
+
 	}
 	else {
 		SPDiedBeforeSale = false;
 		RemarriedRow.style.display = "none";
+		RemarriedInstruct.style.display = "none";
 		RemarriedN.checked = true;
 	}
 
 	if (SPDiedY.checked) {
 	      if (! SPDiedWithin2Years) SPExclusionApplies = false;
+		else if (TPTwoYearsN.checked) PartialExclusionApplies = true;
 	}
 
 	if (RemarriedY.checked) {
-		SPExclusionApplies = false;
+		//SPExclusionApplies = false;
+		PartialExclusionApplies = true;;
 	}
 
 	if (InstallmentY.checked) {
@@ -1157,7 +1165,7 @@ function Add_Remodel() {
 					<option value="MFJ" selected>MFJ</option>
 					<option value="MFS">MFS</option>
 					<option value="HOH">HOH</option>
-					<option value="QSS">Widow(er)</option></select>
+					<option value="QSS">QSS</option></select>
 		</td><td></td></tr>
 		<tr id="SaleDateRow"><td>Date sold:</td>
 			<td><input id="SaleDate" type="date" /></td>
@@ -1198,7 +1206,7 @@ function Add_Remodel() {
 		<tr id="RemarriedRow" class="hide"><td class="indent">Have you remarried?</td>
 			<td><input id="RemarriedY" name="Remarried" type="radio" /> Yes
 				<input id="RemarriedN" name="Remarried" type="radio" /> No</td>
-			<td></td></tr>
+			<td><span id="RemarriedInstruct"></span></td></tr>
 		<tr><td>Are you financing the buyer&apos;s purchase of your home?</td>
 			<td><input type="radio" id="InstallmentY" name="Installment" /> Yes
 				<input type="radio" id="InstallmentN" name="Installment" checked /> No</td>
@@ -1234,7 +1242,7 @@ function Add_Remodel() {
 		<tr id="TPFiveYearsRow"><td>Did you live in the home for any 24 months (730 days) since <span id="TPFiveYears"></span></td>
 			<td><input id="TPTwoYearsY" name="TPTwoYears" type="radio" checked /> Yes
 				<input id="TPTwoYearsN" name="TPTwoYears" type="radio" /> No</td>
-			<td></td></tr>
+			<td><span id="TPFiveYearsRemarried"class="hide">Also choose No if you did not own the home during this period.</span></td></tr>
 		<tr id="TPJobRelocRow" class="hide">
 			<td class="indent">Due to work or health relocation?</td>
 			<td><input id="TPJobRelocY" name="TPJobReloc" type="radio" /> Yes
