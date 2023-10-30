@@ -27,13 +27,13 @@
                 _LineNo[_TY+":ACTC"] = "28";	
                 _LineNo[_TY+":AOC"] = "29";	
 		// Schedules 1-3
-		_LineNo[_TY+":Business"] = "S1-3";		// Need update
-                _LineNo[_TY+":SEP"] = "S1-16";		// Need update
-                _LineNo[_TY+":SEHI"] = "S1-17";		// Need update
-                _LineNo[_TY+":TNF"] = "";		// Need update
+		_LineNo[_TY+":Business"] = "S1-3";
+                _LineNo[_TY+":SEP"] = "S1-16";
+                _LineNo[_TY+":SEHI"] = "S1-17";
+                _LineNo[_TY+":TNF"] = "";
                 _LineNo[_TY+":IRADed"] = "S1-20";
                 _LineNo[_TY+":StudLoan"] = "S1-21";
-                _LineNo[_TY+":Adjustments"] = "S1-24";		// Need update
+                _LineNo[_TY+":Adjustments"] = "S1-24";
                 _LineNo[_TY+":ExcessAPTC"] = "S2-2";
                 _LineNo[_TY+":Foreign"] = "S3-1";
                 _LineNo[_TY+":Care"] = "S3-2";
@@ -98,7 +98,7 @@
 		_Standard["DependInc"] = 14; // increment to earned income for a dependent
 
                 // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    QSS,inc,    HOH,inc,  Kiddie, DepAsRel, DependInc
-                _Standard[_TY] = "          0,1250,   13850,1850, 13850,1500, 27700,1500, 27700,1500, 20800,1850,  2300,   4400,      400";
+                _Standard[_TY] = "          0,1250,   13850,1850, 13850,1500, 27700,1500, 27700,1500, 20800,1850,  2300,   4700,      400";
 
 	// var ItemLimit = []; // Limit repealed by new tax law
                 _ItemLimit[_TY+":SNG"] = 10000000; //261500;
@@ -177,13 +177,13 @@
 		// RATEDOWN is the ramp-down rate from the cap
 		// INVEST is the max investment limit to qualify for EIC
                 // Columns are:			   0       1       2       3+ children
-                _EICRates[_TY+":AGISNG"] =   "  9800,  21560,  21560,  21560";		// Need update
-                _EICRates[_TY+":AGIMFJ"] =   " 16370,  28120,  28120,  28120";		// Need update
-                _EICRates[_TY+":SNG"] =      " 17640,  46560,  52918,  56838";		// Need update
-                _EICRates[_TY+":MFJ"] =      " 24210,  53120,  59478,  63398";		// Need update
-                _EICRates[_TY+":MAX"] =      "   600,   3995,   6604,   7430";		// Need update
-                _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";		// Need update
-                _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";		// Need update
+                _EICRates[_TY+":AGISNG"] =   "  9800,  21560,  21560,  21560";
+                _EICRates[_TY+":AGIMFJ"] =   " 16370,  28120,  28120,  28120";
+                _EICRates[_TY+":SNG"] =      " 17640,  46560,  52918,  56838";
+                _EICRates[_TY+":MFJ"] =      " 24210,  53120,  59478,  63398";
+                _EICRates[_TY+":MAX"] =      "   600,   3995,   6604,   7430";
+                _EICRates[_TY+":RATEUP"] =   "0.0765,   0.34,    0.4,   0.45";
+                _EICRates[_TY+":RATEDOWN"] = "0.0765, 0.1598, 0.2106, 0.2106";
                 _EICRates[_TY+":INVEST"] = 10300;		// Need update
 
 	// var FPL = [];
