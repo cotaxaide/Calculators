@@ -221,11 +221,11 @@
 </style>
 
 <script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2018.js"></script>
 <script src="Tax_Data/IRS_2019.js"></script>
 <script src="Tax_Data/IRS_2020.js"></script>
 <script src="Tax_Data/IRS_2021.js"></script>
 <script src="Tax_Data/IRS_2022.js"></script>
+<script src="Tax_Data/IRS_2023.js"></script>
 <script src="CommonRoutines.js"></script>
 <script type="text/javascript">
 	var VERSION;
@@ -233,7 +233,9 @@
 	// To Do:
 	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.24a, 1/27/2023)";
+	VERSION = "(Version 2.25, 7/5/2023)";
+	//	Changed CTC0 so it only applies for 2022
+	//VERSION = "(Version 2.24a, 1/27/2023)";
 	//	Fixed post-nonrefundable line to take from Tax_Data vs manual
 	//VERSION = "(Version 2.24, 1/17/2023)";
 	//	Residential energy credit row hidden but needs entry to continue
@@ -1318,7 +1320,7 @@
 				// Calculate the CTC if the data is available
 				CTCCalc = (CTCAGI.value != "")
 					&& (CTCCount.value != "")
-					&& ((TY < 2022) || (CTC0Count.value != ""))
+					&& ((TY != 2022) || (CTC0Count.value != "")) // v 2.25 change
 					&& (ODCCount.value != "");
 				if (CTCCalc) {
 					CTCChild = +CTCCount.value + (+CTC0Count.value / 100);
@@ -2121,7 +2123,7 @@
 
 <div class="noPrint new_block">
 	  Please send corrections and suggestions to
-	  <a href="mailto:jeff@bogarthome.net">jeff@bogarthome.net</a>
+	  <a href="mailto:tools@cotaxaide.org">tools@cotaxaide.org</a>
 	  <span id="printbutton2" style="float: right;">
 		  <button onclick="window.print()">Print a taxpayer copy</button>
 	  </span>
