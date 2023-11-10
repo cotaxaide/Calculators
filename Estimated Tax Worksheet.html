@@ -197,7 +197,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 3.44, 6/15/2023)";
+	var VERSION = "(Version 3.45, 11/7/2023)";
+	//	Corrected CTC amount calc for TY > 2021
+	//var VERSION = "(Version 3.44, 6/15/2023)";
 	//	Removed red from QBIDividends since it could be more than Dividends due to K-1s
 	//	Hid code for SS overpayment due to multiple employers - not enough info
 	//var VERSION = "(Version 3.43a, 4/15/2023)";
@@ -846,15 +848,18 @@
 	} // end Input_Change()
 
 	//----------------------------------------------------------------------------------------
-	function Do_Calcs(CalcType, CalcIn, AllowUCE) {
+	function Do_Calcs(CalcType, CalcIn, AllowUCE = false) {
 	// This function takes the inputs from the CalcIn array and creates the CalcOut array
+	//	CalcType = T (taxpayer), S (spouse), J (joint)
+	//	CalcInn = Array of input amounts
+	//	AllowUCE = True/False, 2020 Unemployment compensation exclusion (UCE)
 	//----------------------------------------------------------------------------------------
 		// If AllowUCE parameter not present, make it false
-		if (AllowUCE === undefined) AllowUCE = false;
+		//if (AllowUCE === undefined) AllowUCE = false;
 
-		// Initialize output array
+		// Initialize output arrays
 		CalcOut = [];
-		IRAResults = [];
+		//IRAResults = [];
 
 		var FilingStatusValue = FilingStatus.value;
 		var DependentsValue = +Dependents.value;
@@ -1355,7 +1360,7 @@
 		NRUsed += NRUsedTemp;
 
 		// CTC
-		if (TY < 2021 ) {
+		if (TY != 2021 ) {
 			NRUsedTemp = Math.min(WorkingTax, CTCAmount);
 			WorkingTax -= NRUsedTemp;
 			NRUsed += NRUsedTemp;
