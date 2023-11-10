@@ -150,14 +150,14 @@
                 _CTCLimits["WID"] = 1;
                 _CTCLimits["MFS"] = 2;
                 _CTCLimits["HOH"] = 3;
-                _CTCLimits[_TY+":AGICap"]  = "400000, 200000, 200000, 200000";		// Need update
+                _CTCLimits[_TY+":AGICap"]  = "400000, 200000, 200000, 200000";
 		_CTCLimits[_TY+":CTCRate"] = 2000;
                 _CTCLimits[_TY+":AGI0Cap"] = "150000,  75000,  75000, 112500";		// Need update
 		_CTCLimits[_TY+":CTC0Rate"] = 0;		// Need update
 		_CTCLimits[_TY+":CTC6Rate"] = 1000;		// Need update
-		_CTCLimits[_TY+":FTCRate"] = 500;		// Need update
-		_CTCLimits[_TY+":ACTCRate"] = 1500;
-		_CTCLimits[_TY+":ACTCThreshold"] = 2500;		// Need update
+		_CTCLimits[_TY+":FTCRate"] = 500;
+		_CTCLimits[_TY+":ACTCRate"] = 1600;
+		_CTCLimits[_TY+":ACTCThreshold"] = 2500;
 
        	// var CareRates = [];
 		// Source: Pub 503

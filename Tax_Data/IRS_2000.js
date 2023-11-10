@@ -25,6 +25,7 @@ var _HSA = [];
 var _RETIRE = [];
 var _IRALimits = [];
 var _MEDBMFS = [];
+var _EDExpenses = [];
 
 //------------------------------------------------------------
 // DATE VARIABLES

@@ -265,3 +265,6 @@
 		
 	// Medicare PartB MFS Premium Threshhold
 		_MEDBMFS[_TY] = 88000;
+
+	// Educator expenses
+		_EDExpenses[_TY+":EDEXP"] = 250;
