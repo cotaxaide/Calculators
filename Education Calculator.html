@@ -121,7 +121,7 @@
 	#OptimizeButtons tr {width: 100%;}
 	#OptimizeButtons tr td:nth-child(2) { width: 10%; }
 	#OptimizeButtons input { width: 9em; }
-	#optDiv { border:2px solid black; width:30em; padding: 3px; }
+	#optDiv { border:2px solid black; width:32em; padding: 3px; }
 	#optDiv table { width: 100%; }
 	#optDiv th, #optDiv td:first-child { text-align: left; }
 	#optDiv td:nth-child(2) { text-align: right; }
@@ -180,7 +180,10 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.40, 8/17/2023";
+	var VERSION = "Version 3.41, 10/26/2023";
+	//	Made changes due to TaxSlayer input form for 2022
+	//	Hide kiddie tax message on TP information tab if not applicable
+	//var VERSION = "Version 3.40, 8/17/2023";
 	//	Removed T&S column
 	//	Removed Kiddie tax option available for 2018-2019
 	//	hide circled question marks (help comments) on print
@@ -598,6 +601,10 @@
 		RefCareLine.style.display = Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
 		ACTCLabel.innerHTML = (TaxYear.value == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit" ;
 
+		// Change to TaxSlayer input form in 2022
+		TaxpayerResultTuitionRow.style.display = (+TaxYear.value > 2021) ? "table-row" : "none" ;
+		TaxpayerResultScholarRow.style.display = (+TaxYear.value > 2021) ? "table-row" : "none" ;
+		
 		// Calculate Fed Poverty Line for the given year
 		RegionList = document.getElementsByName("Region");
 		for (i = 0; i < RegionList.length; i++){
@@ -711,6 +718,7 @@
 			KTui.innerHTML = 
 			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
 		}
+		KTdiv.style.display = (KiddieTaxApplies) ? "inline-block" : "none" ;
 		
 		// Hide tax return results line if student not a dependent
 		StudentInput.style.display = (DependentNo.checked) ? "none" : "inline";
@@ -1453,7 +1461,7 @@
 		// Highlight fields and show best results in the summary section
 		if ((+RefundLLC.innerHTML == MaxRefund)) {
 			RefundLLC.style.backgroundColor = "lightgreen";
-			ResultingProgram = "Lifetime learning credit";
+			ResultingProgram = "LLC";
 			ResultingIncome = +IncomeLLC.innerHTML;
 			ResultingExpense = +QualExpensesLLC.innerHTML;
 			MaxRefundAGI = +AGILLC.innerHTML;
@@ -1463,7 +1471,7 @@
 			
 		if ((+RefundAOC.innerHTML == MaxRefund)) {
 			RefundAOC.style.backgroundColor = "lightgreen";
-			ResultingProgram = "American opportunity credit";
+			ResultingProgram = "AOC";
 			ResultingIncome = +IncomeAOC.innerHTML;
 			ResultingExpense = +QualExpensesAOC.innerHTML;
 			MaxRefundAGI = +AGIAOC.innerHTML;
@@ -1474,14 +1482,22 @@
 		if (ResultingExpense) {
 			TaxpayerResultOption.innerHTML = ResultingProgram
 			TaxpayerResultIncome.innerHTML = (DependentNo.checked) ? ResultingIncome : 0;
-			TaxpayerResultExpense.innerHTML = ResultingExpense;
 			ScholarResultIncome.innerHTML = (DependentYes.checked) ? ResultingIncome : 0;
+			TaxpayerResultTuition.innerHTML = Tuition.value;
+			ResultingScholar = Math.max(0, allScholarships - ResultingIncome);
+			TaxpayerResultScholar.innerHTML = ResultingScholar;
+			if (+TaxYear.value > 2021) {
+				ResultingExpense = Math.max(0, ResultingExpense + ResultingScholar - Tuition.value);
+			}
+			TaxpayerResultExpense.innerHTML = ResultingExpense;
 		}
 		else {
 			TaxpayerResultOption.innerHTML = "None";
 			TaxpayerResultIncome.innerHTML = (DependentNo.checked) ? 0 : 0;
-			TaxpayerResultExpense.innerHTML = 0;
 			ScholarResultIncome.innerHTML = (DependentYes.checked) ? 0 : 0;
+			TaxpayerResultTuition.innerHTML = 0;
+			TaxpayerResultScholar.innerHTML = 0;
+			TaxpayerResultExpense.innerHTML = 0;
 		}
 
 		// Warning messages
@@ -3897,8 +3913,14 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 				<td>&nbsp;&nbsp;- Most advantageous option:</td>
 				<td id="TaxpayerResultOption"></td></tr>
 			<tr>
-				<td>&nbsp;&nbsp;- Scholarship as income amount:</td>
+				<td>&nbsp;&nbsp;- Other income - Other Compensation - Scholarships amount:</td>
 				<td id="TaxpayerResultIncome"></td></tr>
+			<tr id="TaxpayerResultTuitionRow">
+				<td>&nbsp;&nbsp;- Education tuition amount:</td>
+				<td id="TaxpayerResultTuition"></td></tr>
+			<tr id="TaxpayerResultScholarRow">
+				<td>&nbsp;&nbsp;- Education scholarship amount:</td>
+				<td id="TaxpayerResultScholar"></td></tr>
 			<tr>
 				<td>&nbsp;&nbsp;- Education expense amount:</td>
 				<td id="TaxpayerResultExpense"></td></tr>
