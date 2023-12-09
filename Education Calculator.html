@@ -121,8 +121,8 @@
 	#OptimizeButtons tr {width: 100%;}
 	#OptimizeButtons tr td:nth-child(2) { width: 10%; }
 	#OptimizeButtons input { width: 9em; }
-	#optDiv { border:2px solid black; width:32em; padding: 3px; }
-	#optDiv table { width: 100%; }
+	#optDiv { width:34em; padding: 3px; }
+	#optDiv table { width: 100%; border: 2px solid black; }
 	#optDiv th, #optDiv td:first-child { text-align: left; }
 	#optDiv td:nth-child(2) { text-align: right; }
 	#testPrint {color: red; font-size: 60%; float: right; cursor: none; }
@@ -180,7 +180,13 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.41, 10/26/2023";
+	var VERSION = "Version 3.42, 12/8/2023";
+	//	Added footnotes to TS entry lines
+	//	Corrected calculation of education expenses
+	//var VERSION = "Version 3.41a, 11/29/2023";
+	//	Added TS entry link to taxable scholarship income for student
+	//	Hid TS entry block if not optimizing
+	//var VERSION = "Version 3.41, 10/26/2023";
 	//	Made changes due to TaxSlayer input form for 2022
 	//	Hide kiddie tax message on TP information tab if not applicable
 	//var VERSION = "Version 3.40, 8/17/2023";
@@ -324,6 +330,7 @@
 	//	Edie Loughmiller	Harold Rowe		Brad Kirby
 	//	Stephen Enk		Roger Metzler		Arlene Green
 	//	Joanne Hill		Fred Lamberth		Rob Schussman
+	//	Bud Ward
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -1166,11 +1173,13 @@
 		NoOptimize2.style.display =
 		NoOptimize3.style.display =
 		NoOptimize4.style.display = "none";
+		optDiv.style.display = "block";
 		if (+ScholarTaxableMax.innerHTML > 0) {
 			messageNoScholar.style.display = "none";
 			OptimizeButtons.style.display = "block";
 			if (+NQExpenses["AOC"] + +NQExpenses["LLC"] == 0) {
 				messageNoUnqualified.style.display = "list-item";
+				optDiv.style.display = 
 				OptimizeButtons.style.display = "none";
 				NoOptimize1.style.display = "block";
 				showPerhaps = false;
@@ -1178,18 +1187,21 @@
 		}
 		else if (RelativeViolation) {
 			messageNoUnqualified.style.display = "list-item";
+			optDiv.style.display = 
 			OptimizeButtons.style.display = "none";
 			NoOptimize3.style.display = "block";
 			showPerhaps = false;
 		}
 		else if (KiddieTaxFlag && (studentUnearned > KiddieTaxThreshold)) {
 			messageNoUnqualified.style.display = "list-item";
+			optDiv.style.display = 
 			OptimizeButtons.style.display = "none";
 			NoOptimize4.style.display = "block";
 			showPerhaps = false;
 		}
 		else if (Nonrestricted.value == 0) {
 			messageNoScholar.style.display = "list-item";
+			optDiv.style.display = 
 			OptimizeButtons.style.display = "none";
 			NoOptimize2.style.display = "block";
 			showPerhaps = false;
@@ -1483,13 +1495,15 @@
 			TaxpayerResultOption.innerHTML = ResultingProgram
 			TaxpayerResultIncome.innerHTML = (DependentNo.checked) ? ResultingIncome : 0;
 			ScholarResultIncome.innerHTML = (DependentYes.checked) ? ResultingIncome : 0;
-			TaxpayerResultTuition.innerHTML = Tuition.value;
+			SupTuition.innerHTML = TaxpayerResultTuition.innerHTML = Tuition.value;
 			ResultingScholar = Math.max(0, allScholarships - ResultingIncome);
 			TaxpayerResultScholar.innerHTML = ResultingScholar;
 			if (+TaxYear.value > 2021) {
 				ResultingExpense = Math.max(0, ResultingExpense + ResultingScholar - Tuition.value);
 			}
 			TaxpayerResultExpense.innerHTML = ResultingExpense;
+			//TaxpayerResultExpense.innerHTML = (ResultingProgram == "AOC") ? QualExpensesAOC2.innerHTML : QualExpensesLLC2.innerHTML ;   
+			SupResultExpenses.innerHTML = (ResultingProgram == "AOC") ? ExpensesAOC.innerHTML : ExpensesLLC.innerHTML ;   
 		}
 		else {
 			TaxpayerResultOption.innerHTML = "None";
@@ -3861,14 +3875,12 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		<tr><td colspan="6"><hr /></td></tr>
 
 		<tr>
-			<td class="bold">Additional taxable income for the student:</td>
-			<td></td>
+			<td class="bold" colspan="2">Additional taxable income for the student:</td>
 			<td></td>
 			<td class="AOCClass" id="IncomeAOC2"></td>
 			<td class="LLCClass" id="IncomeLLC2"></td></tr>
 		<tr>
-			<td class="bold">Qualified education expenses for TP's tax return:</td>
-			<td></td>
+			<td class="bold" colspan="2">Qualified education expenses for TP's tax return:</td>
 			<td></td>
 			<td class="AOCClass" id="QualExpensesAOC2"></td>
 			<td class="LLCClass" id="QualExpensesLLC2"></td></tr>
@@ -3913,16 +3925,16 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 				<td>&nbsp;&nbsp;- Most advantageous option:</td>
 				<td id="TaxpayerResultOption"></td></tr>
 			<tr>
-				<td>&nbsp;&nbsp;- Other income - Other Compensation - Scholarships amount:</td>
+				<td>&nbsp;&nbsp;- Other income &gt; Other Compensation &gt; Scholarships amount<sup>1</sup>:</td>
 				<td id="TaxpayerResultIncome"></td></tr>
 			<tr id="TaxpayerResultTuitionRow">
 				<td>&nbsp;&nbsp;- Education tuition amount:</td>
 				<td id="TaxpayerResultTuition"></td></tr>
 			<tr id="TaxpayerResultScholarRow">
-				<td>&nbsp;&nbsp;- Education scholarship amount:</td>
+				<td>&nbsp;&nbsp;- Education scholarship amount<sup>2</sup>:</td>
 				<td id="TaxpayerResultScholar"></td></tr>
 			<tr>
-				<td>&nbsp;&nbsp;- Education expense amount:</td>
+				<td>&nbsp;&nbsp;- Education expense amount<sup>3</sup>:</td>
 				<td id="TaxpayerResultExpense"></td></tr>
 		</table>
 	
@@ -3932,11 +3944,14 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 				<tr>
 					<th>On student&apos;s return:</th></tr>
 				<tr>
-					<td>&nbsp;&nbsp;- Scholarship as income amount:</td>
+					<td>&nbsp;&nbsp;- Other income &gt; Other Compensation &gt; Scholarships amount<sup>1</sup>:</td>
 					<td id="ScholarResultIncome"></td></tr>
 			</table>
 		</div>
-	
+
+		<sup>1</sup> Amount of scholarship that is being taxed.
+		<br /><sup>2</sup> Amount of scholarship that is being used for qualified expenses.
+		<br /><sup>3</sup> Total qualified expenses (<span id="SupResultExpenses"></span>) less tuition (<span id="SupTuition"></span>).
 		<span class="warning" id="OptimizerWarning" style="text-align:left;">&nbsp;</span>
 	</div>
 	
