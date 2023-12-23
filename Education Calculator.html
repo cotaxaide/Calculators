@@ -180,7 +180,13 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.42, 12/8/2023";
+	var VERSION = "Version 3.43, 12/22/2023";
+	//	Corrected too much restricted scholarship used for nonqualified expenses
+	//	Changed titles of expense options to Use all & Maximize expenses
+	//	Unset Use all option if taxed amount is not 0 so it can be clicked to set to 0
+	//	Corrected Maximize expenses not finding correct distribution of funds
+	//	Added OOS message if kiddie tax cannot be avoided after adjusting for same
+	//var VERSION = "Version 3.42, 12/8/2023";
 	//	Added footnotes to TS entry lines
 	//	Corrected calculation of education expenses
 	//var VERSION = "Version 3.41a, 11/29/2023";
@@ -850,7 +856,10 @@
 
 		// Displayed line adjustments
 
-
+		if (+ScholarTaxable.value) {
+			GapAll.checked = false;
+			GapGap.checked = false;
+		}
 
 		if (BusinessTax.value > 0) {
 			SEHIRow.style.display =
@@ -884,8 +893,9 @@
 
 		// Determine how much of the scholarship is available for expenses
 		if (whatChanged == "Nonrestricted") ScholarTaxable.value = "";
+		if (+ScholarTaxable.value) GapAll.checked = false;
 		var ScholarIncome = +ScholarTeaching.value;
-		var allScholarships = +Nonrestricted.value + +Scholarship.value;
+		var allScholarships = +Nonrestricted.value + +Restricted.value;
 
 		ScholarAvailable = allScholarships - ScholarIncome - +ScholarRestricted.value;
 		if (ScholarAvailable < 0) { // Data consistency check
@@ -1042,11 +1052,9 @@
 		// Add other supplemental funding
 		ScholarSupplemental = +ScholarESA.value + +ScholarQTP.value;
 		SupplementalTaxable.style.display = (DegreeNo.checked & (ScholarSupplemental > 0)) ? "inline" : "none";
-		//ScholarSupplemental += +ScholarIRA.value;
 		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value;
 
 		ScholarAvailableTotal.innerHTML = ScholarAvailable = +ScholarTaxFree.innerHTML + ScholarSupplemental;
-		ScholarNQMax = ScholarAvailable; // v 3.37
 		var scholarAvailableAOC = ScholarAvailable;
 		var scholarAvailableLLC = ScholarAvailable;
 		//ExpenseAllowedFlag.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
@@ -1082,8 +1090,8 @@
 		// show the expense totals
 		NQTotalAOC.innerHTML = NonqualExpenses["AOC"];
 		NQTotalLLC.innerHTML = NonqualExpenses["LLC"];
-		NQAvailAOC.innerHTML = (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"];
-		NQAvailLLC.innerHTML = (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["LLC"]) : NonqualExpenses["LLC"];
+		NQAvailAOC.innerHTML = Math.min(ScholarNQMax, (DegreeNo.checked) ? 0 : NonqualExpenses["AOC"]);
+		NQAvailLLC.innerHTML = Math.min(ScholarNQMax, (DegreeNo.checked) ? (NonqualExpenses["AOC"] - NonqualExpenses["LLC"]) : NonqualExpenses["LLC"]);
 		ExpensesAOC.innerHTML = QualExpenses["AOC"];
 		ExpensesLLC.innerHTML = QualExpenses["LLC"];
 
@@ -1173,6 +1181,7 @@
 		NoOptimize2.style.display =
 		NoOptimize3.style.display =
 		NoOptimize4.style.display = "none";
+		OptimizeButtons.style.display = "block";
 		optDiv.style.display = "block";
 		if (+ScholarTaxableMax.innerHTML > 0) {
 			messageNoScholar.style.display = "none";
@@ -1533,6 +1542,12 @@
 	}
 
 	//----------------------------------------------------------------------------------------
+	function ClearScholarTaxable () {
+	//----------------------------------------------------------------------------------------
+		ScholarTaxable.value = 0;
+	}
+
+	//----------------------------------------------------------------------------------------
 	// This function distributes the scholarship to qualified and non-qualified expenses
 	function Distribute(
 		type	// AOC or LLC
@@ -1541,6 +1556,7 @@
 	//----------------------------------------------------------------------------------------
 		// saAmount is the amount of ScholarAvailable that remains to be distributed
 		var saAmount = ScholarAvailable;
+		var saRestricted = +Restricted.value;
 
 		// qeeLimit is the tax law limit for the type of credit
 		switch (type) {
@@ -1589,11 +1605,21 @@
 		nqExpenses -= suppPay;
 		suppRemainder -= suppPay; // hopefully will be 0
 
+		// Use restricted scholarships for qualified expenses
+		qAmount += saRestricted;
+		saAmount -= saRestricted;
+		qExpenses -= saRestricted;
+
 		if (GapGap.checked) {
-			gapAmount = Math.max(0, qeeLimit - qAmount);
+			expenseGap = qeeLimit;
+			qAmountGap = qExpenses;
+			nqAmountGap = Math.max(0, +Nonrestricted.value - nqAmount);
+			gapAmount = Math.min(expenseGap, qAmountGap, nqAmountGap);
+
 			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntAmount, saAmount, gapAmount);
+			nqntPay = Math.min(nqntAmount, saAmount);
 			nqntAmount -= nqntPay;
+			nqntPay = Math.min(nqntAmount, saAmount, gapAmount);
 			nqAmount += nqntPay;
 			saAmount -= nqntPay;
 			nqExpenses -= nqntPay;
@@ -1607,14 +1633,14 @@
 			nqExpenses -= nqPay;
 		}
 
-		// Pay qualified next
-		var qePayLimit = Math.max(0, QualExpenses[type] - qAmount);
-		var qPaid = Math.min(saAmount, qePayLimit);
-		qAmount += qPaid;
-		saAmount -= qPaid;
-		qExpenses -= qPaid;
+		else { 
+			// Pay qualified next
+			var qePayLimit = Math.max(0, QualExpenses[type] - qAmount);
+			var qPaid = Math.min(saAmount, qePayLimit);
+			qAmount += qPaid;
+			saAmount -= qPaid;
+			qExpenses -= qPaid;
 
-		if (GapAll.checked) { 
 			// If there's any non-taxable nonqualified amount left, pay it next
 			nqntPay = Math.min(nqntAmount, saAmount);
 			nqntAmount -= nqntPay;
@@ -1637,6 +1663,10 @@
 				nqAmount -= kiddieAdjust;
 				qAmount += kiddieAdjust;
 				incomeAmount -= kiddieAdjust;
+			}
+			var studUnearned = +StudAGITax.value - +StudSalaryTax.value - +StudBusinessTax.value - +StudSEHITax.value;
+			if (studUnearned && (incomeAmount > KiddieFileMargin)) {
+				alert ("The student is subject to kiddie tax, which is out of scope");
 			}
 		}
 
@@ -2968,7 +2998,7 @@
 			<td></td> </tr>
 		<tr title="Scholarships can be used for tuition, fees, books, supplies and equipment regardless of the qualification for any other particular tax credit. Some part of the scholarship may include taxable teaching or research funds or some part may be specified for other non-taxable uses than those listed.">
 			<td colspan="2">&#x2605; Other scholarships/fellowships:</td>
-			<td><input id="Scholarship" type="number" onkeyup="BudgetChange(this.id)" /></td>
+			<td><input id="Restricted" type="number" onkeyup="BudgetChange(this.id)" /></td>
 			<td></td></tr>
 		<tr title="Amount that was for teaching, research, or any other services required as a condition for receiving the scholarship.">
 			<td class="FSindent">- Amount used for teaching, research, etc.  (not including
@@ -3202,9 +3232,9 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="LLCClass qexpense" id="ExpensesLLC"></td></tr>
 		<tr>
 			<td></td>
-			<td colspan="2" onchange="ScholarTaxable.value = 0;">Amount from funds used: 
-				(<input type="radio" name="Gap" id="GapAll" checked />Use maximum 
-				<input type="radio" name="Gap" id="GapGap" />Cover the difference)
+			<td colspan="2" onchange="ClearScholarTaxable();">Amount from funds used: 
+				(<input type="radio" name="Gap" id="GapAll" checked />Use all funds 
+				<input type="radio" name="Gap" id="GapGap" />Maximize expenses)
 				<span id="gapInfo" class="help"
 					onmouseover="gapInfoText.style.display='block';"
 					onmouseout="gapInfoText.style.display='none';">&nbsp;?&nbsp;
@@ -3212,11 +3242,11 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 				<span id="gapInfoText" class="helpText"
 					onmouseover="gapInfoText.style.display='block';"
 					onmouseout="gapInfoText.style.display='none';">
-					<u>Use maximum</u> allocates all scholarship(s) available,
+					<u>Use all</u> allocates all scholarship(s) available,
 					after any designated as taxable in the funding sources tab,
 					to qualified expenses before diverting allowed amounts to nonqualified expenses.
 					The optimizer uses this option as it cycles through taxable amounts.
-					<br /><br /><u>Cover the difference</u>
+					<br /><br /><u>Maximize expenses</u>
 					is a single test case that diverts allowed amounts to nonqualified
 					expenses in an amount to bring qualified expenses up to that allowed by law
 					before allocating the remainder to qualified expenses. Due to interactions with
