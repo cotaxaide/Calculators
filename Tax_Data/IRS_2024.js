@@ -97,7 +97,7 @@
 		_Standard["DependInc"] = 14;	// increment to earned income for a dependent
 
                 // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    QSS,inc,    HOH,inc,  Kiddie, DepAsRel, DependInc
-                _Standard[_TY] = "          0,1250,   14600,1950, 14600,1550, 29200,1550, 29200,1550, 21900,1950,  1300,   5050,      400";	// Needs update
+                _Standard[_TY] = "          0,1250,   14600,1950, 14600,1550, 29200,1550, 29200,1550, 21900,1950,  2500,   5050,      400";	// Needs update
 
 	// var ItemLimit = [];	// Needs update // Limit repealed by new tax law
                 _ItemLimit[_TY+":SNG"] = 10000000;

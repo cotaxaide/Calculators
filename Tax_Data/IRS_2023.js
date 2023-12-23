@@ -1,6 +1,6 @@
         //----------------------------------------------------------------------------------------
         var _TY = _StopYear = "2023"; // Tax parameters
-	_Preliminary[_TY] = true; // Preliminary information
+	_Preliminary[_TY] = false; // Preliminary information
         //----------------------------------------------------------------------------------------
 
         // Form line numbers
@@ -98,7 +98,7 @@
 		_Standard["DependInc"] = 14; // increment to earned income for a dependent
 
                 // Standard[year] = Exemption,Mimimum,  SNG,inc,    MFS,inc,    MFJ,inc,    QSS,inc,    HOH,inc,  Kiddie, DepAsRel, DependInc
-                _Standard[_TY] = "          0,1250,   13850,1850, 13850,1500, 27700,1500, 27700,1500, 20800,1850,  2300,   4700,      400";
+                _Standard[_TY] = "          0,1250,   13850,1850, 13850,1500, 27700,1500, 27700,1500, 20800,1850,  2500,   4700,      400";
 
 	// var ItemLimit = []; // Limit repealed by new tax law
                 _ItemLimit[_TY+":SNG"] = 10000000; //261500;
@@ -225,13 +225,13 @@
 		_QBILimits[_TY+":WID"] = "182100";
 
 	// Net Investment Income Tax (Form 8960)
-		_NIITLimits[_TY+":Rate"] = "0.038";		// Need update
-		_NIITLimits[_TY+":SNG"] = 		// Need update
-		_NIITLimits[_TY+":HOH"] = "200000"		// Need update
-		_NIITLimits[_TY+":MFJ"] = 		// Need update
-		_NIITLimits[_TY+":QSS"] = "250000";		// Need update
-		_NIITLimits[_TY+":WID"] = "250000";		// Need update
-		_NIITLimits[_TY+":MFS"] = "125000";		// Need update
+		_NIITLimits[_TY+":Rate"] = "0.038";
+		_NIITLimits[_TY+":SNG"] = 	
+		_NIITLimits[_TY+":HOH"] = "200000"
+		_NIITLimits[_TY+":MFJ"] = 	
+		_NIITLimits[_TY+":QSS"] = "250000";
+		_NIITLimits[_TY+":WID"] = "250000";
+		_NIITLimits[_TY+":MFS"] = "125000";
 
 	// Alternative Minimum Tax
 		//                  Exempt  Phaseout
