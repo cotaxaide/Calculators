@@ -151,12 +151,13 @@ function Tax_Calc(
 	CalcOut["Pensions"] = +CalcIn["TotalPensions"];
 
 	// Limit educator expenses
-	var edlimit = (FilingStatusValue === "MFJ") ? 500 : 250;
+	var edlimit = (+taxYear >= 2024) ? 300 : 250 ;
+	if (FilingStatusValue === "MFJ") edlimit *= 2;
 	CalcIn["EdExpenses"] = Math.min(+CalcIn["EdExpenses"], edlimit);
 
 	// Limit HSA Deduction = can't test for age 55
-	var edlimit = +_HSA[taxYear + ":FAM"] + 2000;
-	CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], edlimit);
+	var hsalimit = +_HSA[taxYear + ":FAM"] + 2000;
+	CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], hsalimit);
 	
 	// Limit IRA Contribution Deduction will be done later after AGI is known
 	CalcOut["IRADeductionAvailable"] = CalcIn["IRADeduction"];
