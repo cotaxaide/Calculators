@@ -1,0 +1,262 @@
+{	"TaxYear":		{"value":2021},
+	"Preliminary":		{"value":false},
+	"LineNo": {
+		"Wages":	{"value":"1"},
+		"Earned":	{"value":"1z&S1-3"},
+		"TaxExInc":	{"value":"2a"},
+		"QualDiv":	{"value":"3a"},
+		"Pension":	{"value":"4b+5b"},
+		"SSI":		{"value":"6a"},
+		"SST":		{"value":"6b"},
+		"CapGains":	{"value":"7"},
+		"AGI":		{"value":"11"},
+		"Deductions":	{"value":"12"},
+		"QBI":		{"value":"13"},
+		"Taxable":	{"value":"15"},
+		"TaxAmount":	{"value":"16"},
+		"CTC":		{"value":"19"},
+		"COD":		{"value":"19"},
+		"NRCredit":	{"value":"21"},
+		"EIC":		{"value":"27"},
+		"ACTC":		{"value":"28"},
+		"AOC":		{"value":"29"},
+		"Business":	{"value":"S1-3"},
+		"SEP":		{"value":"S1-16"},
+		"SEHI":		{"value":"S1-17"},
+		"TNF":		{"value":null},
+		"IRADed":	{"value":"S1-20"},
+		"StudLoan":	{"value":"S1-21"},
+		"Adjustments":	{"value":"S1-25"},
+		"ExcessAPTC":	{"value":"S2-2"},
+		"Foreign":	{"value":"S3-1"},
+		"Care":		{"value":"S3-2"},
+		"LLC":		{"value":"S3-3"},
+		"Retire":	{"value":"S3-4"},
+		"IRP":		{"value":null},
+		"NetPTC":	{"value":"S3-9"},
+		"QDCG":		{"value":"12"},
+		"StateWH":	{"value":"5a"},
+		"Property":	{"value":"5b"},
+		"SALT":		{"value":"5d"},
+		"CashContrib":	{"value":"11"},
+		"ItemDed":	{"value":"17"},
+		"UseSchedA":	{"value":"18"},
+		"F2555":	{"value":"45&50"},
+		"F8962A":	{"value":"11a"},
+		"F8962B":	{"value":"11b"},
+		"F8962F":	{"value":"11f"}
+	},
+	"Exemption":		{"value":0},
+	"DepAsRel":		{"value":4300},
+	"DependMin":		{"value":1100},
+	"DependInc":		{"value":350},
+	"Kiddie":		{"value":2200},
+	"Standard": {
+		"SNG":		{"Rate":12550,
+			"Inc":	{"value":1700}},
+		"MFS":		{"Rate":12550,
+			"Inc":	{"value":1350}},
+		"MFJ":		{"Rate":25100,
+			"Inc":	{"value":1350}},
+		"QSS":		{"Rate":25100,
+			"Inc":	{"value":1350}},
+		"WID":		{"Rate":25100,
+			"Inc":	{"value":1350}},
+		"HOH":		{"Rate":18800,
+			"Inc":	{"value":1700}}
+	},
+        "TaxRates": {
+		"Rate":		{"value":[ 0.10,  0.12,   0.22,   0.24,   0.32,   0.35,   0.37]},
+                "SNG":		{"value":[ 9950, 40525,  86375, 164925, 209425, 523600]},
+                "MFS": 		{"value":[ 9950, 40525,  86375, 164925, 209425, 314150]},
+                "MFJ":		{"value":[19900, 81050, 172750, 329850, 418850, 628300]},
+                "QSS":		{"value":[19900, 81050, 172750, 329850, 418850, 628300]},
+                "WID":		{"value":[19900, 81050, 172750, 329850, 418850, 628300]},
+                "HOH":		{"value":[14200, 54200,  86350, 164900, 209400, 523600]},
+                "TRUST":	{"value":[ 2600,  2600,   2600,   9450,   9450,  12950]}
+	},
+	"CGTaxRates": {
+                "Rate":		{"value":[    0,    0.15,   0.20]},
+                "SNG":		{"value":[40400, 445850]},
+                "MFS":		{"value":[40400, 250800]},
+                "MFJ":		{"value":[80800, 501600]},
+                "QSS":		{"value":[80800, 501600]},
+                "WID":		{"value":[80800, 501600]},
+                "HOH":		{"value":[54100, 473750]},
+                "TRUST":	{"value":[ 2650,  13250]}
+	},
+	"SETaxRates": {
+		"SSRate":	{"value": 0.124},
+		"MCRate":	{"value": 0.029},
+		"SSWageCap":	{"value":142800},
+		"AMCRate":	{"value": 0.009},
+		"AMCStart":	{"value":200000}
+	},
+	"MedBMFSPremium":	{"value":88000},
+	"NIIT":	{
+		"Rate":		{"value": 0.038},
+		"SNG":		{"value":200000},
+		"MFS":		{"value":125000},
+		"MFJ":		{"value":250000},
+		"QSS":		{"value":250000},
+		"WID":		{"value":250000},
+		"HOH":		{"value":200000}
+	},
+	"EducatorExpenses":	{"value":250},
+	"HSA": {
+		"Individual":	{"value":3600},
+		"Family":	{"value":7150}
+	},
+	"IRA": {
+		"Age":		{"value":    50},
+		"Maximum":	{"value":  6000},
+		"SrMaximum":	{"value":  7000},
+		"SNG":		{"value": 76000},
+		"MFS":		{"value": 76000},
+		"MFJRetPlan":	{"value":125000},
+		"MFJNoRetPlan":	{"value":208000},
+		"HOH":		{"value": 76000},
+		"QSS":		{"value":125000},
+		"WID":		{"value":125000}
+	},
+	"QBI":	{
+		"Rate":		{"value":0.2},
+		"Limit": {
+			"SNG":	{"value":164900},
+			"MFS":	{"value":164925},
+			"MFJ":	{"value":329800},
+			"QSS":	{"value":164900},
+			"WID":	{"value":164900},
+			"HOH":	{"value":164900}
+		}
+	},
+	"MedExclusion": 	{"value":0.075},
+	"SALT":			{"value":10000},
+	"ItemLimit": {
+                "SNG":		{"value":10000000},
+                "MFS":		{"value":10000000},
+                "MFJ":		{"value":10000000},
+                "QSS":		{"value":10000000},
+                "WID":		{"value":10000000},
+                "HOH":		{"value":10000000}
+	},
+	"AMT": {
+		"SNG":		{"value":[ 73600,  523600,  952150]},
+		"MFS":		{"value":[ 57300,  523600,  875950]},
+		"MFJ":		{"value":[114600, 1047200, 1751900]},
+		"QSS":		{"value":[ 73600,   523600,  952150]},
+		"WID":		{"value":[ 73600,   523600,  952150]},
+		"HOH":		{"value":[ 87500,  609350,  952150]},
+		"TRUST":	{"value":[ 25700,    85650,  219300]},
+		"KIDDIE":	{"value":[ 7950,   510300]}
+	},
+        "EIC": {
+		"RateUp":	{"value":[0.153,   0.34,    0.4,   0.45]},
+		"RateDown":	{"value":[0.153,  0.160, 0.2106, 0.2106]},
+                "Maximum":	{"value":[  1502,   3618,   5980,   6728]},
+                "EarnedIncome": {"value":[ 8260,  12390,  17400,  17400]},
+                "AGISNG":	{"value":[  8880,  19520,  19520,  19520]},
+                "SNG":		{"value":[21430,  42158,  47915,  51464]},
+                "AGIMFJ":	{"value":[ 14820,  25470,  25470,  25470]},
+                "MFJ":		{"value":[ 27380,  48108,  53865,  57414]},
+                "InvestMax":	{"value":10000}
+	},
+       	"Care": {
+		"RateMax":	{"value":35},
+		"RateMin":	{"value":20},
+		"AGICap":	{"value":125000},
+		"AGICap2":	{"value":400000}
+	},
+	"Education": {
+		"TNF": {
+                	"MAX0":	{"value":0},
+                	"AGI1":	{"value":0},
+                	"MAX1":	{"value":0},
+                	"AGI2":	{"value":0},
+                	"MAX2":	{"value":0}
+		},
+		"AOC": {
+                	"MAX0":	{"value":4000},
+                	"SNG1":	{"value":80000},
+                	"SNG2":	{"value":90000},
+                	"MFJ1":	{"value":160000},
+                	"MFJ2":	{"value":180000}
+		},
+		"LLC": {
+                	"MAX0":	{"value":10000},
+                	"SNG1":	{"value":80000},
+                	"SNG2":	{"value":90000},
+                	"MFJ1":	{"value":160000},
+                	"MFJ2":	{"value":180000}
+		},
+		"Savings": {
+			"SNG0":	{"value": 82350},
+			"SNG1":	{"value": 96100},
+			"MFJ0":	{"value":123550},
+			"MFJ1":	{"value":151600},
+			"WID0":	{"value":123550},
+			"WID1":	{"value":151600},
+			"QSS0":	{"value":123550},
+			"QSS1":	{"value":151600},
+			"HOH0":	{"value": 82350},
+			"HOH1":	{"value": 96100}
+		}
+	},
+	"StudLoanInterest": {
+		"Maximum": 	{"value": 2500},
+                "SNG1":		{"value":70000},
+                "SNG2":		{"value":85000},
+                "MFJ1":		{"value":145000},
+                "MFJ2":		{"value":175000}
+	},
+	"Retire": {
+		"Rate":		{"value":[  0.5,   0.2,	  0.1,	0]},
+		"SNG":		{"value":[19750, 21500,	33000]},
+		"MFS":		{"value":[19750, 21500,	33000]},
+		"MFJ":		{"value":[39500, 43000,	66000]},
+		"QSS":		{"value":[19750, 21500,	33000]},
+		"WID":		{"value":[19750, 21500,	33000]},
+		"HOH":		{"value":[29625, 33250,	49500]}
+	},
+	"CTC": {
+		"Rate":		{"value":2000},
+		"Age0":		{"value":1600},
+		"Age6":		{"value":1000},
+		"FTC":		{"value": 500},
+		"ACTC":		{"value":10000000},
+		"ACTCThreshold":{"value":0},
+                "AGICap": {
+                	"SNG":	{"value":200000},
+                	"MFS":	{"value":200000},
+                	"MFJ":	{"value":400000},
+                	"QSS":	{"value":200000},
+                	"WID":	{"value":200000},
+                	"HOH":	{"value":200000}
+		},
+                "AGI0Cap": {
+                	"SNG":	{"value": 75000},
+                	"MFS":	{"value": 75000},
+                	"MFJ":	{"value":150000},
+                	"QSS":	{"value": 75000},
+                	"WID":	{"value": 75000},
+                	"HOH": 	{"value":112500}
+		}
+	},
+	"ACA": {
+		"FPL": {
+			"US": 		{"Rate":12880,
+				"Inc":	{"value":4540}},
+			"AK":		{"Rate":16090,
+				"Inc":	{"value":5680}},
+			"HI":		{"Rate":14820,
+				"Inc":	{"value":5220}}
+		},
+		"PTC0": 	{"value":[133, 0.00, 0.00,  325]},
+		"PTC133": 	{"value":[150, 0.00, 2.00,  325]},
+		"PTC150": 	{"value":[200, 2.00, 4.00,  800]},
+		"PTC200": 	{"value":[250, 4.00, 6.00,  800]},
+		"PTC250": 	{"value":[300, 6.00, 8.50,  800]},
+		"PTC300": 	{"value":[400, 8.50, 8.50, 1350]},
+		"AffordRate":	{"value":0.0805}
+	}
+}
