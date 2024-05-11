@@ -1,3 +1,4 @@
+
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -34,16 +35,17 @@
 	.boxed { border: 1px solid black; width: 33em; margin-left: 3em; }
 	.boxed tr td { padding-left: 1em; }
 	.boxed td:first-child { min-width: 20em; white-space: nowrap; }
-	.bold { font-weight: bold; }
+
 	.right { text-align: right; }
-	.center { text-align: center; }
+
 	.tblHeader { font-size:110%; font-weight:bold; text-decoration:underline; }
 	.title { font-size:125%; font-weight:bold; }
-	.instruction { font-style: italic; float: right; }
+
 	.comment { font-style:italic; }
-	.noteflag { background-color:yellow; }
+
 	.noPrint { float:left; }
 	.hidden { display: none; }
+	.footnote { font-size: 60%; font-style: italic; width: 100%; }
 	#TPNameTable tr td { text-align: center; }
 	#ClearAndPrint {
 		text-align: center;
@@ -155,12 +157,27 @@
 		border: 3px solid green;
 		margin: auto;
 		padding: 10px;
-		width: 50%;
+		max-width: 25em;
 	}
 	#IntResult table tr td:last-child {
 		text-align: right;
 	}
-	#ShowError { text-decoration: italic; text-align: right; display: none; }
+	#ShowError {
+		text-decoration: italic;
+		text-align: right;
+		display: none;
+	}
+	.help { background-color: lightgreen; border: 1px solid black; border-radius: 0.5em;
+		width: 2em; cursor: pointer; }
+	.helpText {
+		font-style: italic;
+		display: none;
+		background-color: lightgreen;
+		border: 1px solid black;
+		padding: 3px;
+		width: 20em;
+		white-space: normal;
+		}
 	
 	@media print {
 		.doPrint { display: inline; }
@@ -172,7 +189,7 @@
 	}
 </style>
 
-<script src="Tax_Data/IRS_2000.js"></script>
+<script src="Common_Routines.js"></script>
 <script type="text/javascript">
 // --------------------------------------------------------------------------------
 // Contributors:
@@ -180,10 +197,18 @@
 //	Deb Fisher
 //	Sue Alza
 //	Don Thorn
+//	Rob Kleinberg
 // --------------------------------------------------------------------------------
 var VERSION;
 
-VERSION = "(Version 2.07, 3/12/2023)";
+VERSION = "(Version 2.09, 5/11/2024)";
+//	Changed average mortgage balances again, back to 12 month average
+//	Changed limit from a number to a percentage
+//	Changed data source to common routines
+//VERSION = "(Version 2.08, 3/6/2024)";
+//	Changed average home mortgage balance to only months with a balance
+//	Corrected disabling of points, should be mortgage interest
+//VERSION = "(Version 2.07, 3/12/2023)";
 //	Disabled points input for 2022 and later years
 //VERSION = "(Version 2.06, 10/9/2022)";
 //	Addition of Mortgage Insurance
@@ -214,10 +239,10 @@ VERSION = "(Version 2.07, 3/12/2023)";
 //	Major revision and restructure
 //----------------------------------------------------------------------------------------
 
-var ColorYes = "lightgreen";
-var ColorNo = "hotpink";
-var ColorMaybe = "yellow";
-var ColorNone = "";
+
+
+
+
 var InputElement = [];
 var CalcElement = [];
 var Mortgage = [];
@@ -225,13 +250,19 @@ var Mortgage = [];
 	Mortgage[2] = [];
 	Mortgage[3] = [];
 	Mortgage[4] = [];
+var Results = [];
+	Results[0] = [];
+	Results[1] = [];
+	Results[2] = [];
+	Results[3] = [];
+	Results[4] = [];
 var Tab = [];
 var Tabs = 1;
 var BlankTab = "&nbsp;";
 var IdleTab = "<b>+</b>";
 var CurrentTab = 1;
-var Mort_Element = [];
-var Res_Element = [];
+var Mort_Elements = [];
+var Res_Elements = [];
 var GrandEndDate = [];
 var NewDatePart = [];
 var OrigDatePart = [];
@@ -249,8 +280,11 @@ function Initialize() {
 		tyopti.text = tyopti.value = ty;
 		TaxYear.add(tyopti,tyOptIndex++);
 	}
-	TaxYear.value = _DefaultYear;
+	TaxYear.value = TY = _DefaultYear;
+	optionLabel = (TY < 2022) ? "Widow(er)" : "QSS" ;
+	FilingStatus.lastElementChild.innerHTML = optionLabel;
 
+	// Make arrays of element Ids to make code simpler
 	for (mo = 0 ; mo <= 12 ; mo++) {
 		moElement = [];
 		moElement.Int = document.getElementById("Int" + mo);
@@ -259,7 +293,7 @@ function Initialize() {
 		moElement.Grf = document.getElementById("Grand" + mo);
 		moElement.Equ = document.getElementById("Equity" + mo);
 		moElement.Pct = document.getElementById("Qual" + mo);
-		Mort_Element[mo] = moElement;
+		Mort_Elements[mo] = moElement;
 	}
 	for (res = 0 ; res <= 4 ; res++) {
 		resElement = [];
@@ -272,7 +306,7 @@ function Initialize() {
 		resElement.Int = document.getElementById("QualInt" + res);
 		resElement.Pts = document.getElementById("QualPts" + res);
 		resElement.MIP = document.getElementById("QualMIP" + res);
-		Res_Element[res] = resElement;
+		Res_Elements[res] = resElement;
 	}
 	var inputs = document.getElementsByClassName("wkti");
 	for (var i = 0 ; i < inputs.length ; i++) {
@@ -367,22 +401,24 @@ function Input_Change(e) {
 
 	switch (WhatChanged) {
 	case "TaxYear":
-		optionLabel = (+TaxYear.value < 2022) ? "Widow(er)" : "QSS" ;
+		TY = +TaxYear.value;
+		optionLabel = (TY < 2022) ? "Widow(er)" : "QSS" ;
 		FilingStatus.lastElementChild.innerHTML = optionLabel;
 		if (New_Bank.value == "") return;
 
 		New_Date.style.backgroundColor = "white";
 		NewDatePart = New_Date.value.split("-");
-		if (NewDatePart[0] > TaxYear.value) {
+		if (+NewDatePart[0] > TY) {
 			alert("The mortgage date cannot be later than current tax year.");
 			New_Date.style.backgroundColor = "hotpink";
 			return;
 		}
-		Fill_Dates();
+		NewDatePart = New_Date.value.split("-");
+		NewDatePart[11] = NewDatePart[1]; // save original month since it may be changed later
 		break;
 	case "Name":
 	case "FilingStatus":
-		return;
+		break;
 	case "New_Bank":
 		// Show the next tab if a bank name is entered on the current tab
 		if (New_Bank.value === "") {
@@ -395,7 +431,7 @@ function Input_Change(e) {
 					InputElement[i].value = "";
 				}
 				Tab[CurrentTab].innerHTML = BlankTab;
-				Res_Element[CurrentTab].Nam.innerHTML = "";
+				Res_Elements[CurrentTab].Nam.innerHTML = "";
 				Clear_Worksheet();
 				return
 			}
@@ -407,7 +443,7 @@ function Input_Change(e) {
 		}
 		newTabName = "<b>" + New_Bank.value + "</b>";
 		Tab[CurrentTab].innerHTML = newTabName;
-		Res_Element[CurrentTab].Nam.innerHTML = newTabName;
+		Res_Elements[CurrentTab].Nam.innerHTML = newTabName;
 		return;
 	case "TabChange":
 		NewDatePart = New_Date.value.split("-");
@@ -432,8 +468,8 @@ function Input_Change(e) {
 			New_Date.style.backgroundColor = "hotpink";
 			return;
 		}
-		if (NewDatePart[0] > TaxYear.value) {
-			alert("The mortgage date cannot be later than current tax year.");
+		if (+NewDatePart[0] > TY) {
+			alert("The mortgage date cannot be later than the current tax year.");
 			New_Date.style.backgroundColor = "hotpink";
 			return;
 		}
@@ -450,7 +486,7 @@ function Input_Change(e) {
 		Orig_Date.style.backgroundColor = "white";
 		if (e.type == "change") return;
 		OrigDatePart = Orig_Date.value.split("-");
-		if (OrigDatePart[0] > TaxYear.value) {
+		if (+OrigDatePart[0] > TY) {
 			alert("The refinanced mortgage date cannot be later than current tax year.");
 			Orig_Date.style.backgroundColor = "hotpink";
 			return;
@@ -498,7 +534,7 @@ function Input_Change(e) {
 		return;
 	}
 
-	// Record checkboxes in hidden input elements that have value attributes
+	// Record checkboxes into hidden input elements that have value attributes
 	if (New_Original.checked) New_Type.value = "New_Original";
 	else if (New_Refinanced.checked) New_Type.value = "New_Refinanced";
 	if (Method1.checked) Method_Type.value = "Method1";
@@ -510,6 +546,14 @@ function Input_Change(e) {
 	var grfacq = 0; // Grandfathered acquisition debt
 	var new_is_grandfathered = (New_Date.value < "1987-10-14");
 	var orig_is_grandfathered = (Orig_Date.value < "1987-10-14");
+	if (Orig_Date.value > "1950" ) { // arbitrary date
+		Orig_grfRow.style.display = (orig_is_grandfathered) ? "none" : "table-row" ;
+		if (Orig_Grf.checked) orig_is_grandfathered = true;
+	}
+
+	// Are mortgage interest payments deductible this year?
+	MIPPaid.disabled = (TY >= 2022); // true/false
+	if (TY >= 2022) MIPPaid.value = "";
 
 	switch (true) {
 	case (new_is_grandfathered):
@@ -594,7 +638,7 @@ function Input_Change(e) {
 	}
 
 	// Classify the debt
-	if (GrandEndDate.year < TaxYear.value) { // expired
+	if (+GrandEndDate.year < TY) { // expired
 		Class_Acq.innerHTML = newacq + grfacq;
 		Class_Grand.innerHTML = 0;
 		Class_GrandAcq.innerHTML = 0;
@@ -610,32 +654,28 @@ function Input_Change(e) {
 	}
 
 	// Is there any equity debt to deal with
-	showMsg = (InterestPaid.value > 0) && ((+Class_Equity.innerHTML + +Class_GrandEquity.innerHTML) == 0);
+	showMsg = (+InterestPaid.value > 0) && ((+Class_Equity.innerHTML + +Class_GrandEquity.innerHTML) == 0);
 	Fully_Deductible_Message.style.display = (showMsg) ? "inline" : "none";
 	Fully_Deductible_Message2.style.display = (showMsg) ? "inline" : "none";
-	Fully_Deductible_Message3.style.display = (showMsg) ? "inline" : "none";
+	if (TY < 2022) Fully_Deductible_Message3.style.display = (showMsg) ? "inline" : "none";
 
 	// Complete the Mortgage Worksheet
-	//if (MortgageBalance.value > 0) {
-	//	Input1Last.style.display = "none";
-		if (LastMonth.value == 0) LastMonth.value = 12;
-	//}
-	//else {
-		Input1Last.style.display = "inline" ;
-	//}
+	if (LastMonth.value == 0) LastMonth.value = 12;
 
 	Fill_Dates();
-	if (TaxYear.value == NewDatePart[0]) {
+
+	if (TY == +NewDatePart[0]) {
 		Payment1.value = 0; // to be determined
 		Payment1.disabled = true;
-		//if (Method1.checked && (+LastMonth.value > 0) && (+LastMonth.value <= +NewDatePart[1])) {
 		if (Method1.checked && (+LastMonth.value > 0) && (+LastMonth.value < +NewDatePart[1])) {
 			message = "Sorry, you can't pay off the mortgage before you have the mortgage!";
 			alert(message);
 			LastMonth.value = 12;
 		}
+
 		if (NewDatePart[1] == NewDatePart[11]) { // adjust starting month
 			NewDatePart[1] -= 1;
+	/*
 			var priorDate = document.getElementById("Date" + NewDatePart[1])
 			var mdy = priorDate.innerHTML.split("/");
 			if (+mdy[0] == 12) { // mortgage started in January
@@ -643,6 +683,7 @@ function Input_Change(e) {
 				mdy[2] = +mdy[2] + 1;
 			}
 			priorDate.innerHTML = (+mdy[0] + 1) + "/" + NewDatePart[2] + "/" + mdy[2];
+	*/
 		}
 	}
 	else {
@@ -650,8 +691,8 @@ function Input_Change(e) {
 		Payment1.disabled = false;
 	}
 
-	if (InterestPaid.value
-		&& ((MortgageBalance.value > 0) || ((MortgageBalance.value === "0") && (+LastMonth.value > 0)))
+	if ((+InterestPaid.value !== "")
+		&& ((+MortgageBalance.value > 0) || ((MortgageBalance.value === "0") && (+LastMonth.value > 0)))
 		&& (Payment1.value !== "")
 		&& Method_Type.value) {
 		Determine_Balances();
@@ -661,24 +702,31 @@ function Input_Change(e) {
 //----------------------------------------------------------------------------------------
 function Fill_Dates() {
 //----------------------------------------------------------------------------------------
-	var tyr = TaxYear.value;
-	var LeapYear = ((+TaxYear.value % 4) == 0) ? 1 : 0 ;
-	Date0.innerHTML = "12/31/" + (+tyr - 1);
-	Date1.innerHTML = "1/31/" + tyr;
-	Date2.innerHTML = "2/" + (28 + LeapYear) + "/" + tyr;
-	Date3.innerHTML = "3/31/" + tyr;
-	Date4.innerHTML = "4/30/" + tyr;
-	Date5.innerHTML = "5/31/" + tyr;
-	Date6.innerHTML = "6/30/" + tyr;
-	Date7.innerHTML = "7/31/" + tyr;
-	Date8.innerHTML = "8/31/" + tyr;
-	Date9.innerHTML = "9/30/" + tyr;
-	Date10.innerHTML = "10/31/" + tyr;
-	Date11.innerHTML = "11/30/" + tyr;
-	BalanceTY.innerHTML = Date12.innerHTML = "12/31/" + tyr;
+	let LeapYear = ((TY % 4) == 0) ? 1 : 0 ;
+	Date0.innerHTML = "12/31/" + (TY - 1);
+	Date1.innerHTML = "1/31/" + TY;
+	Date2.innerHTML = "2/" + (28 + LeapYear) + "/" + TY;
+	Date3.innerHTML = "3/31/" + TY;
+	Date4.innerHTML = "4/30/" + TY;
+	Date5.innerHTML = "5/31/" + TY;
+	Date6.innerHTML = "6/30/" + TY;
+	Date7.innerHTML = "7/31/" + TY;
+	Date8.innerHTML = "8/31/" + TY;
+	Date9.innerHTML = "9/30/" + TY;
+	Date10.innerHTML = "10/31/" + TY;
+	Date11.innerHTML = "11/30/" + TY;
+	BalanceTY.innerHTML = Date12.innerHTML = "12/31/" + TY;
 
-	// Are points deductible this year?
-	PointsPaid.disabled = (+tyr >= 2022); // true/false
+	// Show starting date and amount in previous month
+	if (TY == +NewDatePart[0]) {
+		var priorDate = document.getElementById("Date" + (NewDatePart[11] - 1));
+		var mdy = priorDate.innerHTML.split("/");
+		if (+mdy[0] == 12) { // mortgage started in January
+			mdy[0] = 0;
+			mdy[2] = +mdy[2] + 1;
+		}
+		priorDate.innerHTML = (+mdy[0] + 1) + "/" + NewDatePart[2] + "/" + mdy[2];
+	}
 }
 
 //----------------------------------------------------------------------------------------
@@ -691,11 +739,7 @@ function Reset_Rate() {
 function Determine_Balances() {
 //----------------------------------------------------------------------------------------
 	var lastRow = {ma:0, mg:0, mp:0, mq:0};
-	var firstMo = 0;
-	mortYear = NewDatePart[0];
-	if (mortYear == TaxYear.value) {
-		firstMo = +NewDatePart[1];
-	}
+	var firstMo = (+NewDatePart[0] == TY) ? +NewDatePart[1] : 0 ;
 
 	Payment1.style.backgroundColor = "white";
 	Payment1.disabled = false;
@@ -712,9 +756,8 @@ function Determine_Balances() {
 			Payment1.style.backgroundColor = "hotpink";
 			return;
 		}
-		var lastMo = LastMonth.value;
-		if (mortYear == TaxYear.value) { // Mortgage was taken out this year on this month
-		//if (firstMo) { // Mortgage was taken out this year on this month
+		var lastMo = +LastMonth.value;
+		if (+NewDatePart[0] == TY) { // Mortgage was taken out this year
 			mb0 = +New_Mort.value;
 			mb6 = (+New_Mort.value / 2) + (+MortgageBalance.value / 2);
 			mortPaid = +New_Mort.value - +MortgageBalance.value;
@@ -742,12 +785,17 @@ function Determine_Balances() {
 				MortgageBalance.style.backgroundColor = "hotpink";
 			}
 		}
+
+		// Estimate the interest rate
 		if (+MortgageBalance.value == +New_Mort.value) { // interest-only mortgage
-				rate.innerHTML = +InterestPaid.value / (lastMo - firstMo) / +MortgageBalance.value;
+				monthlyInt = +InterestPaid.value / (lastMo - firstMo) / +MortgageBalance.value;
+				rate.innerHTML = ((((1 + monthlyInt) ** 12) - 1) * 100).toFixed(2);
 		}
-		if (rate.innerHTML === "") {
-			rate.innerHTML = +InterestPaid.value / mb6;
+		else {
+			if (rate.innerHTML === "") rate.innerHTML = +InterestPaid.value / mb6;
 		}
+
+		// Find the real interest rate
 		var monthlyInt = rate.innerHTML / 1200;
 		var increment = 0.001;
 		var increasing = true;
@@ -761,9 +809,15 @@ function Determine_Balances() {
 			var totalEqu = 0;
 			var last_monthlyInt = monthlyInt;
 			for (mo = 0 ; mo <= 12 ; mo++) {
-				thisElement = Mort_Element[mo];
-				if (mo <= firstMo) {
-					var mx = (mo < firstMo) ? 0 : mb0; // zero rows prior to the first month
+				thisElement = Mort_Elements[mo];
+				if (mo < firstMo) {
+					// zero rows prior to the first month
+					thisElement.Bal.value = 0
+					lastRow = Fill_Row(mo, 0, 0, thisElement, lastRow);
+					continue;
+				}
+				if (mo == firstMo) {
+					var mx = mb0;
 					thisElement.Bal.value = Math.round(mx);
 					lastRow = Fill_Row(mo, mx, 0, thisElement, lastRow);
 					totalInt = 0 ;
@@ -829,11 +883,11 @@ function Determine_Balances() {
 				increasing = true;
 				break;
 			default:
-				rate.innerHTML = (monthlyInt * 1200).toFixed(2);
+
 				seekingRate = false;
 		} // end of switch
 		if (last_monthlyInt.toFixed(8) == monthlyInt.toFixed(8)) {
-			rate.innerHTML = (monthlyInt * 1200).toFixed(2);
+			rate.innerHTML = ((((1 + monthlyInt) ** 12) - 1) * 100).toFixed(2);
 			break; // prevents infinite loop
 		}
 	    } // end while
@@ -846,17 +900,20 @@ function Determine_Balances() {
 		totalEqu = 0;
 		totalQualInt = 0;
 		lastMo = 12;
-		if (lastMo) Mort_Element[lastMo].Bal.value = MortgageBalance.value;
+		Mort_Elements[lastMo].Bal.value = MortgageBalance.value;
 		for (mo = 0 ; mo <= 12 ; mo++) {
-			thisElement = Mort_Element[mo];
-			mb0 = (firstMo) ? +New_Mort.value : Mort_Element[0].Bal.value;
-			if (mo <= firstMo) {
-				var mx = (mo < firstMo) ? 0 : mb0; // zero rows prior to the first month
-				thisElement.Bal.value = Math.round(mx);
-				lastRow = Fill_Row(mo, mx, 0, thisElement, lastRow);
+			thisElement = Mort_Elements[mo];
+			switch (true) {
+			case (mo < firstMo):
+				thisElement.Bal.value = 0;
+				lastRow = Fill_Row(mo, 0, 0, thisElement, lastRow);
 				continue;
-			}
-			else {
+			case (mo == firstMo):
+				mb = (firstMo > 0) ? +New_Mort.value : Mort_Elements[0].Bal.value;
+				thisElement.Bal.value = Math.round(mb);
+				lastRow = Fill_Row(mo, mb, 0, thisElement, lastRow);
+				continue;
+			default:
 				var mb = +thisElement.Bal.value;
 				//if ((mb == 0) && MortgageBalance.value) {
 				//	thisElement.Bal.value = mb = lastRow.mb;
@@ -888,8 +945,8 @@ function Determine_Balances() {
 			totalPaid = 0;
 			last_monthlyInt = monthlyInt;
 			for (mo = firstMo + 1 ; mo <= 12 ; mo++) {
-				thisElement = Mort_Element[mo];
-				lastElement = Mort_Element[mo-1];
+				thisElement = Mort_Elements[mo];
+				lastElement = Mort_Elements[mo-1];
 				mb = +thisElement.Bal.value;
 				lb = +lastElement.Bal.value;
 				if (mb >= +MortgageBalance.value) {
@@ -930,11 +987,11 @@ function Determine_Balances() {
 					increasing = true;
 					break;
 				default:
-				rate.innerHTML = (monthlyInt * 1200).toFixed(2);
+
 				seekingRate = false;
 			} // end of switch
 			if (last_monthlyInt.toFixed(8) == monthlyInt.toFixed(8)) {
-				rate.innerHTML = (monthlyInt * 1200).toFixed(2);
+				rate.innerHTML = ((((1 + monthlyInt) ** 12) - 1) * 100).toFixed(2);
 				break; // prevents infinite loop
 			}
 		} // end while
@@ -949,7 +1006,7 @@ function Determine_Balances() {
 
 	totalQualPts = PointsPaid.value * (totalAcq + totalGrf) / totalBal;
 	totalQualMIP = MIPPaid.value * (totalAcq + totalGrf) / totalBal;
-	Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, totalQualPts, totalQualMIP);
+	Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, totalQualPts, totalQualMIP)
 }
 
 //----------------------------------------------------------------------------------------
@@ -1068,6 +1125,7 @@ function Fill_Row(
 		thisRow.mp = (thisRow.mb) ? pctQualified : 1 ;
 	}
 
+	lastRow.mi = mi; // only returned to get a count of months with interest
 	return thisRow;
 }
 
@@ -1086,7 +1144,7 @@ function Mortgage_Expires(
 function Clear_Worksheet() {
 //----------------------------------------------------------------------------------------
 	for (mo = 0 ; mo <= 12 ; mo++) {
-		thisElement = Mort_Element[mo];
+		thisElement = Mort_Elements[mo];
 		thisElement.Bal.value = "";
 		thisElement.Int.innerHTML = "";
 		thisElement.Acq.innerHTML = "";
@@ -1094,7 +1152,7 @@ function Clear_Worksheet() {
 		thisElement.Equ.innerHTML = "";
 		thisElement.Pct.innerHTML = "";
 	}
-	Res_Element[CurrentTab].Pre.innerHTML = "";
+	Res_Elements[CurrentTab].Pre.innerHTML = "";
 	Fill_Results("clear");
 
 }
@@ -1104,59 +1162,64 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, tota
 //----------------------------------------------------------------------------------------
 	// Clear if the worksheet has been cleared
 	if (totalBal === "clear") {
-		if (New_Bank.value === "") Res_Element[CurrentTab].Pre.innerHTML = "";
-		Res_Element[CurrentTab].Bal.innerHTML = "";
-		Res_Element[CurrentTab].Acq.innerHTML = "";
-		Res_Element[CurrentTab].Grf.innerHTML = "";
-		Res_Element[CurrentTab].Equ.innerHTML = "";
-		Res_Element[CurrentTab].Int.innerHTML = "";
-		Res_Element[CurrentTab].Pts.innerHTML = "";
-		Res_Element[CurrentTab].MIP.innerHTML = "";
+		if (New_Bank.value === "") Res_Elements[CurrentTab].Pre.innerHTML = "";
+		Res_Elements[CurrentTab].Bal.innerHTML = "";
+		Res_Elements[CurrentTab].Acq.innerHTML = "";
+		Res_Elements[CurrentTab].Grf.innerHTML = "";
+		Res_Elements[CurrentTab].Equ.innerHTML = "";
+		Res_Elements[CurrentTab].Int.innerHTML = "";
+		Res_Elements[CurrentTab].Pts.innerHTML = "";
+		Res_Elements[CurrentTab].MIP.innerHTML = "";
 	}
 	else { // Enter the row for the current mortgage
-		Res_Element[CurrentTab].Pre.innerHTML = (New_Date.value < "2017-12-16") ? "Yes" : "No" ;
-		Res_Element[CurrentTab].Bal.innerHTML = Math.round(totalBal / 12);
-		Res_Element[CurrentTab].Acq.innerHTML = Math.round(totalAcq / 12);
-		Res_Element[CurrentTab].Grf.innerHTML = Math.round(totalGrf / 12);
-		Res_Element[CurrentTab].Equ.innerHTML = Math.round(totalEqu / 12);
-		Res_Element[CurrentTab].Int.innerHTML = Math.round(totalQualInt);
-		Res_Element[CurrentTab].Pts.innerHTML = Math.round(totalQualPct);
-		Res_Element[CurrentTab].MIP.innerHTML = Math.round(totalQualMIP);
+		Res_Elements[CurrentTab].Pre.innerHTML = (New_Date.value < "2017-12-16") ? "Yes" : "No" ;
+		Res_Elements[CurrentTab].Bal.innerHTML = Math.round(totalBal / 12);
+		Res_Elements[CurrentTab].Acq.innerHTML = Math.round(totalAcq / 12);
+		Res_Elements[CurrentTab].Grf.innerHTML = Math.round(totalGrf / 12);
+		Res_Elements[CurrentTab].Equ.innerHTML = Math.round(totalEqu / 12);
+		Res_Elements[CurrentTab].Int.innerHTML = Math.round(totalQualInt);
+		Res_Elements[CurrentTab].Pts.innerHTML = Math.round(totalQualPct);
+		Res_Elements[CurrentTab].MIP.innerHTML = Math.round(totalQualMIP);
+	}
+
+	// Save current tab results
+	for (i in CalcElement) {
+		Results[CurrentTab][i] = CalcElement[i].innerHTML;
 	}
 
 	// Total the averages for all mortgages
-	Res_Element[0].Bal.innerHTML = 0;
-	Res_Element[0].Acq.innerHTML = 0;
-	Res_Element[0].Grf.innerHTML = 0;
-	Res_Element[0].Equ.innerHTML = 0;
-	Res_Element[0].Int.innerHTML = 0;
-	Res_Element[0].Pts.innerHTML = 0;
-	Res_Element[0].MIP.innerHTML = 0;
+	Res_Elements[0].Bal.innerHTML = 0;
+	Res_Elements[0].Acq.innerHTML = 0;
+	Res_Elements[0].Grf.innerHTML = 0;
+	Res_Elements[0].Equ.innerHTML = 0;
+	Res_Elements[0].Int.innerHTML = 0;
+	Res_Elements[0].Pts.innerHTML = 0;
+	Res_Elements[0].MIP.innerHTML = 0;
 	AcqPrior = 0;
 	AcqPost = 0;
 	for (m = 1 ; m <= 4 ;  m++) {
-		Res_Element[0].Bal.innerHTML =
-			+Res_Element[0].Bal.innerHTML + +Res_Element[m].Bal.innerHTML;
-		Res_Element[0].Acq.innerHTML =
-			+Res_Element[0].Acq.innerHTML + +Res_Element[m].Acq.innerHTML;
-		if (Res_Element[m].Pre.innerHTML == "Yes")
-			AcqPrior += +Res_Element[m].Acq.innerHTML;
+		Res_Elements[0].Bal.innerHTML =
+			+Res_Elements[0].Bal.innerHTML + +Res_Elements[m].Bal.innerHTML;
+		Res_Elements[0].Acq.innerHTML =
+			+Res_Elements[0].Acq.innerHTML + +Res_Elements[m].Acq.innerHTML;
+		if (Res_Elements[m].Pre.innerHTML == "Yes")
+			AcqPrior += +Res_Elements[m].Acq.innerHTML;
 		else
-			AcqPost += +Res_Element[m].Acq.innerHTML;
-		Res_Element[0].Grf.innerHTML =
-			+Res_Element[0].Grf.innerHTML + +Res_Element[m].Grf.innerHTML;
-		Res_Element[0].Equ.innerHTML =
-			+Res_Element[0].Equ.innerHTML + +Res_Element[m].Equ.innerHTML;
-		Res_Element[0].Int.innerHTML = 
-			+Res_Element[0].Int.innerHTML + +Res_Element[m].Int.innerHTML;
-		Res_Element[0].Pts.innerHTML = 
-			+Res_Element[0].Pts.innerHTML + +Res_Element[m].Pts.innerHTML;
-		Res_Element[0].MIP.innerHTML = 
-			+Res_Element[0].MIP.innerHTML + +Res_Element[m].MIP.innerHTML;
+			AcqPost += +Res_Elements[m].Acq.innerHTML;
+		Res_Elements[0].Grf.innerHTML =
+			+Res_Elements[0].Grf.innerHTML + +Res_Elements[m].Grf.innerHTML;
+		Res_Elements[0].Equ.innerHTML =
+			+Res_Elements[0].Equ.innerHTML + +Res_Elements[m].Equ.innerHTML;
+		Res_Elements[0].Int.innerHTML = 
+			+Res_Elements[0].Int.innerHTML + +Res_Elements[m].Int.innerHTML;
+		Res_Elements[0].Pts.innerHTML = 
+			+Res_Elements[0].Pts.innerHTML + +Res_Elements[m].Pts.innerHTML;
+		Res_Elements[0].MIP.innerHTML = 
+			+Res_Elements[0].MIP.innerHTML + +Res_Elements[m].MIP.innerHTML;
 	}
 
 	// Pub 936 Table 1 Part 1
-	line01 = +Res_Element[0].Grf.innerHTML;
+	line01 = +Res_Elements[0].Grf.innerHTML;
 	line02 = AcqPrior
 	line03 = (FilingStatus.value == "MFS") ? 500000 : 1000000;
 	line04 = Math.max(line01, line03);
@@ -1167,24 +1230,24 @@ function Fill_Results(totalBal, totalAcq, totalGrf, totalEqu, totalQualInt, tota
 	line09 = Math.max(line06, line08);
 	line10 = line06 + line07;
 	line11 = Math.min(line09, line10);
-	LoanLimit.innerHTML = Math.round(line11);
 	// Pub 936 Table 1 Part 2
 	line12 = line01 + line02 + line07;
-	line13 = +Res_Element[0].Int.innerHTML;
-	line14 = line11 / ( (line12) ? line12 : 1 );
+	line13 = +Res_Elements[0].Int.innerHTML;
+	line14 = (line12 > line11) ? ( line11 / line12 ) : 1 ;
+	LoanLimit.innerHTML = (Math.round(1000 * line14) / 10) + "%";
 	line15 = line14 * line13;
-	Deductible.innerHTML = Math.round(line15 + +Res_Element[0].Pts.innerHTML);
-	DeductibleMIP.innerHTML = Res_Element[0].MIP.innerHTML;
+	Deductible.innerHTML = Math.round(line15 + (+Res_Elements[0].Pts.innerHTML * line14));
+	DeductibleMIP.innerHTML = Res_Elements[0].MIP.innerHTML;
 }
 
 //----------------------------------------------------------------------------------------
 function OK_To_Calc(first_month) {
 //----------------------------------------------------------------------------------------
-	var previous_balance = +Mort_Element[+first_month].Bal.value;
+	var previous_balance = +Mort_Elements[+first_month].Bal.value;
 	var mortgage_balance = +MortgageBalance.value;
 	for (mo = +first_month + 1 ; mo <= 12 ; mo++) {
-		var current_balance = +Mort_Element[mo].Bal.value;
-		Mort_Element[mo].Bal.style.backgroundColor = 
+		var current_balance = +Mort_Elements[mo].Bal.value;
+		Mort_Elements[mo].Bal.style.backgroundColor = 
 			((current_balance > previous_balance) || (current_balance < mortgage_balance)) ? "hotpink" : "" ;
 		if (previous_balance && (current_balance < mortgage_balance)) return false;
 		previous_balance = current_balance;
@@ -1201,7 +1264,7 @@ function Print_Pages() {
 		printTab[m] = (Tab[m].innerHTML != BlankTab) && (Tab[m].innerHTML != IdleTab);
 		if (printTab[m]) numTabs++;
 	}
-	alert (numTabs + " pages will be presented for printing, one at a time.");
+	alert (numTabs + " pages for this tab will be presented for printing, one at a time.");
 	TabDiv.style.display = "none";
 	MortgageDiv.style.display = "none";
 	window.print();
@@ -1262,7 +1325,7 @@ function Print_Pages() {
 <div id="InstructionDiv">
 	<span class="tblHeader">Instructions:</span>
 	<br />Complete a worksheet tab for all home-secured mortgages
-	to determine the amount of interest paid is deductible on Schedule A.
+	to determine the amount of interest paid that is deductible on Schedule A.
 	<br />Only include mortgages that are:
 	<ul>
 		<li>fully secured by your main home or a second home.</li>
@@ -1278,7 +1341,7 @@ function Print_Pages() {
 			and have not been refinanced since that date
 			and the average total monthly balance for the year is less than or equal to $1,000,000;
 			all interest is deductible</li>
-		<li>any mortgage has been refinanced more than once. It is beyond the scope of this worksheet.</li>
+		<li>any mortgage that has been refinanced more than once. It is beyond the scope of this worksheet.</li>
 	</ul>
 	But DO use this worksheet if either:
 	<ul>
@@ -1286,7 +1349,7 @@ function Print_Pages() {
 		<li>Average monthly balance of all home acquisition debt incured on or after 12/16/2017 is greater than $750,000 (or $375,000 MFS).</li>
 	</ul>
 	<br /><b>Acquisition debt</b> - <i>the amount taken to buy, build, or substantially improve
-	a qualified home (your main or second ome) and secured by that home.</i>
+	a qualified home (your main or second home) and secured by that home.</i>
 	This can include a home that was purchased 90 days before or after the loan date
 	and any cost to build or substantially improve the home within 24 months before
 	the date of the mortgage.
@@ -1338,6 +1401,19 @@ function Print_Pages() {
 					<tr>	<td>Date of earlier mortgage:</td>
 						<td>&nbsp;&nbsp;<input id="Orig_Date" type="date" class="wkti"
 							onblur="Input_Change(event);" ></td></tr>
+					<tr id="Orig_grfRow" hidden>
+						<td>&nbsp;&nbsp;&nbsp;Check if grandfathered
+							<span id="grfInfo" class="help"
+							onmouseover="grfInfoText.style.display='block';"
+							onmouseout="grfInfoText.style.display='none';">&nbsp;?&nbsp;
+						</span>
+						<span id="grfInfoText" class="helpText"
+							onmouseover="grfInfoText.style.display='block';"
+							onmouseout="grfInfoText.style.display='none';">
+							Check the box if this mortgage was used to refinance another
+							that was taken prior to 10/14/1987.
+						</span></td>
+						<td>	<input id="Orig_Grf" type="checkbox" class="wkti" /></td></tr>
 					<tr>	<td>Term length of earlier mortgage:</td>
 						<td>&nbsp;&nbsp;<input id="Orig_Term" type="number" class="wkti" /> years</td></tr>
 					<tr id="Orig_Initial">
@@ -1391,8 +1467,8 @@ function Print_Pages() {
 				<span id="Fully_Deductible_Message2"><b>(Fully deductible unless debt limit is exceed)</b></span></td></tr>
 		<tr>	<td>Mort insurance premiums:</td>
 			<td>$<input id="MIPPaid" type="number" class="wkti" />
-				<span id="Fully_Deductible_Message3"><b>(Fully deductible unless debt limit is exceed)</b></span>
-				(Deduction may be limited by AGI)</td></tr>
+				<span id="Fully_Deductible_Message3">(Deduction may be limited by AGI)</span>
+				</td></tr>
 		<tr>	<td>Balance as of <span id="BalanceTY"></span>:</td>
 			<td>$<input id="MortgageBalance" type="number" class="wkti" /></td></tr>
 	</table>
@@ -1438,13 +1514,13 @@ function Print_Pages() {
 			<tr>	<th></th>
 				<th></th>
 				<th>Mortgage balance</th>
-				<th>Interest<br />APR: <span id="rate"></span>%</th>
+				<th>Interest<br />APY<sup>&dagger;</sup>: <span id="rate"></span>%</th>
 				<th>Acquisition debt</th>
 				<th>Grandfathered debt</th>
 				<th>Home&nbsp;equity debt</th>
 				<th>Qualified interest</th></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date0" class="wktx">TBD</td>
+				<td id="Date0" class="wktd">TBD</td>
 				<td><input id="Balance0" class="wkti" /></td>
 				<td id="Int0"></td>
 				<td id="Acq0" class="wkto">0</td>
@@ -1452,7 +1528,7 @@ function Print_Pages() {
 				<td id="Equity0" class="wkto">0</td>
 				<td id="Qual0" class="wkto"></td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date1" class="wktx">TBD</td>
+				<td id="Date1" class="wktd">TBD</td>
 				<td><input id="Balance1" class="wkti" /></td>
 				<td id="Int1" class="wkto">0</td>
 				<td id="Acq1" class="wkto">0</td>
@@ -1460,7 +1536,7 @@ function Print_Pages() {
 				<td id="Equity1" class="wkto">0</td>
 				<td id="Qual1" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date2" class="wktx">TBD</td>
+				<td id="Date2" class="wktd">TBD</td>
 				<td><input id="Balance2" class="wkti" /></td>
 				<td id="Int2" class="wkto">0</td>
 				<td id="Acq2" class="wkto">0</td>
@@ -1468,7 +1544,7 @@ function Print_Pages() {
 				<td id="Equity2" class="wkto">0</td>
 				<td id="Qual2" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date3" class="wktx">TBD</td>
+				<td id="Date3" class="wktd">TBD</td>
 				<td><input id="Balance3" class="wkti" /></td>
 				<td id="Int3" class="wkto">0</td>
 				<td id="Acq3" class="wkto">0</td>
@@ -1476,7 +1552,7 @@ function Print_Pages() {
 				<td id="Equity3" class="wkto">0</td>
 				<td id="Qual3" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date4" class="wktx">TBD</td>
+				<td id="Date4" class="wktd">TBD</td>
 				<td><input id="Balance4" class="wkti" /></td>
 				<td id="Int4" class="wkto">0</td>
 				<td id="Acq4" class="wkto">0</td>
@@ -1484,7 +1560,7 @@ function Print_Pages() {
 				<td id="Equity4" class="wkto">0</td>
 				<td id="Qual4" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date5" class="wktx">TBD</td>
+				<td id="Date5" class="wktd">TBD</td>
 				<td><input id="Balance5" class="wkti" /></td>
 				<td id="Int5" class="wkto">0</td>
 				<td id="Acq5" class="wkto">0</td>
@@ -1492,7 +1568,7 @@ function Print_Pages() {
 				<td id="Equity5" class="wkto">0</td>
 				<td id="Qual5" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date6" class="wktx">TBD</td>
+				<td id="Date6" class="wktd">TBD</td>
 				<td><input id="Balance6" class="wkti" /></td>
 				<td id="Int6" class="wkto">0</td>
 				<td id="Acq6" class="wkto">0</td>
@@ -1500,7 +1576,7 @@ function Print_Pages() {
 				<td id="Equity6" class="wkto">0</td>
 				<td id="Qual6" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date7" class="wktx">TBD</td>
+				<td id="Date7" class="wktd">TBD</td>
 				<td><input id="Balance7" class="wkti" /></td>
 				<td id="Int7" class="wkto">0</td>
 				<td id="Acq7" class="wkto">0</td>
@@ -1508,7 +1584,7 @@ function Print_Pages() {
 				<td id="Equity7" class="wkto">0</td>
 				<td id="Qual7" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date8" class="wktx">TBD</td>
+				<td id="Date8" class="wktd">TBD</td>
 				<td><input id="Balance8" class="wkti" /></td>
 				<td id="Int8" class="wkto">0</td>
 				<td id="Acq8" class="wkto">0</td>
@@ -1516,7 +1592,7 @@ function Print_Pages() {
 				<td id="Equity8" class="wkto">0</td>
 				<td id="Qual8" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date9" class="wktx">TBD</td>
+				<td id="Date9" class="wktd">TBD</td>
 				<td><input id="Balance9" class="wkti" /></td>
 				<td id="Int9" class="wkto">0</td>
 				<td id="Acq9" class="wkto">0</td>
@@ -1524,7 +1600,7 @@ function Print_Pages() {
 				<td id="Equity9" class="wkto">0</td>
 				<td id="Qual9" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date10" class="wktx">TBD</td>
+				<td id="Date10" class="wktd">TBD</td>
 				<td><input id="Balance10" class="wkti" /></td>
 				<td id="Int10" class="wkto">0</td>
 				<td id="Acq10" class="wkto">0</td>
@@ -1532,7 +1608,7 @@ function Print_Pages() {
 				<td id="Equity10" class="wkto">0</td>
 				<td id="Qual10" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date11" class="wktx">TBD</td>
+				<td id="Date11" class="wktd">TBD</td>
 				<td><input id="Balance11" class="wkti" /></td>
 				<td id="Int11" class="wkto">0</td>
 				<td id="Acq11" class="wkto">0</td>
@@ -1540,7 +1616,7 @@ function Print_Pages() {
 				<td id="Equity11" class="wkto">0</td>
 				<td id="Qual11" class="wkto">0</td></tr>
 			<tr>	<td>Mortgage balance on</td>
-				<td id="Date12" class="wktx">TBD</td>
+				<td id="Date12" class="wktd">TBD</td>
 				<td><input id="Balance12" class="wkti" disabled="disabled" 
 					title='Change the "Remaining balance" above to change this.' /></td>
 				<td id="Int12" class="wkto">0</td>
@@ -1549,6 +1625,11 @@ function Print_Pages() {
 				<td id="Equity12" class="wkto">0</td>
 				<td id="Qual12" class="wkto">0</td></tr>
 		</table>
+		<p class="footnote"><sup>&dagger;</sup>
+			APY is the annual compounded interest rate to obtain the interest amount
+			for the monthly balances. It will be less than quoted by the lender
+			because additional fees and points are not included.
+		</p>
 	</div> <!-- MortWorksheet -->
 
 </div> <!-- MortgageDiv -->
@@ -1561,7 +1642,7 @@ function Print_Pages() {
 				<th colspan="4" style="border-bottom: 1px solid black;">Monthly average balances</th>
 				<th colspan="3"></th></tr>
 			<tr>	<th>Mortgage lender</th>
-				<th>Pre 12/16/17</th>
+				<th>Pre 12/16/2017</th>
 				<th class="right">Mortgage balance</th>
 				<th class="right">Acquisition debt</th>
 				<th class="right">Grandfathered debt</th>
@@ -1571,7 +1652,7 @@ function Print_Pages() {
 				<th>Qualified insurance</th></tr>
 			<tr id="m1">
 				<td id="Lender1"></td>
-				<td id="Pre20171"></td>
+				<td id="Pre20171" class="wkto"></td>
 				<td id="BalAvg1"></td>
 				<td id="AcqAvg1"></td>
 				<td id="GrfAvg1"></td>
@@ -1581,7 +1662,7 @@ function Print_Pages() {
 				<td id="QualMIP1"></td></tr>
 			<tr id="m2">
 				<td id="Lender2"></td>
-				<td id="Pre20172"></td>
+				<td id="Pre20172" class="wkto"></td>
 				<td id="BalAvg2"></td>
 				<td id="AcqAvg2"></td>
 				<td id="GrfAvg2"></td>
@@ -1591,7 +1672,7 @@ function Print_Pages() {
 				<td id="QualMIP2"></td></tr>
 			<tr id="m3">
 				<td id="Lender3"></td>
-				<td id="Pre20173"></td>
+				<td id="Pre20173" class="wkto"></td>
 				<td id="BalAvg3"></td>
 				<td id="AcqAvg3"></td>
 				<td id="GrfAvg3"></td>
@@ -1601,7 +1682,7 @@ function Print_Pages() {
 				<td id="QualMIP3"></td></tr>
 			<tr id="m4">
 				<td id="Lender4"></td>
-				<td id="Pre20174"></td>
+				<td id="Pre20174" class="wkto"></td>
 				<td id="BalAvg4"></td>
 				<td id="AcqAvg4"></td>
 				<td id="GrfAvg4"></td>
@@ -1628,7 +1709,8 @@ function Print_Pages() {
 				<td id="LoanLimit"></td></tr>
 			<tr>	<td>Deductible Home Mortgage Interest and points:</td>
 				<td id="Deductible"></td></tr>
-			<tr>	<td>Deductible Home Mortgage Insurance:</td>
+			<tr id="HMIRow">
+				<td>Deductible Home Mortgage Insurance:</td>
 				<td id="DeductibleMIP"></td></tr>
 		</table>
 	</div>
@@ -1640,3 +1722,4 @@ function Print_Pages() {
 </div>
 
 </body>
+
