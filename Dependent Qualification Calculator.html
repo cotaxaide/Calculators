@@ -13,12 +13,13 @@
 	.BeneBox1 {font-size:100%; font-weight:bold; text-decoration:underline;}
 	.BigTable {width:100%; border:2px solid black; margin:0; padding:0;}
 	.BigTableTitle {font-size:150%; text-align:center; margin:0;}
+	.Label {width:50%;}
 	.yearInput select { font-size: 120% }
 	.NameTable {width:100%; font-size:115%; border: 2px solid black; margin:0; padding:0;}
 	.yearInput {width: 1%;}
 	.nameTitle {width: 5%;}
-	.nameInput {width: 45%;}
-	.nameInput input{width: 99%; font-size: 110%;}
+	.nameInput {width: 40%;}
+	.nameInput input{width: 97%; font-size: 110%;}
 	.TPHeader {background-color:#00BBBB; font-weight:bold; vertical-align:middle; text-align:center; border:1px solid;}
 	.TPOptions {background-color:#00FFFF; vertical-align:top; border:1px solid; padding:0; margin:0;}
 	.QCAHeader {background-color:#11CCBB; vertical-align:top; border:1px solid; padding:0; margin:0;}
@@ -46,11 +47,7 @@
 	}
 </style>
  
-<script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script src="Tax_Data/IRS_2023.js"></script>
+<script src="Common_Routines.js"></script>
 <script>
 //***************************************************************************************************
 //Contributors:
@@ -66,199 +63,16 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "7.12 8/19/2023";
-//	Fixed error where if given to another TP, the parent still shows eligibility
-//var VERSION = "7.11 3/31/2023";
-//	Fixed Decendent as nice/nephew qualifies for HOH if a child dependent
-//	Minor text and formatting changes
-//var VERSION = "7.10 12/16/2022";
-//	TP is Qual Relative not clearing after reset
-//var VERSION = "7.09 10/4/2022";
-//	Changed widow(er) to QSS throughout
-//var VERSION = "7.08 4/10/2022";
-//	Fixed EITC filing MFS not allowed for grandchild
-//var VERSION = "7.07a 1/6/2022";
-//	Fixed EITC comment re TP may still qualify if dependent does not
-//var VERSION = "7.07 12/22/2021";
-//	EITC indicated as YES for older daughter, not a qualified child or relative
-//var VERSION = "7.06 12/10/2021";
-//	Added scheme to save 11-50% options for relative support so they can be restored
-//	Made TP support for relative section inactive if qualified as child
-//	Moved Care info message which changed for 2021 to refundable (causing undefined (?) messages)
-//var VERSION = "7.05 11/29/2021";
-//	Clear birth year when closing age calc window if > current tax year
-//var VERSION = "7.04a 11/19/2021";
-//	Remove non-refundable comment from Child Care pop-up for 2021
-//var VERSION = "7.04 11/3/2021";
-//	Correction to EITC with divorce/separation
-//var VERSION = "7.03 10/18/2021";
-//	Added new EITC condition for child when divorced and not filing jointly
-//var VERSION = "7.02 10/7/2021";
-//	Split age 17 and 18 due to 2021 change in CTC age maximum
-//var VERSION = "7.01 9/26/2021";
-//	Broke support into two sections
-//var VERSION = "6.26 9/18/2021";
-//	Modified QCA to allow both TP is parent and No parent will claim boxes to be checked
-//var VERSION = "6.25a 7/9/2021";
-//	Added 2021 tax data
-//var VERSION = "6.25 2/3/2021";
-//	Fixed error where HOH not allowed for TP giving dependent to ex SP
-//var VERSION = "6.24 2/27/2020";
-//	Fixed error giving HOH to descendant of niece or nephew
-//var VERSION = "6.23 2/22/2020";
-//	Fixed error when income test could not be checked once unchecked
-//var VERSION = "6.22 2/16/2020";
-//	Added an HOH option to the married status section if not MFJ
-//	Disabled income test for dependent as a child
-//var VERSION = "6.21b 1/22/2020";
-//	Change COD message for citizenship test to residency test
-//	Added actual year numbers to residency test window
-//	Changed dependent income comment from title to pop-up box
-//var VERSION = "6.21a 12/10/2019";
-//	Minor text changes for HOH and Wid results to Qual Person
-//var VERSION = "6.21 12/9/2019";
-//	Age over 24 did not set "Other" and close window
-//	Added year to age 0 text
-//var VERSION = "6.20 11/11/2019";
-//	Added a DOB to calculate age option
-//	Changed default dependent ITIN checkbox to checked
-//var VERSION = "6.19 8/7/2019";
-//	Added FT to student aged 19-23
-//	Changed cursor to pointer on input and select boxes
-//var VERSION = "6.18 11/12/2018";
-//	Added tax years drop-down
-//	Added code to hide dependent benefits not available
-//	Changed list of low-income test to single entry for the selected year
-//	Expanded low-income for dependent as relative test comments
-//	Swapped Can/Mex and Resident Alien options and added citizenship info box
-//var VERSION = "6.17 11/11/2018";
-//	Remove TP/SP ITIN test from OTC qualification test
-//var VERSION = "6.16 11/9/2018";
-//	Allow CAN/MEX to have ITIN
-//	Remove ITIN test from CTC qualification test - left from earlier 6.12 change
-//var VERSION = "6.15 11/9/2018";
-//	Removed erroneous residency test from Credit for other dependents
-//var VERSION = "6.14 11/9/2018";
-//	Re-structured Credit for other dependents test
-//	Added AOC as a seperate result
-//var VERSION = "6.13 11/8/2018";
-//	Dependent ITIN box doesn't clear if dependent changed to US or CAN/MEX status
-//var VERSION = "6.12 11/6/2018";
-//	Added ITIN tests for TP, SP and dependent
-//var VERSION = "6.11 10/23/2018";
-//	Added space for names
-//var VERSION = "6.10 10/11/2018";
-//	Allow parent to designate another TP to claim child as a dependent
-//	Added YES message for Credit for other dependents
-//	Corrected wording in CTC to eliminate nonrefundable comment due to tax form changes
-//var VERSION = "6.09 10/11/2018";
-//	Changed "Family Tax Credit" to "Credit for other dependents"
-//var VERSION = "6.08 8/8/2018";
-//	Changed "Exemption as a child/relative" to "Dependent..." since exemption no longer applies
-//	Changed "Child Tax Credit" to "Family Tax Credit" if CTC doesn't apply
-//var VERSION = "6.07 6/8/2018";
-//	Changed income limits as a dependent to new entry in TaxData files due to 2018 tax law changes
-//var VERSION = "6.06 1/17/2018";
-//	Added a help box to list marriage definition
-//var VERSION = "6.05 1/6/2018";
-//	Previous "fix" caused QR to be shown as QC.
-//var VERSION = "6.04 1/6/2018";
-//	Fixed problem where EITC denied due to TP a qualified relative
-//var VERSION = "6.03 1/5/2018";
-//	Fixed Qualified Child of Another not responding to cousin
-//var VERSION = "6.02 11/27/2017";
-//	Changed results messaging to reflect new rules for widow(er) filing
-//var VERSION = "6.01 11/11/2017";
-//	Modifications for new rules for widow(er) filing
-//	Changes to the Qualified Child of Another
-//var VERSION = "5.07 9/21/2017";
-//	Updated year option for income to use tax data files
-//var VERSION = "5.06 2/18/2017";
-//	Deactivated 0-10% and 11-50% support options for a qualified child
-//	Added multiple support test for 11-50% option (did not reset properly)
-//var VERSION = "5.05 2/17/2017";
-//	Spelling correction of folowing (twice)
-//	EIC message if single shown yellow "If spouse SSN is valid", but no spouse.
-//	Added emancipated option
-//var VERSION = "5.04 6/7/2016";
-//	Added 2016, deleted 2012 income figures
-//var VERSION = "5.03 2/1/2016";
-//	 Added disable interlock between >50% dependent support and <50% TP support
-//var VERSION = "5.02 1/15/2016";
-//	 Corrected an error that resulted in a >24 age child not qualify for HOH, etc when parents file MFS.
-//var VERSION = "5.01 12/29/2015";
-//	 Added a test to disable "Dependent claims own exemption" if child or relative
-//	 Commented out the "Dependent claims own exemption" option
-//var VERSION = "4h.04 12/8/2015";
-//	 Added yellow to YES for EITC if TP or SP is not a US CiItizen
-//var VERSION = "4h.03 5/15/2015";
-//	 Added 2015 relative income limit
-//var VERSION = "4h.02 12/30/2014";
-//	 Reinstated the Tuition and Fees option for 2014.
-//var VERSION = "4h.01 12/2/2014";
-//	 Fixed a Qual Child of another TP problem caused by previous "fix".
-//var VERSION = "4h.00 12/1/2014";
-//	 Fixed EITC denial for Qualified Relative
-//	 Split TP is Dependent check box into 2 boxes: Qual Child and Qual Relative
-//var VERSION = "4g.00 11/9/2014";
-//	 Fixed HOH but related to qualified relative
-//	 Fixed odd behavior in divorced combinations
-//var VERSION = "4f.00 10/11/2014";
-//	 Fixed EITC bug introduced by prior QCA fix.
-//var VERSION = "4e.00 10/8/2014";
-//	 Added results cautions to HOH, CC & EITC related to divorce where both parents could qualify
-//	 Changed QCA lines 1-3 to emulate radio buttons for non-divorce case
-//	 Fixed errors in QCA options
-//var VERSION = "4d.00 9/25/2014";
-//	 Changed Child as exemption to Exemption as Child; also Relative
-//	 Fixed error that resulted in an in-law qualifying for child as exemption
-//	 Fixed errors that allowed HOH for Other TP parent and In-law
-//var VERSION = "4c.00 8/21/2014";
-//	 Moved Dependent supported self to main window
-//	 Blocked multiple support for relative window from opening if Child as exemption is YES
-//	 Changed Another TP will claim to Qual dependent of another
-//	 Blocked QCA section unless child and Qual dependent of another TP is checked
-//	 Disabled QCA options if a parent is filing plus other cosmetic changes & clarifications
-//	 Added incapable of self-care option under disabled for Child/Dependent Care test
-//	 Fixed error that denied HOH to a TP who is a dependent
-//	 Fixed error that prevented HOH to single dependents who could not be exemptions
-//	 Fixed error that allowed an unrelated child to be child as exemption (vs relative)
-//	 Moved help message from in-line html to javascript
-//var VERSION = "4b.01 8/11/2014";
-//	 Changed benefits alert box to an html hidden box (won't create the Firefox/Opera problem)
-//	 Change "&" to "and" in "Tuition & Fees"
-//	 Added hint to reset between tests
-//	 Added version number to header
-//var VERSION = "4b, 8/10/2014";
-//	 Added a comment to results pop-up to not click suppress pop-ups (from Firefox & Opera, others?)
-//	 Minor color changes to QCA section
-//	 Moved spouse of TP to relationship column
-//	 Greyed inactive input labels to make them more obvious that they were inactive
-//	 Added a comment to Tuition & Fees - expired beginning with tax year 2014
-//	 Bug fix related to non-custodial parent and medical benefit
-//	 Bug fix related to EITC and dependent supporting self more than half
-//var VERSION = "4a, 8/2/2014";
-//	 Modified code so Firefox, Opera and Safari browsers work
-//	 Added 2014, dropped 2010 dependent income amounts
-//	 Added YES comments (conditions that prevent TP from claiming a benefit)
-//	 Removed relationship codes that weren't actually relationships
-//	 Removed the Education Expenses check box
-//	 Added "only for refund" to TP MFJ option
-//	 Added intialize function so page doesn't have to be reloaded to reset defaults
-//	 Added TP & SP citizenship status select boxes
-//	 Cleaned up a lot of CSS issues, colored headings and some restructuring
-//	 Added testing capability
-//var VERSION = "4, 1/18/2014";
-//	 Removed test for browser due to IE11 identifying itself as "Netscape"
+var VERSION = "8.0 5/2/2024";
+//	Modified to use JSON data files
+
 //***************************************************************************************************
 //										  Known problems
 //	 Would be nice to have Res/MSR/Help boxes floating (new windows?)
 //	 Floating results boxes (new window) would eliminate the pop-up suppression from Firefox/Opera
 //	 clicking N/A on TP_Citizenship doesn't make DEP_Citizenship change
 //***************************************************************************************************
-//										  Enhancement list
-//	 Add tax year option
-//***************************************************************************************************
+
 
 //***************************************************************************************************
 //										  Global declarations
@@ -455,24 +269,22 @@ AlienMsg += "<br />A person who is not a US Citizen or US National";
 AlienMsg += " nor a resident of Canada or Mexico";
 AlienMsg += " and does not meet the substantial presence test for residency in the US.";
 
+var TY;
+
 //***************************************************************************************************
-function Initialize() {
+function Main() {
 // Sets up initial defaults when the window is loaded and when the Reset button is clicked
 //***************************************************************************************************
-
-	// Add the years
 	if (TaxYear.value == "") {
+		// Add the years
 		var tyOptIndex = 0;
-		for (var ty = _StartYear; ty <= _StopYear; ty++) {
-			if (_LineNo[ty + ":CapGains"] != "") { // Prevent adding if no data
-				var tyopti = document.createElement("option");
-				tyopti.text = tyopti.value = ty;
-				TaxYear.add(tyopti,tyOptIndex++);
-			}
+		for (var tyi = _StartYear; tyi <= _StopYear; tyi++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = tyi;
+			TaxYear.add(tyopti,tyOptIndex++);
 		}
-		TaxYear.value = _DefaultYear;
+		TY = TaxYear.value = +_DefaultYear;
 	}
-
 
 	TPName.value = DEPName.value = "";
 	TPCitizenship.value = "USA";
@@ -522,14 +334,16 @@ function Initialize() {
 	IncomeBoxContents.innerHTML = IncomeMsg;
 	AlienBoxContents.innerHTML = AlienMsg;
 	DEP_SaveSupport = 51;
-	}
+
+	CalcStatus();
+}
 
 //***************************************************************************************************
 function Resize() {
 // Adjust fonts for screen width whenever the window size is changed
 // Input check boxes & radio buttons won't adjust so small font sizes look awkward (sigh)
 //***************************************************************************************************
-	var BaseFont = 19;
+	var BaseFont = 18;
 	var BasePix = 1920;
 	var WinWidth = document.body.clientWidth;
 
@@ -549,7 +363,7 @@ function Calculate_Age () {
 		alert("Please enter a 4-digit year.");
 		return;
 	}
-	var age = +TaxYear.value - +BirthYear.value;
+	var age = +TY - +BirthYear.value;
 	if (age < 0 ) {
 		alert("Birth year cannot be later than the tax year.");
 		BirthYear.value = "";
@@ -645,19 +459,20 @@ function CalcStatus(from_age_calc) {
 	// Set default values before examining checked options
 
 	// Update residency year value line labels
-	ResYear0Year.innerHTML = TaxYear.value;
-	ResYear1Year.innerHTML = +TaxYear.value - 1;
-	ResYear2Year.innerHTML = +TaxYear.value - 2;
-	BQSS.innerHTML = (+TaxYear.value < 2022) ?
+	TY = +TaxYear.value;
+	ResYear0Year.innerHTML = TY;
+	ResYear1Year.innerHTML = TY - 1;
+	ResYear2Year.innerHTML = TY - 2;
+	BQSS.innerHTML = (TY < 2022) ?
 		"Widow(er) filing status" : "QSS filing status";	
 
 	// Redetermine dependent age if a birthdate was entered
-	Age0.innerHTML = "Born in " + TaxYear.value;
+	Age0.innerHTML = "Born in " + TY;
 	if (! from_age_calc) Calculate_Age();
 
-	// list the standard deduction amounts for the selected year
-	var iamount = _Standard[TaxYear.value].split(",")[_Standard["DepAsRel"]].replace(/(.)(?=(\d{3})+$)/g,'$1,');
-	ilimit = "$ " + iamount + " (" + TaxYear.value + ")\n";
+	// Show the maximum income amount to be a dependent relative
+	var iamount = _IRSValue("DepAsRel") ?? "?" ; //.replace(/(.)(?=(\d{3})+$)/g,'$1,');
+	ilimit = "$ " + iamount + " (" + TY + ")\n";
 	if (DependentMarriedYes.checked && (! DepFilingMFJ.checked)) {
 		imessage = "including Social Security if filing MFS and lived with spouse any time during the year.";
 	}
@@ -669,8 +484,7 @@ function CalcStatus(from_age_calc) {
 	incomeLimit.innerHTML = ilimit + "<br />" + imessage;
 
 	// Hide benefits not available
-	TNFRow.style.display = (_LineNo[TaxYear.value + ":TNF"]) ? "table-row" : "none";
-	CODRow.style.display = (_LineNo[TaxYear.value + ":COD"]) ? "table-row" : "none";
+	CODRow.style.display = (_IRSValue("LineNo.COD")) ? "table-row" : "none";
 
 	DEP_ChildQualified = true;
 	DEP_ChildQualForCare = true;
@@ -1060,7 +874,7 @@ function CalcStatus(from_age_calc) {
 	CTC.title = "";
 
 		if (BENE_Relation.indexOf("|CTC|") == NOT_A_BENEFIT) SetMessage(CTC,"- Failed relationship test");
-		maxCTCAge = (+TaxYear.value == 2021) ? 17 : 16 ;
+		maxCTCAge = (+TY == 2021) ? 17 : 16 ;
 		if (DEP_RealAge > maxCTCAge) SetMessage(CTC,"- Failed age test");
 		if ((! TP_DivorceApplies) && (DEP_Residency < 7)) SetMessage(CTC,"- Failed residency test");
 		if (((DEP_Citizenship == "CAN_MEX") || (DEP_Citizenship == "NONRES_ALIEN")) && (DEP_Relation != "ADOPTING"))
@@ -1640,7 +1454,7 @@ function ColorCells() {
 	if (HOH.value == "YES") {
 		if (Widow.value != NO) {
 			BenefitColor.HOH = ColorWarn;
-			HOH.title += ( (+TaxYear.value < 2022) ?
+			HOH.title += ( (+TY < 2022) ?
 			"- Although qualified for HOH, \nWidow(er) filing is a better choice \nif still within the 2 year limit\n" :
 			"- Although qualified for HOH, \nQSS filing is a better choice \nif still within the 2 year limit\n" );
 		}
@@ -1656,17 +1470,17 @@ function ColorCells() {
 	BenefitColor.Widow = (Widow.value == NO)? ColorNo:ColorWarn;
 	if (Widow.value != "NO") ShowCaution = true;
 	if (Widow.value == "YES") {
-		Widow.title += ( (+TaxYear.value < 2022) ?
+		Widow.title += ( (+TY < 2022) ?
 			"- May only file as a Widow(er) \nfor 2 years following spouse's death \nif eligible to file MFJ on year of death\n" : 
 			"- May only file as a Qualified Surviving Spouse \nfor 2 years following spouse's death \nif eligible to file MFJ on year of death\n" );
 		if (QualChild.value != "NO" || QualRelative.value != "NO") {
-			//BQSS.innerHTML = (+TaxYear.value < 2022) ?
+			//BQSS.innerHTML = (+TY < 2022) ?
 			//	"Widow(er) filing status" : "QSS filing status";	
 		}
 		else {
-			//BQSS.innerHTML = (+TaxYear.value < 2022) ?
+			//BQSS.innerHTML = (+TY < 2022) ?
 			//	"Widow(er) filing status" : "QSS filing status";
-			Widow.title += ((+TaxYear.value < 2022) ?
+			Widow.title += ((+TY < 2022) ?
 				"- Although not eligible for an exemption, \nthis person does qualify the taxpayer \nto file as Widow(er)\n" :
 				"- Although not eligible for an exemption, \nthis person does qualify the taxpayer \nto file as a Qualified Surviving Spouse\n" );
 		}
@@ -1705,12 +1519,7 @@ function ColorCells() {
 	if (Medical.value == "YES") {
 		if (TP_DivorceApplies) {
 			BenefitColor.Medical = ColorWarn;
-			if (OtherTPisParent.checked) {
-				Medical.title += "- Benefit may depend on the parent's divorce terms"
-			}
-			else {
-				Medical.title += "- If the other TP doesn't claim"
-			}
+			Medical.title += "- Benefit may depend on the parent's divorce terms"
 		}
 	}		 
 	Medical.style.backgroundColor = BenefitColor.Medical;
@@ -1786,7 +1595,7 @@ function ColorCells() {
 	}
 	EdAdjustment.style.backgroundColor = BenefitColor.EdAdjustment;
 
-	// Qualified dependent for Education Credit ----------------------------------
+	// Qualified dependent for Lifetime Learning Credit ----------------------------------
 	EdCredit.innerHTML = EdCredit.value;
 	BenefitColor.EdCredit = (EdCredit.value == NO)? ColorNo:ColorYes;
 	if (EdCredit.value != "NO") ShowCaution = true;
@@ -1874,7 +1683,7 @@ function ShowReason(BenefitID,BenefitName,BenefitText) {
 	if (YesMsg[BenefitID] > "") {
 		BenefitMessage += "<span class='BeneBox1'>" + Other + " reasons why this benefit might be disallowed:</span>"
 		BenefitMessage += "<ul>" + YesMsg[BenefitID];
-		if ((+TaxYear.value != 2021) && (BenefitID == "DependCare")) {
+		if ((+TY != 2021) && (BenefitID == "DependCare")) {
 		       BenefitMessage += "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
 		}
 		BenefitMessage += "</ul>";
@@ -1998,7 +1807,7 @@ function TestResults() {
 <!-- ==================================== HTML Code Begins Here ==================================== -->
 <!-- =============================================================================================== -->
 
-<body onresize="Resize()" onload="Initialize()">
+<body onresize="Resize();">
 <div id="zzz" style="font-family:sans-serif">
 
   <table class="BigTableTitle"><tr>
@@ -2341,13 +2150,10 @@ function TestResults() {
 				<td id="BEIC">Earned Income Tax Credit</td>
 				<td id="EITC" style="text-align:center;" onclick="ShowReason(this.id,BEIC.innerHTML,this.title)">YES</td>
 				</tr>
-			<tr id="TNFRow">
-				<td id="BTNF">Tuition and Fees Adjustment</td>
-				<td id="EdAdjustment" style="text-align:center;" onclick="ShowReason(this.id,BTNF.innerHTML,this.title)">YES</td>
-				</tr>
 			<tr>
 				<td id="BLLC">Lifetime Learning Credit</td>
 				<td id="EdCredit" style="text-align:center;" onclick="ShowReason('EdCredit',BLLC.innerHTML,this.title)">YES</td>
+				<td id="EdAdjustment" hidden></td>
 				</tr>
 			<tr>
 				<td id="BAOC">American Opportunity Credit</td>
@@ -2360,7 +2166,7 @@ function TestResults() {
 				<br />
 				<br />
 				<button style="font-size:100%; background-color:white;" onclick="ShowHelpBox(true)">&nbsp;HELP&nbsp;</button>
-				<button style="font-size:100%; background-color:white;" onclick="Initialize()">RESET</button>
+				<button style="font-size:100%; background-color:white;" onclick="Main()">RESET</button>
 				<br />
 				Hint: RESET between tests
 			</p>
@@ -2540,10 +2346,9 @@ function TestResults() {
 
   <div id="debugbox"></div>
 
-  <script type="text/javascript">Resize()</script>
-
 </div> <!-- end of zzz -->
+
+<script> Resize(); _GetIRSData(_StartYear, _StopYear); </script>
 
 </body>
 </html>
-
