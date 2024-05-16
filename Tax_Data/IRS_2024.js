@@ -250,13 +250,13 @@
 		_HSA[_TY+":FAM"] = 8300;
 
 	// Retirement Savings Contribution (Form 8880)
-		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";	// Needs update
-		_RETIRE[_TY+":MFJ"] = "41000,	44000,	68000";	// Needs update	
-		_RETIRE[_TY+":HOH"] = "30750,	33000,	51000";	// Needs update
+		_RETIRE[_TY+":Rate"]= "	 0.5,	  0.2,	  0.1,	0";
+		_RETIRE[_TY+":MFJ"] = "43500,	47500,	76500";
+		_RETIRE[_TY+":HOH"] = "32625,	35625,	57375";
 		_RETIRE[_TY+":SNG"] = 
 		_RETIRE[_TY+":QSS"] = 
 		_RETIRE[_TY+":WID"] = 
-		_RETIRE[_TY+":MFS"] = "20500,	22000,	34000";	// Needs update
+		_RETIRE[_TY+":MFS"] = "21750,	23750,	38250";
 
 	// IRA Adjustment limits
 		_IRALimits[_TY+":AGE"] = 50;	// Needs update

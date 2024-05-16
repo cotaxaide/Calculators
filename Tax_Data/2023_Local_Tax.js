@@ -12,13 +12,13 @@ County_Tax['Arapahoe:'+COTY] = '0.25::RTD=1:CD=0.1';
 County_Tax['Archuleta:'+COTY] = '4:';
 County_Tax['Baca:'+COTY] = '0:';
 County_Tax['Bent:'+COTY] = '1:';
-County_Tax['Boulder:'+COTY] = '0.985::RTD=1:CD=0.1';
+County_Tax['Boulder:'+COTY] = '1.185::RTD=1:CD=0.1'; // 2023 change
 County_Tax['Broomfield:'+COTY] = '0::CD=0.1'; // 2019 change
 County_Tax['Chaffee:'+COTY] = '2.75:'; // 2019 change
 County_Tax['Cheyenne:'+COTY] = '0:';
 County_Tax['Clear Creek:'+COTY] = '2.65:'; // 2023 change
 County_Tax['Conejos:'+COTY] = '2:'; // 2023 change
-County_Tax['Costilla:'+COTY] = '1:';
+County_Tax['Costilla:'+COTY] = '2:'; // 2023 change
 County_Tax['Crowley:'+COTY] = '2:';
 County_Tax['Custer:'+COTY] = '2:';
 County_Tax['Delta:'+COTY] = '2::PSI=0.8:HSD=0.8'; // 2022 change
@@ -46,7 +46,7 @@ County_Tax['Larimer:'+COTY] = '0.8::'; // 2019 change
 County_Tax['Lincoln:'+COTY] = '2:';
 County_Tax['Logan:'+COTY] = '1:';
 County_Tax['Mesa:'+COTY] = '2::PSI=0.37';
-County_Tax['Mineral:'+COTY] = '2.6:';
+County_Tax['Mineral:'+COTY] = '2::HSD=0.6';
 County_Tax['Moffat:'+COTY] = '2:';
 County_Tax['Montezuma:'+COTY] = '0::HSD=0.4';
 County_Tax['Montrose:'+COTY] = '1::PSI=0.75';
@@ -59,7 +59,7 @@ County_Tax['Pitkin:'+COTY] = '3.1:::MTS=0.5';
 County_Tax['Prowers:'+COTY] = '1:';
 County_Tax['Pueblo:'+COTY] = '1::';
 County_Tax['Rio Blanco:'+COTY] = '3.6:';
-County_Tax['Rio Grande:'+COTY] = '2.6:';
+County_Tax['Rio Grande:'+COTY] = '2::HSD=0.6';
 County_Tax['Routt:'+COTY] = '1:';
 County_Tax['Saguache:'+COTY] = '2.5:'; // 2019 change
 County_Tax['San Juan:'+COTY] = '6.5:'; // 2018 change

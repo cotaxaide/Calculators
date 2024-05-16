@@ -5,10 +5,12 @@
 		"Earned":	{"value":"1z&S1-3"},
 		"TaxExInc":	{"value":"2a"},
 		"QualDiv":	{"value":"3a"},
-		"IRADist":	{"value":"4b"},
-		"Pension":	{"value":"5b"},
-		"SSI":		{"value":"6a"},
-		"SST":		{"value":"6b"},
+		"IRAIn":	{"value":"4a"},
+		"IRATaxed":	{"value":"4b"},
+		"AnnuityIn":	{"value":"5a"},
+		"AnnuityTaxed":	{"value":"5b"},
+		"SSIn":		{"value":"6a"},
+		"SSTaxed":	{"value":"6b"},
 		"CapGains":	{"value":"7"},
 		"AGI":		{"value":"11"},
 		"Deductions":	{"value":"12"},
@@ -21,6 +23,7 @@
 		"EIC":		{"value":"27"},
 		"ACTC":		{"value":"28"},
 		"AOC":		{"value":"29"},
+		"RefundTaxed":	"S1-1",
 		"Business":	{"value":"S1-3"},
 		"SEP":		{"value":"S1-16"},
 		"SEHI":		{"value":"S1-17"},
@@ -163,10 +166,11 @@
                 "InvestMax":	{"value":11600}
 	},
        	"Care": {
-		"RateMax":	{"value":35},
-		"RateMin":	{"value":20},
-		"AGICap":	{"value":15000},
-		"AGICap2":	{"value":400000}
+		"RateMax":	0.35,
+		"RateMin":	0.20,
+		"AGICap":	15000,
+		"AGICap2":	43000,
+		"PerChild":	3000
 	},
 	"Education": {
 		"TNF": {
@@ -212,13 +216,12 @@
 	},
 	"Retire": {
 		"Rate":		{"value":[  0.5,   0.2,	  0.1,	0]},
-		"SNG":		{"value":[20500, 22000,	34000]},
-		"MFS":		{"value":[20500, 22000,	34000]},
-		"MFJ":		{"value":[41000, 44000,	68000]},
-		"QSS":		{"value":[20500, 22000,	34000]},
-		"WID":		{"value":[20500, 22000,	34000]},
-		"HOH":		{"value":[30750, 33000,	51000]}
-	},
+		"SNG":		[23000,	25000,	38250],
+		"MFS":		[23000,	25000,	38250],
+		"MFJ":		[46000,	50000,	76500],
+		"QSS":		[23000,	25000,	38250],
+		"WID":		[23000,	25000,	38250],
+		"HOH":		[34500,	37500,	57375]	},
 	"CTC": {
 		"Rate":		{"value":2000},
 		"Age0":		{"value":   0},
@@ -244,13 +247,13 @@
 		}
 	},
 	"ACA": {
-		"FPL": {
-			"US": 		{"Rate":12880,
-				"Inc":	{"value":4540}},
-			"AK":		{"Rate":16090,
-				"Inc":	{"value":5680}},
-			"HI":		{"Rate":14820,
-				"Inc":	{"value":5220}}
+		"PYFPL": {
+			"US": {	"Rate":	13590,
+				"Inc":	4720},
+			"AK": {	"Rate":16990,
+				"Inc":	5900},
+			"HI": {	"Rate":15630,
+				"Inc":	5430}
 		},
 		"PTC0": 	{"value":[133, 0.00, 0.00,  375]},
 		"PTC133": 	{"value":[150, 0.00, 2.00,  375]},

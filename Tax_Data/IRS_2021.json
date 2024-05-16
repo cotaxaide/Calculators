@@ -5,9 +5,12 @@
 		"Earned":	{"value":"1z&S1-3"},
 		"TaxExInc":	{"value":"2a"},
 		"QualDiv":	{"value":"3a"},
-		"Pension":	{"value":"4b+5b"},
-		"SSI":		{"value":"6a"},
-		"SST":		{"value":"6b"},
+		"IRAIn":	{"value":"4a"},
+		"IRATaxed":	{"value":"4b"},
+		"AnnuityIn":	{"value":"5a"},
+		"AnnuityTaxed":	{"value":"5b"},
+		"SSIn":		{"value":"6a"},
+		"SSTaxed":	{"value":"6b"},
 		"CapGains":	{"value":"7"},
 		"AGI":		{"value":"11"},
 		"Deductions":	{"value":"12"},
@@ -20,6 +23,7 @@
 		"EIC":		{"value":"27"},
 		"ACTC":		{"value":"28"},
 		"AOC":		{"value":"29"},
+		"RefundTaxed":	{"value":"S1-1"},
 		"Business":	{"value":"S1-3"},
 		"SEP":		{"value":"S1-16"},
 		"SEHI":		{"value":"S1-17"},
@@ -162,10 +166,11 @@
                 "InvestMax":	{"value":10000}
 	},
        	"Care": {
-		"RateMax":	{"value":35},
-		"RateMin":	{"value":20},
-		"AGICap":	{"value":125000},
-		"AGICap2":	{"value":400000}
+		"RateMax":	0.50,
+		"RateMin":	0.20,
+		"AGICap":	125000,
+		"AGICap2":	183000,
+		"PerChild":	8000
 	},
 	"Education": {
 		"TNF": {
@@ -243,13 +248,13 @@
 		}
 	},
 	"ACA": {
-		"FPL": {
-			"US": 		{"Rate":12880,
-				"Inc":	{"value":4540}},
-			"AK":		{"Rate":16090,
-				"Inc":	{"value":5680}},
-			"HI":		{"Rate":14820,
-				"Inc":	{"value":5220}}
+		"PYFPL": {
+			"US": 		{"Rate":12670,
+				"Inc":	{"value":4480}},
+			"AK":		{"Rate":14950,
+				"Inc":	{"value":5600}},
+			"HI":		{"Rate":14680,
+				"Inc":	{"value":5150}}
 		},
 		"PTC0": 	{"value":[133, 0.00, 0.00,  325]},
 		"PTC133": 	{"value":[150, 0.00, 2.00,  325]},

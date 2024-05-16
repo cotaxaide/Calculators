@@ -5,10 +5,12 @@
 		"Earned":	"1z&S1-3",
 		"TaxExInc":	"2a",
 		"QualDiv":	"3a",
-		"IRADist":	"4b",
-		"Pension":	"5b",
-		"SSI":		"6a",
-		"SST":		"6b",
+		"IRAIn":	"4a",
+		"IRATaxed":	"4b",
+		"AnnuityIn":	"5a",
+		"AnnuityTaxed":	"5b",
+		"SSIn":		"6a",
+		"SSTaxed":	"6b",
 		"CapGains":	"7",
 		"AGI":		"11",
 		"Deductions":	"12",
@@ -21,6 +23,7 @@
 		"EIC":		"27",
 		"ACTC":		"28",
 		"AOC":		"29",
+		"RefundTaxed":	"S1-1",
 		"Business":	"S1-3",
 		"SEP":		"S1-16",
 		"SEHI":		"S1-17",
@@ -45,7 +48,8 @@
 		"F2555":	"45&50",
 		"F8962A":	"11a",
 		"F8962B":	"11b",
-		"F8962F":	"11f"},
+		"F8962F":	"11f"
+	},
 	"Exemption":		0,
 	"DepAsRel":		4700,
 	"DependMin":		1250,
@@ -111,8 +115,7 @@
 		"MFJNoRetPlan":	214000,
 		"HOH":		 78000,
 		"QSS":		129000,
-		"WID":		129000
-	},
+		"WID":		129000 },
 	"QBI":	{
 		"Rate":		0.2,
 		"Limit": {
@@ -156,10 +159,11 @@
                 "InvestMax":	10300
 	},
        	"Care": {
-		"RateMax":	35,
-		"RateMin":	20,
+		"RateMax":	0.35,
+		"RateMin":	0.20,
 		"AGICap":	15000,
-		"AGICap2":	400000
+		"AGICap2":	43000,
+		"PerChild":	3000
 	},
 	"Education": {
 		"AOC": {
@@ -230,13 +234,13 @@
 		}
 	},
 	"ACA": {
-		"FPL": {
-			"US": {	"Rate":	12880,
-				"Inc":	4540},
-			"AK": {	"Rate":16090,
-				"Inc":	5680},
-			"HI": {	"Rate":14820,
-				"Inc":	5220}
+		"PYFPL": {
+			"US": {	"Rate":	13590,
+				"Inc":	4720},
+			"AK": {	"Rate":16990,
+				"Inc":	5900},
+			"HI": {	"Rate":15630,
+				"Inc":	5430}
 		},
 		"PTC0": 	[133, 0.00, 0.00,  325],
 		"PTC133": 	[150, 0.00, 2.00,  325],
@@ -245,6 +249,5 @@
 		"PTC250": 	[300, 6.00, 8.50,  825],
 		"PTC300": 	[400, 8.50, 8.50, 1400],
 		"AffordRate":	0.0805
-		)
 	}
 }
