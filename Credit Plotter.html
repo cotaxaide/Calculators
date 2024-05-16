@@ -5,7 +5,7 @@
 	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
 	<title>Tax Credit Plotter</title>
 
-<style type="text/css">
+<style>
 	body { background-color: #ccbbcc; font-family: sans-serif; }
 	div {
 		background-color: #eeeeee;
@@ -66,18 +66,15 @@
 	*/
 </style>
 
-<script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script src="Tax_Data/IRS_2023.js"></script>
-<script src="Tax_Data/IRS_2024.js"></script>
-<script src="CommonRoutines.js"></script>
+<script src="Common_Routines.js"></script>
 <script>
 	var VERSION;
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	VERSION = "(Version 1.07a, 10/3/2022)";
+	VERSION = "(Version 1.08, 5/16/2024)";
+	//	Changed data source to JSON files
+	//	Removed TNF education option, gone in 2021
+	//VERSION = "(Version 1.07a, 10/3/2022)";
 	//	Changed WID to QSS for display
 	//VERSION = "(Version 1.07, 7/24/2022)";
 	//	Modified to reflect change in _TaxLookup that now returns an array
@@ -130,9 +127,10 @@
 	var LegendY = 0;
 	var ThisRegion = "US";
 	var FedPovertyLine = "";
+	var arrayTemp = [];
 
 	//----------------------------------------------------------------------------------------
-	function Initialize() {
+	function Main() {
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
 		var tyIndex = 0;
@@ -152,9 +150,11 @@
 
 		// Read any cookies
 		switch (test = _Read_Cookie("Region")) {
-			case "US"    : ThisRegion = "US"    ; break;
-			case "Alaska": ThisRegion = "Alaska"; break;
-			case "Hawaii": ThisRegion = "Hawaii"; break;
+			case "US"    : ThisRegion = "US"; break;
+			case "AK":
+			case "Alaska": ThisRegion = "AK"; break;
+			case "HI":
+			case "Hawaii": ThisRegion = "HI"; break;
 			default: ThisRegion = "US";
 		}
 
@@ -227,85 +227,67 @@
 				if (! FSChecked[FSi]) continue;
 				FS = (TY >= 2022) ? FilingList[FSi] : FilingList21[FSi] ;
 				StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
+
+				// Get AGIMax and CreditMax for graph size
 				if (EIC.checked) {
 					var FSx = (FS == "MFJ") ? "MFJ" : "SNG";
 					if (Children > -1) {
 						EICChildren = Math.min(Children, 3);
-						var EICMaxY = _EICRates[TY + ":MAX"].split(",")[EICChildren];
-						var EICMaxX = _EICRates[TY + ":" + FSx].split(",")[EICChildren];
+						var EICMaxY = +_IRSValue("EIC.Maximum")[EICChildren];
+						var EICMaxX = +_IRSValue("EIC." + FSx)[EICChildren];
 						AGIMax = Math.max(AGIMax, EICMaxX);
 						CreditMax = Math.max(CreditMax, EICMaxY);
 					}
 				}
 				if (CTC.checked) {
 					if (Children > 0) {
-						var CTCMaxY = +_CTCLimits[TY + ":CTCRate"];
-						var CTCMaxX = +_CTCLimits[TY + ":AGICap"].split(",")[_CTCLimits[FS]];
+						var CTCMaxY = +_IRSValue("CTC.Rate");
+						var CTCMaxX = +_IRSValue("CTC.AGICap." + FS);
 						AGIMax = Math.max(AGIMax, CTCMaxX + (20 * CTCMaxY * Children));
-						if (TY >= 2021) CTCMaxY += (+_CTCLimits[TY + ":CTC0Rate"]);
+						if (TY >= 2021) CTCMaxY += (+_IRSValue("CTC.Age0"));
 						CreditMax = Math.max(CreditMax, CTCMaxY * Children);
 					}
 				}
 				if (CARE.checked) {
 					if (Children > 0) {
-						CCChildren = Math.min(Children, 2);
-						CCPaid = 3000 * CCChildren;
-						var CCRateDiff = _CareLimits[TY + ":RateMax"] - _CareLimits[TY + ":RateMin"];
-						var CCMaxX = _CareLimits[TY + ":AGICap"];
-						var CCMaxY = _ChildCare(TY, FS, CCMaxX, (3000 * CCChildren), CCMaxX, 0);
-						var CCMaxX = CCMaxX + (2000 * CCRateDiff); // where reduction ends
-						if (TY >= 2021) CCMaxX = 438000;
+						var CCMaxX = _IRSValue("Care.AGICap2");
 						AGIMax = Math.max(AGIMax, CCMaxX);
+						if (TY == 2021) AGIMax = 438000;
+						var CCMaxY = _IRSValue("Care.AGICap");
+						var CCMaxY = _ChildCare(TY, FS, CCMaxY, CCMaxY, Children, 1000000)["deductible"];
 						CreditMax = Math.max(CreditMax, CCMaxY);
 					}
 				}
 				if (AOC.checked) {
 					if (Students > 0) {
-						AOCLimits = _EdExpenseLimits[TY + ":AOC"].split(",");
-						AGIIndex = (FS === "MFJ") ? 4 : 2 ;
-						AGIMax = Math.max(AGIMax, AOCLimits[AGIIndex]);
-						AOCMaxCred = _EdCredit(TY, FS, 0, "AOC", AOCLimits[0]);
+						AGIIndex = (FS === "MFJ") ? "MFJ2" : "SNG2" ;
+						AGIMax = Math.max(AGIMax, _IRSValue("Education.AOC." + AGIIndex));
+						AOCLimit = _IRSValue("Education.AOC.MAX0");
+						AOCMaxCred = _EdCredit(TY, FS, 0, "AOC", AOCLimit);
 						AOCMaxY = AOCMaxCred[0] + AOCMaxCred[1];
 						CreditMax = Math.max(CreditMax, AOCMaxY * Students);
 					}
 				}
 				if (LLC.checked) {
 					if (Students > 0) {
-						LLCLimits = _EdExpenseLimits[TY + ":LLC"].split(",");
-						AGIIndex = (FS === "MFJ") ? 4 : 2 ;
-						AGIMax = Math.max(AGIMax, LLCLimits[AGIIndex]);
-						taxable = Math.max(0, AGIMax - StandardDeduction);
-						tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
-						LLCMaxCred = _EdCredit(TY, FS, 0, "LLC", LLCLimits[0]);
-						LLCMaxY = Math.min(tax, LLCMaxCred[0] * Students);
-						CreditMax = Math.max(CreditMax, LLCMaxY);
-					}
-				}
-				if (TNF.checked) {
-					if ( (TY < 2021) && (Students > 0) ) {
-						TNFLimits = _EdExpenseLimits[TY + ":TNF"].split(",");
-						TNFAGIMax = TNFLimits[3] * ((FS === "MFJ") ? 2 : 1 );
-						AGIMax = Math.max(AGIMax, TNFAGIMax);
-						TNFAGIPeak = TNFLimits[1] * ((FS === "MFJ") ? 2 : 1 );
-						PreTaxCredit = _EdCredit(TY, FS, TNFAGIPeak, "TNF", TNFLimits[0]);
-						StandardDeduction = _StandardDeduction(TY, FS, false, false, false, false);
-						taxable = Math.max(0, TNFAGIMax - StandardDeduction);
-						tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
-						taxable = Math.max(0, TNFAGIMax - StandardDeduction - PreTaxCredit[0]);
-						tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
-						TNFMaxCred = tax0 - tax1;
-						CreditMax = Math.max(CreditMax, TNFMaxCred);
+						AGIIndex = (FS === "MFJ") ? "MFJ2" : "SNG2" ;
+						AGIMax = Math.max(AGIMax, _IRSValue("Education.LLC." + AGIIndex));
+						LLCLimit = _IRSValue("Education.LLC.MAX0");
+						LLCMaxCred = _EdCredit(TY, FS, 0, "LLC", LLCLimit);
+						LLCMaxY = LLCMaxCred[0] + LLCMaxCred[1];
+						CreditMax = Math.max(CreditMax, LLCMaxY * Students);
 					}
 				}
 				if (RET.checked) {
-					RETMax = _RETIRE[TY + ":" + FS].split(",")[2];
+					RETMax = _IRSValue("Retire." + FS)[2];
 					AGIMax = Math.max(AGIMax, +RETMax);
 					CreditMax = Math.max(CreditMax, 1000);
 				}
 				if (FPL.checked) {
 					var FPLPeople = Math.max(0, Children) + ( (FS === "MFJ") ? 1 : 0 );
-					var FPLi = (MaxTY - 1) + ":" + ThisRegion;
-					FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (FPLPeople * +_FPL[FPLi].split(",")[1]);
+					var FPLi = "ACA.PYFPL." + ThisRegion;
+					FedPovertyLine = +_IRSValue(FPLi + ".Rate")
+						+ (FPLPeople * +_IRSValue(FPLi + ".Inc"));
 					AGIMax = Math.max(AGIMax, FedPovertyLine * 1.5);
 					CreditMax = Math.max(CreditMax, 1000);
 				}
@@ -409,18 +391,15 @@
 				if (CARE.checked) {
 					if (Children < 1) continue;
 					for (child = 1 ; child < 5 ; child++) {
-						CCChildren = Math.min(child, 2);
-						CCPaid = 3000 * CCChildren;
 						if (CHChecked[child]) {
 							PlotCanv.beginPath();
 							PlotCanv.moveTo(0, 0);
 							Add_To_Legend("CARE", TY, FS, child + "CH");
 							PlotCanv.strokeStyle = ColorList[Color++];
 							for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
-								income = AGI;
-								credit = _ChildCare(TY, FS, AGI, CCPaid, income, 0);
-								x1 = (income) ? "" : credit;
-								AddPlot("", x1, income, credit);
+								credit = _ChildCare(TY, FS, AGI, AGI, child, 1000000)["deductible"];
+								x1 = (AGI) ? "" : credit;
+								AddPlot("", x1, AGI, credit);
 							}
 						}
 					}
@@ -451,9 +430,8 @@
 								income = AGI;
 								var taxable = Math.max(0, AGI - StandardDeduction);
 								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
-								credits = _EdCredit(TY, FS, AGI, "AOC", AOCLimits[0]);
+								credits = _EdCredit(TY, FS, AGI, "AOC", AOCLimit);
 								var AOCNonrefundable = Math.min(tax, (credits[0] * student));
-								var creditLeft = credits[0] - creditUsed; 
 								var AOCRefundable = credits[1] * student;
 								credit = AOCNonrefundable + AOCRefundable;
 								x1 = (income) ? "" : credit;
@@ -474,30 +452,11 @@
 								income = AGI;
 								var taxable = Math.max(0, AGI - StandardDeduction);
 								var tax = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
-								credits = _EdCredit(TY, FS, AGI, "LLC", LLCLimits[0]);
+								credits = _EdCredit(TY, FS, AGI, "LLC", LLCLimit);
 								credit = Math.min(tax, (credits[0] * student));
 								x1 = (income) ? "" : credit;
 								AddPlot("", x1, income, credit);
 							}
-						}
-					}
-				}
-				if (TNF.checked) {
-					if ( (Students > 0) && (TY < 2021) ) {
-						PlotCanv.beginPath();
-						PlotCanv.moveTo(0, 0);
-						Add_To_Legend("TNF", TY, FS, "");
-						PlotCanv.strokeStyle = ColorList[Color++];
-						for (AGI = 0 ; AGI < AGIMax ; AGI += AGIPlotIncrement) {
-							income = AGI;
-							var PreTaxCredit = _EdCredit(TY, FS, AGI, "TNF", TNFLimits[0]);
-							var taxable = Math.max(0, AGI - StandardDeduction);
-							var tax0 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
-							var taxable = Math.max(0, AGI - StandardDeduction - PreTaxCredit[0]);
-							var tax1 = _TaxLookup(TY, FS, taxable, 0, false, 0)["tax"];
-							credit = tax0 - tax1;
-							x1 = (income) ? "" : credit;
-							AddPlot("", x1, income, credit);
 						}
 					}
 				}
@@ -506,10 +465,11 @@
 					if (! FSChecked[FSi]) continue;
 					FS = (TY >= 2022) ? FilingList[FSi] : FilingList21[FSi] ;
 					FPLPeople = Math.max(0, Children) + ( (FS === "MFJ") ? 1 : 0 );
-					FPLi = (TY - 1) + ":" + ThisRegion;
-					FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (FPLPeople * +_FPL[FPLi].split(",")[1]);
+					FPLi = "ACA.PYFPL." + ThisRegion;
+					FedPovertyLine = +_IRSValue(FPLi + ".Rate")
+						+ (FPLPeople * +_IRSValue(FPLi + ".Inc"));
 					PlotCanv.beginPath();
-					Add_To_Legend("FPL", TY, FS, FPLPeople);
+					Add_To_Legend("FPL", TY - 1, FS, FPLPeople);
 					PlotCanv.strokeStyle = ColorList[Color++];
 					var result = AddPlot(FedPovertyLine, 0, FedPovertyLine, CreditMax);
 					PlotCanv.textAlign = "left";
@@ -638,7 +598,7 @@
 <!-- **************************************** START OF HTML ************************************************* -->
 <!-- ******************************************************************************************************** -->
 
-<body onload="Initialize();" onresize="Change_Options();">
+<body onresize="Change_Options();">
 
 <center>
 	<span class="title">Tax Credit Plotter</span>
@@ -655,7 +615,7 @@
 			</td>	
 			<td>	<input id="AOC" type="checkbox" title="American Opportunity Credit" /> AOC
 				<br /><input id="LLC" type="checkbox" title="Lifetime Learning Credit" /> LLC
-				<br /><input id="TNF" type="checkbox" title="Tuition and Fees Credit" /> TNF
+				<br />
 				<br /><input id="FPL" type="checkbox" title="Federal Poverty Line" /> FPL
 			</td>
 			<td>	&nbsp;Tax Year:
@@ -703,4 +663,7 @@
 	</span>
 </div>
 </body>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
+
 </html>
