@@ -360,26 +360,23 @@
 		}
 	</style>
 	
-	<script src="Tax_Data/IRS_2000.js"></script>
-	<script src="Tax_Data/IRS_2020.js"></script>
-	<script src="Tax_Data/IRS_2021.js"></script>
-	<script src="Tax_Data/IRS_2022.js"></script>
-	<script src="Tax_Data/IRS_2023.js"></script>
-	<script type="text/javascript">
+	<script src="Common_Routines.js"></script>
+	<script>
 	// --------------------------------------------------------------------
 	// Contributors:
 	// --------------------------------------------------------------------
-	//	Phil Saba - added the annuity table code
+	//	Phil Saba 		Nonie Garvey		Jen Nakata
 	//	Steve Conary		Kenny Hayes		John Haim
 	//	Herb Klug		John Glasserman		Bruce McCommons
 	//	Paul Hirth		Douglas Feuerhelm	Deb Fisher
 	//	Frank Krider		Paul Renard		John Arenberg
-	//	Lois Andersen		Jay Wiedwald		Jen Nakata
-	//	Nonie Garvey
+	//	Lois Andersen		Jay Wiedwald		
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.29, 6/18/2023)";
+		var VERSION = "(version 10.30, 5/12/2024)";
+		//	Changed to JSON tax data sources
+		//var VERSION = "(version 10.29, 6/18/2023)";
 		//	Added comment about TaxSlayer not carrying forward
 		//	Removed some unnecessary getElementById code
 		//var VERSION = "(version 10.28, 12/31/2022)";
@@ -422,7 +419,7 @@
 		//var VERSION = "(version 10.17a, 11/11/2018)";
 		//	Minor disability comment prior to retirement age clarification
 		//var VERSION = "(version 10.17, 11/01/2018)";
-		//	Added variables for Salary and Pension 1040 line numbers
+		//	Added variables for Wages and Pension 1040 line numbers
 		//var VERSION = "(version 10.16, 6/14/2018)";
 		//	Corrected PSO medical exemption figures (they were reversed)
 		//var VERSION = "(version 10.15, 6/14/2018)";
@@ -582,7 +579,7 @@
 		var MedTaxLimit = 3000;
 	
 		//----------------------------------------------------------------------------------------
-		function Initialize() {
+		function Main() {
 		//----------------------------------------------------------------------------------------
 	
 			// Make an option list of tax years for the TS window
@@ -592,7 +589,7 @@
 				j.text = j.value = i;
 				EXCL_TY.add(j,ii++);
 			}
-			EXCL_TY.value = _DefaultYear;
+			EXCL_TY.value = TY = _DefaultYear;
 			DiedMoYR.innerHTML = SPdiedQYR.innerHTML = TPdiedQYR.innerHTML = SGRW_YEAR.innerHTML = TAX_YR = +_DefaultYear;
 		
 			Version.innerHTML = VERSION;
@@ -1590,8 +1587,8 @@
 					if (disability_part1.innerHTML) disability_note_box.style.display = "block";
 					FORM1099DIV.style.display =
 						disability_part2_line.style.display = (showgross) ? "inline" : "none";
-					SalaryLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Salary"];
-					PensionLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Pension"];
+					WagesLineNo.innerHTML = _IRSValue("LineNo.Wages");
+					PensionLineNo.innerHTML = _IRSValue("LineNo.Pension");
 				}
 				else disability_note_box.style.display = "none";
 				RRB1099R_GROSS.innerHTML = F1099R_GROSS.innerHTML = SGRW_GROSS.innerHTML = showgross;
@@ -1699,8 +1696,8 @@
 				if (disability_part1.innerHTML) disability_note_box.style.display = "block";
 				FORM1099DIV.style.display = (SP.value || ((! SP.value) && TPshowgross)) ? "inline" : "none";
 				disability_part2_line.style.display = (TPshowgross) ? "inline" : "none";
-				SalaryLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Salary"];
-				PensionLineNo.innerHTML = _LineNo[EXCL_TY.value + ":Pension"];
+				WagesLineNo.innerHTML = _IRSValue("LineNo.Wages");
+				PensionLineNo.innerHTML = _IRSValue("LineNo.Pension");
 			}
 			else disability_note_box.style.display = "none";
 
@@ -2135,12 +2132,14 @@
 			//	return;
 			//}
 
+			TY = New_TAX_YR;
+
 			if (New_TAX_YR < ANN_YR) {
 				message = "Annuity exclusion doesn't start until " + ANN_YR ;
 				message += " so there is no contribution exclusion.";
 				if (Disability.checked) {
 					message += "\n\nBe sure to check the \"Form 1040 line ";
-					message += _LineNo[EXCL_TY.value + ":Salary"] + "\" box.";
+					message += _IRSValue("LineNo.Wages") + "\" box.";
 				}
 				if (PSOMEDIC.value > MedTaxLimit) {
 					message += "\n\nEnter $3,000 as the PSO exclusion";
@@ -2204,7 +2203,7 @@
 	<!-- ********************************* START OF HTML ************************************************ -->
 	<!-- ************************************************************************************************ -->
 		
-	<body onload="Initialize()">
+	<body>
 		<center>
 		<div id="mainheader">
 			<span class="tooltitle">Annuity/Pension Exclusion Calculator</span>
@@ -2432,7 +2431,7 @@
 
 			<div id="disability_note_box">
 				<span id="disability_note">NOTE: </span>The annuitant&apos;s disability pension amount should be entered as two 1099-Rs:
-				<br />&nbsp;&nbsp;&nbsp;#1: <span id="disability_part1"></span> as earned income (<input type="checkbox" checked="checked" disabled="disabled"> Form 1040 line <span id="SalaryLineNo"></span>) - no pension exclusion
+				<br />&nbsp;&nbsp;&nbsp;#1: <span id="disability_part1"></span> as earned income (<input type="checkbox" checked="checked" disabled="disabled"> Form 1040 line <span id="WagesLineNo"></span>) - no pension exclusion
 				<br /><span id="disability_PSO">but, exclude <span id="DPSO_amount">0</span> Public Safety Officer insurance</span>
 				<br />&nbsp;&nbsp;&nbsp;#2: <span id="disability_part2_line"><span id="disability_part2"></span> as pension income (Form 1040 line <span id="PensionLineNo"></span>) - see below</span>
 			</div>
@@ -2526,9 +2525,8 @@
 					</div></td></tr>
 			</table>
 			<div id="TSNote">
-				NOTE: TaxSlayer does not carry forward data entered into its Simplified General Rule Worksheet.
-					It also does not calculate the final tax year nor its partial exclusion which can result
-					in errors if the amount previously recovered is not known. 
+				NOTE: TaxSlayer<sup>&reg;</sup> does not calculate the final tax year nor its partial exclusion
+					which can result in errors if the amount previously recovered is not known. 
 					Thus, no point in entering that information in the Worksheet.
 					<br /><u>We do recommend </u>adding a note to the tax return and the taxpayer envelope
 					for next year&apos;s tax preparer that shows the date of retirement,
@@ -2644,4 +2642,7 @@
 	</div>
 </center>
 </body>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
+
 </html>
