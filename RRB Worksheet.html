@@ -60,12 +60,8 @@
 	}
 </style>
 
-<script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script src="Tax_Data/IRS_2023.js"></script>
-<script type="text/javascript">
+<script src="Common_Routines.js"></script>
+<script>
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// Contributors:
@@ -74,7 +70,9 @@
 	//	Tom LaJeunesse
 	// --------------------------------------------------------------------------------
 
-	VERSION = "Version 1.11, 2/16/2023";
+	VERSION = "Version 1.12, 5/12/2024";
+	//	Changed to JSON tax data files
+	//VERSION = "Version 1.11, 2/16/2023";
 	//	Corrected double deduction of Tier1
 	//	Changed some explainatory wording
 	//VERSION = "Version 1.10, 2/6/2023";
@@ -107,7 +105,7 @@
 	var TY = 0;
 
 	//----------------------------------------------------------------------------------------
-	function Initialize() {
+	function Main() {
 	//----------------------------------------------------------------------------------------
 
 		// Add tax year options
@@ -141,7 +139,7 @@
 
 		// Adding Tier 1 to RRB exclusion requires change to Annuity total prior to 2022
 		TY = +TaxYear.value;
-		SST.innerHTML = _LineNo[TY + ":SST"];
+		SST.innerHTML = _IRSValue("LineNo.SST");
 		CTRow1.style.display =
 		CTRow2.style.display =
 		CTRow3.style.display = (TY >= 2022) ? "none" : "table-row" ;
@@ -429,7 +427,7 @@
 <!-- **************************************** START OF HTML ************************************************* -->
 <!-- ******************************************************************************************************** -->
 
-<body onload="Initialize();">
+<body>
 
 <center>
 	<span class="title">Railroad Retirement Worksheet</span>
@@ -616,5 +614,7 @@
 	  Please send corrections and suggestions to	<a href="mailto:tools@cotaxaide.org">tools@cotaxaide.org</a>
 	  <span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
 </div>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
 
 </body>
