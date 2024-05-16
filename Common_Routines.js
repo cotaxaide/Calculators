@@ -101,14 +101,27 @@ function _IRSValue(
 //----------------------------------------------------------------------------------------
 	let parms = IRSParameter.split(".");
 	let TYi = "TY" + TaxYear;
+	parmval = "??";
 	switch (parms.length) {
-		case 1: return IRSData[TYi][parms[0]].value;
-		case 2: return IRSData[TYi][parms[0]][parms[1]].value;
-		case 3: return IRSData[TYi][parms[0]][parms[1]][parms[2]].value;
-		case 4: return IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]].value;
-		case 5: return IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]].value;
-		default: return 0;
+	case 1:	try { if ((parmval = IRSData[TYi][parms[0]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = IRSData[TYi][parms[0]]) !== undefined) return parmval;} catch {}
+		break;
+	case 2:	try { if ((parmval = IRSData[TYi][parms[0]][parms[1]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = IRSData[TYi][parms[0]][parms[1]]) !== undefined) return parmval;} catch {}
+		break;
+	case 3:	try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]]) !== undefined) return parmval;} catch {}
+		break;
+	case 4:	try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]]) !== undefined) return parmval;} catch {}
+		break;
+	case 5:	try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]]) !== undefined) return parmval;} catch {}
+		break;
+	default: return "???";
 	}
+	
+	return "??";
 }
 
 //----------------------------------------------------------------------------------------
@@ -261,11 +274,11 @@ function _TaxLookup(	// Tax table lookup
 	if (taxableAmount <= 0) return(result);
 	if (L06F8615 == undefined) L06F8615 = 0;
 	let TY = taxYear;
-	let rateList = _IRSValue("TaxRates.Rage").split(",");
+	let rateList = _IRSValue("TaxRates.Rate");
 	fs = (filingStatus == "TRUST_SNG") ? "SNG" : filingStatus; // Kiddie tax recursion call
-	let bracketMax = _IRSValue("TaxRates." + fs).split(","); // maximum for the rate
-	let CG_rateList = _IRSValue("CGTaxRates.Rate").split(",");
-	let CG_bracketMax = _IRSValue("CGTaxRates." + fs).split(","); // maximum for the rate
+	let bracketMax = _IRSValue("TaxRates." + fs); // maximum for the rate
+	let CG_rateList = _IRSValue("CGTaxRates.Rate");
+	let CG_bracketMax = _IRSValue("CGTaxRates." + fs); // maximum for the rate
 
 	// 1040 Qualified Dividends and Capital Gains Tax Worksheet:
 	if (capitalGains && useSchedD) {
@@ -367,7 +380,7 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	if (isNaN(SocSecOffset)
 		|| (childDependents < 3)
 		|| (SocSecOffset < 0)) SocSecOffset = 0;
-	let CTCReduction = Math.max(0, (+AGI - +IRSValue("CTC.AGICap." + filingStatus)));
+	let CTCReduction = Math.max(0, (+AGI - +_IRSValue("CTC.AGICap." + filingStatus)));
 		CTCReduction = 50 * (Math.ceil(CTCReduction/1000));
 	let TY = taxYear;
 	let CTCRate = +_IRSValue("CTC.Rate");
@@ -392,12 +405,12 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 		ACTCLimit = CTCAmount;
 	}
 	else {
-		let ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
+		ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
 		childDependents = Math.floor(childDependents); // programming error protection
 		ACTCLimit = Math.min(ACTCRate * +childDependents, ACTCLimit);
 	}
 	totalDependents = Math.floor(totalDependents); // programming error protection
-	let FTCAmount = FTCRate * (Math.max(0, +totalDependents - cD));
+	FTCAmount = FTCRate * (Math.max(0, +totalDependents - cD));
 	return ([CTCAmount, FTCAmount, Math.round(ACTCLimit)]);
 }
 
@@ -429,7 +442,7 @@ function _EICLookup(	// Earned Income Credit table lookup
 	// Is income over the limit
 	let vEICFiling = (filingStatus == "MFJ") ? "MFJ":"SNG";
 	let vEICTable = taxYear + ":" + vEICFiling;
-	let vEICLookupMax = +_IRSValue("EIC." + vEICFiling).split(",")[EICdependents];
+	let vEICLookupMax = +_IRSValue("EIC." + vEICFiling)[EICdependents];
 	if (earnedIncome > vEICLookupMax) return(0);
 
 	// Investment income over the limit
@@ -439,7 +452,7 @@ function _EICLookup(	// Earned Income Credit table lookup
 	// Do we need to test AGI?
 	let vidmax = 1;
 	if (AGI != earnedIncome) {
-		let vEICAGIMin = +_IRSValue("EIC.AGI" + vEICFiling).split(",")[EICdependents];
+		let vEICAGIMin = +_IRSValue("EIC.AGI" + vEICFiling)[EICdependents];
 		if (AGI >= vEICAGIMin) vidmax = 2;
 	}
 
@@ -448,19 +461,19 @@ function _EICLookup(	// Earned Income Credit table lookup
 	AGI = (50 * Math.floor(+AGI/50)) + 25;
 
 	// Do the lookup(s) and use the minimum of the results
-	let vEICRateUp = +_IRSValue("EIC.RateUp").split(",")[EICdependents];
-	let vEICRateDown = +_IRSValue("EIC.RateDown").split(",")[EICdependents];
-	for (let vid = 0; vid < vidmax; vid++) {
-		let testAmount = (vid == 0) ? earnedIncome : AGI;
-		let vEICUp = testAmount * vEICRateUp;
-		let vEICMax = +_IRSValue("EIC.Maximum").split(",")[EICdependents];
-		let vEICDown = (vEICLookupMax - testAmount) * vEICRateDown;
+	let vEICRateUp = +_IRSValue("EIC.RateUp")[EICdependents];
+	let vEICRateDown = +_IRSValue("EIC.RateDown")[EICdependents];
+	for (vid = 0; vid < vidmax; vid++) {
+		testAmount = (vid == 0) ? earnedIncome : AGI;
+		vEICUp = testAmount * vEICRateUp;
+		vEICMax = +_IRSValue("EIC.Maximum")[EICdependents];
+		vEICDown = (vEICLookupMax - testAmount) * vEICRateDown;
 
 		// Find the minimum of the three, not less than 0, and round
-		let EICResult = Math.round(Math.max(0,Math.min(vEICUp, vEICMax, vEICDown)));
+		EICResult = Math.round(Math.max(0,Math.min(vEICUp, vEICMax, vEICDown)));
 
 		// Find the minumum of the two test results
-		let EICAmount = (vid == 0) ? EICResult : Math.min(EICAmount, EICResult);
+		EICAmount = (vid == 0) ? EICResult : Math.min(EICAmount, EICResult);
 	}
 	return (EICAmount);
 }
@@ -518,40 +531,39 @@ function _NIITCalc (	// Net Investment Income Tax calculation
 function _ChildCare (	// Form 2441
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
+	earnedIncome,	// Enter lowest income of TP or SP if MFJ unless student or disabled
 	AGI,		// AGI
-	amountPaid,	// max $3000 for 1, $6000 for 2 or more limited to lowest TP/SP earned income
-	TPEarnedIncome,	// 
-	SPEarnedIncome	// 
+	children,	// the number of dependent children that received care
+	amountPaid	// max $3000 for 1, $6000 for 2 or more limited to lowest TP/SP earned income
 		) {
+// Returns Result["percent", "deductible"].
 // Form 2441 line numbers
 //----------------------------------------------------------------------------------------
 	let TY = taxYear;
+	Result = [];
+
+	// Get data for the year
+	RateMin =  _IRSValue("Care.RateMin");
+	RateMax =  _IRSValue("Care.RateMax");
+	AGICap =   _IRSValue("Care.AGICap");
+	AGICap2 =  _IRSValue("Care.AGICap2");
+	PerChild = _IRSValue("Care.PerChild");
+
+	// Limit amountPaid by lowest earned income
+	line3 = Math.min(amountPaid, PerChild * Math.min(children, 2));
+	line6 = Math.min(line3, +earnedIncome);
 	
-	if (filingStatus === "MFJ") {
-		if (+SPEarnedIncome == 0) { // Don't know SP earned income
-			line6 = Math.min(+amountPaid, +TPEarnedIncome + +SPEarnedIncome);
-		}
-		else { // Limit amountPaid by losest earned income
-			line6 = Math.min(+amountPaid, +TPEarnedIncome, +SPEarnedIncome);
-		}
+	rateReduction = Math.ceil(Math.max(0, (AGI - AGICap) / 2000)) / 100;
+	line8 = Math.max(RateMin, RateMax - rateReduction);
+	if (TY == 2021) {
+		rateReduction = Math.min(Math.max(0, (AGI - 400000) / 2000)) / 100;
+		line8 = Math.max(0, line8 - rateReduction);
 	}
-	else { // SNG, HOH, MFS, WID
-		line6 = Math.min(+amountPaid, +TPEarnedIncome);
-	}
-	let RateMin = _IRSValue("Care.RateMin");
-	let RateMax = _IRSValue("Care.RateMax");
-	let AGICap =  _IRSValue("Care.Cap");
-	let AGICap2 =  _IRSValue("Care.Cap2");
-	let RateReduction = Math.ceil(Math.max(0, (AGI - AGICap)/2000));
-	if (+taxYear == 2021) {
-		if (AGI > 400000) {
-			RateReduction = Math.ceil(Math.max(0, (AGI - AGICap2)/2000));
-			RateMax = RateMin;
-			RateMin = 0;
-		}
-	}
-	let line8 = (RateMax - (Math.min(RateReduction, (RateMax - RateMin)))) / 100; // rate
-	return Math.max(0, line6 * line8);
+	line9 = line6 * line8;
+
+	Result["percent"] = line8;
+	Result["deductible"] = line9;
+	return (Result);
 }
 
 //----------------------------------------------------------------------------------------
@@ -568,8 +580,8 @@ function _Retirement (	// Form 8880
 //----------------------------------------------------------------------------------------
 	let TY = taxYear;
 
-	let rates = _IRSValue("Retire.Rate").split(",");
-	let ratelimits = _IRSValue("Retire." + filingStatus).split(",");
+	let rates = _IRSValue("Retire.Rate");
+	let ratelimits = _IRSValue("Retire." + filingStatus);
 	let line6a = Math.min(2000, +TPcontribution);
 	let line6b = Math.min(2000, +SPcontribution);
 	let line7 = Math.max(0, (line6a + line6b));
@@ -590,7 +602,7 @@ function _EdCredit (	// Form 8863
 // returns array	[0] = nonrefundable credit
 // 			[1] = refundable credit
 //----------------------------------------------------------------------------------------
-	let result = [];
+	result = [];
 	if (filingStatus == "MFS") return[0, 0];
 	let TY = taxYear;
 
@@ -611,11 +623,11 @@ function _EdCredit (	// Form 8863
 	}
 
 	// Modify amount if limited by AGI
-	let AGIfactor = 1;
+	var AGIfactor = 1;
 	switch (filingStatus) {
 		case "MFJ":
-			let limit1 = _IRSValue("Education." + etype + ".MFJ1");
-			let limit2 = _IRSValue("Education." + etype + ".MFJ2");
+			limit1 = _IRSValue("Education." + etype + ".MFJ1");
+			limit2 = _IRSValue("Education." + etype + ".MFJ2");
 			break;
 		default:
 			limit1 = _IRSValue("Education." + etype + ".SNG1");
@@ -651,7 +663,7 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 //----------------------------------------------------------------------------------------
 	if ((filingStatus !== "MFS") || (MFStogether === undefined)) MFStogether = false;
 	if ((filingStatus == "MFS") && (! MFStogether)) filingStatus = "SNG";
-	let Result = [];
+	Result = [];
 	Result["comment"] = "";
 	let TY = taxYear;
 
@@ -688,8 +700,8 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 		}
 
 		// line 6 YES and 7
-		let retlimit = 0;
-		let multiplier = 0;
+		retlimit = 0;
+		multiplier = 0;
 		switch (filingStatus) {
 		case "MFJ":
 			SP_AGIlimit -= +MAGI;
@@ -746,7 +758,7 @@ function _StudLoanInt (	// 1040 Sched 1
 		) {
 //	Returns an array ["deductible", "percent"]
 //----------------------------------------------------------------------------------------
-	let Result = [];
+	Result = [];
 	TY = taxYear;
 
 	// Not allowed if MFS
