@@ -220,20 +220,18 @@
 	}
 </style>
 
-<script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2019.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script src="Tax_Data/IRS_2023.js"></script>
-<script src="CommonRoutines.js"></script>
+<script src="Common_Routines.js"></script>
 <script type="text/javascript">
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// To Do:
 	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.25, 7/5/2023)";
+	VERSION = "(Version 2.26, 5/16/2024)";
+	//	Changed to JSON data files
+	//VERSION = "(Version 2.25a, 11/15/2023)";
+	//	Changed "This Tax Year" to "Refund Tax Year"
+	//VERSION = "(Version 2.25, 7/5/2023)";
 	//	Changed CTC0 so it only applies for 2022
 	//VERSION = "(Version 2.24a, 1/27/2023)";
 	//	Fixed post-nonrefundable line to take from Tax_Data vs manual
@@ -360,7 +358,7 @@
 	var PY = 0; // prior year to the data being entered
 
 	//----------------------------------------------------------------------------------------
-	function Initialize() {
+	function Main() {
 	// This function adds tax year options to the Filing Information section
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
@@ -372,7 +370,7 @@
 			TaxYear.add(tyopti,tyOptIndex++);
 		}
 		TaxYear.value = _DefaultYear;
-		FilingStatus.value = "MFJ";
+		FilingStatus.value = FS = "MFJ";
 		MFSItemize.style.display = "none";
 		SNGDependent.style.display = "none";
 		MustItemize.checked = false;
@@ -422,8 +420,9 @@
 		SPBlind.disabled = SP65.disabled = false;
 		MFSItemize.style.display = "none";
 		SNGDependent.style.display = "none";
+		FS = FilingStatus.value;
 
-		switch (FilingStatus.value) {
+		switch (FS) {
 			case "MFJ":
 				SPBlind.disabled = SP65.disabled = false;
 				MustItemize.checked = false;
@@ -463,7 +462,7 @@
 		FilingStatus.lastElementChild.innerHTML = optionLabel;
 
 		// Determine exemption amount
-		Exemption.value = (Exemptions + +Dependents.value) * _Standard[CY].split(",")[0];
+		Exemption.value = (Exemptions + +Dependents.value) * +_IRSValue("Exemption", CY);
 
 		// Show standard deduction amount if not a student. That will be determined later
 		if (MustItemize.checked || UseSchedA.checked) {
@@ -471,14 +470,14 @@
 			CYStandard.innerHTML = "N/A";
 		}
 		else if (! Dependent.checked) {
-			StandardDeduction.value = _StandardDeduction(CY, FilingStatus.value,
+			StandardDeduction.value = _StandardDeduction(CY, FS,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked,
 				Dependent.checked, 0);
 			CYStandard.innerHTML = StandardDeduction.value;
 		}
 		else CYStandard.innerHTML = "TBD";
 	
-		CashContribYear = ((CY == 2020) || (CY == 2021)); // T/F
+		CashContribYear = 
 		CTC0Year = (CY == 2021); // T/F
 
 		CashContribRow.style.display = (CashContribYear) ? "table-row" : "none" ;
@@ -491,7 +490,7 @@
 		Dependents.value = "";
 		TaxableStateLabel.innerHTML = "Schedule 1 line 1";
 		TaxableSalesLabel.innerHTML = "Schedule 1 line 8";
-		PostCreditLineNo.innerHTML = "1040 line " + (+_LineNo[CY + ":NRCredit"] + 1);
+		PostCreditLineNo.innerHTML = "1040 line " + (+_IRSValue("LineNo.NRCredit") + 1);
 		SalesTaxText.style.display = "none";
 		StateWHBox.style.display = "none";
 		StateWHRow.style.display = "table-row";
@@ -509,7 +508,7 @@
 		SchedAHeader.innerHTML = CY + " Schedule A Test Information";
 		NonTaxableHeader.innerHTML = "<hr />" + CY + " Negative Taxable Income Test Information";
 		QBIHeader.innerHTML = "<hr />" + CY + " Qualified Business Income Adjustment Test Information";
-		ExemptionText.innerHTML = "From Form 1040 line " + (_LineNo[CY + ":TaxAmount"] - 2);
+		ExemptionText.innerHTML = "From Form 1040 line " + (_IRSValue("LineNo.TaxAmount") - 2);
 		NonRefundableHeader.innerHTML = "<hr />" + CY + " Unused Non-Refundable Tax Credits Test Information";
 		StandardHeader.innerHTML = "<hr />" + CY + " Standard Deduction Calculation for Dependent Taxpayer";
 		AllocationHeader.innerHTML = "<hr />" + CY + " state tax payments";
@@ -527,29 +526,29 @@
 		CYAllocLabel.innerHTML = "&nbsp;&nbsp;" + CY;
 		TYAllocLabel.innerHTML = "&nbsp;&nbsp;" + TY;
 		TYAllocText.innerHTML = "This will reduce the " + CY + " Q4 deduction &ndash; part has already been refunded!";
-		SALTLineNo.innerHTML = _LineNo[CY + ":SALT"];
-		SALTLimit.innerHTML = _SALT[CY] / ((FilingStatus.value == "MFS") ? 2 : 1);
-		ItemizedLineNo.innerHTML = _LineNo[CY + ":ItemDed"];
-		UseSchedALineNo.innerHTML = _LineNo[CY + ":UseSchedA"];
-		CashContribLineNo.innerHTML = _LineNo[CY + ":CashContrib"];
+		SALTLineNo.innerHTML = _IRSValue("LineNo.SALT", CY);
+		SALTLimit.innerHTML = _IRSValue("SALT", CY) / ((FS == "MFS") ? 2 : 1);
+		ItemizedLineNo.innerHTML = _IRSValue("LineNo.ItemDed", CY);
+		UseSchedALineNo.innerHTML = _IRSValue("LineNo.UseSchedA", CY);
+		CashContribLineNo.innerHTML = _IRSValue("LineNo.CashContrib", CY);
 		CTCAGIText.innerHTML = 
 		AGILineNo.innerHTML =
-		QBIAGILineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":AGI"];
-		SalaryText.innerHTML = "From Form 1040 line " + _LineNo[CY + ":Salary"];
-		BusinessText.innerHTML = "From Form 1040 " + _LineNo[CY + ":Business"];
-		OldNRCreditsLineNo.innerHTML = _LineNo[CY + ":NRCredit"];
+		QBIAGILineNo.innerHTML = "Form 1040 line " + _IRSValue("LineNo.AGI", CY);
+		SalaryText.innerHTML = "From Form 1040 line " + _IRSValue("LineNo.Wages", CY);
+		BusinessText.innerHTML = "From Form 1040 " + _IRSValue("LineNo.Business", CY);
+		OldNRCreditsLineNo.innerHTML = _IRSValue("LineNo.NRCredit", CY);
 		DedTY4QYear.innerHTML = CY;
 		QBINetCGRow.style.display = "none"; // A place holder for calculated QBI Cap Gains
-		QBIBusinessLineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":Business"];
-		QBISEPLineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":SEP"];
-		QBISEHILineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":SEHI"];
-		QBICGLineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":CapGains"];
-		QBIDividendLineNo.innerHTML = "Form 1040 lines " + _LineNo[CY + ":QualDiv"];
+		QBIBusinessLineNo.innerHTML = "Form 1040 line " + _IRSValue("LineNo.Business", CY);
+		QBISEPLineNo.innerHTML = "Form 1040 line " + _IRSValue("LineNo.SEP", CY);
+		QBISEHILineNo.innerHTML = "Form 1040 line " + _IRSValue("LineNo.SEHI", CY);
+		QBICGLineNo.innerHTML = "Form 1040 line " + _IRSValue("LineNo.CapGains", CY);
+		QBIDividendLineNo.innerHTML = "Form 1040 lines " + _IRSValue("LineNo.QualDiv", CY);
 		if (QBISEP.value == "") QBISEP.value = 0; // Out of Scope so should be 0
-		NonTaxableSkipLineNo.innerHTML = "Form 1040 line " + _LineNo[CY + ":Taxable"];
-		PropertyLineNo.innerHTML = _LineNo[CY + ":Property"]; // Sched A
+		NonTaxableSkipLineNo.innerHTML = "Form 1040 line " + _IRSValue("LineNo.Taxable", CY);
+		PropertyLineNo.innerHTML = _IRSValue("LineNo.Property", CY); // Sched A
 			// 2017 PropertyLineNo.innerHTML = "6";
-		StateWHLabel.innerHTML = _LineNo[CY + ":StateWH"]; // Sched A
+		StateWHLabel.innerHTML = _IRSValue("LineNo.StateWH", CY); // Sched A
 
 		StateTaxRefundAlert = false;
 		SalesTaxRefundAlert = false;
@@ -825,7 +824,7 @@
 		// Determine if deduction for taxes paid is limited
 		var SALTRefund = +SalesTaxRefundTaxable + +StateTaxRefundTaxable + +PropertyTaxRefundTaxable;
 		var SALTdiff = 0;
-		if (_SALT[CY] && SALTRefund) {
+		if (_IRSValue("SALT", CY) && SALTRefund) {
 			TestingSchedAFor.innerHTML = "Testing for state and local tax (&quot;SALT&quot;) limitation";
 			RefundsButton.style.display = "none";
 			SchedAButton.style.display = "inline";
@@ -840,7 +839,7 @@
 
 			// OK to calculate
 			NewSALT = SALT.value - SALTRefund;
-			SALTlimit = _SALT[CY] / ((FilingStatus.value == "MFS") ? 2 : 1);
+			SALTlimit = _IRSValue("SALT", CY) / ((FS == "MFS") ? 2 : 1);
 			SALTdiff = Math.max(0, SALTlimit - NewSALT);
 
 			// Determine amount attributable to each tax refund
@@ -897,7 +896,7 @@
 			CYStandard.innerHTML = "N/A";
 		}
 		else {
-			StandardDeduction.value = _StandardDeduction(CY, FilingStatus.value,
+			StandardDeduction.value = _StandardDeduction(CY, FS,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked,
 				Dependent.checked, EarnedIncome);
 			CYStandard.innerHTML = StandardDeduction.value;
@@ -946,13 +945,11 @@
 		
 				// OK to calculate
 				NonSchedAContrib = 0;
-				// For 2020, NonSchedAContrib is an adjustment
-				if (CY == 2020) NonSchedAContrib = Math.min( ((FilingStatus.value == "MFS") ? 150 : 300 ), +CashContrib.value );
 				
 				// For 2021, NonSchedAContrib adds to the deduction
 				var ItemizedAmount = +Itemized.value;
 				if (CY == 2021) {
-					NonSchedAContrib = Math.min( ( (FilingStatus.value == "MFJ") ? 600 : 300 ), +CashContrib.value );
+					NonSchedAContrib = Math.min( ( (FS == "MFJ") ? 600 : 300 ), +CashContrib.value );
 					if ((ItemizedAmount <= +StandardDeduction.value + NonSchedAContrib) && (! MustItemize.checked)) {
 						message = "Using itemized deductions in " + CY + " is not the best option.";
 						message += "\n\nYou may wish to amend that return to only use the cash contributions";
@@ -1001,10 +998,10 @@
 	//----------------------------------------------------------------------------------------
 		// Test for QBI adjustment
 		QBIRate = 0;
-		if ((TotalTaxable) && (CY >= 2018)) {
+		if (TotalTaxable) {
 
 			QBIDiv.style.display = "block";
-			QBIRate = +_QBILimits[TaxYear.value + ":Rate"];
+			QBIRate = +_IRSValue("QBI.Rate", CY);
 			if (! QBITestSkip.checked) {
 				TestingQBIFor.innerHTML = "Testing for QBI adjustment";
 				QBITable1.style.display =
@@ -1015,7 +1012,7 @@
 				QBINetCGLineNo.innerHTML = "From QBI worksheet (Form 8995) line 12";
 				QBIDCurrent.disabled = false;
 				QBIDCurrentLineNo.innerHTML = "From QBI worksheet (Form 8995) line 15 or Form 1040 line ";
-				QBIDCurrentLineNo.innerHTML += _LineNo[CY + ":QBI"];
+				QBIDCurrentLineNo.innerHTML += _IRSValue("LineNo.QBI", CY);
 				QBIDAdditional.value = "";
 				//NonTaxableOption.style.display = "none";
 
@@ -1099,9 +1096,9 @@
 
 					QBISEIncome = (+QBIBusiness.value - +QBISETax.value - +QBISEP.value - +QBISEHI.value)
 					QBINetCG.value = +QBICG.value + +QBIDividend.value;
-					QBILimit = _QBILimits[CY + ":" + FilingStatus.value];
-					QBIDMaximum.value = _QBICalc(CY, FilingStatus.value, QBISEIncome, QBINetCG.value, QBI199A.value, QBILimit);
-					QBIDCurrent.value = _QBICalc(CY, FilingStatus.value, QBISEIncome, QBINetCG.value, QBI199A.value, PreQBICurrent);
+					QBILimit = _IRSValue("QBI.Limit." + FS, CY);
+					QBIDMaximum.value = _QBICalc(CY, FS, QBISEIncome, QBINetCG.value, QBI199A.value, QBILimit);
+					QBIDCurrent.value = _QBICalc(CY, FS, QBISEIncome, QBINetCG.value, QBI199A.value, PreQBICurrent);
 				}
 				else {
 					QBITable2.style.display = "none";
@@ -1187,12 +1184,6 @@
 			NonTaxableOption.style.display = (NonTaxableSkip.checked) ? "inline" : "none";
 			NonTaxableDiv.style.display = (NonTaxableSkip.checked) ? "none" : "block";
 			NonTaxableTable.style.display = (NonTaxableSkip.checked) ? "none" : "block";
-		}
-
-		if (CY < 2018) {
-			QBIDiv.style.display = "none";
-			ExemptionRow.style.display = "table-row";
-			NonTaxableOption.style.display = "inline";
 		}
 
 	//----------------------------------------------------------------------------------------
@@ -1298,7 +1289,7 @@
 			// Copy AGI value from earlier entries
 			CTCAGI.value = (AGI.value != "") ? AGI.value : QBIAGI.value;
 			RevisedTaxableIncome = Math.max(0, +CTCAGI.value - +RevisedItemized.value - +Exemption.value - +QBIDCurrent.value - +QBIDAdditional.value);
-			TaxAmount.value = _TaxLookup((+TaxYear.value - 1), FilingStatus.value, RevisedTaxableIncome, 0, true)["tax"];
+			TaxAmount.value = _TaxLookup(CY, FS, RevisedTaxableIncome, 0, true)["tax"];
 
 			NeedData++;
 			if (! NoNonRefundables.checked) {
@@ -1324,7 +1315,7 @@
 					&& (ODCCount.value != "");
 				if (CTCCalc) {
 					CTCChild = +CTCCount.value + (+CTC0Count.value / 100);
-					CTCReturn = _CTCLookup(CY, FilingStatus.value,
+					CTCReturn = _CTCLookup(CY, FS,
 							CTCChild, (+CTCCount.value + +ODCCount.value),
 							0, CTCAGI.value, 0);
 					CTC.value = +CTCReturn[0] + +CTCReturn[1];
@@ -1542,8 +1533,8 @@
 	// Calculates the bracket(s) for the credits 
 	//----------------------------------------------------------------------------------------
 		TaxBracket.innerHTML = "";
-		var rateList = _TaxRates[CY + ":PCT"].split(",");
-		var sizeList = _TaxRates[CY + ":" + FilingStatus.value].split(","); // maximum for the rate
+		var rateList = _IRSValue("TaxRates.Rate", CY);
+		var sizeList = _IRSValue("TaxRates." + FS, CY);
 
 		if (+totalCredits >= +tax1) { // it's all excludable
 			NRCGain.value = Math.max(0, +tax1 - +tax0);
@@ -1687,7 +1678,7 @@
 <!-- **************************************** START OF HTML ************************************************* -->
 <!-- ******************************************************************************************************** -->
 
-<body onload="Initialize()">
+<body>
 
 <center>
 	<span class="title">Taxable Refund and Recovery Calculator</span>
@@ -1705,7 +1696,7 @@
 		<table id="taxpayer_table">
 			<tr><td></td><td></td><td></td><td></td><td></td></tr>
 			<tr><td></td><td></td><td colspan="3"><h1 id="TPNameHeader"></h1><td/>
-			<tr>	<td><span class="inputTitle">This Tax Year: </span>
+			<tr>	<td><span class="inputTitle">Refund Tax Year: </span>
 					<select style="width:6em;" id="TaxYear" title="Select the tax year being prepared."></select></td>
 				<td></td>
 				<td class="inputTitle">Taxpayer&apos;s Name: </td>
@@ -1713,7 +1704,7 @@
 			<tr>	<td></td><td></td>
 				<td class="inputTitle">Filing Status:
 					<br /><span id="DependentsRow">Dependents:</span></td>
-				<td><select id="FilingStatus" title="Select the taxpayer's filing status.">
+				<td><select id="FilingStatus" title="Select the taxpayer's prior year filing status.">
 					<option value="SNG">Single</option>
 					<option value="MFJ">MFJ</option>
 					<option value="MFS">MFS</option>
@@ -1725,7 +1716,7 @@
 				<br /><input id="SP65" type="checkbox" title="Spouse was 65 or older" /> SP was 65 or older,
 				<input id="SPBlind" type="checkbox" title="Spouse was blind" /> SP was blind
 				</td></tr>
-				<tr>	<td></td><td colspan="3"></td>
+			<tr>	<td></td><td colspan="3"></td>
 				<td id="SNGDependent"><input id="Dependent" type="checkbox"> Dependent on another taxpayer&apos;s return</td></tr>
 			<tr>	<td></td><td colspan="3"></td>
 				<td id="MFSItemize"><input id="MustItemize" type="checkbox"> Must itemize because spouse itemized</td></tr>
@@ -2098,14 +2089,14 @@
 	<h2 id="NotDone">Result is not yet final - complete all yellow boxes and fix any red boxes</h2>
 	<table class="data_entry">
 		<tr id="TaxableStateHeader">
-			<td colspan="3" class="underline">Federal taxable amount of refunds NOT taxable to the state:</td></tr>
+			<td colspan="3" class="underline">Federal taxable amount of refunds. :</td></tr>
 		<tr id="TaxableStateRow">
 			<td><span id="TaxableStateLabel">1040 line 10</span></td>
 			<td><input id="TaxableState" type="myinput" disabled="true"/></td>
 			<td class="comment">(TS Income &gt; Form 1099-G Box 2 &gt;
 				Bypass worksheet line)<span id="SummaryA"></span><br /> </td></tr>
 		<tr id="TaxableSalesHeader">
-			<td colspan="3" class="underline">Federal taxable amount of refunds taxable to the state:</td></tr>
+			<td colspan="3" class="underline">Federal taxable amount of refunds also taxable to the state:</td></tr>
 		<tr id="TaxableSalesRow">
 			<td><span id="TaxableSalesLabel">1040 line 21</span></td>
 			<td><input id="TaxableSales" type="myinput" disabled="true" /></td>
@@ -2128,3 +2119,9 @@
 		  <button onclick="window.print()">Print a taxpayer copy</button>
 	  </span>
 </div>
+
+</body>
+
+<script> _GetIRSData(_StartYear, _StopYear); </script>
+
+</html>
