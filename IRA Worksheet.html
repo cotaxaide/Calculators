@@ -7,6 +7,7 @@
 
 <style type="text/css">
 	html {
+		color: black;
 		background-color: #ccccaa;
 	}
 	body {
@@ -248,14 +249,8 @@
 	}
 </style>
 
-<script src="CommonRoutines.js"></script>
-<script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2018.js"></script>
-<script src="Tax_Data/IRS_2019.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script type="text/javascript">
+<script src="Common_Routines.js"></script>
+<script>
 	// --------------------------------------------------------------------------------
 	// Contributors:
 	//	Barry Schwarz		Bob Crews 		Greg Wendling
@@ -265,7 +260,9 @@
 	// --------------------------------------------------------------------------------
 
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.02a, 12/15/2022)";
+	var VERSION = "(Version 2.03, 5/17/2024)";
+	//	Changed to JSON IRS data files
+	//var VERSION = "(Version 2.02a, 12/15/2022)";
 	//	Added starting tax year comment for QCD reduced exclusion
 	//var VERSION = "(Version 2.02, 11/7/2022)";
 	//	Added total contribution line to calculate Nontaxable amount
@@ -307,17 +304,15 @@
 	var Iteration = 0;
 
 	//----------------------------------------------------------------------------------------
-	function Initialize() {
+	function Main() {
 	// This function adds tax year options to the Filing Information section
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
 		var tyOptIndex = 0;
 		for (var ty = _StartYear; ty <= _StopYear; ty++) {
-			if (_LineNo[ty + ":CapGains"] != "") { // Prevent adding if no data file
-				var tyopti = document.createElement("option");
-				tyopti.text = tyopti.value = ty;
-				TaxYear.add(tyopti,tyOptIndex++);
-			}
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
 		}
 
 		// Set the default to the tax year
@@ -738,7 +733,7 @@
 <!-- **************************************** START OF HTML ************************************************* -->
 <!-- ******************************************************************************************************** -->
 
-<body onload="Initialize()">
+<body>
 
 <center>
 	<span class="title">IRA Worksheet</span>
@@ -1119,4 +1114,7 @@
 </div>
 
 </body>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
+
 </html>
