@@ -99,13 +99,8 @@
 	}
 </style>
 
-<script src="CommonRoutines.js"></script>
-<script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2019.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script type="text/javascript">
+<script src="Common_Routines.js"></script>
+<script>
 	// --------------------------------------------------------------------------------
 	// Contributors:
 	// 	Kirk Coonley		Barry Berlin		David Hutchison
@@ -113,7 +108,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "(Version 1.13, 1/5/2023)";
+	var VERSION = "(Version 1.14, 4/17/2024)";
+	//	Changed to JSON IRS data files
+	//var VERSION = "(Version 1.13, 1/5/2023)";
 	//	Changes to support 2022 tax forms
 	//	Added Social Security subtraction
 	//var VERSION = "(Version 1.12, 12/28/2022)";
@@ -230,7 +227,7 @@
 	var MilitaryLimit = [4500, 7500, 10000, 15000, 15000, 15000]; // index 0 = 2019
 
 	//----------------------------------------------------------------------------------------
-	function Initialize() {
+	function Main() {
 	// This function adds tax year options to the Filing Information section
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
@@ -241,7 +238,7 @@
 			tyopti.text = tyopti.value = ty;
 			TaxYear.add(tyopti,tyOptIndex++);
 		}
-		TaxYear.value = _DefaultYear;
+		TaxYear.value = TY = _DefaultYear;
 
 		// Default to age < 55
 		TPAgeList = document.getElementsByName("TPLimits");
@@ -268,6 +265,7 @@
 		TPToMonth = TPTo.value;
 		SPFromMonth = SPFrom.value;
 		SPToMonth = SPTo.value;
+		TY = +TaxYear.value;
 
 		// Show spouse dates if filing MFJ
 		if (WhatChanged == "FilingStatus") {
@@ -290,7 +288,7 @@
 		}
 
 		// QSS text
-		QSSText.innerHTML = (+TaxYear.value >= 2022) ? "QSS" : "Widow(er)" ;
+		QSSText.innerHTML = (TY >= 2022) ? "QSS" : "Widow(er)" ;
 
 		// Is the SP tracking the TP dates?
 		if (WhatChanged == "SP") {
@@ -309,8 +307,8 @@
 		}
 
 		// this will fail in 2025 and will need to be fixed
-		TPMilitaryLimit = (TPAgeList[0].checked) ?  MilitaryLimit[+TaxYear.value - 2019] : 0 ;
-		SPMilitaryLimit = (SPAgeList[0].checked) ?  MilitaryLimit[+TaxYear.value - 2019] : 0 ;
+		TPMilitaryLimit = (TPAgeList[0].checked) ?  MilitaryLimit[TY - 2019] : 0 ;
+		SPMilitaryLimit = (SPAgeList[0].checked) ?  MilitaryLimit[TY - 2019] : 0 ;
 
 		// Calculate and show the percentages
 		TPPercent = (TPToMonth - TPFromMonth + 1) / 12;
@@ -805,7 +803,7 @@
 
 
 		// Get taxable amount total and percentage of SS/Tier1 parts based on income
-		result = _TaxableSS(TaxYear.value, FilingStatus.value, FedSSAmount, FedSSMAGI + FedSSTFI, 0, false);
+		result = _TaxableSS(TY, FilingStatus.value, FedSSAmount, FedSSMAGI + FedSSTFI, 0, false);
 		if (FedSSAmount) {
 			SSPercent = +result[0] / FedSSAmount;
 			FedAGI += +result[0];
@@ -834,7 +832,7 @@
 		SPRRB1Total = Math.round(SPRRB1Total * SSPercent);
 
 		// Starting in 2022, Social security has its own pension deduction
-		if (+TaxYear.value >= 2022) {
+		if (TY >= 2022) {
 			StateSum12 -= (TPSSState + SPSSState);
 		}
 		else {
@@ -911,7 +909,7 @@
 		// Apply limit to remaining retirement accounts ------------------------
 		FormADError = false;
 		TPAnnuityLimitState = TPAnnuityLimit;
-		if (TaxYear.value >= 2022) {
+		if (TY >= 2022) {
 			if (TPAgeList[2].checked) {
 				TPAnnuityLimitState = Math.max(0, TPAnnuityLimit - TPSSState);
 				StateSum["Taxpayer_Social_Security_exclusion"] = 
@@ -927,7 +925,7 @@
 		//if ((TPPossibleErrorAmount > 0) && (TPEligiblePension > 0)) FormADError = true;
 
 		SPAnnuityLimitState = SPAnnuityLimit;
-		if (TaxYear.value >= 2022) {
+		if (TY >= 2022) {
 			if (SPAgeList[2].checked) {
 				SPAnnuityLimitState = Math.max(0, SPAnnuityLimit - SPSSState);
 				StateSum["Spouse_Social_Security_exclusion"] = 
@@ -945,7 +943,7 @@
 		// Apply limit for full year CO return calc
 		TPAnnuityLimitTotal = TPAnnuityLimit;
 		SPAnnuityLimitTotal = SPAnnuityLimit;
-		if (TaxYear.value >= 2022) {
+		if (TY >= 2022) {
 			if (TPAgeList[2].checked) TPAnnuityLimitTotal = Math.max(0, TPAnnuityLimit - TPSSTotal);
 			if (SPAgeList[2].checked) SPAnnuityLimitTotal = Math.max(0, SPAnnuityLimit - SPSSTotal);
 		}
@@ -1127,7 +1125,7 @@
 			ADAmount = StateSum["Interest-gov"] + OtherSum["Interest-gov"];
 			ADTotal += ADAmount;
 			message += "<li>change line " + (subline++) + " (Government interest) to $<b>" + ADAmount + "</b>.</li>";
-			if (+TaxYear.value == 2022) {
+			if (TY == 2022) {
 				ADAmount = StateSum["Taxpayer_Social_Security_exclusion"] + OtherSum["Taxpayer_Social_Security_exclusion"];
 				message += "<li>change line " + (subline++) + " (Primary TP Social Security Benefits) to $<b>" + ADAmount + "</b>.</li>";
 				ADTotal += ADAmount;
@@ -1136,7 +1134,7 @@
 			//ADAmount = StateSum["Taxpayer_Annuity_Pension_exclusion"] + OtherSum["Taxpayer_Annuity_Pension_exclusion"];
 			ADTotal += ADAmount;
 			message += "<li>change line " + (subline++) + " (Primary TP pension exclusion) to $<b>" + ADAmount + "</b>.</li>";
-			if (+TaxYear.value == 2022) {
+			if (TY == 2022) {
 				ADAmount = StateSum["Spouse_Social_Security_exclusion"] + OtherSum["Spouse_Social_Security_exclusion"];
 				message += "<li>change line " + (subline++) + " (Spouse Social Security Benefits) to $<b>" + ADAmount + "</b>.</li>";
 				ADTotal += ADAmount;
@@ -1151,7 +1149,7 @@
 			ADAmount = StateSum["Spouse_Military_retire_benefits"] + OtherSum["Spouse_Military_retire_benefits"];
 			ADTotal += ADAmount;
 			message += "<li>change line " + (subline++) + " (Spouse military retirement) to $<b>" + ADAmount + "</b>.</li>";
-			if (+TaxYear.value == 2022) {
+			if (TY == 2022) {
 				subline++; // Changed to Colorado Agricultural Land Capital Gain Subtraction (OUT OF SCOPE)
 			}
 			else {
@@ -1179,7 +1177,7 @@
 			ADTotal += ADAmount;
 			message += "<li>change line " + (subline++) + " (Wildfire mitigation) to $<b>" + ADAmount + "</b>.</li>";
 			subline = 18; // for 2019, 2020, 2021
-			if (+TaxYear.value == 2022) subline = 22;
+			if (TY == 2022) subline = 22;
 			ADAmount = StateSum["Interest-CO_1st_Time_Home"];
 			ADTotal += ADAmount;
 			message += "<li>change line " + (subline++) + " (FIrst time homebuyer interest) to $<b>" + ADAmount + "</b>.</li>";
@@ -1196,10 +1194,10 @@
 			message += "</ul></li>";
 			message += "<li>CO form 104:";
 			message += "<ul>";
-			if (+TaxYear.value == 2019) subline = 5;
-			if (+TaxYear.value == 2020) subline = 8;
-			if (+TaxYear.value == 2021) subline = 6;
-			if (+TaxYear.value == 2022) subline = 8;
+			if (TY == 2019) subline = 5;
+			if (TY == 2020) subline = 8;
+			if (TY == 2021) subline = 6;
+			if (TY == 2022) subline = 8;
 			message += "<li>change line " + (subline++) + " to $<b>" + ADTotal + "</b>.</li>";
 			message += "<li>adjust the amount in line " + (subline++) + ".</li>";
 			message += "<li>change line " + (subline++) + " with the new CO tax from 104PN.</li>";
@@ -1667,7 +1665,7 @@
 <!-- **************************************** START OF HTML ************************************************* -->
 <!-- ******************************************************************************************************** -->
 
-<body onload="Initialize()">
+<body>
 
 <center>
 	<span class="title">Colorado Part Year Worksheet</span>
@@ -1959,4 +1957,7 @@
 </div>
 
 </body>
+
+<script> _GetIRSData(_StartYear, _StopYear); </script>
+
 </html>
