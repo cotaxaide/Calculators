@@ -182,7 +182,6 @@
 	}
 </style>
 
-<script src="Tax_Data/IRS_2000.js"></script>
 <script type="text/javascript">
 	var VERSION;
 	// --------------------------------------------------------------------------------
@@ -193,7 +192,9 @@
 	//	Kurt Dunphy
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 2.02, 10/30/2023)";
+	VERSION = "(Version 2.03, 5/17/2024)";
+	//	Removed reliance on other script files
+	//VERSION = "(Version 2.02, 10/30/2023)";
 	//	Modified deceased spouse and remarried or did non own/live in home 2 years
 	//VERSION = "(Version 2.01, 6/26/2023)";
 	//	Added calculations relative to spouse death or divorce and home improvements
@@ -255,6 +256,7 @@
 	var SaleDateDays = 0;
 	var PurchDateDays = 0;
 	var SPDiedBeforeSale = false;
+	var _ThisYear = +_ThisDate.getFullYear();
 
 //----------------------------------------------------------------------------------------
 function Initialize() {
