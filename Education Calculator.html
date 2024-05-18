@@ -169,18 +169,17 @@
 	       }
 </style>
 
-<script src="Tax_Data/IRS_2000.js"></script>
-<!-- Keep current plus 4 prior years (for ACA) -->
-<script src="Tax_Data/IRS_2019.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script src="Tax_Data/IRS_2023.js"></script>
-<script src="CommonRoutines.js"></script>
+<script src="Common_Routines.js"></script>
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.43, 12/22/2023";
+	var VERSION = "Version 3.45, 5/17/2024";
+	//	Changed to JSON IRS data files
+	//var VERSION = "Version 3.44a, 2/18/2024";
+	//	Clarified data entry for student on optimization tab
+	//var VERSION = "Version 3.44, 12/24/2023";
+	//	Maximum expenses still not working correctly
+	//var VERSION = "Version 3.43, 12/22/2023";
 	//	Corrected too much restricted scholarship used for nonqualified expenses
 	//	Changed titles of expense options to Use all & Maximize expenses
 	//	Unset Use all option if taxed amount is not 0 so it can be clicked to set to 0
@@ -410,7 +409,7 @@
 
 	//----------------------------------------------------------------------------------------
 	// This function initializes options when the application is first loaded
-	function Initialize() {	
+	function Main() {	
 	//----------------------------------------------------------------------------------------
 
 		// Add tax year list to the drop-down
@@ -419,21 +418,21 @@
 
 		// Add the years
 		for (var ty = _StartYear; ty <= _StopYear; ty++) {
-			if (_LineNo[ty + ":CapGains"] != "") { // Prevent adding if no data
-				var tyopti = document.createElement("option");
-				tyopti.text = tyopti.value = ty;
-				TaxYear.add(tyopti,tyOptIndex++);
-			}
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
 		}
 
 		// Set the default to the last tax year
-		TaxYear.value = _DefaultYear;
+		TaxYear.value = TY = +_DefaultYear;
 
 		// Read any cookies
 		switch (test = _Read_Cookie("Region")) {
-			case "US"    : RegionUS.checked = true    ; break;
-			case "Alaska": RegionAlaska.checked = true; break;
-			case "Hawaii": RegionHawaii.checked = true; break;
+			case "US"    : RegionUS.checked = true; break;
+			case "AK":
+			case "Alaska": RegionAK.checked = true; break;
+			case "HI":
+			case "Hawaii": RegionHI.checked = true; break;
 			default: RegionUS.checked = true;
 		}
 
@@ -519,13 +518,14 @@
 		if (whatChanged == "TaxYear") {
 			optionLabel = (+TaxYear.value < 2022) ? "Widow(er)" : "QSS" ;
 			FilingStatus.lastElementChild.innerHTML = optionLabel;
-			//StudentFilingStatus:nth-child(4).innerHTML
+			TY = +TaxYear.value;
 		}
 
 		// Show controls related to the chosen filing status for the taxpayer
 		AGIdiv.style.display = "block";
 		MedicalSpouse.style.display = "none";
-		switch (FilingStatus.value) {
+		FS = FilingStatus.value;
+		switch (FS) {
 			case "MFJ":
 				SP65.disabled = false;
 				SPBlind.disabled = false;
@@ -583,40 +583,40 @@
 
 		// Show line numbers for the selected tax year in the Optimizer tab
 		CapGainsLineNoA.innerHTML = CapGainsLineNoB.innerHTML =
-		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _LineNo[TaxYear.value + ":QDCG"];
-		AGILineNoA.innerHTML = AGILineNoB.innerHTML = _LineNo[TaxYear.value + ":AGI"];
-		QBILineNoA.innerHTML = QBILineNoB.innerHTML = _LineNo[TaxYear.value + ":QBI"];
-		SalaryLineNoA.innerHTML = SalaryLineNoB.innerHTML = _LineNo[TaxYear.value + ":Salary"];
-		BusinessLineNoA.innerHTML = BusinessLineNoB.innerHTML = _LineNo[TaxYear.value + ":Business"];
-		SEHILineNoA.innerHTML = SEHILineNoB.innerHTML = _LineNo[TaxYear.value + ":SEHI"];
-		ItemDedLineNoA.innerHTML = ItemDedLineNoB.innerHTML = _LineNo[TaxYear.value + ":ItemDed"];
-		DeductionsLineNoA.innerHTML = DeductionsLineNoB.innerHTML = _LineNo[TaxYear.value + ":Deductions"];
-		TaxAmountLineNoA.innerHTML = TaxAmountLineNoB.innerHTML = _LineNo[TaxYear.value + ":TaxAmount"];
-		ExcessAPTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":ExcessAPTC"];
-		CareLineNoB.innerHTML = _LineNo[TaxYear.value + ":Care"];
-		LLCLineNoB.innerHTML = _LineNo[TaxYear.value + ":LLC"];
-		RetireLineNoB.innerHTML = _LineNo[TaxYear.value + ":Retire"];
-		CTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":CTC"];
+		StudCapGainsLineNoA.innerHTML = StudCapGainsLineNoB.innerHTML = _IRSValue("LineNo.QDCG");
+		AGILineNoA.innerHTML = AGILineNoB.innerHTML = _IRSValue("LineNo.AGI");
+		QBILineNoA.innerHTML = QBILineNoB.innerHTML = _IRSValue("LineNo.QBI");
+		SalaryLineNoA.innerHTML = SalaryLineNoB.innerHTML = _IRSValue("LineNo.Wages");
+		BusinessLineNoA.innerHTML = BusinessLineNoB.innerHTML = _IRSValue("LineNo.Business");
+		SEHILineNoA.innerHTML = SEHILineNoB.innerHTML = _IRSValue("LineNo.SEHI");
+		ItemDedLineNoA.innerHTML = ItemDedLineNoB.innerHTML = _IRSValue("LineNo.ItemDed");
+		DeductionsLineNoA.innerHTML = DeductionsLineNoB.innerHTML = _IRSValue("LineNo.Deductions");
+		TaxAmountLineNoA.innerHTML = TaxAmountLineNoB.innerHTML = _IRSValue("LineNo.TaxAmount");
+		ExcessAPTCLineNoB.innerHTML = _IRSValue("LineNo.ExcessAPTC");
+		CareLineNoB.innerHTML = _IRSValue("LineNo.Care");
+		LLCLineNoB.innerHTML = _IRSValue("LineNo.LLC");
+		RetireLineNoB.innerHTML = _IRSValue("LineNo.Retire");
+		CTCLineNoB.innerHTML = _IRSValue("LineNo.CTC");
 		StudNRCreditLineNoB.innerHTML =
-		NRCreditLineNoB.innerHTML = _LineNo[TaxYear.value + ":NRCredit"];
-		//IRPLineNoB.innerHTML = _LineNo[TaxYear.value + ":IRP"];
-		EICLineNoB.innerHTML = _LineNo[TaxYear.value + ":EIC"];
-		ACTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":ACTC"];
-		AOCLineNoB.innerHTML = _LineNo[TaxYear.value + ":AOC"];
-		NetPTCLineNoB.innerHTML = _LineNo[TaxYear.value + ":NetPTC"];
-		F8962ALineNoA.innerHTML = F8962ALineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962A"];
-		F8962BLineNoA.innerHTML = F8962BLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962B"];
-		F8962FLineNoA.innerHTML = F8962FLineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962F"];
-		//F8962MAGILineNoB.innerHTML = _LineNo[TaxYear.value + ":F8962MAGI"];
+		NRCreditLineNoB.innerHTML = _IRSValue("LineNo.NRCredit");
+		//IRPLineNoB.innerHTML = _IRSValue("LineNo.IRP");
+		EICLineNoB.innerHTML = _IRSValue("LineNo.EIC");
+		ACTCLineNoB.innerHTML = _IRSValue("LineNo.ACTC");
+		AOCLineNoB.innerHTML = _IRSValue("LineNo.AOC");
+		NetPTCLineNoB.innerHTML = _IRSValue("LineNo.NetPTC");
+		F8962ALineNoA.innerHTML = F8962ALineNoB.innerHTML = _IRSValue("LineNo.F8962A");
+		F8962BLineNoA.innerHTML = F8962BLineNoB.innerHTML = _IRSValue("LineNo.F8962B");
+		F8962FLineNoA.innerHTML = F8962FLineNoB.innerHTML = _IRSValue("LineNo.F8962F");
+		//F8962MAGILineNoB.innerHTML = _IRSValue("LineNo.F8962MAGI");
 
 		// Child Tax Credit and Refundable Care change in 2021
 		RefCareLineNoB.innerHTML = "S3-13g"; // 2021 only
-		RefCareLine.style.display = Dependents0Row.style.display = (TaxYear.value == 2021) ?  "table-row" : "none";
-		ACTCLabel.innerHTML = (TaxYear.value == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit" ;
+		RefCareLine.style.display = Dependents0Row.style.display = (TY == 2021) ?  "table-row" : "none";
+		ACTCLabel.innerHTML = (TY == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit" ;
 
 		// Change to TaxSlayer input form in 2022
-		TaxpayerResultTuitionRow.style.display = (+TaxYear.value > 2021) ? "table-row" : "none" ;
-		TaxpayerResultScholarRow.style.display = (+TaxYear.value > 2021) ? "table-row" : "none" ;
+		TaxpayerResultTuitionRow.style.display = (TY > 2021) ? "table-row" : "none" ;
+		TaxpayerResultScholarRow.style.display = (TY > 2021) ? "table-row" : "none" ;
 		
 		// Calculate Fed Poverty Line for the given year
 		RegionList = document.getElementsByName("Region");
@@ -624,9 +624,8 @@
 			if (RegionList[i].checked) ThisRegion = RegionList[i].value;
 		}
 		_Write_Cookie("Region", ThisRegion);
-		var FPLi = (TaxYear.value - 1) + ":" + ThisRegion;
-		FedPovertyLine = +(_FPL[FPLi].split(",")[0]) + (+Dependents.value * +_FPL[FPLi].split(",")[1]);
-		if (FilingStatus.value == "MFJ") FedPovertyLine += +(_FPL[FPLi].split(",")[1]);
+		FedPovertyLine = +_IRSValue("ACA.PYFPL.Rate") + (+Dependents.value * +_IRSValue("ACA.FPL.Inc"));
+		if (FS == "MFJ") FedPovertyLine += (+_IRSValue("ACA.FPL.Inc"));
 
 		// Check dependent entries
 		if (Dependents.value < 0) Dependents.value = 0;
@@ -650,7 +649,7 @@
 		// Set defaults depending if the student is a dependent or the taxpayer
 		ClaimedYes.disabled = ClaimedNo.disabled = false;
 		if (DependentNo.checked) { // Student is the taxpayer
-			if ((FilingStatus.value == "MFJ") && (! MFJRefund.checked)) {
+			if ((FS == "MFJ") && (! MFJRefund.checked)) {
 				ClaimedNo.checked = true;
 				ClaimedYes.disabled = ClaimedNo.disabled = true;
 			}
@@ -724,12 +723,12 @@
 			&& (! ((ParentAliveNo.checked && DependentNo.checked)
 				|| (ParentAlive2No.checked && DependentYes.checked)))
 
-			&& ((((FilingStatus.value != "MFJ") || MFJRefund.checked) && DependentNo.checked)
+			&& ((((FS != "MFJ") || MFJRefund.checked) && DependentNo.checked)
 				|| ((StudentFilingStatus.value != "MFJ") && DependentYes.checked))) {
 			
 			KiddieTaxApplies = true;
 			KTui.innerHTML = 
-			KiddieTaxThreshold = +_Standard[TaxYear.value].split(",")[+_Standard["Kid"]];
+			KiddieTaxThreshold = +_IRSValue("Kiddie");
 		}
 		KTdiv.style.display = (KiddieTaxApplies) ? "inline-block" : "none" ;
 		
@@ -768,21 +767,21 @@
 		ScholarSAV.disabled = TimePart.checked;
 
 		// Calculate maximum allowable deduction amounts
-		MaxAOC.innerHTML = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",")[0];
+		MaxAOC.innerHTML = _IRSValue("Education.AOC.MAX0");
 		if ((DependentNo.checked && ClaimedYes.checked)
 		    || FelonyYes.checked
 		    || FourYearsAOCYes.checked
 		    || FourYearsYes.checked
 		    || DegreeNo.checked
 		    || TimePart.checked
-		    || (FilingStatus.value == "MFS"))
+		    || (FS == "MFS"))
 		    MaxAOC.innerHTML = 0;
 
-		MaxLLC.innerHTML = _EdExpenseLimits[TaxYear.value + ":LLC"].split(",")[0];
+		MaxLLC.innerHTML = _IRSValue("Education.LLC.MAX0");
 		if ((DependentNo.checked && ClaimedYes.checked)
 		    || TPNRA.checked
 		    || SPNRA.checked
-		    || (FilingStatus.value == "MFS"))
+		    || (FS == "MFS"))
 		    MaxLLC.innerHTML = 0;
 		if (DegreeNo.checked && SkillsNo.checked) MaxLLC.innerHTML = 0;
 
@@ -793,26 +792,24 @@
 				|| (+MaxAOC.innerHTML == 0)) ? "No" : "Yes";
 
 		// Update figures in the Manual Comparison page CreditLimitTable
-		MFJIndex =  (FilingStatus.value == "MFJ") ? 1 : 0;
-		MFJIndex2 = MFJIndex * 2;
-		amount = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",")[1 + MFJIndex2];
+		amount = _IRSValue("Education.AOC." + FS + "1");
 		LimitTableAOC1b.innerHTML = Comma(amount);
 		LimitTableAOC2a.innerHTML = Comma(+amount + 1);
-		amount = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",")[2 + MFJIndex2];
+		amount = _IRSValue("Education.AOC." + FS + "2");
 		LimitTableAOC2b.innerHTML = Comma(amount);
 		LimitTableAOC3a.innerHTML = Comma(+amount + 1);
-		amount = _EdExpenseLimits[TaxYear.value + ":LLC"].split(",")[1 + MFJIndex2];
+		amount = _IRSValue("Education.LLC." + FS + "1");
 		LimitTableLLC1b.innerHTML = Comma(amount);
 		LimitTableLLC2a.innerHTML = Comma(+amount + 1);
-		amount = _EdExpenseLimits[TaxYear.value + ":LLC"].split(",")[2 + MFJIndex2];
+		amount = _IRSValue("Education.LLC." + FS + "2");
 		LimitTableLLC2b.innerHTML = Comma(amount);
 		LimitTableLLC3a.innerHTML = Comma(+amount + 1);
-		var vEICTable = TaxYear.value + ":" + ((FilingStatus.value == "MFJ") ? "MFJ" : "SNG");
+		var vEIC_FS = (FS == "MFJ") ? "MFJ" : "SNG" ;
 		var vEICDependents = Math.min(3, +EICDependents.value);
-		var vEICLookupMax = _EICRates[vEICTable].split(",")[vEICDependents];
-		var vEICRateUp = _EICRates[TaxYear.value + ":RATEUP"].split(",")[vEICDependents];
-		var vEICMax = _EICRates[TaxYear.value + ":MAX"].split(",")[vEICDependents];
-		var vEICRateDown = _EICRates[TaxYear.value + ":RATEDOWN"].split(",")[vEICDependents];
+		var vEICLookupMax = _IRSValue("EIC." + vEIC_FS)[vEICDependents];
+		var vEICRateUp = _IRSValue("EIC.RateUp")[vEICDependents];
+		var vEICMax = _IRSValue("EIC.Maximum")[vEICDependents];
+		var vEICRateDown = _IRSValue("EIC.RateDown")[vEICDependents];
 		amount = Math.round(vEICMax / vEICRateUp);
 		LimitTableEIC1b.innerHTML = Comma(amount);
 		LimitTableEIC1c.innerHTML = Comma(vEICMax);
@@ -864,7 +861,7 @@
 		if (BusinessTax.value > 0) {
 			SEHIRow.style.display =
 			QBIRow.style.display = "table-row";
-			BusinessSETax = _SETax(TaxYear.value, BusinessTax.value)[1];
+			BusinessSETax = _SETax(TY, BusinessTax.value)[1];
 		}
 		else {
 			SEHIRow.style.display =
@@ -875,7 +872,7 @@
 		if (StudBusinessTax.value > 0) {
 			StudSEHIRow.style.display =
 			StudQBIRow.style.display = "table-row";
-			StudBusinessSETax = _SETax(TaxYear.value, StudBusinessTax.value)[1];
+			StudBusinessSETax = _SETax(TY, StudBusinessTax.value)[1];
 		}
 		else {
 			StudSEHIRow.style.display =
@@ -940,10 +937,10 @@
 			// Get the student's current unearned income amount and determine if must file
 
 			// Taxable scholarship is earned income for this test
-			var deductionAmount = +_StandardDeduction(TaxYear.value, StudentFilingStatus.value,
+			var deductionAmount = +_StandardDeduction(TY, StudentFilingStatus.value,
 				StudentTP65.checked, StudentTPBlind.checked, StudentSP65.checked, StudentSPBlind.checked,
 				false, 0);
-			var fileMinimum = +_Standard[TaxYear.value].split(",")[_Standard["Minimum"]];
+			var fileMinimum = +_IRSValue("DependMin");
 
 			taxableLimit = Math.min(deductionAmount, taxableLimit);
 
@@ -970,7 +967,7 @@
 			KiddieFileMargin = Math.max(0, (KiddieTaxThreshold - studentUnearned) ); // Taxable scholarship is not included
 
 			// grossMargin is the amount that can be added without having to file
-			var earnedIncrement = +_Standard[TaxYear.value].split(",")[+_Standard["DependInc"]];
+			var earnedIncrement = +_IRSValue("DependInc");
 			var maxStudentDeduction = Math.min(+StudEarnedTax.value + taxableLimit + earnedIncrement, deductionAmount);
 			var grossMargin = maxStudentDeduction - StudAGITax.value;
 
@@ -1000,7 +997,7 @@
 			// Get the student's current AGI (not quite accurate - should be total income)
 			// taxableLimit = +StudAGITax.value; // rmv in v4.6
 			taxableLimit = Math.min(+StudAGITax.value, taxableLimit); // added in v4.6
-			var exemptionLimit = _Standard[TaxYear.value].split(",")[+_Standard["DepAsRel"]];
+			var exemptionLimit = _IRSValue("DepAsRel");
 			if (taxableLimit > exemptionLimit) {
 				message = "The student you are designating as a dependant has an AGI";
 				message += " that is too high for the student to be a qualified dependent.";
@@ -1232,7 +1229,7 @@
 			messageAllMaxedOut.style.display = "list-item";
 		}
 		messagePerhaps.style.display = (showPerhaps) ? "list-item" : "none";
-		messageDependent.style.display = (showPerhaps && DependentYes.checked && (+TaxYear.value < 2018)) ? "list-item" : "none";
+		messageDependent.style.display = (showPerhaps && DependentYes.checked && (TY < 2018)) ? "list-item" : "none";
 
 		// Clear manual calcualations
 		ManualTax.style.backgroundColor =
@@ -1408,7 +1405,7 @@
 		}
 
 		// Calculate Earned Income Credits
-		switch (+TaxYear.value) { // Age 65 give wrong answer but unlikely to be a student anyway
+		switch (TY) { // Age 65 give wrong answer but unlikely to be a student anyway
 		case 2020: // Age 25 - 65
 			EICLower.innerHTML = 25;
 			EICUpper.innerHTML = "or greater than 64";
@@ -1433,14 +1430,14 @@
 			EICLLC.innerHTML = "";
 		}
 		else {
-			EICInvest.innerHTML = _EICRates[TaxYear.value + ':INVEST'];
-			EICTax.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
+			EICInvest.innerHTML = _IRSValue("EIC.InvestMax");
+			EICTax.innerHTML = _EICLookup(TY, FS, EICDependents.value,
 				(+EarnedTax.value - BusinessSETax),
 				CapGainsTax.value, AGITax.value, TP65.checked, SP65.checked);
-			EICAOC.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
+			EICAOC.innerHTML = _EICLookup(TY, FS, EICDependents.value,
 				+EarnedAOC.innerHTML - +ScholarAOC.innerHTML - BusinessSETax,
 				CapGainsAOC.innerHTML, AGIAOC.innerHTML, TP65.checked, SP65.checked);
-			EICLLC.innerHTML = _EICLookup(TaxYear.value, FilingStatus.value, EICDependents.value,
+			EICLLC.innerHTML = _EICLookup(TY, FS, EICDependents.value,
 				+EarnedLLC.innerHTML - +ScholarLLC.innerHTML - BusinessSETax,
 				CapGainsLLC.innerHTML, AGILLC.innerHTML, TP65.checked, SP65.checked);
 		}
@@ -1507,7 +1504,7 @@
 			SupTuition.innerHTML = TaxpayerResultTuition.innerHTML = Tuition.value;
 			ResultingScholar = Math.max(0, allScholarships - ResultingIncome);
 			TaxpayerResultScholar.innerHTML = ResultingScholar;
-			if (+TaxYear.value > 2021) {
+			if (+TY > 2021) {
 				ResultingExpense = Math.max(0, ResultingExpense + ResultingScholar - Tuition.value);
 			}
 			TaxpayerResultExpense.innerHTML = ResultingExpense;
@@ -1525,10 +1522,7 @@
 
 		// Warning messages
 		if (ScholarSAV.value > 0) {
-			var SAVFilingStatus = 0; // MFS
-			if ((FilingStatus.value == "SNG") || (FilingStatus.value == "HOH")) SAVFilingStatus = 1;
-			if ((FilingStatus.value == "MFJ") || (FilingStatus.value == "WID")) SAVFilingStatus = 3;
-			var AGISAVLimit = _EdExpenseLimits[TaxYear.value +":SAV"].split(",")[SAVFilingStatus];
+			var AGISAVLimit = _IRSValue("Education.Savings." + FS + "0");
 			if ((+AGIAOC.innerHTML > AGISAVLimit) ||
 					(+AGIAOC.innerHTML > AGISAVLimit) ||
 					(+AGIAOC.innerHTML > AGISAVLimit)) {
@@ -1554,114 +1548,112 @@
 		) {
 	// returns true if kiddie tax was encountered
 	//----------------------------------------------------------------------------------------
-		// saAmount is the amount of ScholarAvailable that remains to be distributed
-		var saAmount = ScholarAvailable;
+		// saRemaining is the amount of ScholarAvailable that remains to be distributed
+		// Does not include restricted scholarships
+		var saRemaining = ScholarAvailable;
 		var saRestricted = +Restricted.value;
 
-		// qeeLimit is the tax law limit for the type of credit
+		// qTaxLimit is the tax law limit for the type of credit
 		switch (type) {
-			case "AOC": var qeeLimit = +MaxAOC.innerHTML; break;
-			case "LLC": var qeeLimit = +MaxLLC.innerHTML; break;
+			case "AOC": var qTaxLimit = +MaxAOC.innerHTML; break;
+			case "LLC": var qTaxLimit = +MaxLLC.innerHTML; break;
 		}
 
-		// nqntAmount is the non-qualified amount that is not taxable
-		var nqntAmount = Math.max(0, QualExpenses["AOC"] - QualExpenses[type]);
-		var nqntAmount0 = Math.min(nqntAmount, NonqualExpenses[type]);
+		// nqntExpensesLeft is the non-qualified amount that is not taxable
+		var nqntExpensesLeft = Math.max(0, QualExpenses["AOC"] - QualExpenses[type]);
+		var nqntExpensesLeft0 = Math.min(nqntExpensesLeft, NonqualExpenses[type]);
 		
 		// Supplemental resources are not eligible for taxing due to penalties
 		var taxExpenseLimit = Math.max(0, NQExpenses[type] - ScholarSupplemental);
+		// Taxable amount may be limited manually
 		var taxLimit = Math.min(+ScholarTaxableMax.innerHTML, taxExpenseLimit);
 		var taxRequested = +ScholarTaxable.value;
 		var incomeAmount = taxRequested + ScholarIncome;
 
-		// suppnqAmount is the non-qualified amount that is taxable if used
-		var suppnqAmount = nqExpenses = NQExpenses["AOC"];
+		// suppnqAmountPaid is the non-qualified amount that is taxable if used
+		var suppnqAmountPaid = nqExpensesLeft = NQExpenses["AOC"];
 
 		// Amount distributed for expenses
-		var nqAmount = 0; // nonqualified
-		var qAmount =  0;  // qualified
-		var qExpenses = QualExpenses[type];
+		var nqAmountPaid = 0; // nonqualified
+		var qAmountPaid =  0;  // qualified
+		var qExpensesLeft = QualExpenses[type];
 
 		// Use Supplemental sources for supplemental non-qualified first
 		var suppRemainder = ScholarSupplemental;
-		var suppPay = Math.min(suppRemainder, suppnqAmount);
-		nqAmount += suppPay;
-		saAmount -= suppPay;
+		var suppPay = Math.min(suppRemainder, suppnqAmountPaid);
+		nqAmountPaid += suppPay;
+		nqExpensesLeft -= suppPay;
+		saRemaining -= suppPay;
 		suppRemainder -= suppPay;
-		nqExpenses -= suppPay;
 
 		// Use remaining supplemental sources to pay qualified expenses
 		suppPay = Math.min(suppRemainder, QualExpenses[type]);
-		qAmount += suppPay;
-		saAmount -= suppPay;
+		qAmountPaid += suppPay;
+		qExpensesLeft -= suppPay;
+		saRemaining -= suppPay;
 		suppRemainder -= suppPay;
-		qExpenses -= suppPay;
 
 		// Use remaining supplemental sources for nontaxable non-qualified
-		suppPay = Math.min(suppRemainder, nqntAmount);
-		nqAmount += suppPay;
-		saAmount -= suppPay;
-		nqntAmount -= suppPay;
-		nqExpenses -= suppPay;
+		suppPay = Math.min(suppRemainder, nqntExpensesLeft);
+		nqntExpensesLeft -= suppPay;
+		nqAmountPaid += suppPay;
+		nqExpensesLeft -= suppPay;
+		saRemaining -= suppPay;
 		suppRemainder -= suppPay; // hopefully will be 0
 
 		// Use restricted scholarships for qualified expenses
-		qAmount += saRestricted;
-		saAmount -= saRestricted;
-		qExpenses -= saRestricted;
+		qAmountPaid += saRestricted;
+		qExpensesLeft -= saRestricted;
+		saRemaining -= saRestricted;
 
 		if (GapGap.checked) {
-			expenseGap = qeeLimit;
-			qAmountGap = qExpenses;
-			nqAmountGap = Math.max(0, +Nonrestricted.value - nqAmount);
-			gapAmount = Math.min(expenseGap, qAmountGap, nqAmountGap);
+			// Determine the limiting amounts
+			gapAmount = Math.min(qExpensesLeft, nqExpensesLeft, qTaxLimit, saRemaining);
+
+			// Amount to pay to qualified amounts to maximize expenses
+			var qPay = Math.max(0, qExpensesLeft - gapAmount);
+			qAmountPaid += qPay;
+			qExpensesLeft -= qPay;
+			saRemaining -= qPay;
+			gapAmount -= qPay;
 
 			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntAmount, saAmount);
-			nqntAmount -= nqntPay;
-			nqntPay = Math.min(nqntAmount, saAmount, gapAmount);
-			nqAmount += nqntPay;
-			saAmount -= nqntPay;
-			nqExpenses -= nqntPay;
+			nqntPay = Math.min(nqntExpensesLeft, gapAmount);
+			nqAmountPaid += nqntPay;
+			nqExpensesLeft -= nqntPay;
+			saRemaining -= nqntPay;
 			gapAmount -= nqntPay;
-
-			// Pay any scholarship funds to nonqualified amounts
-			var nqPay = Math.min(nqExpenses, saAmount, gapAmount);
-			//nqAmount += nqPay;
-			saAmount -= nqPay;
-			incomeAmount += nqPay;
-			nqExpenses -= nqPay;
 		}
 
 		else { 
 			// Pay qualified next
-			var qePayLimit = Math.max(0, QualExpenses[type] - qAmount);
-			var qPaid = Math.min(saAmount, qePayLimit);
-			qAmount += qPaid;
-			saAmount -= qPaid;
-			qExpenses -= qPaid;
+			var qePayLimit = Math.max(0, QualExpenses[type] - qAmountPaid);
+			var qPaid = Math.min(saRemaining, qePayLimit);
+			qAmountPaid += qPaid;
+			qExpensesLeft -= qPaid;
+			saRemaining -= qPaid;
 
 			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntAmount, saAmount);
-			nqntAmount -= nqntPay;
-			nqAmount += nqntPay;
-			saAmount -= nqntPay;
-			nqExpenses -= nqntPay;
+			nqntPay = Math.min(nqntExpensesLeft, saRemaining);
+			nqntExpensesLeft -= nqntPay;
+			nqAmountPaid += nqntPay;
+			nqExpensesLeft -= nqntPay;
+			saRemaining -= nqntPay;
 		}
 
 		// remainder is taxable, show it as paying nonqualified expenses
-		incomeAmount = Math.max(0, incomeAmount + saAmount - nqntAmount);
-		nqAmount += (Math.min(incomeAmount, NQExpenses["AOC"]));
+		incomeAmount = Math.max(0, incomeAmount + saRemaining - nqntExpensesLeft);
+		nqAmountPaid += (Math.min(incomeAmount, NQExpenses["AOC"]));
 
 		// adjust for kiddie tax avoidance
 		if (KiddieTaxApplies) {
 			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
 				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type];
-				var qKiddieLimit = QualExpenses[type] - qAmount;
+				var qKiddieLimit = QualExpenses[type] - qAmountPaid;
 				kiddieAdjust = Math.min(incomeAmount, kiddieAdjust, nqKiddieLimit, qKiddieLimit);
-				nqAmount -= kiddieAdjust;
-				qAmount += kiddieAdjust;
+				nqAmountPaid -= kiddieAdjust;
+				qAmountPaid += kiddieAdjust;
 				incomeAmount -= kiddieAdjust;
 			}
 			var studUnearned = +StudAGITax.value - +StudSalaryTax.value - +StudBusinessTax.value - +StudSEHITax.value;
@@ -1671,26 +1663,27 @@
 		}
 
 		// Save the results
+		qExpensesLeft = Math.max(0, QualExpenses[type] - qAmountPaid);
 		switch (type) {
 			case "AOC":
 				NQAvailAOC.innerHTML = +NQAvailAOC.innerHTML + ScholarReduction; // v3.1
-				NQNTAOC.innerHTML = nqntAmount0; // v3.37
-				QUsedAOC.innerHTML = qAmount;
-				NQUsedAOC.innerHTML = nqAmount; // v3.37
+				NQNTAOC.innerHTML = nqntExpensesLeft0; // v3.37
+				QUsedAOC.innerHTML = qAmountPaid;
+				NQUsedAOC.innerHTML = nqAmountPaid; // v3.37
 				NontaxableAOC.innerHTML = nqntPay; // v3.37
 				QualExpensesAOC.innerHTML =
-				QualExpensesAOC2.innerHTML = Math.min(qExpenses, qeeLimit);
+				QualExpensesAOC2.innerHTML = Math.min(qExpensesLeft, qTaxLimit);
 				IncomeAOC.innerHTML = IncomeAOC2.innerHTML = incomeAmount;
 				break;
 
 			case "LLC":
 				NQAvailLLC.innerHTML = +NQAvailLLC.innerHTML + ScholarReduction; // v3.1
-				NQNTLLC.innerHTML = nqntAmount0; // v3.37
-				QUsedLLC.innerHTML = qAmount;
-				NQUsedLLC.innerHTML = nqAmount; // v3.37
+				NQNTLLC.innerHTML = nqntExpensesLeft0; // v3.37
+				QUsedLLC.innerHTML = qAmountPaid;
+				NQUsedLLC.innerHTML = nqAmountPaid; // v3.37
 				NontaxableLLC.innerHTML = nqntPay; // v3.37
 				QualExpensesLLC.innerHTML =
-				QualExpensesLLC2.innerHTML = Math.min(qExpenses, qeeLimit);
+				QualExpensesLLC2.innerHTML = Math.min(qExpensesLeft, qTaxLimit);
 				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
 				break;
 		}
@@ -1835,18 +1828,22 @@
 	//----------------------------------------------------------------------------------------
 		var testAGI = +AGILLC.innerHTML;
 		var expenses = +QualExpensesLLC.innerHTML + (5 * +LLCTax.value);
-		var limits = _EdExpenseLimits[TaxYear.value + ":LLC"].split(",");
-		var limit = 0.2 * Math.min(limits[0],expenses);
+		var limit0 = _IRSValue("Education.LLC.MAX0");
+		var limit = 0.2 * Math.min(limit0, expenses);
 		var factor = 1;
-		switch (FilingStatus.value) {
-			case "MFJ":
-				if (testAGI >= (limits[3])) factor = Math.max(0,(limits[4] - testAGI) / (limits[4] - limits[3]));
-				break;
-			case "MFS":
-				factor = 0;
-				break;
-			default:
-				if (testAGI >= limits[1]) factor = Math.max(0,(limits[2] - testAGI) / (limits[2] - limits[1]));
+		switch (FS) {
+		case "MFJ":
+			limit1 = _IRSValue("Education.LLC.MFJ1");
+			limit2 = _IRSValue("Education.LLC.MFJ2");
+			if (testAGI >= limit1) factor = Math.max(0,(limit2 - testAGI) / (limit2 - limit1));
+			break;
+		case "MFS":
+			factor = 0;
+			break;
+		default:
+			limit1 = _IRSValue("Education.LLC.SNG1");
+			limit2 = _IRSValue("Education.LLC.SNG2");
+			if (testAGI >= limit1) factor = Math.max(0,(limit2 - testAGI) / (limit2 - limit1));
 		}
 		if (DependentNo.checked && ClaimedYes.checked) factor = 0;
 
@@ -1871,18 +1868,22 @@
 		var testAGI = +AGIAOC.innerHTML;
 		var expenses = +QualExpensesAOC.innerHTML;
 		if (expenses > 2000) expenses = 2000 + ((expenses-2000) * 0.25);
-		var limits = _EdExpenseLimits[TaxYear.value + ":AOC"].split(",");
-		var limit = Math.min(limits[0],expenses);
+		var limit0 = _IRSValue("Education.AOC.MAX0");
+		var limit = Math.min(limit0, expenses);
 		var factor = 1;
-		switch (FilingStatus.value) {
+		switch (FS) {
 			case "MFJ":
-				if (testAGI >= (limits[1]*2)) factor = Math.max(0,(limits[2]*2 - testAGI) / ((limits[2] - limits[1])*2));
+				limit1 = _IRSValue("Education.AOC.MFJ1");
+				limit2 = _IRSValue("Education.AOC.MFJ2");
+				if (testAGI >= limit1) factor = Math.max(0,(limit2 - testAGI) / (limit2 - limit1));
 				break;
 			case "MFS":
 				factor = 0;
 				break;
 			default:
-				if (testAGI >= limits[1]) factor = Math.max(0,(limits[2] - testAGI) / (limits[2] - limits[1]));
+				limit1 = _IRSValue("Education.AOC.SNG1");
+				limit2 = _IRSValue("Education.AOC.SNG2");
+				if (testAGI >= limit1) factor = Math.max(0,(limit2 - testAGI) / (limit2 - limit1));
 		}
 		if (DependentNo.checked && ClaimedYes.checked) factor = 0;
 
@@ -1938,11 +1939,11 @@
 		// Get the exemption amount
 		var exemptionAmount = 0;
 		if (taxExemptions > 0) {
-			var exemptionAmount = taxExemptions * _Standard[TaxYear.value].split(",")[+_Standard["Exemption"]];
+			var exemptionAmount = taxExemptions * _IRSValue("Exemption");
 		}
 
 		// Get the standard deduction amount
-		var fsv = (isStudent) ? StudentFilingStatus.value : FilingStatus.value;
+		var fsv = (isStudent) ? StudentFilingStatus.value : FS;
 		//var cte = (isStudent) ? (+ctEarned - +ctScholar) : ctEarned; // removed 3.20
 		result.deduction = _StandardDeduction(TaxYear.value, fsv,
 				TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, isStudent, ctEarned);
@@ -1952,8 +1953,7 @@
 			var itemizedDeduction = StudItemizedTax.value;
 		}
 		else {
-			var medicalRates = _MedicalExclusion[TaxYear.value].split(",");
-			var medicalRate = (TP65.checked || SP65.checked || Medical65.checked) ? medicalRates[0] : medicalRates[1];
+			var medicalRate = _IRSValue("MedExclusion");
 			var medicalDeduction = Math.max(0, +MedicalTax.value - (AGITax.value * medicalRate));
 			var itemizedBase = +ItemizedTax.value - medicalDeduction;
 
@@ -1968,10 +1968,10 @@
 		// Add QBI if present
 		QBIAmount = 0;
 		result.qbi = 0;
-		if (_LineNo[TaxYear.value + ":QBI"]) {
+		if (_IRSValue("LineNo.QBI")) {
 			SEIncome = (isStudent) ? (+StudBusinessTax.value - StudBusinessSETax - +StudSEHITax.value) :
 				(+BusinessTax.value - BusinessSETax - +SEHITax.value);
-			result.qbi = _QBICalc(TaxYear.value, FilingStatus.value, +SEIncome, 0, 0, taxable);
+			result.qbi = _QBICalc(TY, FS, +SEIncome, 0, 0, taxable);
 			//_QBICalc (	// Qualified Business Income deduction
 			//taxYear,	// tax year tables to use
 			//filingStatus,	// SNG, MFJ, WID, MFS, HOH
@@ -1983,8 +1983,7 @@
 		taxable = Math.max(0, taxable - +result.qbi);
 
 		// Look up the tax
-		var filingStatus = FilingStatus.value;
-		result.tax = _TaxLookup(TaxYear.value, filingStatus, taxable, ctCG, true)["tax"];
+		result.tax = _TaxLookup(TY, FS, taxable, ctCG, true)["tax"];
 
 		return(result);
 	}
@@ -2027,8 +2026,7 @@
 		var PTCRange = 0;
 		var PTCData = [];
 		while (PTCRange < 400) {
-			PTCRangeIndex = TaxYear.value + ":" + PTCRange;
-			PTCData = _PTCFactorVal[PTCRangeIndex].split(",");
+			PTCData = _IRSValue("ACA.PTC" + PTCRange);
 			if (PTCData[0] > FPLPercent) { // found it
 				PTCFactor = +PTCData[1];
 				break;
@@ -2050,11 +2048,8 @@
 			PTCMaximum = PTCMonths * Math.round(PTCMaximum / 12);
 		}
 		result.PTCNet = Math.max(0,(PTCMaximum - PTCAdvance));
-		var PTCExcessMax = PTCData[3] * ((FilingStatus.value == "MFS") ? 1 : 2);
+		var PTCExcessMax = PTCData[3] * ((FS == "MFS") ? 1 : 2);
 		result.APTC = Math.round(Math.min(PTCExcessMax, Math.max(0, (PTCAdvance - PTCMaximum))));
-
-		// APTC does not need to be repaid in 2020
-		if (+TaxYear.value == 2020) result.APTC = 0;
 
 		return (result);
 	}
@@ -2067,7 +2062,7 @@
 	// returns: credit amount
 	//----------------------------------------------------------------------------------------
 		var allowed = AllowedCareTax.value;
-		return Math.round(_ChildCare(TaxYear.value, FilingStatus.value, testAGI, allowed, allowed, allowed));
+		return Math.round(_ChildCare(TY, FS, testAGI, allowed, allowed, allowed));
 
 		//var Carefactor = Math.max(0.2, 0.35 - Math.max(0, Math.floor((+testAGI-13001)/2000)/100));
 		//return Math.round(AllowedCareTax.value * Carefactor);
@@ -2111,7 +2106,7 @@
 		case "AOC": iCare = CalculateCareCredit(+AGIAOC.innerHTML); break;
 		case "LLC": iCare = CalculateCareCredit(+AGILLC.innerHTML); break;
 		}
-		if (TaxYear.value == 2021) {
+		if (TY == 2021) {
 			result.RefCare = iCare;
 			iCare = 0;
 		}
@@ -2129,7 +2124,7 @@
 		// Calculated retirement savings credits
 		var rsv = +MaxRetireTax.value;
 		// See if increased AGI eliminated the credit
-		rsv = _Retirement(TaxYear.value, FilingStatus.value, testAGI, rsv, 0);
+		rsv = _Retirement(TY, FS, testAGI, rsv, 0);
 
 		// Space for retirement savings credit
 		result.Retire = Math.min(rsv, availableNRC);
@@ -2144,10 +2139,10 @@
 			case "LLC": earnedCTC = EarnedLLC.innerHTML - +ScholarLLC.innerHTML; break;
 		}
 		CTCAmount = FTCAmount = ACTCAmount = 0;
-		CTCresult = _CTCLookup(TaxYear.value, FilingStatus.value,
+		CTCresult = _CTCLookup(TY, FS,
 			+CTCDependents.value + (+Dependents0.value * 0.01),
 			Dependents.value, earnedCTC, testAGI, 0);
-		CTCAmount = (TaxYear.value == "2021") ? 0 : +CTCresult[0] ;
+		CTCAmount = (TY == "2021") ? 0 : +CTCresult[0] ;
 		FTCAmount = +CTCresult[1];
 		ACTCAmount = +CTCresult[2];
 
@@ -2161,7 +2156,7 @@
 		result.CTC = Math.min(CTCAmount, availableNRC);
 		availableNRC -= result.CTC;
 		result.NRC += result.CTC;
-		result.ACTC = (TaxYear.value == "2021") ? ACTCAmount : result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCAmount));
+		result.ACTC = (TY == "2021") ? ACTCAmount : result.ACTC = Math.max(0, Math.min((CTCAmount - result.CTC), ACTCAmount));
 
 		// Space for Energy and Sched R amounts?
 		if (type == "TAX") {
@@ -2495,8 +2490,8 @@
 
 		for (var progIdx = 0; progIdx < 3; progIdx++) {
 			if (eligible[progIdx]) {
-				// nqntAmount is the non-qualified amount that is not taxable - shift the curve
-				var nqntAmount = Math.max(0, QualExpenses["AOC"] - QualExpenses[progCode[progIdx]]);
+				// nqntExpensesLeft is the non-qualified amount that is not taxable - shift the curve
+				var nqntExpensesLeft = Math.max(0, QualExpenses["AOC"] - QualExpenses[progCode[progIdx]]);
 				PlotCanv.beginPath();
 				PlotCanv.strokeStyle = progColor[progIdx];
 				PlotCanv.fillStyle = progColor[progIdx];
@@ -2505,7 +2500,7 @@
 					xy = plotProgram[iData].split(",");
 					x0 = "";
 					y0 = (iData == 0) ? xy[progIdx + 2] : "";
-					x1 = Math.max(0, xy[0] - nqntAmount);
+					x1 = Math.max(0, xy[0] - nqntExpensesLeft);
 					AddPlot(x0, y0, x1, xy[progIdx + 2]);
 				}
 			}
@@ -2639,7 +2634,7 @@
 <!-- ******************************* START OF HTML ***************************************************** -->
 <!-- *************************************************************************************************** -->
 
-<body onload="Initialize()">
+<body>
 
 <div id="Header">
 
@@ -2713,7 +2708,7 @@
 	Of course, you have to adjust the taxable amount in the Funding Sources tab manually too (ugh).
 	<br />
 	<br />The <b><u>Optimizer</u></b> tab takes a bit more data entry and shows a detailed comparison for each option
-	and it&apos;s effect on various other credits. To make data entry reasonable, it must be used with
+	and its effect on various other credits. To make data entry reasonable, it must be used with
 	TaxSlayer and does not account for all factors as the manual comparison does
 	(that would require duplicating the entire return).
 	Randomly changing the amounts in the entered fields may result in nonsensical results in the other
@@ -2731,7 +2726,7 @@
 	<br />
 	Optimizer interactions with several items have not (yet) been included - some may never be. Among these are:
 	<ul>
-		<li>Effect of taxable amount of Social Security due to change in income and it&apos;s ripple effect with other items.</li>
+		<li>Effect of taxable amount of Social Security due to change in income and its ripple effect with other items.</li>
 		<li>Significant 1250 gain and 28% gain dividend income (doesn&apos;t account for different tax rates)</li>
 		<li>QBI calculations for 199A dividends
 		<li>Significant tax-free interest relative to other investment income</li>
@@ -2798,8 +2793,8 @@
 			<td><select id="TaxYear" onchange="ChangeInfo(this.id);"></select></td>
 			<td colspan="2"><span id="FilingIn">Filing in:
 				<input name="Region" id="RegionUS" type="radio" value="US" checked="checked" />48 states&nbsp;&nbsp;
-				<input name="Region" id="RegionAlaska" type="radio" value="Alaska" />Alaska&nbsp;&nbsp;
-				<input name="Region" id="RegionHawaii" type="radio" value="Hawaii" />Hawaii</span></td></tr>
+				<input name="Region" id="RegionAK" type="radio" value="AK" />Alaska&nbsp;&nbsp;
+				<input name="Region" id="RegionHI" type="radio" value="HI" />Hawaii</span></td></tr>
 		<tr title="Select the taxpayer's filing status.">
 			<td>Filing Status:</td>
 			<td><select id="FilingStatus">
@@ -3501,7 +3496,9 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		<li>If the student is a dependent:</li>
 			<ul>
 				<li>Begin a tax return for the student if they have any income.</li>
-				<li>Enter data from their tax return in the student&apos;s section below.</li>
+				<li>Enter data from their tax return in the student&apos;s section below.
+					Do not include scholarships or grants as income &ndash; that will be calculated.
+				</li>
 			</ul>
 		<li>Estimated values for each option will then be shown in the columns on the right.</li>
 		<li>Finally, click the optimize button at the bottom to see if taxing part of the scholarship gives better results.</li>
@@ -3988,4 +3985,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 </div>
 
 </body>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
+
 </html>
