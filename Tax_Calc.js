@@ -7,6 +7,7 @@ function Tax_Calc(
 ) {
 // This function takes the inputs from the CalcIn array and creates the CalcOut array
 // CalcIn array keys:
+//	FilingStatus:	MFS, MFJ, SNG, HOH, OSS (not yet implemented. T or S implies MFS)
 // 	Wages:		Total earned income from employment
 // 	Scholar:	Taxable scholarship income
 // 	Interest:	Taxable interest income
@@ -50,6 +51,12 @@ function Tax_Calc(
 //	OtherTaxes:	Penalties, etc
 //	Refundable:	Other refundable credits
 //----------------------------------------------------------------------------------------
+	//Version 1.4
+	//	Child care credit changes
+	//Version 1.3
+	//	Changed to JSON data files
+	//Version 1.2
+	//	Corrected educator expense amount test
 	//Version 1.1
 	//	Recursive call omitted taxYear
 	//Version 1.0
@@ -58,13 +65,14 @@ function Tax_Calc(
 	// Initialize output array
 	var CalcOut = [];
 
+	// Get filing information
 	var FilingStatusValue = FilingStatus.value;
 	var DependentsValue = +Dependents.value;
 	var EICDependentsValue = +EICDependents.value;
 	var CTCDependentsValue = +CTCDependents.value;
-		CTCDependentsValue += 0.01 * Dependents0.value;
+		CTCDependentsValue += 0.01 * Dependents0.value; // UNDER AGE 6, 2021 ONLY
 	var SPCTCDependentsValue = +SPCTCDependents.value;
-	SPCTCDependentsValue += 0.01 * SPDependents0.value;
+	SPCTCDependentsValue += 0.01 * SPDependents0.value; // UNDER AGE 6, 2021 ONLY
 	if (MFJMFS.checked) {
 		switch (CalcType) {
 		case "T":
@@ -151,12 +159,12 @@ function Tax_Calc(
 	CalcOut["Pensions"] = +CalcIn["TotalPensions"];
 
 	// Limit educator expenses
-	var edlimit = (+taxYear >= 2024) ? 300 : 250 ;
+	var edlimit = (+taxYear >= 2023) ? 300 : 250 ;
 	if (FilingStatusValue === "MFJ") edlimit *= 2;
 	CalcIn["EdExpenses"] = Math.min(+CalcIn["EdExpenses"], edlimit);
 
 	// Limit HSA Deduction = can't test for age 55
-	var hsalimit = +_HSA[taxYear + ":FAM"] + 2000;
+	var hsalimit = +_IRSValue("HSA.Family") + 2000;
 	CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], hsalimit);
 	
 	// Limit IRA Contribution Deduction will be done later after AGI is known
@@ -299,14 +307,14 @@ function Tax_Calc(
 	if (IsDependent.checked) {
 		if (IsYouth.checked) { // Dependent as child
 			var KiddieUnearned = +CalcOut["Gross"] - StdEarned + +CalcIn["Scholar"];
-			var KiddieLimit = +_Standard[taxYear].split(",")[+_Standard["Kid"]];
+			var KiddieLimit = +_IRSValue("Kiddie");
 			if (KiddieUnearned > KiddieLimit) {
 				DependentError = "Unearned income exceeds kiddie tax limit. Additional taxes (Form 8615) may apply.";
 			}
 		}
 		else { // Dependent as relative
 			//DepIncome = (MFStogetherRelevant) ?  +CalcOut["Gross"] : IncomeNoSS;
-			var grossLimit = +_Standard[taxYear].split(",")[+_Standard["DepAsRel"]]
+			var grossLimit = +_IRSValue("DepAsRel");
 			if ((+CalcOut["Gross"] > grossLimit) || (+CalcOut["TaxableSS"] > 0)) {
 				TaxableError = "WARNING: your income is too high to be a dependent.";
 			}
@@ -333,7 +341,7 @@ function Tax_Calc(
 	if (((CalcType === "J") && (TP65.checked || SP65.checked)) ||
 		((CalcType === "T") && TP65.checked) ||
 		((CalcType === "S") && SP65.checked)) medexclusionindex = 1;
-	var medexclusion = Math.round(+CalcOut["AGI"] * +_MedicalExclusion[taxYear].split(",")[medexclusionindex]);
+	var medexclusion = Math.round(+CalcOut["AGI"] * +_IRSValue("MedExclusion"));
 	CalcOut["Medical"] = Math.max(0, +CalcIn["ActualMedical"] + SEHIRemainder - medexclusion);
 
 	// Two percent limitation
@@ -367,7 +375,7 @@ function Tax_Calc(
 	// Are itemized deductions limited by Pease (high income) deduction limit?
 	//var itemval = (+CalcOut["Itemized"] == undefined) ? 0 : +CalcOut["Itemized"];
 	var itemval = ItemizedValue;
-	CalcOut["AGILimit"] = itemvallimit = +_ItemLimit[taxYear + ":" + FilingStatusValue]
+	CalcOut["AGILimit"] = itemvallimit = +_IRSValue("ItemLimit." + FilingStatusValue);
 
 	//if ( ((taxYear < 2018) || (taxYear > 2025))
 	//&& (itemval > 0)
@@ -395,17 +403,6 @@ function Tax_Calc(
 	
 	CalcOut["Itemizing"] = (Deductions !== CalcOut["Standard"]); // T/F
 
-	if (taxYear == 2020) {
-		// Adjust the charitable standard deduction amount
-		if ((! CalcOut["Itemizing"]) && (CalcOut["CharityStandard20"] == 0)) {
-			CalcOut["CharityStandard20"] = Math.min(CalcIn["Charity"], charityLimit);
-			CalcOut["TaxableSS"] += taxableSS_charitydiff; 
-			CalcOut["Gross"] += taxableSS_charitydiff;
-			CalcOut["Adjustments"] = CalcOut["Adjustments"] + CalcOut["CharityStandard20"];
-			CalcOut["AGI"] = Math.max(0, CalcOut["AGI"] - CalcOut["CharityStandard20"] + taxableSS_charitydiff);
-		}
-	}
-
 	if (taxYear == 2021) {
 		// Adjust the charitable standard deduction amount
 		CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
@@ -419,7 +416,7 @@ function Tax_Calc(
 
 	// Calculate exemptions
 	CalcOut["PreExemptAmount"] = Math.round(Math.max(0, +CalcOut["AGI"] - Deductions));
-	var exemptRate = +_Standard[taxYear].split(",")[_Standard["Exemption"]];
+	var exemptRate = +_IRSValue("Exemption");
 	var exemptCount = (((FilingStatusValue == "MFJ") ? 2 : 1) + +DependentsValue);
 	var exemptAmt = exemptRate * exemptCount;
 	CalcOut["ExemptAmount"] = exemptAmt;
@@ -435,7 +432,7 @@ function Tax_Calc(
 	// QBI Calc
 	var QBIDeduction = 0;
 	QBILine.style.display = MFJMFSQBILine.style.display = "none";
-	if (_LineNo[taxYear + ":QBI"]) {
+	if (_IRSValue("LineNo.QBI")) {
 		QBILine.style.display = MFJMFSQBILine.style.display = "table-row";
 		var SENetIncome = +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"] - +CalcOut["SEHI"];
 		var QBIDeduction = _QBICalc(taxYear, FilingStatusValue, SENetIncome,
@@ -499,14 +496,15 @@ function Tax_Calc(
 	// Limit Child Care Cost
 	CalcOut["ChildCare"] = CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
 	CalcOut["ACCCredit"] = 0; // 2021 only
-	if (+CCDependents.value < 0) CCDependents.value = "";
+	//if (+CCDependents.value < 0) CCDependents.value = "";
 	if ((FilingStatusValue != "MFS") && (+CCDependents.value > 0)) {
 		var cclimit = (+CCDependents.value  > 1) ? 6000 : 3000;
 		if (taxYear == 2021) cclimit = (+CCDependents.value  > 1) ? 16000 : 8000;
 		cccost = Math.min(+CalcIn["ChildCareCost"], cclimit);
 		CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
 		CC2Earned = 0; // Other partner
-		CalcOut["ChildCare"] = Math.round(_ChildCare(taxYear, FilingStatusValue, CalcOut["AGI"], cccost, CCEarned, CC2Earned));
+		// If MFSMFJ, make CCEarned the lesser of CCEarned and CC2Earned.
+		CalcOut["ChildCare"] = Math.round(_ChildCare(taxYear, FilingStatusValue, CCEarned, CalcOut["AGI"], CalcIn["CCDependents"], cccost)["deductible"]);
 		if (taxYear == 2021) {
 			CalcOut["ACCCredit"] = CalcOut["ChildCare"];
 			CalcOut["ChildCare"] = 0;
