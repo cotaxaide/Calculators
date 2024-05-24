@@ -172,15 +172,9 @@
 	}
 </style>
 
-<script src="Tax_Data/IRS_2000.js"></script>
-<script src="Tax_Data/IRS_2020.js"></script>
-<script src="Tax_Data/IRS_2021.js"></script>
-<script src="Tax_Data/IRS_2022.js"></script>
-<script src="Tax_Data/IRS_2023.js"></script>
-<script src="Tax_Data/IRS_2024.js"></script>
-<script src="CommonRoutines.js"></script>
+<script src="Common_Routines.js"></script>
 <script src="Tax_Calc.js"></script>
-<script type="text/javascript">
+<script>
 	// --------------------------------------------------------------------------------
 	// Contributors:
 	//	Henry Burgess		Steve Conary		Ed Farver
@@ -195,11 +189,22 @@
 	//	Ron Bower		Barry Schwarz		Erica Adams
 	//	Fred Marker		Kathleen Quinn		Robert Sinsheimer
 	//	John Onder		Steve Mauri		Steve Loesche
+	//	Jim Latimer
 	// --------------------------------------------------------------------------------
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY	
-	var VERSION = "(Version 3.47, 3/6/2024)";
+	var VERSION = "(Version 4.02, 5/24/2024)";
+	//	Correction to Child Care handling
+	//var VERSION = "(Version 4.01, 5/23/2024)";
+	//	Changed to JSON tax data files
+	//var VERSION = "(Version 3.48b, 4/13/2024)";
+	//	Corrected link to AARP RMD calculator
+	//var VERSION = "(Version 3.48a, 3/15/2024)";
+	//	Minor text correction
+	//var VERSION = "(Version 3.48, 3/8/2024)";
+	//	Corrected educator expense amount, raised to 300 in 2023
+	//var VERSION = "(Version 3.47, 3/6/2024)";
 	//	Corrected educator expense amount, raised to 300 in 2024
 	//var VERSION = "(Version 3.46, 11/27/2023)";
 	//	Moved tax form calculations to a seperate module so it could be used by others
@@ -417,23 +422,23 @@
 		InTitle["OtherTaxes"] = "Other taxes";
 		InTitle["RecoveryCredit"] = "Recovery rebate credit";
 		InTitle["Refundable"] = "Other refundable credits";
+		InTitle["CCDependents"] = "Number of dependents with care";
 	
 
 	//----------------------------------------------------------------------------------------
-	function Initialize() {
+	function Main() {
 	// This function adds tax year options to the Filing Information section
 	// and establishes initial settings and arrays
 	//----------------------------------------------------------------------------------------
 		// Add tax year options
 		var tyOptIndex = 0;
-		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+		for (var ty = _StartYear; ty <= _StopYear + 1; ty++) {
 			var tyopti = document.createElement("option");
 			tyopti.text = tyopti.value = ty;
 			TaxYear.add(tyopti,tyOptIndex++);
 		}
 
-		// Set the default to the tax year
-		TY = +(TaxYear.value = _DefaultYear + 1);
+		TaxYear.value = TY = _DefaultYear + 1;
 
 		// Create the data arrays and initialize inputs
 		TPMFJiList = document.getElementsByClassName("wkti"); // inputs
@@ -454,7 +459,7 @@
 		// Initialize with no input
 		MFJMFS_Change();
 		File_Change();
-	} // end Initialize()
+	} // end Main()
 
 	//----------------------------------------------------------------------------------------
 	function MFJMFS_Test(thisId) {
@@ -544,8 +549,8 @@
 
 		TaxYear3.innerHTML = TaxYear2.innerHTML = TY = +TaxYear.value;
 		LY1.innerHTML = LY2.innerHTML = LY3.innerHTML = LY4.innerHTML = (TY - 1);
-		Preliminary.style.display = (_Preliminary[TY]) ? "inline" : "none";
-		MFSoptionText.innerHTML = (TY == _StopYear) ? "will be living" : "lived with" ;
+		Preliminary.style.display = (_IRSValue("Preliminary")) ? "inline" : "none";
+		MFSoptionText.innerHTML = (TY >= _StopYear) ? "will be living" : "lived" ;
 
 		// Check dependent consistency
 		if (IsDependent.checked) {
@@ -590,8 +595,9 @@
 		var NeedSPRow = ((FilingStatus.value === "MFJ") || ((FilingStatus.value === "MFS") && MFStogether.checked));
 		SP65Option.style.display = (NeedSPRow) ? "inline" : "none";
 		if (! NeedSPRow) SPPlan.checked = false;
-		HSAText.innerHTML = "("+ _HSA[TY + ":IND"] + " personal, " + _HSA[TY + ":FAM"] + " family)&sup1;";
-		EdExpensesText.innerHTML = "(" + ((TY >= 2024) ? 300 : 250 ) + " maximum per TP/SP)";
+		HSAText.innerHTML = "(" + _IRSValue("HSA.Individual") + " personal, "
+			+ _IRSValue("HSA.Family") + " family)&sup1;";
+		EdExpensesText.innerHTML = "(" + ((TY >= 2023) ? 300 : 250 ) + " maximum per TP/SP)";
 
 		
 		// Expand the income section
@@ -603,7 +609,7 @@
 		}
 
 		// Expand the adjustment section
-		IRAComment.innerHTML = "(" + _IRALimits[TY + ":MAX"] + " per TP/SP)&sup2;";
+		IRAComment.innerHTML = "(" + _IRSValue("IRA.Maximum") + " per TP/SP)&sup2;";
 		IExp = AdjustExpand.checked;
 		itemlist = document.getElementsByClassName("adjustment");
 		for (itno = 0; itno < itemlist.length; itno++) {
@@ -943,7 +949,7 @@
 		if (MFStogether.checked) {
 			TPMFSMAGI = (TP65.checked) ? (+TPAGI.innerHTML + +TPTaxExempt.innerHTML) : 0 ;
 			SPMFSMAGI = (SP65.checked) ? (+SPAGI.innerHTML + +SPTaxExempt.innerHTML) : 0 ;
-			if ((TPMFSMAGI > _MEDBMFS[TY]) || (SPMFSMAGI > _MEDBMFS[TY])) {
+			if ((TPMFSMAGI > _IRSValue("MedBMFSPremium")) || (SPMFSMAGI > _IRSValue("MedBMFSPremium"))) {
 				ResultMessage += "<br /><br />CAUTION:<br />Filing MFS may significantly increase Medicare Part B premiums in later years.";
 			}
 		}
@@ -1014,17 +1020,17 @@
 		case ("payJ"): 
 			payOption = "J";
 			payJ.style.fontWeight = "bold"
-			payJ.style.backgroundColor = "green";
+			payJ.style.backgroundColor = "burlywood";
 			break;
 		case ("payT"):
 			payOption = "T";
 			payT.style.fontWeight = "bold"
-			payT.style.backgroundColor = "green";
+			payT.style.backgroundColor = "burlywood";
 			break;
 		case ("payS"):
 			payOption = "S";
 			payS.style.fontWeight = "bold"
-			payS.style.backgroundColor = "green";
+			payS.style.backgroundColor = "burlywood";
 		       break;
 		default:
 		       break;
@@ -1078,7 +1084,7 @@
 <!-- **************************************** START OF HTML ************************************************* -->
 <!-- ******************************************************************************************************** -->
 
-<body id="theBody" onload="Initialize()" onresize="Get_Inputs('listener')" onscroll="Get_Inputs('listener')">
+<body id="theBody" onresize="Get_Inputs('listener')" onscroll="Get_Inputs('listener')">
 
 <center>
 	<span class="title"><span id="TaxYear2"></span> Estimated Tax Worksheet</span>
@@ -1102,7 +1108,7 @@
 			<td>Taxpayer&apos;s Name:</td>
 			<td colspan="2"><input id="TPName" title="Enter the taxpayer's name. Consider printing the results for the taxpayer's record" /></td>
 			<td style="text-align: right; vertical-align: top;">
-				<a href="http://www.aarp.org/work/retirement-planning/required_minimuum_distribution_calculator/" 
+				<a href="https://www.aarp.org/retirement/required-minimum-distribution-calculator/" 
 					target="_blank">Click here for the AARP RMD Calculator</a></td></tr>
 		<tr>
 			<td>Filing Status:</td>
@@ -1488,8 +1494,8 @@
 			<td id="ForeignUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>Child and dependent care expenses for
-				<input id="CCDependents" type="number" class="small"
-				onchange="File_Change();" /> dependents
+				<input id="CCDependents" type="number" class="small wkti"
+				onchange="Input_Change(this.id);" /> dependents
 			<span class="floatright">
 				<input id="ChildCareCost" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
@@ -1864,4 +1870,7 @@
 </div>
 
 </body>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear + 1); </script>
+
 </html>
