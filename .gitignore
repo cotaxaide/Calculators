@@ -9,3 +9,9 @@
 .*
 Archive*
 Test*
+*.json~
+*.zip
+*.zip
+*.exe
+*.doc
+*.pdf
