@@ -1,6 +1,7 @@
 //----------------------------------------------------------------------------------------
 //                                    COMMON ROUTINES
-//	_GetIRSData		Gets the requested IRSnnnn.json files
+//	_GetIRSData		Gets the requested IRS_nnnn.json files
+//	_GetCOData		Gets the requested CO_nnnn.json files
 //	_IRSValue		Reads the value or array for a JSON file parameter
 //	_Write_Cookie		Writes a cookie to the browser
 //	_Read_Cookie		Reads a cookie from the browser
@@ -77,7 +78,6 @@ async function _GetIRSData(
 	TY_Start, 
 	TY_Stop) {
 // Gets the years' IRS data requested and then runs the Main() function
-// IRSData must be a global array variable, i.e.: "IRSData = [];"
 // This will create an object file containing each year requested.
 //----------------------------------------------------------------------------------------
   
@@ -87,6 +87,24 @@ async function _GetIRSData(
 		let myObject = await fetch(file);
 		let myText = await myObject.text();
 		IRSData["TY"+TY_index] = JSON.parse(myText);
+	}
+	Main();
+}
+
+//----------------------------------------------------------------------------------------
+async function _GetCOData(
+	TY_Start, 
+	TY_Stop) {
+// Gets the years' IRS data requested and then runs the Main() function
+// This will create an object file containing each year requested.
+//----------------------------------------------------------------------------------------
+  
+	COData = {}; // Makes the files global
+	for (let TY_index = +TY_Start; TY_index <= +TY_Stop; TY_index++) {
+		let file = "https://cotaxaide.org/tools/Tax_Data/CO_" + TY_index + ".json";
+		let myObject = await fetch(file);
+		let myText = await myObject.text();
+		COData["TY"+TY_index] = JSON.parse(myText);
 	}
 	Main();
 }
@@ -122,6 +140,39 @@ function _IRSValue(
 	}
 	
 	return "??";
+}
+
+//----------------------------------------------------------------------------------------
+function _COValue(
+	IRSParameter, 	// The path to the variable, i.e.: Standard.SNG.inc
+	TaxYear=TY)	// The optional tax year for which the parameter is sought
+			// TY must be defined globally to work as a default
+	{
+// This function prepends the tax year in TYnnnn form and appends ".value" and returns the result
+//----------------------------------------------------------------------------------------
+	let parms = IRSParameter.split(".");
+	let TYi = TaxYear; // Already has "TY" prepended to the year
+	parmval = "??";
+	switch (parms.length) {
+	case 1:	try { if ((parmval = COData[TYi][parms[0]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = COData[TYi][parms[0]]) !== undefined) return parmval;} catch {}
+		break;
+	case 2:	try { if ((parmval = COData[TYi][parms[0]][parms[1]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = COData[TYi][parms[0]][parms[1]]) !== undefined) return parmval;} catch {}
+		break;
+	case 3:	try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]]) !== undefined) return parmval;} catch {}
+		break;
+	case 4:	try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]][parms[3]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]][parms[3]]) !== undefined) return parmval;} catch {}
+		break;
+	case 5:	try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]].value) !== undefined) return parmval;} catch {}
+		try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]]) !== undefined) return parmval;} catch {}
+		break;
+	default: return "???";
+	}
+	
+	return "";
 }
 
 //----------------------------------------------------------------------------------------
@@ -191,30 +242,30 @@ function _TaxableSS(	// Taxable amount of Social Security
 	let ssline6 = +adjustments;
 	let ssline7 = Math.max(0, ssline5 - ssline6);
 	if ((filingStatus == "MFS") && MFStogether) {
-		let ssline16 = ssline7 * 0.85;
-		let IRAgap00 = 0;
-		let IRAgap50 = 0;
-		let IRAgap85 = 0;
+		ssline16 = ssline7 * 0.85;
+		IRAgap00 = 0;
+		IRAgap50 = 0;
+		IRAgap85 = 0;
 	}
 	else {
 		if (filingStatus == "MFJ") {
-			let ssline8 = 32000;
-			let ssline10 = 12000;
+			ssline8 = 32000;
+			ssline10 = 12000;
 		}
 		else {
-			let ssline8 = 25000;
-			let ssline10 = 9000;
+			ssline8 = 25000;
+			ssline10 = 9000;
 		}
-		let IRAgap00 = Math.round(Math.max(0, ssline8 - ssline7));
-		let ssline9 = Math.max(0, ssline7 - ssline8);
-		let IRAgap50 = Math.round(Math.max(0, ssline10 - ssline9));
-		let ssline11 = Math.max(0, ssline9 - ssline10);
-		let IRAgap85 = Math.round(Math.max(0, ssline1 - ssline11));
-		let ssline12 = Math.min(ssline9, ssline10);
-		let ssline13 = ssline12 * 0.5;
-		let ssline14 = Math.min(ssline2, ssline13);
-		let ssline15 = ssline11 * 0.85;
-		let ssline16 = ssline14 + ssline15;
+		IRAgap00 = Math.round(Math.max(0, ssline8 - ssline7));
+		ssline9 = Math.max(0, ssline7 - ssline8);
+		IRAgap50 = Math.round(Math.max(0, ssline10 - ssline9));
+		ssline11 = Math.max(0, ssline9 - ssline10);
+		IRAgap85 = Math.round(Math.max(0, ssline1 - ssline11));
+		ssline12 = Math.min(ssline9, ssline10);
+		ssline13 = ssline12 * 0.5;
+		ssline14 = Math.min(ssline2, ssline13);
+		ssline15 = ssline11 * 0.85;
+		ssline16 = ssline14 + ssline15;
 	}
 	let ssline17 = ssline1 * 0.85;
 	let ssline18 = Math.round(Math.min(ssline16, ssline17));
@@ -452,7 +503,7 @@ function _EICLookup(	// Earned Income Credit table lookup
 	// Do we need to test AGI?
 	let vidmax = 1;
 	if (AGI != earnedIncome) {
-		let vEICAGIMin = +_IRSValue("EIC.AGI" + vEICFiling)[EICdependents];
+		vEICAGIMin = +_IRSValue("EIC.AGI" + vEICFiling)[EICdependents];
 		if (AGI >= vEICAGIMin) vidmax = 2;
 	}
 
@@ -768,9 +819,9 @@ function _StudLoanInt (	// 1040 Sched 1
 	}
 	
 	// Get MAGI where phaseout starts
+	// Assumes MFJ rate is twice SNG rate
 	let fsFactor = (filingStatus == "MFJ") ? 2 : 1 ;
 	let SLIMax = +_IRSValue("StudLoanInterest.Maximum") * fsFactor
-	let PhaseOutIndex = +_EdExpenseLimits["SNG"];
 	let PhaseOutStart = +_IRSValue("StudLoanInterest.SNG1") * fsFactor
 	let PhaseOutEnd = +_IRSValue("StudLoanInterest.SNG2") * fsFactor
 	let PhaseOutLength = PhaseOutEnd - PhaseOutStart;
