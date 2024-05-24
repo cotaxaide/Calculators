@@ -7,22 +7,68 @@
 <title>Colorado Sales Tax Tables</title>
 
 <style type="text/css">
-    body {margin:15px; padding:0;}
-    table {border:1px solid black; border-collapse:collapse;}
-    img {text-align:center;}
-    h1 {font-weight: bold; font-size: 14pt; line-height: 1em;}
-    .bold { fount-weight: bold; }
-    .countymap {text-align:center}
-    .citylisttable {
-	    td {border:1px solid black; padding: 0 3px;}
-	    td:nth-child(even) {text-align: center;}
-	    th {border:1px solid black;}
-    }
-    .citylisthead th {font-weight:bold; text-align:center;}
-    .countylisttable td {border:1px solid black; width: 100%;}
-    .countylisthead {font-weight:bold; text-align:center;}
-    .countylistbody {cursor:pointer;}
-    .cityname {text-align:left}
+	body {	margin:15px;
+		padding:0;
+		background-color: lightgrey;
+		cursor: default;
+	}
+	table { border:1px solid black;
+		border-collapse:collapse;
+	}
+	img {
+		text-align:center;
+	}
+	button {
+		background-color: lightgreen;
+		cursor: pointer;
+	}
+	h1 {
+		font-weight: bold;
+		font-size: 14pt;
+		line-height: 1em;
+	}
+	.bold {
+		fount-weight: bold;
+	}
+	.countymap {
+		text-align:center
+	}
+	.citylisttable {
+		background-color: ghostwhite;
+		td {
+			border:1px solid black;
+			padding: 0 3px;
+		}
+		td:nth-child(even) {
+			text-align: center;
+		}
+		td:nth-child(odd) {
+			cursor: zoom-in;
+		}
+		td:first-child {
+			cursor: default;
+		}
+		th {
+			border:1px solid black;
+		}
+	}
+	.citylisthead th {
+		font-weight:bold;
+		text-align:center;
+	}
+	.countylisttable {
+		background-color: ghostwhite;
+	}
+	.countylisthead {
+		font-weight:bold;
+		text-align:center;
+	}
+	.countylistbody {
+		cursor:pointer;
+	}
+	.cityname {
+		text-align:left
+	}
 </style>
         
 <script src="Common_Routines.js"></script>
@@ -42,7 +88,10 @@ var d = new Date(); // set cookie expiration date
 
 //--------------------------------------------------------------------------------------------------
 //                                Revision history
-VERSION = "v2.0, 5/23/2024";
+VERSION = "v2.01, 5/24/2024";
+//	Counties with spaces not being added
+//	Added background coloring and cursor changes
+//VERSION = "v2.0, 5/23/2024";
 //	Changed to JSON data sources
 //	Major restructuring to simplify code
 
@@ -93,7 +142,7 @@ function Make_Table () {
 				CountyRow[county].tablerow = "<tr class='" + countyClass +" bold all'><td>" + county + " County</td>";
 				CountyRow[county].show = -1; // initially, don't show
 			}
-			CountyRow[county].tablerow += AddTax("none", county, TY);
+			CountyRow[county].tablerow += AddTaxData("none", county, TY);
 		}
 		for (city in COData[TY]["city"]) {
 			county = _COValue("city." + city + ".county");
@@ -115,7 +164,7 @@ function Make_Table () {
 					CityRow[city].tablerow += "<td></td><td></td>";
 				}
 			}
-			CityRow[city].tablerow += AddTax(city, county, TY);
+			CityRow[city].tablerow += AddTaxData(city, county, TY);
 		}
 
 		// Change classes in multicounty cities to include all counties
@@ -134,7 +183,7 @@ function Make_Table () {
 }
 
 //--------------------------------------------------------------------------------------------------
-function AddTax ( city, county, TY ) {
+function AddTaxData ( city, county, TY ) {
 //--------------------------------------------------------------------------------------------------
 	let ctax = [];
 	let tax = 0;
@@ -210,22 +259,28 @@ function Add_Lists() {
 	// List the counties
 	for (index in CountyRow) {
 		citylist += (CountyRow[index].tablerow += "</tr>");
-		cbreak = "<br />";
-		conclick = " onclick='County_Select(\"" + index + "\")'"
-		cclass = (" class='all'");
-		cid = (" id = " + index.replace(" ", "_"));
-		county = "<span" + cid + cclass + conclick + ">" + cbreak + index + "</span>";
+		conclick = " onclick='County_Select(\"" + index + "\")'";
+		cclass = " class='" + index.replace(" ", "_") + " all'";
+		county = "<tr" + cclass + conclick + "><td>" + index + "</td></tr>";
 		countylist += county;
 	}
 
-	// Add the state line
-	citylist += "<tr><td><b>(CO INCOME TAX)</b></td>";
+	// Add the state lines
+	citylist += "<tr><td colspan='9'><b>State: (entered seperately by TaxSlayer)</b></td></tr>";
+
+	citylist += "<tr><td>Sales tax rate</td>";
 	for (TY = _StartYear; TY <= _StopYear; TY++) {
 		citylist += ("<td></td><td>" + _COValue("state.rate", "TY" + TY) + "</td>");
 	}
 	citylist += "</tr>";
 
-	// Insert the citylist
+	citylist += "<tr><td>Income tax rate</td>";
+	for (TY = _StartYear; TY <= _StopYear; TY++) {
+		citylist += ("<td></td><td>" + _COValue("state.income_rate", "TY" + TY) + "</td>");
+	}
+	citylist += "</tr>";
+
+	// Insert the citylist and countylist into their tables
 	cityListBodyElem.innerHTML = citylist;
 	countyListBodyElem.innerHTML = (countylist) ? countylist : "(None selected)";
 }
@@ -255,9 +310,8 @@ function Show_List() {
 	Hide_All();
 	for (county in CountyRow) {
 		if (CountyRow[county].show > 0) {
-			cityList = document.getElementsByClassName(county);
+			cityList = document.getElementsByClassName(county.replace(" ", "_"));
 			for (ci = 0; ci < cityList.length; ci++) cityList[ci].style.display = "table-row";
-			document.getElementById(county).style.display = "inline";
 		}
 	}
 
@@ -283,12 +337,7 @@ function Show_All() {
 
 	// Show all
 	let cList = document.getElementsByClassName("all");
-	for (ci = 0; ci < cList.length; ci++) {
-		switch (cList[ci].nodeName) {
-		case "TR":   cList[ci].style.display = "table-row"; break;
-		case "SPAN": cList[ci].style.display = "inline"; break;
-		}
-	}
+	for (ci = 0; ci < cList.length; ci++) cList[ci].style.display = "table-row";
 	Showing_All = true;
 	SelectAll.innerHTML = "Revert to prior";
 	SelectAll.focus();
@@ -387,8 +436,8 @@ function Show_All() {
 			<thead class='countylisthead' id='countylisthead'></thead>
 			<tr><td style="text-align:center;"><span style="font-weight:bold;">Counties&nbsp;Selected</span>
 					<br />(Click to unselect)
-					<br \/><button id="SelectAll" onclick="Show_All();">Show all</button></td></tr>
-				<tbody><tr><td class='countylistbody' id='countylistbody'>(None selected)</td></tr></tbody>
+					<br /><button id="SelectAll" onclick="Show_All();">Show all</button><hr /></td></tr>
+				<tbody class='countylistbody' id='countylistbody'></tbody>
 			</table>
 			<p>For cities not listed, use the county numbers at the bottom of the table</p>
 			<p>Hover over the "Tax&nbsp;%" figure for sales tax amounts included</p>
