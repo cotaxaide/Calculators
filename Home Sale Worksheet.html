@@ -7,7 +7,7 @@
 
 <style type="text/css">
 	html { background-color: #ccdcec; }
-	body { background-color: #ccdcec; font-family: sans-serif; padding: 0 2.5% 0 2.5%; }
+	body { background-color: #ccdcec; font-family: sans-serif; min-width: 60em; width: 60em; margin: auto;}
 	button { cursor: pointer; background-color: lightgreen; }
 	table { border-collapse: collapse; }
 	tr { vertical-align: top; }
@@ -68,11 +68,15 @@
 	#CostDiv {
 		margin-top: 0;
 	}
+	#HomeMFSNotice {
+		display: none;
+	}
 	#SaleMFSNotice,
 	#CostMFSNotice {
 		font-style: italic;
 		width: 100%;
 		text-align: center;
+		display: none;
 	}
 	#DepName,
 	.TPName { width: 20em; font-size: 100%; }
@@ -80,7 +84,7 @@
 		width: 100%;
 	}
 	.tblLayout tr td {
-		border-bottom: 1px solid lightgrey;
+		border-bottom: 1px solid grey;
 		vertical-align: middle;
 	}
 	.tblLayout tr td:first-child {
@@ -104,7 +108,7 @@
 	#TSTable tr th:first-child { width: 2em; }
 	#TSTable tr th:nth-child(2) { width: 2em; }
 	#TSTable tr th:nth-child(4) { width: 6em; text-align: right;}
-	#TSTable tr td { border-bottom: 1px solid lightgrey; }
+	#TSTable tr td { border-bottom: 1px solid grey; }
 	#ClearAndPrint { text-align: center; float:right; z-level:2; position: absolute; top: 0.8em; right: 1em; }
 	#QualificationMessage {
 		width: 100%;
@@ -152,9 +156,10 @@
 	}
 	#HomeTable {
 		margin: auto;
+		border: 1px solid grey
 	}
 	#HomeTable tr td {
-		border-bottom: 1px solid lightgrey;
+		border-bottom: 1px solid grey;
 	}
 	#HomeTable tr td:nth-child(4) {
 		border-left: 2px solid grey;
@@ -175,8 +180,12 @@
 		}
 		.noPrint { display: none !important; }
 		html { background-color: white; font-size: 0.8em; }
-		body { font-size: 0.8em; background-color: white; padding:0; margin:0; }
-		input, select, option { font-size: 0.8em; }
+		body {
+			font-size: 0.75em;
+			background-color: white;
+			padding:0;
+			margin: auto; }
+		input, select, option { font-size: 0.75em; }
 		table { background-color: white; }
 		button { display: none; }
 	}
@@ -186,58 +195,16 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// Contributors:
-	//	Kenny Hayes 		Maggie Barrington		Bob Goings
-	//	Mark Riley		Allan Goldberg			Bill Zlobik
-	//	Ben Seidman		Brian McCann			John Broughton
-	//	Kurt Dunphy
+	//	Kenny Hayes 		Maggie Barrington	Bob Goings
+	//	Mark Riley		Allan Goldberg		Bill Zlobik
+	//	Ben Seidman		Brian McCann		John Broughton
+	//	Kurt Dunphy		Jeff Caro		Jheroen Dorenbosch
+	//	Pat Hannifin		Rebecca Spohn
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 2.03, 5/17/2024)";
-	//	Removed reliance on other script files
-	//VERSION = "(Version 2.02, 10/30/2023)";
-	//	Modified deceased spouse and remarried or did non own/live in home 2 years
-	//VERSION = "(Version 2.01, 6/26/2023)";
-	//	Added calculations relative to spouse death or divorce and home improvements
-	//	Split gift and inherited acquisition method due to different basis determination
-	//VERSION = "(Version 1.09a, 10/4/2022)";
-	//	Changed WID to QSS
-	//VERSION = "(Version 1.09, 4/10/2022)";
-	//	Corrected work/health/duty < 24 months message to indicate partial exclusion
-	//VERSION = "(Version 1.08, 12/23/2021)";
-	//	Removed 1/1 default sale date
-	//	Corrected adjustment expanation coding - new code segment
-	//	Fixed some adjustment loss calc errors and detail comments
-	//	Changed handling of input of sale and purchase dates
-	//VERSION = "(Version 1.07, 3/3/2021)";
-	//	Corrected basis due to death of spouse
-	//	Added missing basis adjustment for TS worksheet
-	//VERSION = "(Version 1.06, 1/24/2021)";
-	//	Added rounding to all inputs with number type
-	//	Corrected basis calculation and adjustment due to purchase costs
-	//		(prior calc still produced the correct end result)
-	//VERSION = "(Version 1.05b, 9/30/2020)";
-	//	Modified partialdates parameter to prior understanding
-	//	Fixed undefined version number
-	//VERSION = "(Version 1.05a, 5/8/2020)";
-	//	Minor text change in non-qualified use question
-	//VERSION = "(Version 1.05, 5/7/2020)";
-	//	Added test for non-qualified use of main home use after 2008
-	//	Removed obsolete OOS comment messages that were never visible
-	//VERSION = "(Version 1.04, 4/30/2020)";
-	//	Changed message for like-kind exchange to no exclusion available
-	//VERSION = "(Version 1.03, 4/29/2020)";
-	//	Removed OOS for not main home
-	//VERSION = "(Version 1.02, 4/28/2020)";
-	//	Corrected error where only money received was incuded in SchedD cost
-	//	Changed not main home to out of scope
-	//	Added test for out of scope installment sale
-	//	Prevented sale date to be greater than current year
-	//	Display first-time homebuyer lines only for 2008-2011 purchases
-	//	Added alert message for 2010 inheritance
-	//VERSION = "(Version 1.01, 4/25/2020)";
-	//	Moved home improvement list to tab with inputs
-	//	Added $ to sale/cost inputs
-	//VERSION = "(Version 1.00, 4/22/2020)";
+	VERSION = "(Version 3.00, 5/27/2024)";
+	//	Major restructuring
+	//	Fixed home purchase details not totalling when details changed
 
 	var InputList = [];
 	var TPExclusion = 250000;
@@ -248,15 +215,16 @@
 	var OutOfScope = false;
 	var Remodels = [];
 	var HasSpouse = false;
-	var SpouseApplies = false;
 	var InheritMessage = "Verify the date inherited.\n\nIt may not be the date of death\n\n(See Pubs 523 and 4895)";
 	var InheritMessageShown = false;
 	var Sale_Date = [];
 	var Purchased_Date = [];
+	var TPFiveYears;
 	var SaleDateDays = 0;
 	var PurchDateDays = 0;
-	var SPDiedBeforeSale = false;
-	var _ThisYear = +_ThisDate.getFullYear();
+	var _ThisYear = +Date("Y");
+	var FS, FileMFS, FileMFJ; // FilingStatus
+
 
 //----------------------------------------------------------------------------------------
 function Initialize() {
@@ -267,7 +235,15 @@ function Initialize() {
 	ErrorMessage.innerHTML = "Please enter Date sold and Date obtained";
 	ErrorMessage.style.display = "block";
 	Add_Remodel(); // Adds the first remodel line on the home improvements tab
+
+	// for testing...
+		//SaleDate.value = "2024-05-17";
+		//PurchaseDate.value = "2000-05-05";
+		//SalePrice.value = 1000000;
+		//PurchasePrice.value = 600000;
+
 	Tab_Click("InfoDiv");
+	TPName.click();
 }
 
 //----------------------------------------------------------------------------------------
@@ -279,13 +255,20 @@ function Basis_Calc(e) {
 	// get the id for whatever just changed
 	changingId = e.target.id;
 
+	FS = FilingStatus.value;
+	FileMFJ = (FS === "MFJ");
+	FileMFS = (FS === "MFS");
+
 	switch (changingId) {
 
 	// Allow setting name and filing status before purchase and sale dates
 	case "TPName":
 	case "FilingStatus":
+		SaleMFSNotice.style.display = (FileMFS) ? "block" : "none" ;
+		CostMFSNotice.style.display = (FileMFS) ? "block" : "none" ;
+		HomeMFSNotice.style.display = (FileMFS) ? "inline" : "none" ;
 		if (SaleDate.value == "") return;
-		if (PurchasedDate.value == "") return;
+		if (PurchaseDate.value == "") return;
 		break;
 
 	// Format purchase and sale dates for later questions
@@ -295,52 +278,42 @@ function Basis_Calc(e) {
 		Mo = +Sale_Date[1];
 		Dy = +Sale_Date[2];
 		Yr = +Sale_Date[0];
-		if (Yr < (+_ThisYear - 5)) return;
-		if (Yr > +_ThisYear) return;
+		if (Yr < 1900) return; // entry not complete
 		SaleDateDays = new Date(Sale_Date);
 		TSSaleDate.innerHTML =
-		DateSold.innerHTML = Mo + "/" + Dy + "/" + Yr;
-		LookbackTwoYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 2);
-		LookbackTwoYearsYMD = (Yr - 2) + "-" + Sale_Date[1] + "-" + Sale_Date[2];
-		OwnFiveYears.innerHTML = 
-		SPFiveYears.innerHTML =
-		TPFiveYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 5);
+		OwnFiveYears2.innerHTML = 
+		SPFiveYears2.innerHTML =
+		TPFiveYears2.innerHTML = 
+		BusinessSoldDate.innerHTML =
+		RemarriedDate.innerHTML =
+		SPDiedDate2.innerHTML = DateSold.innerHTML = Mo + "/" + Dy + "/" + Yr;
+		SPDiedDate1.innerHTML = LookbackTwoYears.innerHTML = Mo + "/" + Dy + "/" + (Yr - 2);
+		OwnFiveYears1.innerHTML = 
+		SPFiveYears1.innerHTML =
+		TPFiveYears1.innerHTML = 
+		TPFiveYears = Mo + "/" + Dy + "/" + (Yr - 5);
 		// no break;
-	case "PurchasedDate":
-		if (PurchasedDate.value == "") return;
-		Purchased_Date = PurchasedDate.value.split("-");
+	case "PurchaseDate":
+		if (PurchaseDate.value == "") return;
+		Purchased_Date = PurchaseDate.value.split("-");
 		Mo = +Purchased_Date[1];
 		Dy = +Purchased_Date[2];
 		Yr = +Purchased_Date[0];
-		if (+Yr < 1900)  return;
-		if (+Yr > (+_ThisYear + 1)) return;
+		if (+Yr < 1900) return; // entry not complete
 		PurchDateDays = new Date(Purchased_Date);
-		TSPurchasedDate.innerHTML =
+		TSPurchaseDate.innerHTML =
+		DivorcedDate1.innerHTML =
 		DateAcquired.innerHTML = Mo + "/" + Dy + "/" + Yr;
+		DivorcedDate2.innerHTML = TSSaleDate.innerHTML;
 		break;
 
-	// Handle death of spouse and relation to the date sold
-	case "SPDateDied":
-		// not yet entered or died after the sale
-		if ((SPDateDied.value == "" ) || (SPDateDied.value >= SaleDate.value)) {
-			SPDiedBeforeSale = false;
-			break;
-		}
-		SPDiedBeforeSale = true;
-		// no break
-	// Format the date for later information messages
 	case "SPDiedY":
 	case "SPDiedN":
-		if (PurchasedDate.value == "") break;
-		SPDiedWithin2Years = (SPDateDied.value > LookbackTwoYearsYMD); // T/F
-		SPActualDoD = SPDateDied.value.split("-");
-		Mo = +SPActualDoD[1];
-		Dy = +SPActualDoD[2];
-		Yr = +SPActualDoD[0];
-		if (Yr > +_ThisYear) return;
+		if (SaleDate.value == "") return;
+		if (PurchaseDate.value == "") return;
 		SPImprovementsPrior.innerHTML =
 		SPImprovementsAfter.innerHTML =
-		InstructionText2.innerHTML = Mo + "/" + Dy + "/" + Yr;
+		InstructionText2.innerHTML = "the spouse died."
 		break;
 
 	default: break;
@@ -352,32 +325,18 @@ function Basis_Calc(e) {
 		Tab_Click("InfoDiv");
 		return;
 	}
-	if (PurchasedDate.value == "") {
+	if (PurchaseDate.value == "") {
 		alert ("Please enter the date obtained.");
 		Tab_Click("InfoDiv");
 		return;
 	}
 
+	ErrorMessage.innerHTML = "";
+
 	// Initialize variables that are tested later
-	OutOfScope = false;
 	inherit2010 = false;
 	SpouseApplies = false;
-	TPExclusionApplies = true;
-	SPExclusionApplies = true;
-	TPPartialExclusionApplies = false;
-	SPPartialExclusionApplies = false;
-	PartialExclusionApplies = false;
 
-	// Show instructions on each tab for MFS filer to enter only their portion
-	FileMFS = (FilingStatus.value === "MFS");
-	SaleMFSNotice.style.display = (FileMFS) ? "block" : "none" ;
-	CostMFSNotice.style.display = (FileMFS) ? "block" : "none" ;
-	HomeMFSNotice.style.display = (FileMFS) ? "inline" : "none" ;
-
-	// Show the divorced questions if not filing joint
-	FileMFJ = (FilingStatus.value === "MFJ");
-	SPDivorcedRow.style.display = (FileMFJ || FileMFS) ? "none" : "table-row" ;
-	if (FileMFJ) SPDivorcedN.checked = true;
 
 	// Taxpayer information section -----------------------------------------------
 
@@ -386,62 +345,57 @@ function Basis_Calc(e) {
 	DaysOwned.innerHTML = "";
 
 	// Check validity of purchase and sale dates
-	if (PurchasedDate.value > SaleDate.value) {
+	if (PurchaseDate.value > SaleDate.value) {
 		alert ("The date purchased/inherited cannot be later than the date sold.");
 		DaysOwned.innerHTML = "Date error";
 		return;
 	}
-	if (Purchased_Date) {
 
-		// Calculate how many days the property was owned
-		OwnedDays = Math.round((SaleDateDays.valueOf() - PurchDateDays.valueOf()) / (1000 * 24 * 60 * 60))
-		if (OwnedDays) DaysOwned.innerHTML = "(Owned for " + OwnedDays + " days)";
-		FiveYearDays = (5 * 365) + 2;
-		// TaxSlayer doesn't count leap year days
-		OwnedDays = Math.min(OwnedDays, FiveYearDays, 1825);
-		LT730 = "&lt; 730";
-		TSTPTwoYears.innerHTML = (TPTwoYearsY.checked) ? OwnedDays : LT730 ;
-		TSSPTwoYears.innerHTML = (SPTwoYearsY.checked) ? OwnedDays : LT730 ;
-		TSSPOwner.innerHTML = TSTPOwner.innerHTML = (OwnerY.checked) ? OwnedDays : LT730 ;
-		if (OwnedDays < 730) {
-			OwnerN.checked = true;
-			TPExclusionApplies = false;
-			SPExclusionApplies = false;
-		}
+	// Calculate how many days the property was owned
+	OwnedDays = Math.round((SaleDateDays.valueOf() - PurchDateDays.valueOf()) / (1000 * 24 * 60 * 60))
+	if (OwnedDays) DaysOwned.innerHTML = "(Owned for " + OwnedDays + " days)";
+	TSTPDaysOwned.innerHTML = OwnedDays;
+	FiveYearDays = (5 * 365) + 2;
+	// Don't count leap year days
+	OwnedDays = Math.min(OwnedDays, FiveYearDays, 1825);
+	LT730 = "&lt; 730";
+	TSTPTwoYears.innerHTML = (TPTwoYearsY.checked) ? OwnedDays : LT730 ;
+	TSSPTwoYears.innerHTML = (SPTwoYearsY.checked) ? OwnedDays : LT730 ;
+	TSSPOwner.innerHTML = TSTPOwner.innerHTML = (OwnerY.checked) ? OwnedDays : LT730 ;
+	if (OwnedDays < 730) OwnerN.checked = true;
 
-		// Points paid by seller varies by date and whether used as a deduction
-		PointsBySellerComment.innerHTML = "";
-		PointsBySeller.disabled = true;
-		if (Purchased_Date > "1991-12-31") {
-			if (Purchased_Date < "1994-04-04") {
-				PointsBySellerComment.innerHTML = "If taken as a deduction in the " + Yr + " tax return";
-			}
-			PointsBySeller.disabled = false;
-			PointsBySellerRow.style.display = "table-row";
+	// Points paid by seller varies by date and whether used as a deduction
+	PointsBySellerComment.innerHTML = "";
+	PointsBySeller.disabled = true;
+	if (Purchased_Date > "1991-12-31") {
+		if (Purchased_Date < "1994-04-04") {
+			PointsBySellerComment.innerHTML = "If taken as a deduction in the " + Yr + " tax return";
 		}
-		else PointsBySeller.value = "";
+		PointsBySeller.disabled = false;
+		PointsBySellerRow.style.display = "table-row";
+	}
+	else PointsBySeller.value = "";
 
-		// Special situation if inherited in 2010
-		inherit2010 = ((+Purchased_Date[0] == 2010) && (Inherit.checked));
-		if ((inherit2010) && (! InheritMessageShown)) {
-			alert(InheritMessage);
-			InheritMessageShown = true;
-		}
+	// Special situation if inherited in 2010
+	inherit2010 = ((+Purchased_Date[0] == 2010) && (Inherit.checked));
+	if ((inherit2010) && (! InheritMessageShown)) {
+		alert(InheritMessage);
+		InheritMessageShown = true;
+	}
 
-		// First-time homebuyer question on taxslayer input form
-		// Just Yes or No - no determination of amount to be entered is made
-		ShowFTHB = ((+Purchased_Date[0] > 2007) && (+Purchased_Date[0] < 2012));
-		TSHBCredit.innerHTML = (ShowFTHB) ? "Check if true" : "No" ;
-		for (j = 0 ; j < FTHBList.length ; j++) {
-			FTHBList[j].style.display = (ShowFTHB) ? "table-row" : "none" ;
-		}
+	// First-time homebuyer question on taxslayer input form
+	// Just Yes or No - no determination of amount to be entered is made
+	ShowFTHB = ((+Purchased_Date[0] > 2007) && (+Purchased_Date[0] < 2012));
+	TSHBCredit.innerHTML = (ShowFTHB) ? "Check if true" : "No" ;
+	for (j = 0 ; j < FTHBList.length ; j++) {
+		FTHBList[j].style.display = (ShowFTHB) ? "table-row" : "none" ;
 	}
 	
 	// Determine which lines to show and add various messaging as appropriate
 	switch (true) {
-	case LikeKind.checked:
-		TPExclusionApplies = SPExclusionApplies = false;
-		OutOfScope = true;
+	case Purchase.checked:
+		CostType2.innerHTML = "Purchase price:";
+		CostType2Comment.innerHTML = "";
 		break;
 	case Inherit.checked:
 		CostType2.innerHTML = "Inherited value:";
@@ -449,23 +403,21 @@ function Basis_Calc(e) {
 		break;
 	case Gift.checked:
 		CostType2.innerHTML = "Gift value:";
-		CostType2Comment.innerHTML = "(Usually donor's adjusted basis but see Pub 523 for exceptions)";
+		CostType2Comment.innerHTML = "(Usually donor&apos;s adjusted basis but see Pub 523 for exceptions)";
 		break;
-	case Purchase.checked:
-	default:
-		CostType2.innerHTML = "Purchase price:";
-		CostType2Comment.innerHTML = "";
+	case LikeKind.checked:
+		CostType2.innerHTML = "Property value";
+		CostType2Comment.innerHTML = "(Out of Scope)";
 	}
 
 	PartialRow.style.display = "none";
 	if (MainY.checked) {
 		HomeType.innerHTML = "Main home"
 		Sale5yrDate = (Sale_Date[0] - 5) + "-" + Sale_Date[1] + "-" + Sale_Date[2];
-		if (PurchasedDate.value < Sale5yrDate) {
+		if (PurchaseDate.value < Sale5yrDate) {
 			partialdates = "between ";
 			partialdates += ((Purchased_Date[0] > 2008) ? DateAcquired.innerHTML : "1/1/2009" );
-			partialdates += " and " + TPFiveYears.innerHTML; // CONTRAVERSIAL
-			//partialdates += " when used as a main home "; // why was this here?
+			partialdates += " and " + TPFiveYears; // CONTRAVERSIAL
 			PartialDates.innerHTML = partialdates;
 			PartialRow.style.display = "table-row";
 		}
@@ -473,158 +425,183 @@ function Basis_Calc(e) {
 			PartialRow.style.display = "none";
 			PartialN.checked = true;
 		}
+		OwnershipTestRow.style.display = "table-row";
+		OwnerRow.style.display = "table-row";
+		ResidencyTestRow.style.display = "table-row";
+		TPFiveYearsRow.style.display = "table-row";
+		SPFiveYearsRow.style.display = "table-row";
+		LookbackTestRow.style.display = "table-row";
+		LookbackRow.style.display = "table-row";
+		PostponedRow.style.display = "table-row";
 	}
 	else {
 		HomeType.innerHTML = "Secondary home"
-		TPExclusionApplies = SPExclusionApplies = false;
+		OwnershipTestRow.style.display = "none";
+		OwnerRow.style.display = "none";
+		ResidencyTestRow.style.display = "none";
+		TPFiveYearsRow.style.display = "none";
+		SPFiveYearsRow.style.display = "none";
+		LookbackTestRow.style.display = "none";
+		LookbackRow.style.display = "none";
 		PartialRow.style.display = "none";
 		PartialN.checked = true;
-		//OutOfScope = true;
+		PostponedRow.style.display = "none";
+		UnforseenRow.style.display = "none";
 	}
+	LookbackSpouse.style.display = (MainY.checked && (FileMFS || FileMFJ)) ? "inline" : "none";
 
-	if (JointY.checked) {
-		SpouseApplies = true;
-		SPDiedRow.style.display = "table-row";
+	if (FileMFJ) {
 		OwnerSpouse.style.display = "inline";
-		LookbackSpouse.style.display = "inline";
-		SPFiveYearsRow.style.display = "table-row";
 		TSSPTwoYearsRow.style.display = "table-row";
 		TSSPOwnerRow.style.display = "table-row";
+		TSSPLookbackDaysRow.style.display = "table-row"
 		TSSPQualifiesRow.style.display = "table-row";
+		TSSPDiedExclusionRow.style.display = "none";
 	}
 	else {
-		SPExclusionApplies = false;
-		SPDivorcedRow.style.display = "none";
-		SPDiedRow.style.display = "none";
-		SPDiedN.checked = true;
-		OwnerSpouse.style.display = "none";
-		LookbackSpouse.style.display = "none";
-		SPFiveYearsRow.style.display = "none";
-		SPJobRelocRow.style.display = "none";
-		SPTwoYearsY.checked = true;
-		SPExtendedDutyRow.style.display = "none";
+		OwnerSpouse.style.display = "none"
 		TSSPTwoYearsRow.style.display = "none";
 		TSSPOwnerRow.style.display = "none";
+		TSSPLookbackDaysRow.style.display = "none";
 		TSSPQualifiesRow.style.display = "none";
+		TSSPDiedExclusionRow.style.display = "table-row";
 	}
 
-	if (SPDivorcedY.checked) {
-		SPDateDivorcedRow.style.display = "table-row";
+	if (OwnedJointlyY.checked) {
+		SpouseApplies = true;
+		SPDiedRow.style.display = "table-row";
+		DivorcedRow.style.display = "table-row";
+	}
+	else {
+		SPDiedRow.style.display = "none";
+		DivorcedRow.style.display = "none";
+		SPDiedN.checked = true;
+		DivorcedN.checked = true;
+		SPJobRelocRow.style.display = "none";
+		SPExtendedDutyRow.style.display = "none";
+	}
+
+	if (DivorcedY.checked) {
+		if (PurchaseDate.value < "1984-07-18") {
+			DateDivorcedRow.style.display = "table-row";
+			}
+		else {
+			DateDivorcedRow.style.display = "none" ;
+			DateDivorcedY.checked = true;
+		}
 		SPDiedRow.style.display = "none";
 		SPDiedN.checked = true;
-		SPExclusionApplies = false;
 		SPImprovementsPrior.innerHTML =
 		SPImprovementsAfter.innerHTML =
 		InstructionText2.innerHTML = "the divorce"
 	}
 	else {
-		SPDateDivorcedRow.style.display = "none";
-		SPDateDivorcedN.checked = true;
-		//SPDiedRow.style.display = "table-row";
-	}
-
-	if (FilingStatus.value === "QSS") {
-		SPDiedY.checked = true;
-		RemarriedN.checked = true;
+		if (OwnedJointlyY.checked) SPDiedRow.style.display = "table-row";
+		DateDivorcedRow.style.display = "none";
+		DateDivorcedN.checked = true;
 	}
 
 	if (SPDiedY.checked) {
 		RemarriedRow.style.display = "table-row";
-		//RemarriedInstruct.style.display = (RemarriedY.checked) ? "inline" : "none";
-		TPFiveYearsRemarried.style.display = (SPDiedWithin2Years) ? "inline" : "none";
-
+		TPTwoYearsRemarried.style.display = (RemarriedY.checked) ? "inline" : "none" ;
+		Current1.innerHTML = Current2.innerHTML = (RemarriedY.checked) ? "current" : "late" ;
 	}
 	else {
-		SPDiedBeforeSale = false;
 		RemarriedRow.style.display = "none";
-		RemarriedInstruct.style.display = "none";
 		RemarriedN.checked = true;
-	}
-
-	if (SPDiedY.checked) {
-	      if (! SPDiedWithin2Years) SPExclusionApplies = false;
-		else if (TPTwoYearsN.checked) PartialExclusionApplies = true;
-	}
-
-	if (RemarriedY.checked) {
-		//SPExclusionApplies = false;
-		PartialExclusionApplies = true;;
-	}
-
-	if (InstallmentY.checked) {
-		OutOfScope = true;
-	}
-
-	if (PostponedY.checked) {
-		OutOfScope = true;
-	}
-
-	if (RentalY.checked) {
-		OutOfScope = true;
-	}
-
-	if (PartialY.checked) {
-		OutOfScope = true;
-	}
-
-	if (LookbackY.checked) {
-		TPExclusionApplies = SPExclusionApplies = false;
+		TPTwoYearsRemarried.style.display = "none";
+		Current1.innerHTML = Current2.innerHTML = "";
 	}
 
 	if (OwnerY.checked) {
-		if (SpouseApplies) SPFiveYearsRow.style.display = "table-row";
+		if (MainY.checked && (FileMFS || FileMFJ)) SPFiveYearsRow.style.display = "table-row";
 		UnforseenRow.style.display = "none";
 		UnforseenN.checked = true;
 	}
 	else {
-		UnforseenRow.style.display = "table-row";
+		if (MainY.checked) UnforseenRow.style.display = "table-row";
 	}
 
 	if (UnforseenY.checked) {
-		TPFiveYearsRow.style.display = "none";
-		SPFiveYearsRow.style.display = "none";
-		PartialExclusionApplies = true;
 		TPJobRelocRow.style.display = "none";
 		SPJobRelocRow.style.display = "none";
 		TPExtendedDutyRow.style.display = "none";
 		SPExtendedDutyRow.style.display = "none";
+		TPTwoYearsY.checked = true;;
+		SPTwoYearsY.checked = true;;
 	}
 	else {
-		if (TPJobRelocY.checked || TPExtendedDutyY.checked) TPPartialExclusionApplies = true;
-		if (SPJobRelocY.checked || SPExtendedDutyY.checked) SPPartialExclusionApplies = true;
-		if (OwnerN.checked) {
-			TPExclusionApplies = SPExclusionApplies = false;
-		}
-		TPFiveYearsRow.style.display = "table-row";
+		if (MainY.checked) TPFiveYearsRow.style.display = "table-row";
 		if (TPTwoYearsN.checked) {
-			TPJobRelocRow.style.display = 
+			TPJobRelocRow.style.display =  "table-row";
 			TPExtendedDutyRow.style.display = "table-row";
-			if (TPJobRelocN.checked && TPExtendedDutyN.checked) {
-				TPExclusionApplies = (SPDiedWithin2Years) ?  SPExclusionApplies : false ;
-			}
-			else if (TPExclusionApplies) TPPartialExclusionApplies = true;
 		}
 		else {
-			TPJobRelocRow.style.display = 
+			TPJobRelocRow.style.display =  "none";
 			TPExtendedDutyRow.style.display = "none";
 		}
-		if (SPTwoYearsN.checked) {
-			SPJobRelocRow.style.display = 
+		if ((SPTwoYearsN.checked) && (SPDiedN.checked || RemarriedY.checked)) {
+			SPJobRelocRow.style.display =  "table-row";
 			SPExtendedDutyRow.style.display = "table-row";
-			if (SPJobRelocN.checked && SPExtendedDutyN.checked) SPExclusionApplies = false;
-			else if (SPExclusionApplies) SPPartialExclusionApplies = true;
 		}
 		else {
-			SPJobRelocRow.style.display = 
+			SPJobRelocRow.style.display = "none";
 			SPExtendedDutyRow.style.display = "none";
 		}
 
-		// Widowed exception
-		if (SPDiedY.checked && RemarriedN.checked) TSTPQualifies.innerHTML = TSSPQualifies.innerHTML;
-		PartialExclusionApplies = PartialExclusionApplies || TPPartialExclusionApplies || SPPartialExclusionApplies;
 	}
 
+	// Determine exclusion eligibility
+	OutOfScope = false;
+	TPExclusionApplies = true;
+	SPExclusionApplies = FileMFJ || SPDiedY.checked;
+	PartialExclusionApplies = false;
+	TPPartialExclusionApplies = false;
+	SPPartialExclusionApplies = false;
+
+	// MAIN HOME
+	if (MainN.checked) TPExclusionApplies = SPExclusionApplies = false;
+
+	// OWNERSHIP
+	if (OwnedDays < 730) TPExclusionApplies = SPExclusionApplies = false;
+	if ((OwnerN.checked) && (UnforseenN.checked)) TPExclusionApplies = SPExclusionApplies = false;
+	if (UnforseenY.checked) TPPartialExclusionApplies = SPPartialExclusionApplies = true;
+
+	// RESIDENCY
+	TPexception = (TPJobRelocY.checked || TPExtendedDutyY.checked);
+	SPexception = (SPJobRelocY.checked || SPExtendedDutyY.checked);
+	if (RemarriedN.checked) {
+		if ((TPTwoYearsN.checked) && (SPTwoYearsN.checked)) SPExclusionApplies = TPExclusionApplies = false;
+	}
+	else {
+		if (SPTwoYearsN.checked) SPExclusionApplies = false;
+		if (SPexception) SPPartialExclusionApplies = true;
+		if (TPTwoYearsN.checked) TPExclusionApplies = false;
+		if (TPexception) TPPartialExclusionApplies = true;
+	}
+	if (SPDiedY.checked && RemarriedN.checked) TSTPQualifies.innerHTML = TSSPQualifies.innerHTML;
+
+	// LOOKBACK
+	if (LookbackY.checked) {
+		TPExclusionApplies = SPExclusionApplies = false;
+		TPPartialExclusionApplies = SPPartialExclusionApplies = true;;
+	}
+
+	if (LikeKind.checked) OutOfScope = true;
+	if (Inherit.checked && MainN.checked) OutOfScope = true;
+	if (Gift.checked && MainN.checked) OutOfScope = true;
+	if (PostponedY.checked) OutOfScope = true;
+	if (RentalY.checked) OutOfScope = true;
+	if (PartialY.checked) OutOfScope = true;
+
+
+	if (MainN.checked) TPPartialExclusionApplies = SPPartialExclusionApplies = false;
+	PartialExclusionApplies = PartialExclusionApplies || TPPartialExclusionApplies || SPPartialExclusionApplies;
+
 	// Home sale details tab -------------------------------------------------------------
+
+	// Check inputs
+	SalePrice.style.backgroundColor = (SalePrice.value) ? "white" : "hotpink" ;
 
 	// Round all inputs
 	InputList = document.getElementsByClassName("datain");
@@ -654,6 +631,8 @@ function Basis_Calc(e) {
 		SaleExpenseComment.innerHTML = "";
 	}
 
+	SalePriceLabel.innerHTML = (InstallmentY.checked) ? "Sale amount" : "Money received" ;
+
 	// Form 1099C ?
 	if (F1099CY.checked) {
 		BankruptRow.style.display = "table-row";
@@ -670,6 +649,10 @@ function Basis_Calc(e) {
 
 	// Home purchase details tab -----------------------------------------------
 
+	// Check inputs
+	PurchasePrice.style.backgroundColor = (PurchasePrice.value) ? "white" : "hotpink" ;
+	DiedFMV.style.backgroundColor = (SPDiedY.checked && (DiedFMV.value == 0)) ? "hotpink" : "white" ;
+
 	// Figure the basis to be used
 
 	if (SPDiedY.checked) { // adjust the basis on date of death
@@ -678,15 +661,15 @@ function Basis_Calc(e) {
 		DiedBasisRow4.style.display = "table-row";
 		CPSQuestion.style.display = "inline"; // Community property state
 		DiedBasisRow3.style.display = (SPDiedCommunityPropertyState.checked) ? "none" : "table-row" ;
-		if (SPDiedBeforeSale) {
+		if (SPDiedY.checked) {
 			DiedBasis1.innerHTML = "Home improvements before spouse died:";
 			DiedBasis3.innerHTML = "Adjusted basis before spouse died:";
 			DiedBasis2.innerHTML = "Fair market value when spouse died:";
 			DiedBasis4.innerHTML = "Adjusted basis after spouse died:";
 		}
 	}
-	else if (SPDivorcedY.checked) { // adjust the basis on date of divorce
-		if (SPDateDivorcedY.checked) {
+	else if (DivorcedY.checked) { // adjust the basis on date of divorce
+		if (DateDivorcedY.checked) {
 			DiedBasisRow1.style.display = "table-row";
 			DiedBasis1.innerHTML = "Home improvements before the divorce:";
 			DiedBasisRow2.style.display = "none";
@@ -723,7 +706,7 @@ function Basis_Calc(e) {
 	if (Remodels[Remodels.length - 1].value != "") Add_Remodel();
 
 	// Make display adjustments for a deceased or divorced spouse
-	SplitResults = SPDiedBeforeSale || SPDateDivorcedY.checked;
+	SplitResults = SPDiedY.checked || DivorcedY.checked;
 	Results.style.display = (SplitResults) ? "none" : "inline" ;
 	ResultsBoth.style.display = (SplitResults) ? "inline" : "none" ;
 	Instruction2.style.display = (SplitResults) ? "inline" : "none" ;
@@ -761,7 +744,8 @@ function Basis_Calc(e) {
 
 	// Basis calculations on the Home Cost tab -----------------------------------------
 
-	ClosingCosts = +LegalFee.value + +SurveyFee.value + +TitleFee.value + +SellerFee.value + +OtherFee.value;
+	ClosingCosts = +LegalFee.value + +SurveyFee.value + +TitleFee.value
+		+ +SellerFee.value + +AbstractFee.value + +StampFee.value + +OtherFee.value;
 	PurchaseExpensesTotal.value = ClosingCosts;
 
 	BasisDecrease = +Easements.value + +EnergyCredits.value + +AdoptionCredits.value;
@@ -770,8 +754,8 @@ function Basis_Calc(e) {
 	TotalAdjusted.value = BasisDecrease;
 
 	switch (true) {
-	case SPDivorcedY.checked:
-		if (SPDateDivorcedN.checked) {
+	case DivorcedY.checked:
+		if (DateDivorcedN.checked) {
 			DiedBasis.value = 
 			Basis.value =
 		       	basis = +DiedFMV.value;
@@ -784,13 +768,13 @@ function Basis_Calc(e) {
 			TSIncreases.innerHTML = Math.max(0, Math.round(basis - +PurchasePrice.value));
 		}
 		break;
-	case SPDiedBeforeSale:
+	case SPDiedY.checked:
 		DiedBasisAmount = +PurchasePrice.value + ClosingCosts - BasisDecrease + PreDoDImproveTotal;
 
 		if (SPDiedCommunityPropertyState.checked) {
 			DiedBasis.value = 
 			Basis.value =
-		       	basis = +DiedFMV.value;
+		       	basis = +DiedFMV.value; 
 		}
 		else {
 			basis = Math.round(50 * (+DiedFMV.value + +DiedBasisAmount)) / 100;
@@ -816,6 +800,8 @@ function Basis_Calc(e) {
 	TSTitleFee.innerHTML = +TitleFee.value; // 4d
 	TSSellerFee.innerHTML = +SellerFee.value; // 4f
 	TSOtherFee.innerHTML = +OtherFee.value; // 4g
+	TSAbstractFee.innerHTML = +AbstractFee.value;
+	TSStampFee.innerHTML = +StampFee.value;
 	// ClosingCosts; // 5 
 	TSTaxFee.innerHTML = AssessmentTotal; // 7
 	//BasisDecrease; // 8
@@ -865,7 +851,10 @@ function Basis_Calc(e) {
 		return;
 	}
 
-	if ((PurchasedDate.value == "") || (AmountRealized == 0) || (AdjustedBasis == 0)) {
+	if ((PurchaseDate.value == "")
+		|| (AmountRealized == 0)
+		|| (AdjustedBasis == 0)
+		|| ((SPDiedY.checked || DivorcedY.checked) && DiedFMV.value == 0)) {
 		if ((! TPExclusionApplies) && (! SPExclusionApplies)) {
 			QualificationMessage.innerHTML = "You do not qualify for an exclusion";
 		}
@@ -873,7 +862,7 @@ function Basis_Calc(e) {
 			QualificationMessage.innerHTML = "An exclusion may be available";
 		}
 		QualificationMessage.style.display = "block";
-		reason = (PurchasedDate.value) ? "sale and purchase details" : "Date obtained" ;
+		reason = (PurchaseDate.value) ? "need sale and purchase details" : "Date obtained" ;
 		ErrorMessage.innerHTML = "Insufficient data to determine taxability (" + reason + ")";
 		ErrorMessage.style.display = "block";
 		TSInputDiv.style.display = "none";
@@ -890,7 +879,7 @@ function Basis_Calc(e) {
 	if (TPExclusionApplies) {
 		MaxExclAmt += TPExclusion;
 		TSTPQualifies.innerHTML = (TPPartialExclusionApplies) ?  "(Partial)" : "Yes";
-		TSUseExclusion.innerHTML = "No";
+		TSDiedExclusion.innerHTML = "No";
 	}
 	else {
 		TSTPQualifies.innerHTML = "No";
@@ -899,7 +888,7 @@ function Basis_Calc(e) {
 	if (SPExclusionApplies) {
 		MaxExclAmt += SPExclusion;
 		TSSPQualifies.innerHTML = (SPPartialExclusionApplies) ?  "(Partial)" : "Yes";
-		TSUseExclusion.innerHTML = "No";
+		TSDiedExclusion.innerHTML = "No";
 	}
 	else {
 		TSSPQualifies.innerHTML = "No";
@@ -918,14 +907,14 @@ function Basis_Calc(e) {
 			UseExclusionOption.style.display = "block";
 		}
 		else {
-			ExclusionMessage.innerHTML = "No exclusion is needed for this home sale";
+			ExclusionMessage.innerHTML = "";
 		}
 		ExclusionMessage.style.display = "block";
 	}
 	else {
 		ExclusionMessage.innerHTML = "This sale resulted in a nondeductible loss of $" + Math.abs(SaleGain + SaleExpenses);
 		ExclusionMessage.style.display = "block";
-		TSUseExclusion.innerHTML = "No";
+		TSDiedExclusion.innerHTML = "No";
 		TSChoices.style.display = "inline";
 	}
 
@@ -948,7 +937,7 @@ function Basis_Calc(e) {
 		AdjReason += "H";
 		ExclAmount = MaxExclAmt;
 		if (ExclAmount) HDetail = "Exclusion = " + ExclAmount;
-		TSUseExclusion.innerHTML = "Yes";
+		TSDiedExclusion.innerHTML = (ExclAmount > TPExclusion) ? "Yes" : "No" ;
 	}
 
 	AdjAmount = ExclAmount + SaleExpenses;
@@ -1045,13 +1034,8 @@ function Tab_Click(id) {
 			Tab_Click("InfoDiv");
 			return;
 		}
-		if (PurchasedDate.value == "") {
+		if (PurchaseDate.value == "") {
 			alert ("Please enter the date obtained first.");
-			Tab_Click("InfoDiv");
-			return;
-		}
-		if (SPDiedY.checked && (SPDateDied == "")) {
-			alert ("Please enter the spouse date of death first.");
 			Tab_Click("InfoDiv");
 			return;
 		}
@@ -1146,7 +1130,7 @@ function Add_Remodel() {
 		<table style="width: 100%;"><tr>
 		<td id="InfoDivTab" class="tab" onclick="Tab_Click('InfoDiv');">TP/home&nbsp;information</td>
 		<td id="SaleDivTab" class="tab" onclick="Tab_Click('SaleDiv');">Home&nbsp;sale&nbsp;details</td>
-		<td id="CostDivTab" class="tab" onclick="Tab_Click('CostDiv');">Home&nbsp;cost&nbsp;details</td>
+		<td id="CostDivTab" class="tab" onclick="Tab_Click('CostDiv');">Home&nbsp;purchase&nbsp;details</td>
 		<td id="HomeDivTab" class="tab" onclick="Tab_Click('HomeDiv');">Home&nbsp;improvements</td>
 		</tr></table>
 	</div>
@@ -1171,80 +1155,70 @@ function Add_Remodel() {
 		</td><td></td></tr>
 		<tr id="SaleDateRow"><td>Date sold:</td>
 			<td><input id="SaleDate" type="date" /></td>
-			<td>&#9754; <b>Enter this before answering questions below!</b></td></tr>
-		</table>
-		<table id="InfoTable" class="tblLayout">
+			<td>&#9754; <b>Enter these dates before answering questions below!</b></td></tr>
 		<tr><td id="CostType1">Date obtained:</td>
-			<td><input id="PurchasedDate" type="date" /></td>
+			<td><input id="PurchaseDate" type="date" /></td>
 			<td><span id="DaysOwned"></span></td></tr>
 		<tr><td>How did you obtain the home:</td>
 			<td colspan="2"><input id="Purchase" name="Inherit" type="radio" checked /> Purchase
 			<input id="Inherit" name="Inherit" type="radio" /> Inherited
 			<input id="Gift" name="Inherit" type="radio" /> Gift
-			<input id="LikeKind" name="Inherit" type="radio" /> Like-kind (1031) exchange</td></tr>
+			<input id="LikeKind" name="Inherit" type="radio" /> Like-kind (&sect;1031) exchange</td></tr>
 		<tr><td>Was this your main home?</td>
 			<td><input id="MainY" name="Main" type="radio" checked /> Yes
 				<input id="MainN" name="Main" type="radio" /> No</td>
 			<td></td></tr>
-		<tr id="JointRow"><td>Was the home jointly owned with a spouse?</td>
-			<td><input id="JointY" name="Joint" type="radio" checked /> Yes
-				<input id="JointN" name="Joint" type="radio" /> No</td>
+		<tr id="OwnedJointlyRow"><td>Was the home jointly owned with a spouse</span>?</td>
+			<td><input id="OwnedJointlyY" name="Owned" type="radio" checked /> Yes
+				<input id="OwnedJointlyN" name="Owned" type="radio" /> No</td>
+			<td>If No, answer questions as if you are the taxpayer.</td></tr>
+		<tr id="DivorcedRow"><td class="indent">Were you divorced between
+				<span id="DivorcedDate1"></span> and
+				<span id="DivorcedDate2"></span>?</td>
+			<td><input id="DivorcedY" name="Divorced" type="radio" /> Yes
+				<input id="DivorcedN" name="Divorced" type="radio" checked /> No</td>
 			<td></td></tr>
-		<tr id="SPDivorcedRow"><td class="indent">Were you divorced after obtaining the home?</td>
-			<td><input id="SPDivorcedY" name="SPDivorced" type="radio" /> Yes
-				<input id="SPDivorcedN" name="SPDivorced" type="radio" checked /> No</td>
+		<tr id="DateDivorcedRow" class="hide"><td class="indent">Were you divorced after 7/18/1984</span>?</td>
+			<td><input id="DateDivorcedY" name="DateDivorced" type="radio" checked /> Yes
+				<input id="DateDivorcedN" name="DateDivorced" type="radio" /> No</td>
 			<td></td></tr>
-		<tr id="SPDateDivorcedRow" class="hide"><td class="indent">Were you divorced after 7/18/1984</span>?</td>
-			<td><input id="SPDateDivorcedY" name="SPDateDivorced" type="radio" checked /> Yes
-				<input id="SPDateDivorcedN" name="SPDateDivorced" type="radio" /> No</td>
-			<td></td></tr>
-		<tr id="SPDiedRow"><td class="indent">Is that spouse deceased?</td>
+		<tr id="SPDiedRow"><td class="indent">Did that spouse die between
+				<span id="SPDiedDate1"></span> and
+				<span id="SPDiedDate2"></span>?</td>
 			<td><input id="SPDiedY" name="SPDied" type="radio" /> Yes
 				<input id="SPDiedN" name="SPDied" type="radio" checked /> No</td>
 			<td> <span id="CPSQuestion" class="hide">
-				<input id="SPDateDied" type="date" /> Date of death,
 				<input id="SPDiedCommunityPropertyState" type="checkbox" />Check if community property state
 				</span></td></tr>
-		<tr id="RemarriedRow" class="hide"><td class="indent">Have you remarried?</td>
+		<tr id="RemarriedRow" class="hide"><td class="indent">Were you remarried on
+				<span id="RemarriedDate"></span>?</td>
 			<td><input id="RemarriedY" name="Remarried" type="radio" /> Yes
 				<input id="RemarriedN" name="Remarried" type="radio" /> No</td>
-			<td><span id="RemarriedInstruct"></span></td></tr>
-		<tr><td>Are you financing the buyer&apos;s purchase of your home?</td>
-			<td><input type="radio" id="InstallmentY" name="Installment" /> Yes
-				<input type="radio" id="InstallmentN" name="Installment" checked /> No</td>
 			<td></td></tr>
-		<tr><td>Is there postponed gain or depreciation from a previous home sold prior to 5/7/1997?</td>
-			<td><input type="radio" id="PostponedY" name="Postponed" /> Yes
-				<input type="radio" id="PostponedN" name="Postponed" checked /> No</td>
-			<td></td></tr>
-		<tr><td>Was the home ever used for business (including rental for more than 14 days) after 5/6/1997?</td>
-			<td><input type="radio" id="RentalY" name="Rental" /> Yes
-				<input type="radio" id="RentalN" name="Rental" checked /> No</td>
-			<td></td></tr>
-		<tr id="PartialRow">
-			<td>Was there any time <span id="PartialDates"></span>
-				when this home was <u>not</u> used as the main home
-				for either taxpayer or spouse?</td>
-			<td><input type="radio" id="PartialY" name="Partial" /> Yes
-				<input type="radio" id="PartialN" name="Partial" checked /> No</td>
-			<td>(Check yes if used as a vacation or second home during this period)</td></tr>
-		<tr><td>Have you <span id="LookbackSpouse"> or your spouse </span>taken a home sale exclusion since <span id="LookbackTwoYears"></span></td>
-			<td><input id="LookbackY" name="Lookback" type="radio" /> Yes
-				<input id="LookbackN" name="Lookback" type="radio" checked /> No</td>
-			<td></td></tr>
-		<tr><td>Did you <span id="OwnerSpouse">and/or your spouse</span> own the home for any 24 months (730 days) since <span id="OwnFiveYears"></span></td>
+		<tr id="OwnershipTestRow"><td colspan="3" class="bold italic">OWNERSHIP TEST:</td></tr>
+		<tr id="OwnerRow"><td>Did you
+				<span id="OwnerSpouse">and/or your <span id="Current1"></span> spouse</span>
+				own the home for any 24 months (730 days) between
+				<span id="OwnFiveYears1"></span> and
+				<span id="OwnFiveYears2"></span></td>
 			<td><input id="OwnerY" name="Owner" type="radio" checked /> Yes
 				<input id="OwnerN" name="Owner" type="radio" /> No</td>
-			<td>Up to 10 years extension for period of duty if on duty outside the US as military, diplomatic, intelligence or peace corps (applies to residency also)</td></tr>
+			<td>Up to 10 years extension for period of duty if on duty outside the US as military, diplomatic,
+				intelligence or peace corps (applies to residency also)</td></tr>
 		<tr id="UnforseenRow" class="hide"><td class="indent">Due to unforseeable events?</td>
 			<td><input id="UnforseenY" name="Unforseen" type="radio" /> Yes
 				<input id="UnforseenN" name="Unforseen" type="radio" checked /> No</td>
-			<td>(eg: home destroyed, condemned, casualty loss, divorce, legal separation, multiple births, loss of employment)</td></tr>
-
-		<tr id="TPFiveYearsRow"><td>Did you live in the home for any 24 months (730 days) since <span id="TPFiveYears"></span></td>
+			<td>(eg: home destroyed, condemned, casualty loss, divorce, legal separation,
+				multiple births, loss of employment)</td></tr>
+		<tr id="ResidencyTestRow"><td colspan="3" class="bold italic">RESIDENCY TEST:</td></tr>
+		<tr id="TPFiveYearsRow"><td>Did you live in the home for any 24 months (730 days) between
+				<span id="TPFiveYears1"></span> and
+				<span id="TPFiveYears2"></span></td>
 			<td><input id="TPTwoYearsY" name="TPTwoYears" type="radio" checked /> Yes
 				<input id="TPTwoYearsN" name="TPTwoYears" type="radio" /> No</td>
-			<td><span id="TPFiveYearsRemarried"class="hide">Also choose No if you did not own the home during this period.</span></td></tr>
+			<td>Vacations count. Licensed care facilities count if lived in home for 12 months.
+				<span id="TPTwoYearsRemarried"class="hide">
+					But choose No if you did not own the home during this period.</span></td></tr>
 		<tr id="TPJobRelocRow" class="hide">
 			<td class="indent">Due to work or health relocation?</td>
 			<td><input id="TPJobRelocY" name="TPJobReloc" type="radio" /> Yes
@@ -1256,10 +1230,14 @@ function Add_Remodel() {
 				<input id="TPExtendedDutyN" name="TPExtendedDuty" type="radio" checked /> No</td>
 			<td>More than 90 days and at least 50 miles from home</td></tr>
 		<tr id="SPFiveYearsRow">
-			<td>Did your spouse live in the home for any 24 months (730 days) since <span id="SPFiveYears"></span></td>
+			<td>Did your
+				<span id="Current2"></span>
+				spouse live in the home for any 24 months (730 days) between
+				<span id="SPFiveYears1"></span> and
+				<span id="SPFiveYears2"></span></td>
 			<td><input id="SPTwoYearsY" name="SPTwoYears" type="radio" checked /> Yes
 				<input id="SPTwoYearsN" name="SPTwoYears" type="radio" /> No</td>
-			<td></td></tr>
+			<td>(Notes in previous line apply here too)</td></tr>
 		<tr id="SPJobRelocRow" class="hide">
 			<td class="indent">Due to work or health relocation?</td>
 			<td><input id="SPJobRelocY" name="SPJobReloc" type="radio" /> Yes
@@ -1270,6 +1248,32 @@ function Add_Remodel() {
 			<td><input id="SPExtendedDutyY" name="SPExtendedDuty" type="radio" /> Yes
 				<input id="SPExtendedDutyN" name="SPExtendedDuty" type="radio" checked /> No</td>
 			<td>More than 90 days and at least 50 miles from home</td></tr>
+		<tr id="LookbackTestRow"><td colspan="3" class="bold italic">LOOKBACK TEST:</td></tr>
+		<tr id="LookbackRow"><td>Have you
+				<span id="LookbackSpouse">or your spouse</span>
+				taken a home sale exclusion since
+				<span id="LookbackTwoYears"></span></td>
+			<td><input id="LookbackY" name="Lookback" type="radio" /> Yes
+				<input id="LookbackN" name="Lookback" type="radio" checked /> No</td>
+			<td></td></tr>
+		<tr><td colspan="3" class="bold italic">SCOPE TESTS:</td></tr>
+		<tr id="PostponedRow"><td>Is there postponed gain or depreciation from a previous home sold prior to 5/7/1997?</td>
+			<td><input type="radio" id="PostponedY" name="Postponed" /> Yes
+				<input type="radio" id="PostponedN" name="Postponed" checked /> No</td>
+			<td></td></tr>
+		<tr id="BusinessRow"><td>Was the home ever used for business (including rental for more than 14 days) between 5/6/1997 and
+				<span id="BusinessSoldDate"></span></td>
+			<td><input type="radio" id="RentalY" name="Rental" /> Yes
+				<input type="radio" id="RentalN" name="Rental" checked /> No</td>
+			<td></td></tr>
+		<tr id="PartialRow">
+			<td>Was there any time
+				<span id="PartialDates"></span>
+				when this home was <u>not</u> used as the main home
+				for either taxpayer or spouse?</td>
+			<td><input type="radio" id="PartialY" name="Partial" /> Yes
+				<input type="radio" id="PartialN" name="Partial" checked /> No</td>
+			<td>(Check yes if used as a vacation or second home during this period)</td></tr>
 		</table>
 	</div>
 
@@ -1277,7 +1281,7 @@ function Add_Remodel() {
 		<span class="tblHeader">Home sale details:</span>
 		<br />&nbsp;
 		<span id="SaleMFSNotice">
-			When filing Married Filing Seperately, only enter your portion of the amounts below.</span>
+			When filing Married Filing Seperately, only enter your portion of the amounts below.<br />&nbsp;</span>
 		<table class="tblLayout">
 		<tr><td>Was a Form 1099-S issued?</td>
 			<td><input type="radio" id="F1099SY" name="F1099S" checked /> Yes
@@ -1291,8 +1295,12 @@ function Add_Remodel() {
 			<td><input type="radio" id="BankruptY" name="Bankrupt" /> Yes
 				<input type="radio" id="BankruptN" name="Bankrupt" checked /> No</td>
 			<td></td></tr>
+		<tr id="RefinincingRow"><td>Are you financing the buyer&apos;s purchase of your home?</td>
+			<td><input type="radio" id="InstallmentY" name="Installment" /> Yes
+				<input type="radio" id="InstallmentN" name="Installment" checked /> No</td>
+			<td></td></tr>
 		<tr><td><br /><i><u>Sale price</u></i></span></td><td></td><td></td></tr>
-		<tr><td class="indent">Money received:</td>
+		<tr><td id="SalePriceLabel" class="indent">Money received:</td>
 			<td>$<input id="SalePrice" class="datain" type="number" /></td><td id="SalePriceComment"></td></tr>
 		<tr id="OtherValueRow"><td class="indent">Value of other property/services:</td>
 			<td>$<input id="OtherValue" class="datain" type="number" /></td><td id="OtherValueComment"></td></tr>
@@ -1334,11 +1342,11 @@ function Add_Remodel() {
 		</table>
 	</div> <!-- SaleDiv -->
 
-	<div id="CostDiv" class="section doPrint" onkeyup="Basis_Calc(event);">
-		<span class="tblHeader">Home cost details:</span>
+	<div id="CostDiv" class="section doPrint" onkeyup="Basis_Calc(event);" onchange="Basis_Calc(event);">
+		<span class="tblHeader">Home purchase details:</span>
 		<br />&nbsp;
 		<span id="CostMFSNotice">
-			When filing Married Filing Seperately, only enter your portion of the amounts below.</span>
+			When filing Married Filing Seperately, only enter your portion of the amounts below.<br />&nbsp;</span>
 		<table id="CostTable" class="tblLayout">
 		<tr><td id="CostType2"></td>
 			<td>$<input id="PurchasePrice" class="datain" type="number" /></td>
@@ -1360,6 +1368,12 @@ function Add_Remodel() {
 		<tr><td class="indent">Seller fees you agreed to pay:</td>
 			<td>$<input id="SellerFee" class="datain" type="number" /></td>
 			<td>(eg: real estate taxes prior to sale, title/mortage fees, repair charges, real estate agent commissions)</td></tr>
+		<tr><td class="indent">Abstract and recording fees:</td>
+			<td>$<input id="AbstractFee" class="datain" type="number" /></td>
+			<td></td></tr>
+		<tr><td class="indent">Transfer of stamp fees:</td>
+			<td>$<input id="StampFee" class="datain" type="number" /></td>
+			<td></td></tr>
 		<tr><td class="indent">Other fees:</td>
 			<td>$<input id="OtherFee" class="datain" type="number" /></td>
 			<td>(eg: sales tax on a mobile home or houseboat used as the home)</td></tr>
@@ -1451,12 +1465,13 @@ function Add_Remodel() {
 		<ul>
 			<li>If the same improvement was made more than once,
 				only use the cost for the most recent improvement.</li>
-			<li>Subtract any tax credits received from the cost of any improvements.</li>
+			<li>Subtract any tax credits, subsidies, or grants received from the cost of any improvements.</li>
 			<span id="Instruction2"><li>Check the box after the cost amount if the improvement
-				was made after <span id="InstructionText2"></span>.</li></span>
+				was made after
+				<span id="InstructionText2"></span>.</li></span>
 			<span id="HomeMFSNotice">
 				<li>When filing Married Filing Seperately,
-				only enter your portion of the amounts below.</li></span>
+					only enter your portion of the amounts below.</li></span>
 		</ul>
 		<table id="HomeTable" style="margins: auto;">
 			<tr>	<th colspan="6"><i><u>Systems</u></i></th></tr>
@@ -1636,11 +1651,16 @@ function Add_Remodel() {
 		<br /><br />
 		<div id="HITotal">
 			<span id="ResultsBoth">
-				Home improvements prior to <span id="SPImprovementsPrior"></span> = $<span id="HomeImprovementPrior"></span>
-				<br />Home improvements after <span id="SPImprovementsAfter"></span>= $<span id="HomeImprovementAfter"></span>
+				Home improvements before
+				<span id="SPImprovementsPrior"></span> =
+				$<span id="HomeImprovementPrior"></span>
+				<br />Home improvements after
+				<span id="SPImprovementsAfter"></span>=
+				$<span id="HomeImprovementAfter"></span>
 			</span>	
 			<span id="Results">
-				Home improvements total = $<span id="HomeImprovementTotal"></span>
+				Home improvements total =
+				$<span id="HomeImprovementTotal"></span>
 			</span>	
 		</div>
 	
@@ -1653,8 +1673,8 @@ function Add_Remodel() {
 	<span id="ExclusionMessage"></span>
 	<span id="UseExclusionOption">Do you wish to use the exclusion?
 		<input type="radio" id="UseExclusionY" name="UseExclusion" checked /> Yes
-		<input type="radio" id="UseExclusionN" name="UseExclusion" /> No
-		&nbsp;<span id="ExclusionInfo" class="help"
+		<input type="radio" id="UseExclusionN" name="UseExclusion" /> No&nbsp;
+		<span id="ExclusionInfo" class="help"
 			onmouseover="ExclusionInfoText.style.display='block'; "
 			onmouseout="ExclusionInfoText.style.display='none';">&nbsp;?&nbsp;
 			</span>
@@ -1673,7 +1693,8 @@ function Add_Remodel() {
 	<span class="tblHeader">TaxSlayer input:</span>
 	<span id="TSChoices">
 		<input id="UseSchedD" name="EnterAs" type="radio" checked /> Enter directly as Capital Gains
-		<input id="UseWorksheet" name="EnterAs" type="radio" /> <span id="UWOptionText"> Enter on Sale of Home Worksheet</span>
+		<input id="UseWorksheet" name="EnterAs" type="radio" />
+		<span id="UWOptionText"> Enter on Sale of Home Worksheet</span>
 	</span>
 	<div id="TSNoNeedToEnter">
 		<br />&nbsp;
@@ -1688,45 +1709,104 @@ function Add_Remodel() {
 		<tr><th colspan="4">Sale of Main Home Worksheet</th></tr>
 		<tr><td colspan="4"><b>Basic Information about Your Home</b></td></tr>
 		<tr><td></td><td colspan="3"><b>Basic info about the Sale</b></td></tr>
-		<tr><td colspan="2"></td><td>Date of purchase</td><td id="TSPurchasedDate"></td></tr>
-		<tr><td colspan="2"></td><td>Purchase price</td><td id="TSPurchasePrice"></td></tr>
-		<tr><td colspan="2"></td><td>Date of sale</td><td id="TSSaleDate"></td></tr>
-		<tr><td colspan="2"></td><td>Sale price</td><td id="TSSalePriceTotal"></td></tr>
-		<tr><td></td><td colspan="3"><b>Info about your home</b></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Date of purchase</td>
+		<td id="TSPurchaseDate"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Purchase price</td>
+			<td id="TSPurchasePrice"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Date of sale</td>
+			<td id="TSSaleDate"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Sale price</td>
+			<td id="TSSalePriceTotal"></td></tr>
+		<tr><td></td><td colspan="3"> <b>Info about your home</b></td></tr>
 		<tr><td colspan="2"></td>
 			<td>How many days in the last 5 years was the home your main home?</td>
 			<td id="TSTPTwoYears"></td></tr>
 		<tr><td colspan="2"></td>
 			<td>How many days in the last 5 years did you own your home?</td>
 			<td id="TSTPOwner"></td></tr>
+		<tr id="TSTPLookbackDaysRow"><td colspan="2"></td>
+			<td>How many days since your previous exclusion?</td>
+			<td id="TSTPLookbackDays">(blank)</td></tr>
 		<tr id="TSSPTwoYearsRow"><td colspan="2"></td>
 			<td>How many days in the last 5 years was the home your spouse&apos;s main home</td>
 			<td id="TSSPTwoYears"></td></tr>
 		<tr id="TSSPOwnerRow"><td colspan="2"></td>
 			<td>How many days in the last 5 years did your spouse own your home?</td>
 			<td id="TSSPOwner"></td></tr>
-		<tr><td colspan="2"></td><td>Check here if you recieved the first-time Homebuyers Credit... (complete if needed)</td><td id="TSHBCredit"></td></tr>
+		<tr id="TSSPLookbackDaysRow"><td colspan="2"></td>
+			<td>How many days since your previous exclusion?</td>
+			<td id="TSSPLookbackDays">(blank)</td></tr>
+		<tr id="TSTPDaysOwnedRow"><td colspan="2"></td>
+			<td>Number of days taxpayer owned the property</td>
+			<td id="TSTPDaysOwned"</td></tr>
+		<tr><td colspan="2"></td>
+			<td>Check here if you recieved the first-time Homebuyers Credit... (complete if needed)</td>
+			<td id="TSHBCredit"></td></tr>
 		<tr class="FTHB"><td></td><td colspan="3"><b>First-time homebuyer credit - Sale of Home section</b></td></tr>
-		<tr class="FTHB"><td colspan="2"></td><td><i>(Answer first-time homebuyer questions as needed)</i></td><td></td></tr>
-		<tr class="FTHB"><td colspan="2"></td><td>Selling price of home, insurance proceeds, ...</td><td id="TSHCSalePriceTotal"></td></tr>
-		<tr class="FTHB"><td colspan="2"></td><td>Selling expenses (including commissions, advertising and legal fees, ...></td><td id="TSHCSaleExpensesTotal"></td></tr>
-		<tr class="FTHB"><td colspan="2"></td><td>Adjusted basis of home sold</td><td id="TSHCAdjustedBasis"></td></tr>
-		<tr><td colspan="2"></td><td>Check here if you qualify for the Maximum Exclusion... (TP)</td><td id="TSTPQualifies"></td></tr>
-		<tr id="TSSPQualifiesRow"><td colspan="2"></td><td>Check here if you qualify for the Maximum Exclusion... (SP)</td><td id="TSSPQualifies"></td></tr>
+		<tr class="FTHB"><td colspan="2"></td>
+			<td><i>(Answer first-time homebuyer questions as needed)</i></td>
+			<td></td></tr>
+		<tr class="FTHB"><td colspan="2"></td>
+			<td>Selling price of home, insurance proceeds, ...</td>
+			<td id="TSHCSalePriceTotal"></td></tr>
+		<tr class="FTHB"><td colspan="2"></td>
+			<td>Selling expenses (including commissions, advertising and legal fees, ...></td>
+			<td id="TSHCSaleExpensesTotal"></td></tr>
+		<tr class="FTHB"><td colspan="2"></td>
+			<td>Adjusted basis of home sold</td>
+			<td id="TSHCAdjustedBasis"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Check here if you qualify for the Maximum Exclusion or the Reduced Maximum Exclusion (TP)</td>
+			<td id="TSTPQualifies"></td></tr>
+		<tr id="TSSPQualifiesRow"><td colspan="2"></td>
+			<td>Check here if you qualify for the Maximum Exclusion or the Reduced Maximum Exclusion (SP)</td>
+			<td id="TSSPQualifies"></td></tr>
 		<tr><td colspan="4"><b>Adjustments to the Sale</td></tr>
 		<tr><td></td><td colspan="3"><b>Fees you may have paid when you bought your home</b></td></tr>
-		<tr><td colspan="2"></td><td>Legal fees</td><td id="TSLegalFee"></td></tr>
-		<tr><td colspan="2"></td><td>Surveys</td><td id="TSSurveyFee"></td></tr>
-		<tr><td colspan="2"></td><td>Title Insurance</td><td id="TSTitleFee"></td></tr>
-		<tr><td colspan="2"></td><td>Fees that the seller owed that you agreed to pay</td><td id="TSSellerFee"></td></tr>
-		<tr><td colspan="2"></td><td>Other fees</td><td id="TSOtherFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Legal fees</td>
+			<td id="TSLegalFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Surveys</td>
+			<td id="TSSurveyFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Title Insurance</td>
+			<td id="TSTitleFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Fees that the seller owed that you agreed to pay</td>
+			<td id="TSSellerFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Other fees</td>
+			<td id="TSOtherFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Abstract and recording fees</td>
+			<td id="TSAbstractFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Transfer of stamp fees</td>
+			<td id="TSStampFee"></td></tr>
 		<tr><td></td><td colspan="3"><b>General adjustments</b></td></tr>
-		<tr><td colspan="2"></td><td>Selling expenses</td><td id="TSSaleExpensesTotal"></td></tr>
-		<tr><td colspan="2"></td><td>Cost of additions and improvements that you made to your home</td><td id="TSImproveAmount"></td></tr>
-		<tr><td colspan="2"></td><td>Tax assessments that you paid for sidewalks, streets and other local improvements</td><td id="TSTaxFee"></td></tr>
-		<tr><td colspan="2"></td><td>Other increases to your basis</td><td id="TSIncreases"></td></tr>
-		<tr><td colspan="2"></td><td>Decreases to your basis</td><td id="TSTotalAdjusted"></td></tr>
-		<tr><td colspan="2"></td><td>Does return qualify for $250,000/$500,000 max exclusion?</td><td id="TSUseExclusion"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Selling expenses</td>
+			<td id="TSSaleExpensesTotal"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Cost of additions and improvements that you made to your home</td>
+			<td id="TSImproveAmount"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Tax assessments that you paid for sidewalks, streets and other local improvements</td>
+			<td id="TSTaxFee"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Other increases to your basis</td>
+			<td id="TSIncreases"></td></tr>
+		<tr><td colspan="2"></td>
+			<td>Decreases to your basis</td>
+			<td id="TSTotalAdjusted"></td></tr>
+		<tr id="TSSPDiedExclusionRow"><td colspan="2"></td>
+			<td>Does return qualify for $500,000 max exclusion?</td>
+			<td id="TSDiedExclusion"></td></tr>
 		</table>
 		</div>
 	<div id="SchedD" class="doprint">
@@ -1734,18 +1814,35 @@ function Add_Remodel() {
 		<table class="tblLayout">
 		<tr><th colspan="3">Capital Gains and Loss Items</th></tr>
 		<tr><td>Description of Property</td>
-			<td id="HomeType">Main home</td><td></td></tr>
-		<tr><td>Date Acquired</td><td id="DateAcquired"></td><td></td></tr>
-		<tr><td>Date Sold</td><td id="DateSold"></td><td></td></tr>
-		<tr><td>Sales Price</td><td id="SalesPrice"></td><td></td></tr>
-		<tr><td>Cost basis type</td><td colspan="2" id="CostBasisType">Did not receive Form 1099-B</td></tr>
-		<tr><td>Cost</td><td id="Cost"></td><td></td></tr>
-		<tr><td>Adjustments</td><td id="Adjustments"></td"><td id="AdjustmentDetail"></td></tr>
-		<tr><td>Adjustment explanation</td><td id="AdjustmentReason">H</td><td></td></tr>
+			<td id="HomeType">Main home</td>
+			<td></td></tr>
+		<tr><td>Date Acquired</td>
+			<td id="DateAcquired"></td>
+			<td></td></tr>
+		<tr><td>Date Sold</td>
+			<td id="DateSold"></td>
+			<td></td></tr>
+		<tr><td>Sales Price</td>
+			<td id="SalesPrice"></td>
+			<td></td></tr>
+		<tr><td>Cost basis type</td>
+			<td colspan="2" id="CostBasisType">Did not receive Form 1099-B</td></tr>
+		<tr><td>Cost</td>
+			<td id="Cost"></td>
+			<td></td></tr>
+		<tr><td>Adjustments</td>
+			<td id="Adjustments"></td">
+			<td id="AdjustmentDetail"></td></tr>
+		<tr><td>Adjustment explanation</td>
+			<td id="AdjustmentReason">H</td>
+			<td></td></tr>
 		</table>
 		<hr />
 		<table class="tblLayout">
-		<tr class="italic"><td>Gain/Loss</td><td id="GainOrLoss"></td><td></td></tr>
+		<tr class="italic">
+			<td>Gain/Loss</td>
+			<td id="GainOrLoss"></td>
+			<td></td></tr>
 		</table>
 	</div>
 </div>
@@ -1772,10 +1869,5 @@ function Add_Remodel() {
 	var HomeImprovementDoD = document.getElementsByClassName("ImprovementAfterDoD");
 	var Assessments = document.getElementsByClassName("Assessment");
 	var FTHBList = document.getElementsByClassName("FTHB");
-	// For testing:
-	//SalePrice.value = 500000;
-	//PurchasePrice.value = 200000;
-	//SaleDate.value = "2022-05-15";
-	//PurchasedDate.value = "2000-05-15";
 </script>
 </body>
