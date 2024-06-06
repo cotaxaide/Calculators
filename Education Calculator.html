@@ -126,6 +126,7 @@
 	#optDiv th, #optDiv td:first-child { text-align: left; }
 	#optDiv td:nth-child(2) { text-align: right; }
 	#testPrint {color: red; font-size: 60%; float: right; cursor: none; }
+	#TaxFormResultsText { color: red; font-style: italic; }
 	#messageNoUnqualified,
 	#NoOptimize1,
 	#NoOptimize2,
@@ -173,7 +174,10 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.45, 5/17/2024";
+	var VERSION = "Version 3.46, 6/6/2024";
+	//	Fixed premature kiddie tax OOS message given before AGI was entered
+	//	Taxable amount to student was adjusted downward below actual taxable amount
+	//var VERSION = "Version 3.45, 5/17/2024";
 	//	Changed to JSON IRS data files
 	//var VERSION = "Version 3.44a, 2/18/2024";
 	//	Clarified data entry for student on optimization tab
@@ -1594,17 +1598,18 @@
 		suppRemainder -= suppPay;
 
 		// Use remaining supplemental sources for nontaxable non-qualified
-		suppPay = Math.min(suppRemainder, nqntExpensesLeft);
-		nqntExpensesLeft -= suppPay;
+		suppPay = Math.min(suppRemainder, nqntExpensesLeft, saRemaining, nqExpensesLeft);
 		nqAmountPaid += suppPay;
+		nqntExpensesLeft -= suppPay;
 		nqExpensesLeft -= suppPay;
 		saRemaining -= suppPay;
 		suppRemainder -= suppPay; // hopefully will be 0
 
 		// Use restricted scholarships for qualified expenses
-		qAmountPaid += saRestricted;
-		qExpensesLeft -= saRestricted;
-		saRemaining -= saRestricted;
+		qAmountPaid += (Math.min(qExpensesLeft, saRemaining, saRestricted));
+		qExpensesLeft -= qAmountPaid;
+		saRemaining -= qAmountPaid;
+		saRestricted -= qAmountPaid;
 
 		if (GapGap.checked) {
 			// Determine the limiting amounts
@@ -1634,31 +1639,45 @@
 			saRemaining -= qPaid;
 
 			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntExpensesLeft, saRemaining);
-			nqntExpensesLeft -= nqntPay;
+			nqntPay = Math.min(nqntExpensesLeft, nqExpensesLeft, saRemaining);
 			nqAmountPaid += nqntPay;
+			nqntExpensesLeft -= nqntPay;
 			nqExpensesLeft -= nqntPay;
 			saRemaining -= nqntPay;
 		}
 
-		// remainder is taxable, show it as paying nonqualified expenses
+		// remainder is taxable, show it as paying nonqualified expenses if there are any
 		incomeAmount = Math.max(0, incomeAmount + saRemaining - nqntExpensesLeft);
 		nqAmountPaid += (Math.min(incomeAmount, NQExpenses["AOC"]));
 
 		// adjust for kiddie tax avoidance
 		if (KiddieTaxApplies) {
-			if (DependentYes.checked && (incomeAmount > StudentFileMargin) && (incomeAmount > KiddieFileMargin)) {
-				var kiddieAdjust = Math.min(incomeAmount - KiddieFileMargin, incomeAmount - StudentFileMargin);
-				var nqKiddieLimit = NQExpenses[type];
+			var studUnearnedTax = +StudAGITax.value - +StudSalaryTax.value - +StudBusinessTax.value - +StudSEHITax.value;
+			var studUnearnedAOC = studUnearnedTax + incomeAmount;
+			var studIncome = +StudAGITax.value + incomeAmount;
+
+			// Make adjustment if possible
+			if (DependentYes.checked && (studIncome > StudentFileMargin) && (studUnearnedAOC > KiddieFileMargin)) {
+				var kiddieAdjust = Math.min(studUnearnedAOC - KiddieFileMargin, studIncome - StudentFileMargin);
+				var nqKiddieLimit = NQExpenses[type] - nqAmountPaid;
 				var qKiddieLimit = QualExpenses[type] - qAmountPaid;
 				kiddieAdjust = Math.min(incomeAmount, kiddieAdjust, nqKiddieLimit, qKiddieLimit);
 				nqAmountPaid -= kiddieAdjust;
 				qAmountPaid += kiddieAdjust;
 				incomeAmount -= kiddieAdjust;
+				studUnearnedAOC -= kiddieAdjust;
+				studIncome -= kiddieAdjust;
 			}
-			var studUnearned = +StudAGITax.value - +StudSalaryTax.value - +StudBusinessTax.value - +StudSEHITax.value;
-			if (studUnearned && (incomeAmount > KiddieFileMargin)) {
-				alert ("The student is subject to kiddie tax, which is out of scope");
+
+			// Did an adjustment fix the problem?
+			if ((studIncome > StudentFileMargin) && (studUnearnedAOC > KiddieFileMargin)) {
+				if ((TaxFormResultsText.innerHTML == "") && (NRCreditTax.value !== "")) {
+					alert ("The student is subject to kiddie tax, which is out of scope");
+					TaxFormResultsText.innerHTML = "Student is subject to Kiddie Tax (OOS)";
+				}
+			}
+			else {
+				TaxFormResultsText.innerHTML = "";
 			}
 		}
 
@@ -3877,19 +3896,16 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 	<div id="TaxFormResultsDiv">
 		<hr /><div class="TaxReturnHeader">Optimization results:
+			<span id="TaxFormResultsText"></span>
 			<span id="testPrint" onclick="DataPrint();">&hearts;</span>
 		</div>
 	<table id="TaxFormResults">
 		<tr>
-			<td><span class="STRefund">Tax refund change on the taxpayer&apos;s return:</span></td>
-			<td></td>
-			<td></td>
+			<td colspan="3"><span class="STRefund">Tax refund change on the taxpayer&apos;s return:</span></td>
 			<td><span class="AOCClass STRefund" id="TaxpayerRefundAOC">0</span></td>
 			<td><span class="LLCClass STRefund" id="TaxpayerRefundLLC">0</span></td></tr>
 		<tr>
-			<td><span class="STRefund">Tax refund change on the student&apos;s return:</span></td>
-			<td></td>
-			<td></td>
+			<td colspan="3"><span class="STRefund">Tax refund change on the student&apos;s return:</span></td>
 			<td><span class="AOCClass STRefund" id="StudentRefundAOC">0</span></td>
 			<td><span class="LLCClass STRefund" id="StudentRefundLLC">0</span></td></tr>
 		<tr>
