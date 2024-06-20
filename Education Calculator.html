@@ -174,7 +174,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.46, 6/6/2024";
+	var VERSION = "Version 3.47, 6/20/2024";
+	//	Fixed calc errors in mixed scholarship situations
+	//var VERSION = "Version 3.46, 6/6/2024";
 	//	Fixed premature kiddie tax OOS message given before AGI was entered
 	//	Taxable amount to student was adjusted downward below actual taxable amount
 	//var VERSION = "Version 3.45, 5/17/2024";
@@ -1564,40 +1566,44 @@
 		}
 
 		// nqntExpensesLeft is the non-qualified amount that is not taxable
+		// but doesn't qualify for LLC credit
 		var nqntExpensesLeft = Math.max(0, QualExpenses["AOC"] - QualExpenses[type]);
 		var nqntExpensesLeft0 = Math.min(nqntExpensesLeft, NonqualExpenses[type]);
 		
-		// Supplemental resources are not eligible for taxing due to penalties
+		// Supplemental resources are not considered for taxing due to penalties
+		// if not used for allowed expenses, so use them up first
 		var taxExpenseLimit = Math.max(0, NQExpenses[type] - ScholarSupplemental);
 		// Taxable amount may be limited manually
 		var taxLimit = Math.min(+ScholarTaxableMax.innerHTML, taxExpenseLimit);
 		var taxRequested = +ScholarTaxable.value;
 		var incomeAmount = taxRequested + ScholarIncome;
-
-		// suppnqAmountPaid is the non-qualified amount that is taxable if used
-		var suppnqAmountPaid = nqExpensesLeft = NQExpenses["AOC"];
+		var nqExpensesLeft = NQExpenses["AOC"];
 
 		// Amount distributed for expenses
 		var nqAmountPaid = 0; // nonqualified
 		var qAmountPaid =  0;  // qualified
+		var nqntAmountPaid = 0 // nonqualified, non-taxable
 		var qExpensesLeft = QualExpenses[type];
 
-		// Use Supplemental sources for supplemental non-qualified first
+		// Use Supplemental sources for IRS unqualified first,
+		// expenses that would otherwise fall under nontaxable non-qualified
+		// but can be paid for with supplimental sources
 		var suppRemainder = ScholarSupplemental;
-		var suppPay = Math.min(suppRemainder, suppnqAmountPaid);
+		var suppPay = Math.min(suppRemainder, nqExpensesLeft, saRemaining);
 		nqAmountPaid += suppPay;
 		nqExpensesLeft -= suppPay;
 		saRemaining -= suppPay;
 		suppRemainder -= suppPay;
 
 		// Use remaining supplemental sources to pay qualified expenses
-		suppPay = Math.min(suppRemainder, QualExpenses[type]);
+		//suppPay = Math.min(suppRemainder, QualExpenses[type]);
+		suppPay = Math.min(suppRemainder, qExpensesLeft, saRemaining);
 		qAmountPaid += suppPay;
 		qExpensesLeft -= suppPay;
 		saRemaining -= suppPay;
 		suppRemainder -= suppPay;
 
-		// Use remaining supplemental sources for nontaxable non-qualified
+		// Use remaining supplemental sources for nontaxable non-qualified expenses
 		suppPay = Math.min(suppRemainder, nqntExpensesLeft, saRemaining, nqExpensesLeft);
 		nqAmountPaid += suppPay;
 		nqntExpensesLeft -= suppPay;
@@ -1606,49 +1612,85 @@
 		suppRemainder -= suppPay; // hopefully will be 0
 
 		// Use restricted scholarships for qualified expenses
-		qAmountPaid += (Math.min(qExpensesLeft, saRemaining, saRestricted));
-		qExpensesLeft -= qAmountPaid;
-		saRemaining -= qAmountPaid;
-		saRestricted -= qAmountPaid;
+		qPay = (Math.min(qExpensesLeft, saRemaining, saRestricted));
+		qAmountPaid += qPay
+		qExpensesLeft -= qPay
+		saRemaining -= qPay
+		saRestricted -= qPay
+
+		// Use restricted scholarships for any non-taxable nonqualified amount
+		// and remove restricted scholarships from saRestricted
+		saRemaining = Math.max(0, saRemaining - saRestricted);
+		rPay = Math.min(saRestricted, nqntExpensesLeft);
+		nqAmountPaid += rPay;
+		nqntAmountPaid += rPay;
+		saRestricted -= rPay;
+		nqntExpensesLeft -= rPay;
+
+		// Remove restricted scholarships from saRemaining
 
 		if (GapGap.checked) {
-			// Determine the limiting amounts
-			gapAmount = Math.min(qExpensesLeft, nqExpensesLeft, qTaxLimit, saRemaining);
+			// gapAmount is the amount left that can be paid to get to the tax limit
+			gapAmount = Math.max(0, qTaxLimit - qAmountPaid);
+			// Is it limited by other factors?
+			gapAmount = Math.min(gapAmount, nqExpensesLeft, saRemaining, qExpensesLeft);
 
 			// Amount to pay to qualified amounts to maximize expenses
-			var qPay = Math.max(0, qExpensesLeft - gapAmount);
+			qPay = Math.max(0, qExpensesLeft - gapAmount);
+			// Is it limited?
+			qPay = Math.min(qPay, saRemaining, gapAmount, qExpensesLeft);
 			qAmountPaid += qPay;
 			qExpensesLeft -= qPay;
 			saRemaining -= qPay;
 			gapAmount -= qPay;
 
-			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntExpensesLeft, gapAmount);
+			// Use as much as possible to pay nonqualified amounts
+			nqPay = Math.min(nqExpensesLeft, saRemaining);
+			nqAmountPaid += nqPay;
+			nqExpensesLeft -= nqPay;
+			saRemaining -= nqPay;
+
+			// If any non-taxable nonqualified amount left, pay it next
+			nqntPay = Math.min(nqntExpensesLeft, saRemaining);
+			nqntAmountPaid += nqntPay;
 			nqAmountPaid += nqntPay;
-			nqExpensesLeft -= nqntPay;
+			nqntExpensesLeft -= nqntPay;
 			saRemaining -= nqntPay;
-			gapAmount -= nqntPay;
 		}
 
 		else { 
 			// Pay qualified next
-			var qePayLimit = Math.max(0, QualExpenses[type] - qAmountPaid);
-			var qPaid = Math.min(saRemaining, qePayLimit);
-			qAmountPaid += qPaid;
-			qExpensesLeft -= qPaid;
-			saRemaining -= qPaid;
+			//var qePayLimit = Math.max(0, QualExpenses[type] - qAmountPaid);
+			//var qPay = Math.min(saRemaining, qePayLimit);
+			var qPay = Math.min(saRemaining, qExpensesLeft);
+			qAmountPaid += qPay;
+			qExpensesLeft -= qPay;
+			saRemaining -= qPay;
 
-			// If there's any non-taxable nonqualified amount left, pay it next
-			nqntPay = Math.min(nqntExpensesLeft, nqExpensesLeft, saRemaining);
+			// If there are non-taxable nonqualified expenses left, pay it next
+			nqntPay = Math.min(nqntExpensesLeft, saRemaining);
+			nqntAmountPaid += nqntPay;
 			nqAmountPaid += nqntPay;
 			nqntExpensesLeft -= nqntPay;
-			nqExpensesLeft -= nqntPay;
 			saRemaining -= nqntPay;
 		}
 
-		// remainder is taxable, show it as paying nonqualified expenses if there are any
-		incomeAmount = Math.max(0, incomeAmount + saRemaining - nqntExpensesLeft);
-		nqAmountPaid += (Math.min(incomeAmount, NQExpenses["AOC"]));
+		// remainder may be taxable, show nonrestricted scholarships
+		// as paying nonqualified expenses if there are any
+		incomeAmount += saRemaining;
+		if (nqntExpensesLeft) {
+			nqntPay = Math.min(incomeAmount, nqntExpensesLeft);
+			nqntAmountPaid += nqntPay;
+			nqAmountPaid += nqntPay;
+			incomeAmount -= nqntPay;
+		}
+		if (nqExpensesLeft) {
+			nqPay = Math.min(incomeAmount, nqExpensesLeft);
+			incomeAmount -= nqPay;
+			nqAmountPaid += nqPay;
+		}
+		// Finally, add any remaining restricted scholarships
+		incomeAmount += saRestricted;
 
 		// adjust for kiddie tax avoidance
 		if (KiddieTaxApplies) {
@@ -1689,7 +1731,7 @@
 				NQNTAOC.innerHTML = nqntExpensesLeft0; // v3.37
 				QUsedAOC.innerHTML = qAmountPaid;
 				NQUsedAOC.innerHTML = nqAmountPaid; // v3.37
-				NontaxableAOC.innerHTML = nqntPay; // v3.37
+				NontaxableAOC.innerHTML = nqntAmountPaid; // v3.37
 				QualExpensesAOC.innerHTML =
 				QualExpensesAOC2.innerHTML = Math.min(qExpensesLeft, qTaxLimit);
 				IncomeAOC.innerHTML = IncomeAOC2.innerHTML = incomeAmount;
@@ -1700,7 +1742,7 @@
 				NQNTLLC.innerHTML = nqntExpensesLeft0; // v3.37
 				QUsedLLC.innerHTML = qAmountPaid;
 				NQUsedLLC.innerHTML = nqAmountPaid; // v3.37
-				NontaxableLLC.innerHTML = nqntPay; // v3.37
+				NontaxableLLC.innerHTML = nqntAmountPaid; // v3.37
 				QualExpensesLLC.innerHTML =
 				QualExpensesLLC2.innerHTML = Math.min(qExpensesLeft, qTaxLimit);
 				IncomeLLC.innerHTML = IncomeLLC2.innerHTML = incomeAmount; // v3.33
