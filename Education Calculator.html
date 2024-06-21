@@ -174,7 +174,9 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.47, 6/20/2024";
+	var VERSION = "Version 3.48, 6/21/2024";
+	//	Fixed category checkbox function for non-qualified expenses
+	//var VERSION = "Version 3.47, 6/20/2024";
 	//	Fixed calc errors in mixed scholarship situations
 	//var VERSION = "Version 3.46, 6/6/2024";
 	//	Fixed premature kiddie tax OOS message given before AGI was entered
@@ -410,8 +412,6 @@
 	var StudKiddieTax = [];
 	var StudKiddieAOC = [];
 	var StudKiddieLLC = [];
-	var ScholarReduction = 0;
-	var ScholarReductionMax = 0;
 
 	//----------------------------------------------------------------------------------------
 	// This function initializes options when the application is first loaded
@@ -1072,8 +1072,6 @@
 		// Must be at least half time to apply funds to living expenses
 		var livingAvailable = (! TimePart.checked) ? (+ScholarNQMax + +ScholarIRA.value) : 0;
 		var servicesAvailable = +ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value;
-		ScholarReduction = 0;
-		ScholarReductionMax = ScholarAvailable;
 
 		// VerifyExpense(Category,   AOC,   LLC,   LIMIT
 		VerifyExpense("Tuition",     true,  true,  ScholarAvailable);
@@ -1103,10 +1101,6 @@
 		WarningMessage = "";
 
 		// Use as much as possible to pay nonqualified expenses
-
-		// Adjust scholarship total for "manually checked" expenses
-		ScholarAvailable -= ScholarReduction;
-
 		NQExpenses["AOC"] = NQExpenses["LLC"] = 0;
 		NQExpense("Tuition");
 		NQExpense("Fees");
@@ -1638,17 +1632,18 @@
 			// Amount to pay to qualified amounts to maximize expenses
 			qPay = Math.max(0, qExpensesLeft - gapAmount);
 			// Is it limited?
-			qPay = Math.min(qPay, saRemaining, gapAmount, qExpensesLeft);
+			qPay = Math.min(qPay, saRemaining, qExpensesLeft);
 			qAmountPaid += qPay;
 			qExpensesLeft -= qPay;
 			saRemaining -= qPay;
-			gapAmount -= qPay;
+			//gapAmount -= qPay;
 
 			// Use as much as possible to pay nonqualified amounts
 			nqPay = Math.min(nqExpensesLeft, saRemaining);
 			nqAmountPaid += nqPay;
 			nqExpensesLeft -= nqPay;
 			saRemaining -= nqPay;
+			incomeAmount += nqPay;
 
 			// If any non-taxable nonqualified amount left, pay it next
 			nqntPay = Math.min(nqntExpensesLeft, saRemaining);
@@ -1684,11 +1679,7 @@
 			nqAmountPaid += nqntPay;
 			incomeAmount -= nqntPay;
 		}
-		if (nqExpensesLeft) {
-			nqPay = Math.min(incomeAmount, nqExpensesLeft);
-			incomeAmount -= nqPay;
-			nqAmountPaid += nqPay;
-		}
+
 		// Finally, add any remaining restricted scholarships
 		incomeAmount += saRestricted;
 
@@ -1727,7 +1718,7 @@
 		qExpensesLeft = Math.max(0, QualExpenses[type] - qAmountPaid);
 		switch (type) {
 			case "AOC":
-				NQAvailAOC.innerHTML = +NQAvailAOC.innerHTML + ScholarReduction; // v3.1
+				NQAvailAOC.innerHTML = +NQAvailAOC.innerHTML;
 				NQNTAOC.innerHTML = nqntExpensesLeft0; // v3.37
 				QUsedAOC.innerHTML = qAmountPaid;
 				NQUsedAOC.innerHTML = nqAmountPaid; // v3.37
@@ -1738,7 +1729,7 @@
 				break;
 
 			case "LLC":
-				NQAvailLLC.innerHTML = +NQAvailLLC.innerHTML + ScholarReduction; // v3.1
+				NQAvailLLC.innerHTML = +NQAvailLLC.innerHTML;
 				NQNTLLC.innerHTML = nqntExpensesLeft0; // v3.37
 				QUsedLLC.innerHTML = qAmountPaid;
 				NQUsedLLC.innerHTML = nqAmountPaid; // v3.37
@@ -1830,9 +1821,7 @@
 			if (ExpenseOption.checked) {
 				// Checked options only reduce the scholarship amount
 				// We keep track of the amount and correct the display later by showing it available and used
-				ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, ScholarReductionMax));
-				ScholarReduction += Math.min(ExpenseAmount, ScholarReductionMax);
-				ScholarReductionMax -= ExpenseAmount;
+				ExpenseAmount = Math.round(+ExpenseCategoryAmount.value);
 			}
 		}
 
@@ -1850,7 +1839,7 @@
 			else {
 				// This is a non-qualified deduction expense
 				NonqualExpenses[Program[eni-1]] += ExpenseAmount;
-				AllowedAmount.value = Math.min(ExpenseAmount, +limit);
+				AllowedAmount.value = ExpenseAmount;
 				AllowedExpenses[Program[eni-1]] += AllowedAmount.value;
 				ProgramElement.style.color = NonqualColor;
 			}
@@ -2124,9 +2113,6 @@
 	//----------------------------------------------------------------------------------------
 		var allowed = AllowedCareTax.value;
 		return Math.round(_ChildCare(TY, FS, testAGI, allowed, allowed, allowed));
-
-		//var Carefactor = Math.max(0.2, 0.35 - Math.max(0, Math.floor((+testAGI-13001)/2000)/100));
-		//return Math.round(AllowedCareTax.value * Carefactor);
 	}
 
 	//----------------------------------------------------------------------------------------
