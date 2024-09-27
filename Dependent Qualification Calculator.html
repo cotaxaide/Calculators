@@ -58,12 +58,15 @@
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
 //	Mary Jennings		Debbie Geldis		Ed Hondl		Lance Lauerhass
+//	Susan Smaus
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "8.0 5/2/2024";
+var VERSION = "8.1 9/27/2024";
+//	Corrected an error that allowed unrleated TP to claim dependent when other TP was a filing parent
+//var VERSION = "8.0 5/2/2024";
 //	Modified to use JSON data files
 
 //***************************************************************************************************
@@ -129,6 +132,7 @@ var TP_DivorceApplies;
 var EITC_DivorceApplies;
 var TP_QCA_Applies;
 var TP_Filing;
+var TP_IsUnrelated;
 var TP_IsParent;
 var TP_Permission = 0; // Do not re-initialize
 var TP_WaiverTo;
@@ -546,7 +550,8 @@ function CalcStatus(from_age_calc) {
 
 	// Dependent relationship
 	if (DEP_Relation == "") for (j=0; j < RelationList.length; j++) if (RelationList[j].checked) {
-		 DEP_Relation = RelationList[j].value;
+		DEP_Relation = RelationList[j].value;
+		TP_IsUnrelated = (DEP_Relation == "IN_LAW") || (DEP_Relation == "UNRELATED"); // T/F
 	}
 	// Determine benefits based on relationship
 	DetermineBenefits();
@@ -1130,10 +1135,10 @@ function ShowQCA() { // Disables or enables Qualified Child of Another boxes
 		PermissionToUse.disabled = false;
 
 		// Show other boxes or lines as they apply
-		// if (OtherTPisParent.checked) NoParentClaims.checked = false; // commented out in v 6.26
 		TP_QCA_Applies = (QualChildOfAnother.checked && OtherTPisParent.checked && TP_IsParent) ? true : false;
 		QCA_NoParent.style.display = (TP_QCA_Applies || TP_IsParent) ? "none" : "inline";
 		QCA_ParentGives.style.display = (TP_QCA_Applies || TP_IsParent) ? "inline" : "none";
+		NoParentClaims.disabled = (OtherTPisParent.checked && TP_IsUnrelated); // T/F
 		QCA_ResTest.style.display = (TP_QCA_Applies) ? "inline":"none";
 		QCA_AGITest.style.display = (SameRes.checked) ? "inline":"none";
 
