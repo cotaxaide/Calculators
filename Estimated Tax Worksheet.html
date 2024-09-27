@@ -194,7 +194,9 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY	
-	var VERSION = "(Version 4.02, 5/24/2024)";
+	var VERSION = "(Version 4.03, 7/17/2024)";
+	//	Corrected inability to change Child Care numbers in MFS/MFJ mode
+	//var VERSION = "(Version 4.02, 5/24/2024)";
 	//	Correction to Child Care handling
 	//var VERSION = "(Version 4.01, 5/23/2024)";
 	//	Changed to JSON tax data files
@@ -1495,6 +1497,7 @@
 		<tr><td>  </td>
 			<td>Child and dependent care expenses for
 				<input id="CCDependents" type="number" class="small wkti"
+				onfocus="Get_Inputs(this.id);"
 				onchange="Input_Change(this.id);" /> dependents
 			<span class="floatright">
 				<input id="ChildCareCost" type="text" class="wkti"
