@@ -112,7 +112,7 @@ async function _GetCOData(
 //----------------------------------------------------------------------------------------
 function _IRSValue(
 	IRSParameter, 	// The path to the variable, i.e.: Standard.SNG.inc
-	TaxYear=TY)	// The optional tax year for which the parameter is sought
+	TaxYear = TY)	// The optional tax year for which the parameter is sought
 			// TY must be defined globally to work as a default
 	{
 // This function prepends the tax year in TYnnnn form and appends ".value" and returns the result
@@ -196,10 +196,14 @@ function _SETax (	// Self-employment tax
 
 	// No SS tax if less than $400
 	if (selftest > 400) {
-		selflimit = Math.max(0, +_IRSValue("SETaxRates.SSWageCap") - wages); // SE line 7-9
-		selfsoc = (Math.min(selftest, selflimit) * +_IRSValue("SETaxRates.SSRate")); // SE line 10
-		selfmed = selftest * +_IRSValue("SETaxRates.MCRate");
-		selfamed = (Math.max(0, selfamt - +_IRSValue("SETaxRates.AMCStart")) * +_IRSValue("SETaxRates.AMCRate"));
+		selflimit = Math.max(0, +_IRSValue("SETaxRates.SSWageCap", TY) - wages); // SE line 7-9
+		ssrate = +_IRSValue("SETaxRates.SSRate", TY);
+		selfsoc = Math.min(selftest, selflimit) * ssrate; // SE line 10
+		mcrate = +_IRSValue("SETaxRates.MCRate", TY);
+		selfmed = selftest * mcrate;
+		selfastart = +_IRSValue("SETaxRates.AMCStart", TY);
+		selfarate = +_IRSValue("SETaxRates.AMCRate", TY);
+		selfamed = Math.max(0, selfamt - selfastart) * selfarate;
 		selftax = selfmed + selfamed + selfsoc;
 	}
 
@@ -291,12 +295,12 @@ function _StandardDeduction( // Standard Deduction amount
 		dependent = false;
 		earnedIncome = 0;
 	}
-	let stdval = +_IRSValue("Standard." + filingStatus + ".Rate");
-	let stdinc = +_IRSValue("Standard." + filingStatus + ".Inc");
+	let stdval = +_IRSValue("Standard." + filingStatus + ".Rate", TY);
+	let stdinc = +_IRSValue("Standard." + filingStatus + ".Inc", TY);
 	if (dependent) {
 		let depval = Math.max(
-				+_IRSValue("DependMin"),
-				+earnedIncome + +_IRSValue("DependInc"));
+				+_IRSValue("DependMin", TY),
+				+earnedIncome + +_IRSValue("DependInc", TY));
 		stdval = Math.min(depval, stdval);
 	}
 	if (TP65) stdval += stdinc;
@@ -325,11 +329,11 @@ function _TaxLookup(	// Tax table lookup
 	if (taxableAmount <= 0) return(result);
 	if (L06F8615 == undefined) L06F8615 = 0;
 	let TY = taxYear;
-	let rateList = _IRSValue("TaxRates.Rate");
+	let rateList = _IRSValue("TaxRates.Rate", TY);
 	fs = (filingStatus == "TRUST_SNG") ? "SNG" : filingStatus; // Kiddie tax recursion call
-	let bracketMax = _IRSValue("TaxRates." + fs); // maximum for the rate
-	let CG_rateList = _IRSValue("CGTaxRates.Rate");
-	let CG_bracketMax = _IRSValue("CGTaxRates." + fs); // maximum for the rate
+	let bracketMax = _IRSValue("TaxRates." + fs, TY); // maximum for the rate
+	let CG_rateList = _IRSValue("CGTaxRates.Rate", TY);
+	let CG_bracketMax = _IRSValue("CGTaxRates." + fs, TY); // maximum for the rate
 
 	// 1040 Qualified Dividends and Capital Gains Tax Worksheet:
 	if (capitalGains && useSchedD) {
@@ -428,24 +432,24 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 // returns an array: [CTCAmount, FTCAmount, ACTCLimit]
 //----------------------------------------------------------------------------------------
 	if (totalDependents == 0) return [0,0,0];
+	let TY = taxYear;
 	if (isNaN(SocSecOffset)
 		|| (childDependents < 3)
 		|| (SocSecOffset < 0)) SocSecOffset = 0;
-	let CTCReduction = Math.max(0, (+AGI - +_IRSValue("CTC.AGICap." + filingStatus)));
+	let CTCReduction = Math.max(0, (+AGI - +_IRSValue("CTC.AGICap." + filingStatus, TY)));
 		CTCReduction = 50 * (Math.ceil(CTCReduction/1000));
-	let TY = taxYear;
-	let CTCRate = +_IRSValue("CTC.Rate");
-	let FTCRate = +_IRSValue("CTC.FTC");
-	let ACTCRate = +_IRSValue("CTC.ACTC");
-	let ACTCThresh = +_IRSValue("CTC.ACTCThreshold");
+	let CTCRate = +_IRSValue("CTC.Rate", TY);
+	let FTCRate = +_IRSValue("CTC.FTC", TY);
+	let ACTCRate = +_IRSValue("CTC.ACTC", TY);
+	let ACTCThresh = +_IRSValue("CTC.ACTCThreshold", TY);
 
 	let cD = Math.floor(+childDependents);
 	let CTCAmount = CTCRate * cD;
 	CTCAmount = Math.max(0, (CTCAmount - CTCReduction));
 	if (taxYear == 2021) { // additional 1000 or 1300 per child
-		let CTC0Rate = +_IRSValue("CTC.Age0");
-		let CTC6Rate = +_IRSValue("CTC.Age6");
-		let CTC0Reduction = Math.max(0, (+AGI - +_IRSValue("CTC.AGI0Cap." + filingStatus)));
+		let CTC0Rate = +_IRSValue("CTC.Age0", TY);
+		let CTC6Rate = +_IRSValue("CTC.Age6", TY);
+		let CTC0Reduction = Math.max(0, (+AGI - +_IRSValue("CTC.AGI0Cap." + filingStatus, TY)));
 			CTC0Reduction = 50 * (Math.ceil(CTC0Reduction/1000));
 		let cD0 = Math.round((childDependents - cD) * 100);
 			cD0 = Math.min(cD, cD0); // Data error check
@@ -493,17 +497,17 @@ function _EICLookup(	// Earned Income Credit table lookup
 	// Is income over the limit
 	let vEICFiling = (filingStatus == "MFJ") ? "MFJ":"SNG";
 	let vEICTable = taxYear + ":" + vEICFiling;
-	let vEICLookupMax = +_IRSValue("EIC." + vEICFiling)[EICdependents];
+	let vEICLookupMax = +_IRSValue("EIC." + vEICFiling, TY)[EICdependents];
 	if (earnedIncome > vEICLookupMax) return(0);
 
 	// Investment income over the limit
-	let limitEICInvest = +_IRSValue("EIC.InvestMax");
+	let limitEICInvest = +_IRSValue("EIC.InvestMax", TY);
 	if (investedIncome > limitEICInvest) return(0);
 
 	// Do we need to test AGI?
 	let vidmax = 1;
 	if (AGI != earnedIncome) {
-		vEICAGIMin = +_IRSValue("EIC.AGI" + vEICFiling)[EICdependents];
+		vEICAGIMin = +_IRSValue("EIC.AGI" + vEICFiling, TY)[EICdependents];
 		if (AGI >= vEICAGIMin) vidmax = 2;
 	}
 
@@ -512,12 +516,12 @@ function _EICLookup(	// Earned Income Credit table lookup
 	AGI = (50 * Math.floor(+AGI/50)) + 25;
 
 	// Do the lookup(s) and use the minimum of the results
-	let vEICRateUp = +_IRSValue("EIC.RateUp")[EICdependents];
-	let vEICRateDown = +_IRSValue("EIC.RateDown")[EICdependents];
+	let vEICRateUp = +_IRSValue("EIC.RateUp", TY)[EICdependents];
+	let vEICRateDown = +_IRSValue("EIC.RateDown", TY)[EICdependents];
 	for (vid = 0; vid < vidmax; vid++) {
 		testAmount = (vid == 0) ? earnedIncome : AGI;
 		vEICUp = testAmount * vEICRateUp;
-		vEICMax = +_IRSValue("EIC.Maximum")[EICdependents];
+		vEICMax = +_IRSValue("EIC.Maximum", TY)[EICdependents];
 		vEICDown = (vEICLookupMax - testAmount) * vEICRateDown;
 
 		// Find the minimum of the three, not less than 0, and round
@@ -542,9 +546,9 @@ function _QBICalc (	// Qualified Business Income deduction
 // Returns -1 if above the first threshhold
 //----------------------------------------------------------------------------------------
 	let TY = taxYear;
-	let QBIMax = +_IRSValue("QBI.Limit." + filingStatus);
+	let QBIMax = +_IRSValue("QBI.Limit." + filingStatus, TY);
 	if ((+income > +QBIMax) && (+QBIDividends + +SEIncome > 0)) return -1;
-	let QBIRate = +_IRSValue("QBI.Rate");
+	let QBIRate = +_IRSValue("QBI.Rate", TY);
 	let QBI05 = Math.round(Math.max(0, +SEIncome) * QBIRate);
 	let QBI09 = Math.round(Math.max(0, +QBIDividends) * QBIRate);
 	let QBI10 = QBI05 + QBI09;
@@ -571,9 +575,9 @@ function _NIITCalc (	// Net Investment Income Tax calculation
 //----------------------------------------------------------------------------------------
 	let TY = taxYear;
 	let NIIT_income = Math.max(0, +interest + +dividends + +capGains - +expenses); // line 8
-	let NIIT_limit = Math.max(0, AGI - +_IRSValue("NIIT." + filingStatus)); // line 15
+	let NIIT_limit = Math.max(0, AGI - +_IRSValue("NIIT." + filingStatus), TY); // line 15
 	let NIIT_amount = Math.min(NIIT_income, NIIT_limit); // line 16
-	let NIIT_rate = +_IRSValue("NIIT.Rate");
+	let NIIT_rate = +_IRSValue("NIIT.Rate", TY);
 	let NIIT_tax = Math.round(NIIT_amount * NIIT_rate); // line 17
 	return NIIT_tax;
 }
@@ -594,11 +598,11 @@ function _ChildCare (	// Form 2441
 	Result = [];
 
 	// Get data for the year
-	RateMin =  _IRSValue("Care.RateMin");
-	RateMax =  _IRSValue("Care.RateMax");
-	AGICap =   _IRSValue("Care.AGICap");
-	AGICap2 =  _IRSValue("Care.AGICap2");
-	PerChild = _IRSValue("Care.PerChild");
+	RateMin =  _IRSValue("Care.RateMin", TY);
+	RateMax =  _IRSValue("Care.RateMax", TY);
+	AGICap =   _IRSValue("Care.AGICap", TY);
+	AGICap2 =  _IRSValue("Care.AGICap2", TY);
+	PerChild = _IRSValue("Care.PerChild", TY);
 
 	// Limit amountPaid by lowest earned income
 	line3 = Math.min(amountPaid, PerChild * Math.min(children, 2));
@@ -631,8 +635,8 @@ function _Retirement (	// Form 8880
 //----------------------------------------------------------------------------------------
 	let TY = taxYear;
 
-	let rates = _IRSValue("Retire.Rate");
-	let ratelimits = _IRSValue("Retire." + filingStatus);
+	let rates = _IRSValue("Retire.Rate", TY);
+	let ratelimits = _IRSValue("Retire." + filingStatus, TY);
 	let line6a = Math.min(2000, +TPcontribution);
 	let line6b = Math.min(2000, +SPcontribution);
 	let line7 = Math.max(0, (line6a + line6b));
@@ -657,7 +661,7 @@ function _EdCredit (	// Form 8863
 	if (filingStatus == "MFS") return[0, 0];
 	let TY = taxYear;
 
-	let limitMax = _IRSValue("Education." + etype + ".MAX0");
+	let limitMax = _IRSValue("Education." + etype + ".MAX0", TY);
 	expenses = Math.min(limitMax, expenses);
 
 	// Limit expenses
@@ -677,12 +681,12 @@ function _EdCredit (	// Form 8863
 	var AGIfactor = 1;
 	switch (filingStatus) {
 		case "MFJ":
-			limit1 = _IRSValue("Education." + etype + ".MFJ1");
-			limit2 = _IRSValue("Education." + etype + ".MFJ2");
+			limit1 = _IRSValue("Education." + etype + ".MFJ1", TY);
+			limit2 = _IRSValue("Education." + etype + ".MFJ2", TY);
 			break;
 		default:
-			limit1 = _IRSValue("Education." + etype + ".SNG1");
-			limit2 = _IRSValue("Education." + etype + ".SNG2");
+			limit1 = _IRSValue("Education." + etype + ".SNG1", TY);
+			limit2 = _IRSValue("Education." + etype + ".SNG2", TY);
 	}
 	if (+AGI >= +limit1) AGIfactor = Math.max(0, (+limit2 - +AGI) / (+limit2 - +limit1));
 
@@ -718,8 +722,8 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 	Result["comment"] = "";
 	let TY = taxYear;
 
-	TP_DedMax = (TP_50) ? +_IRSValue("IRA.SrMaximum") : +_IRSValue("IRA.Maximum");
-	SP_DedMax = (SP_50) ? +_IRSValue("IRA.SrMaximum") : +_IRSValue("IRA.Maximum");
+	TP_DedMax = (TP_50) ? +_IRSValue("IRA.SrMaximum", TY) : +_IRSValue("IRA.Maximum", TY);
+	SP_DedMax = (SP_50) ? +_IRSValue("IRA.SrMaximum", TY) : +_IRSValue("IRA.Maximum", TY);
 	MFJ_DedMax = TP_DedMax + SP_DedMax;
 	Result["TPcontribMax"] = Math.min(TP_DedMax, +earned);
 	Result["SPcontribMax"] = Math.min(SP_DedMax, +earned);
@@ -730,12 +734,12 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 		switch (filingStatus) {
 		case "MFJ":
 			TPPlan = (TP_RetPlan) ? "MFJRetPlan" : "MFJNoRetPlan" ;
-			TP_AGIlimit = +_IRSValue("IRA." + TPPlan);
+			TP_AGIlimit = +_IRSValue("IRA." + TPPlan, TY);
 			SPPlan = (SP_RetPlan) ? "MFJRetPlan" : "MFJNoRetPlan" ;
-			SP_AGIlimit = +_IRSValue("IRA." + SPPlan);
+			SP_AGIlimit = +_IRSValue("IRA." + SPPlan, TY);
 			break;
 		default:
-			TP_AGIlimit = +_IRSValue("IRA." + filingStatus);
+			TP_AGIlimit = +_IRSValue("IRA." + filingStatus, TY);
 			if (MFStogether) TP_AGIlimit = 10000;
 			SP_AGIlimit = 0;
 		}
@@ -821,9 +825,9 @@ function _StudLoanInt (	// 1040 Sched 1
 	// Get MAGI where phaseout starts
 	// Assumes MFJ rate is twice SNG rate
 	let fsFactor = (filingStatus == "MFJ") ? 2 : 1 ;
-	let SLIMax = +_IRSValue("StudLoanInterest.Maximum") * fsFactor
-	let PhaseOutStart = +_IRSValue("StudLoanInterest.SNG1") * fsFactor
-	let PhaseOutEnd = +_IRSValue("StudLoanInterest.SNG2") * fsFactor
+	let SLIMax = +_IRSValue("StudLoanInterest.Maximum", TY) * fsFactor
+	let PhaseOutStart = +_IRSValue("StudLoanInterest.SNG1", TY) * fsFactor
+	let PhaseOutEnd = +_IRSValue("StudLoanInterest.SNG2", TY) * fsFactor
 	let PhaseOutLength = PhaseOutEnd - PhaseOutStart;
 	Result["percent"] = Math.min(1, Math.max(0, +MAGI - PhaseOutStart) / PhaseOutLength);
 	IntPaid = Math.min(SLIMax, +IntPaid);
