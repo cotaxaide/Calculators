@@ -97,8 +97,9 @@
 		"AMCStart":	{"value":200000, "verified":true}
 	},
 	"MedBMFSPremium":	{"comment":"From CMS website",
-				"value":103000, "verified":true},
-	"NIIT":	{
+				"value":103000, "verified":true
+	},
+	"NIIT":			{"comment":"From Form 8960 instructions",
 		"Rate":		{"value": 0.038, "verified":false},
 		"SNG":		{"value":200000, "verified":false},
 		"MFS":		{"value":125000, "verified":false},
