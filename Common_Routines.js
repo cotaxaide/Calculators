@@ -575,7 +575,7 @@ function _NIITCalc (	// Net Investment Income Tax calculation
 //----------------------------------------------------------------------------------------
 	let TY = taxYear;
 	let NIIT_income = Math.max(0, +interest + +dividends + +capGains - +expenses); // line 8
-	let NIIT_limit = Math.max(0, AGI - +_IRSValue("NIIT." + filingStatus), TY); // line 15
+	let NIIT_limit = Math.max(0, AGI - +_IRSValue("NIIT." + filingStatus, TY)); // line 15
 	let NIIT_amount = Math.min(NIIT_income, NIIT_limit); // line 16
 	let NIIT_rate = +_IRSValue("NIIT.Rate", TY);
 	let NIIT_tax = Math.round(NIIT_amount * NIIT_rate); // line 17
