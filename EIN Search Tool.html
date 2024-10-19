@@ -52,8 +52,8 @@ button {
 	border-bottom: 1px solid #cdd;
 	text-align: left;
 }
-#EINTAble tr td:nth-child(2) {
-	width: 15em;
+#EINTable tr td:nth-child(2) {
+	width: 18em;
 }
 </style>
 
@@ -109,11 +109,13 @@ function Show_list() {
 	for ( j = 0 ; j < EIN_count; j++ ) {
 		switch (true) {
 		case (searchName.value !== ""):
+			searchEIN.value = "";
 			Name = searchName.value.toUpperCase();
 			found = (EIN_Col1[j].innerHTML.indexOf(Name) !== -1);
 			EIN_Row[j].style.display = (found) ? "table-row" : "none"; 
 			break;
 		case (searchEIN.value !== ""):
+			searchName.value = "";
 			EIN = searchEIN.value;
 			if ((EIN.length !== 10) || (EIN.charAt(2) !== "-")) {
 				alert ("the search EIN must be a full nn-nnnnnnnn format");
@@ -152,8 +154,7 @@ function Show_list() {
 	<div><button onclick="Show_list();">Start Search</button>
 		<button onclick="Clear_all();">Reset</button></div>
 	<div>If this database doesn&apos;t help, try
-		<a href="https://eintaxid.com" target="_blank">eintaxid.com</a> or
-		<a href="https://www.brightscope.com/" target="_blank">brightscope.com</a></div>
+		<a href="https://eintaxid.com" target="_blank">eintaxid.com</a> </div>
 </div>
 <hr />
 <div id="EINDiv">
