@@ -19,6 +19,7 @@
 //	_IRADeduction		IRA Deduction as an income adjustment
 //	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
+//Version 2.1 - Changed reporting of tax bracket to just non-cap gains
 //Version 2.0 - Added routines to use JSON data files
 
 //------------------------------------------------------------
@@ -359,14 +360,14 @@ function _TaxLookup(	// Tax table lookup
 		let fs = (filingStatus == "TRUST") ? "TRUST_SNG" : filingStatus;
 		result = _TaxLookup(taxYear, fs, D07, 0, false);
 		let D24 = +result["tax"];
-		let D24b = result["bracket"];
+		let D24b = result["bracket"]; // non-cap gains bracket
 		let D25 = D20PCT15 + D23PCT20 + D24;
 		result = _TaxLookup(taxYear, fs, D01, 0, false);
 		let D26 = +result["tax"];
-		let D26b = result["bracket"];
 		let D27 = Math.min(D25, D26);
 		result["tax"] = D27;
-		result["bracket"] = (D27 == D26) ? D26b : D24b ;
+		result["bracket"] = D24b;
+		result["cgbracket"] = (D23PCT20) ? 0.20 : ((D20PCT15) ? 0.15 : 0 ); 
 		return (result);
 	}
 
