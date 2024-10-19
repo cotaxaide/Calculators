@@ -129,6 +129,7 @@
 		"Cripple Creek":	{"rate": 2.3, "county": "Teller"},
 		"Dacono":	{"rate": 3, "county": "Weld"},
 		"De Beque":	{"rate": 2, "county": "Mesa"},
+		"Deer Trail":	{"rate": 0, "county": "Arapahoe"},
 		"Del Norte":	{"rate": 2, "county": "Rio Grande"},
 		"Delta":	{"rate": 3, "county": "Delta"},
 		"Denver":	{"rate": 4.81, "RTD": 1, "CD": 0.1, "county": "Denver"},
