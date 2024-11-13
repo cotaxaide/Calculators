@@ -58,13 +58,15 @@
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
 //	Mary Jennings		Debbie Geldis		Ed Hondl		Lance Lauerhass
-//	Susan Smaus
+//	Susan Smaus		Alan Zhao
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "8.1 9/27/2024";
+var VERSION = "8.1a 9/28/2024";
+//	Corrected definition of US National
+//var VERSION = "8.1 9/27/2024";
 //	Corrected an error that allowed unrleated TP to claim dependent when other TP was a filing parent
 //var VERSION = "8.0 5/2/2024";
 //	Modified to use JSON data files
@@ -185,7 +187,7 @@ YesMsg["Medical"] += "<li>Medical deduction considerations may reduce or exclude
 YesMsg["CTC"] = "<li>Income amount may reduce or exclude the benefit</li>";
 YesMsg["OTC"] = "<li>This is a \"non-refundable\" credit thus limited by tax amount</li>";
 YesMsg["OTC"] += "<li>Income amount may reduce or exclude the benefit</li>";
-YesMsg["EITC"] = "<li>Both TP and SP must have valid SSNs and must have been a US Citizen, National or Resident Alien for the full year</li>";
+YesMsg["EITC"] = "<li>Both TP and SP must have valid SSNs and must have been a US Citizen, US National or Resident Alien for the full year</li>";
 YesMsg["EITC"] += "<li>Taxpayer must have earned income, cannot be from penal institutions</li>";
 YesMsg["EITC"] += "<li>Income amount and investment income amount may reduce or exclude the benefit</li>";
 YesMsg["EITC"] += "<li>Cannot claim foreign earned income exclusion</li>";
@@ -259,8 +261,9 @@ var AlienMsg = "<b>US Cit/US Nat</b>:";
 AlienMsg += "<br />A <i>US Citizen</i> is one who was born in the US, Puerto Rico, Guam or the U.S. Virgin Islands";
 AlienMsg += " or born to a parent who is a US citizen,";
 AlienMsg += " or a former alien who has been naturalized.";
-AlienMsg += "<br />A <i>US National</i> is one who was born in the Federated States of Micronesia,";
-AlienMsg += " the Republic of Marshall Islands, or the Republic of Palau.";
+AlienMsg += "<br />A <i>US National</i> is one who is a citizen of American Samoa, Northern Mariana Islands and has chosen";
+AlienMsg += " to be such rather than a US Citizen.";
+AlienMsg += " Citizens of the Republic of Marshall Islands, Fed States of Micronesia or the Republic of Palau are neither.";
 AlienMsg += "<br /><b>Resident alien</b>:";
 AlienMsg += "<br />A person who is not a US Citizen or US National";
 AlienMsg += " but meets the substantial presence test for residency in the US";
