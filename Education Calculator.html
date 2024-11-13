@@ -174,7 +174,19 @@
 <script type="text/javascript">
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.49, 10/17/2024";
+	var VERSION = "Version 3.52a, 11/13/2024";
+	//	Added explanation for All other expenditures line on expenses tab
+	//var VERSION = "Version 3.52, 11/6/2024";
+	//	More corrections, minor wording and display changes, 
+	//	Addition of suggested range for other expenses, defaults to maximum
+	//var VERSION = "Version 3.51, 11/5/2024";
+	//	More corrections due to testing
+	//	Removed transportation category
+	//	Added a suggested "Other expense" line
+	//var VERSION = "Version 3.50, 11/1/2024";
+	//	Corrected an issue that prevented some amounts to be taxable
+	//	Reduced some expense categories into a more general "All other expenditures"
+	//var VERSION = "Version 3.49, 10/17/2024";
 	//	Clarified Living expenses to indicate it may be limited
 	//var VERSION = "Version 3.48, 6/21/2024";
 	//	Fixed category checkbox function for non-qualified expenses
@@ -363,6 +375,7 @@
 	var QualColor = "green";
 	var NonqualExpenses = []; // not qualified for the program
 	var NonqualColor = "red";
+	var Checkmark = "&#x2714;";
 	var AllowedExpenses = []; // allowed by the funding source
 	var NQExpenses = []; // allowed by the funding source but not qualified for credit
 	var Exemptions = 0;
@@ -381,6 +394,7 @@
 	var MaxRefund = 0;
 	var MaxRefundAGI = 0;
 	var MaxRefundTaxable = 0;
+	var AllOtherChangeFlag = false;
 	var Optimizing = false;
 	var Optimized = false;
 	var OptimizedTaxableFound = 0;
@@ -506,6 +520,9 @@
 					}
 				}
 			}
+		}
+		if (newTab == "OptimizeTab") {
+			GapAll.checked = true;
 		}
 
 		// No inconsistencies, go to the new tab
@@ -893,6 +910,12 @@
 		needAGI = (((StudSalaryTax.value > 0) || (StudBusinessTax.value > 0)) && (StudAGITax.value == ""))
 		StudAGITax.style.backgroundColor = (needAGI) ? "pink" : "";
 
+		// Did the user or system change the value of AllOther?
+		if (whatChanged == "AllOther") {
+			AllOtherChangeFlag = true;
+			return;
+		}
+		if (AllOther.value === "") AllOtherChangeFlag = false;
 
 		//-----------------------Scholarship calculations --------------------------------
 
@@ -1055,14 +1078,16 @@
 		ScholarTaxFree.innerHTML = Math.max(0, (ScholarAvailable -= +ScholarTaxable.value));
 
 		// Add other supplemental funding
-		ScholarSupplemental = +ScholarESA.value + +ScholarQTP.value;
+		ScholarSupplemental = +ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value;
+		suppTotal.innerHTML = ScholarSupplemental + +ScholarSAV.value; // SAV handled seperately
+
 		SupplementalTaxable.style.display = (DegreeNo.checked & (ScholarSupplemental > 0)) ? "inline" : "none";
 		ScholarNQMax = ScholarSupplemental + +Nonrestricted.value;
+		ScholarAvailable = +ScholarTaxFree.innerHTML + ScholarSupplemental;
+		ScholarAvailableTotal.innerHTML = ScholarAvailable + +ScholarSAV.value // SAV handled seperately
 
-		ScholarAvailableTotal.innerHTML = ScholarAvailable = +ScholarTaxFree.innerHTML + ScholarSupplemental;
 		var scholarAvailableAOC = ScholarAvailable;
 		var scholarAvailableLLC = ScholarAvailable;
-		//ExpenseAllowedFlag.style.display = (ScholarAvailable > 0) ?  "inline" : "none";
 
 		//-----------------------Expense calculations --------------------------------
 
@@ -1071,9 +1096,8 @@
 		NonqualExpenses["AOC"] = NonqualExpenses["LLC"] = 0;
 		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = 0;
 
-		// Must be at least half time to apply funds to living expenses
-		var livingAvailable = (! TimePart.checked) ? (+ScholarNQMax + +ScholarIRA.value) : 0;
-		var servicesAvailable = +ScholarESA.value + +ScholarQTP.value + +ScholarIRA.value;
+		// Must be at least half time to apply funds to RandB expenses
+		var RandBAvailable = (! TimePart.checked) ? +ScholarNQMax : 0;
 
 		// VerifyExpense(Category,   AOC,   LLC,   LIMIT
 		VerifyExpense("Tuition",     true,  true,  ScholarAvailable);
@@ -1081,14 +1105,41 @@
 		VerifyExpense("InstBooks",   true,  true,  ScholarAvailable);
 		VerifyExpense("SecondBooks", true,  false, ScholarAvailable);
 		VerifyExpense("Supplies",    true,  true,  ScholarAvailable);
-		VerifyExpense("OtherStuff",  true,  false, ScholarAvailable);
-		VerifyExpense("Living",      false, false, livingAvailable);
+		VerifyExpense("SuppliesNot", true,  false, ScholarAvailable);
+		VerifyExpense("RandB",       false, false, RandBAvailable);
 		VerifyExpense("Insurance",   false, false, 0);
-		VerifyExpense("Services",    false, false, servicesAvailable);
-		VerifyExpense("Transport",   false, false, 0);
-		VerifyExpense("Sports",      false, false, 0);
-		VerifyExpense("NonCredit",   false, false, 0);
-		VerifyExpense("Clerical",    false, false, 0);
+		VerifyExpense("Services",    false, false, ScholarSupplemental);
+		//VerifyExpense("Transport",   false, false, 0);
+		//VerifyExpense("NonCredit",   false, false, 0);
+		//VerifyExpense("Clerical",    false, false, 0);
+
+		// Make AllOther at least what is covered by scholarships and amount moveable
+		if (StudentAOC.innerHTML == "Yes") {
+			unallocated = Math.max(0, +ScholarAvailable - QualExpenses["AOC"] - NonqualExpenses["AOC"]);
+			unspent = Math.max(0, +ScholarAvailable - QualExpenses["AOC"]);
+			expensesAvailable = Math.max(0, QualExpenses["AOC"] - +Restricted.value);
+			nonqualAvailable = Math.max(0, +MaxAOC.innerHTML - NonqualExpenses["AOC"] + unspent);
+		}
+		else {
+			unallocated = Math.max(0, +ScholarAvailable - QualExpenses["LLC"] - NonqualExpenses["LLC"]);
+			unspent = Math.max(0, +ScholarAvailable - QualExpenses["LLC"]);
+			expensesAvailable = Math.max(0, QualExpenses["LLC"] - +Restricted.value);
+			nonqualAvailable = Math.max(0, +MaxLLC.innerHTML - NonqualExpenses["LLC"] + unspent);
+		}
+		otherCap = unallocated + Math.min(ScholarAvailable, expensesAvailable, nonqualAvailable);
+		if (AllOtherChangeFlag) {
+			AllOther.style.backgroundColor = (AllOther.value < unallocated) ? "hotpink" : "" ;
+		}
+		else {
+			AllOther.value = otherCap;
+		}
+		if (otherCap > 0) {
+			AllOtherNote.innerHTML = "(" + unallocated + " to " + otherCap + " suggested)";
+		}
+		else {
+			AllOtherNote.innerHTML = "";
+		}
+		VerifyExpense("AllOther",    false, false, 0);
 
 		// show the expense totals
 		NQTotalAOC.innerHTML = NonqualExpenses["AOC"];
@@ -1100,8 +1151,6 @@
 
 		// Allocate funds available
 
-		WarningMessage = "";
-
 		// Use as much as possible to pay nonqualified expenses
 		NQExpenses["AOC"] = NQExpenses["LLC"] = 0;
 		NQExpense("Tuition");
@@ -1109,14 +1158,14 @@
 		NQExpense("InstBooks");
 		NQExpense("SecondBooks");
 		NQExpense("Supplies");
-		NQExpense("OtherStuff");
-		NQExpense("Living");
+		NQExpense("SuppliesNot");
+		NQExpense("RandB");
 		NQExpense("Insurance");
 		NQExpense("Services");
-		NQExpense("Transport");
-		NQExpense("Sports");
-		NQExpense("NonCredit");
-		NQExpense("Clerical");
+		//NQExpense("Transport");
+		//NQExpense("NonCredit");
+		//NQExpense("Clerical");
+		NQExpense("AllOther");
 
 		NQAvailAOC.innerHTML = NQExpenses["AOC"];
 		NQAvailLLC.innerHTML = NQExpenses["LLC"];
@@ -1126,45 +1175,18 @@
 		Distribute("LLC");
 
 		// Warning messages for supplementary funds
+		WarningMessage = "";
 
-		var expensesSupplemental = +ExpensesAOC.innerHTML + +Services.value + +Living.value;
-		var CombinedWarning = true;
-		if (+ScholarESA.value > expensesSupplemental) {
-			WarningMessage += "<br />The amount used from your Coverdel ESA exceeds";
-			WarningMessage += " your allowed expenses for that source.";
-			WarningMessage += " You will have to include the investment gain on the";
-			WarningMessage += " unused funds on your tax return.";
-			CombinedWarning = false;
-		}
-		if (+ScholarQTP.value > expensesSupplemental) {
-			WarningMessage += "<br />The amount used from your 529 Plan exceeds";
-			WarningMessage += " your allowed expenses for that source.";
-			WarningMessage += " You will have to include the investment gain on the";
-			WarningMessage += " unused funds on your tax return.";
-			CombinedWarning = false;
-		}
-		if (+ScholarIRA.value > expensesSupplemental) {
-			WarningMessage += "<br />The amount used from your IRA exceeds your";
-			WarningMessage += " allowed expenses for that source.";
-			WarningMessage += " You will have to include a 10% penalty on the";
-			WarningMessage += " unused funds on your tax return.";
-			CombinedWarning = false;
-		}
-		if ((ScholarSupplemental > expensesSupplemental) && CombinedWarning){
-			WarningMessage += "<br />The combined amount used from your ESA, 529 Plan";
-			WarningMessage += " and IRA exceeds your allowed expenses for those sources.";
-			WarningMessage += " You will have to include tax penalties on the unused";
+		var expensesSupplemental = +ExpensesAOC.innerHTML + +Services.value + +RandB.value + +ScholarSAV.value;
+			if (ScholarSupplemental > expensesSupplemental) {
+			WarningMessage += "<br />The combined amount used from your supplemental funding";
+			WarningMessage += " exceeds your allowed expenses for those sources by ";
+			WarningMessage += Comma(+ScholarSupplemental - expensesSupplemental);
+			WarningMessage += ". You will have to return funds to one of the accounts ";
+			WarningMessage += " or figure the tax implications for the unused";
 			WarningMessage += " funds on your tax return.";
-		}
-		if (ScholarSAV.value > 0) {
-			if ((ScholarSAV.value > QualExpensesAOC.innerHTML) ||
-			    (ScholarSAV.value > QualExpensesLLC.innerHTML)) {
-				WarningMessage += "<br />The Savings Bond amount exceeds the";
-				WarningMessage += " qualified education expenses claimed on the";
-				WarningMessage += " TP&apos;s tax return for one or more of the credits above.";
-				WarningMessage += " You will have to declare the interest income on some or all";
-				WarningMessage += " of the bonds if that option is used."
-			}
+			WarningMessage += "<br /><br />Please resolve the overage claimed to continue";
+			WarningMessage += " since it may affect AGI and possible tax penalties.<br />";
 		}
 
 		// Show optimization situation messages
@@ -1552,96 +1574,83 @@
 	//----------------------------------------------------------------------------------------
 		// saRemaining is the amount of ScholarAvailable that remains to be distributed
 		// Does not include restricted scholarships
-		var saRemaining = ScholarAvailable;
 		var saRestricted = +Restricted.value;
+		var saRemaining = +Nonrestricted.value;
 
 		// qTaxLimit is the tax law limit for the type of credit
 		switch (type) {
 			case "AOC": var qTaxLimit = +MaxAOC.innerHTML; break;
 			case "LLC": var qTaxLimit = +MaxLLC.innerHTML; break;
 		}
+		// Expenses
+		var qExpensesLeft = QualExpenses[type];
+		var nqExpensesLeft = NQExpenses["AOC"];
 
 		// nqntExpensesLeft is the non-qualified amount that is not taxable
 		// but doesn't qualify for LLC credit
 		var nqntExpensesLeft = Math.max(0, QualExpenses["AOC"] - QualExpenses[type]);
 		var nqntExpensesLeft0 = Math.min(nqntExpensesLeft, NonqualExpenses[type]);
-		
-		// Supplemental resources are not considered for taxing due to penalties
-		// if not used for allowed expenses, so use them up first
-		var taxExpenseLimit = Math.max(0, NQExpenses[type] - ScholarSupplemental);
-		// Taxable amount may be limited manually
-		var taxLimit = Math.min(+ScholarTaxableMax.innerHTML, taxExpenseLimit);
-		var taxRequested = +ScholarTaxable.value;
-		var incomeAmount = taxRequested + ScholarIncome;
-		var nqExpensesLeft = NQExpenses["AOC"];
 
 		// Amount distributed for expenses
 		var nqAmountPaid = 0; // nonqualified
 		var qAmountPaid =  0;  // qualified
 		var nqntAmountPaid = 0 // nonqualified, non-taxable
-		var qExpensesLeft = QualExpenses[type];
 
-		// Use Supplemental sources for IRS unqualified first,
-		// expenses that would otherwise fall under nontaxable non-qualified
+		// Income amount was taken from the funds if there was no W-2
+		var incomeAmount = ScholarIncome;
+
+		// Supplemental resources are not considered for taxing due to penalties
+		// if not used for allowed expenses, so use them up first
+		var suppnqExpensesLeft = +RandB.value + +Services.value
+		var suppExpensesLeft = qExpensesLeft + nqntExpensesLeft + suppnqExpensesLeft;
+		var suppRemaining = ScholarSupplemental;
+
+		// Remove savings bond use first since taxablity is out of scope
+		bondPay = Math.min(ScholarSAV.value, qExpensesLeft);
+		qExpensesLeft -= bondPay;
+		qAmountPaid += bondPay;
+
+		// Use Supplemental sources for IRS nonqualified first,
 		// but can be paid for with supplimental sources
-		var suppRemainder = ScholarSupplemental;
-		var suppPay = Math.min(suppRemainder, nqExpensesLeft, saRemaining);
+		suppPay = Math.min(suppRemaining, suppnqExpensesLeft, suppExpensesLeft);
 		nqAmountPaid += suppPay;
 		nqExpensesLeft -= suppPay;
-		saRemaining -= suppPay;
-		suppRemainder -= suppPay;
+		suppRemaining -= suppPay;
+		suppExpensesLeft -= suppPay;
 
 		// Use remaining supplemental sources to pay qualified expenses
-		//suppPay = Math.min(suppRemainder, QualExpenses[type]);
-		suppPay = Math.min(suppRemainder, qExpensesLeft, saRemaining);
+		suppPay = Math.min(suppRemaining, qExpensesLeft, suppExpensesLeft);
 		qAmountPaid += suppPay;
 		qExpensesLeft -= suppPay;
-		saRemaining -= suppPay;
-		suppRemainder -= suppPay;
+		suppRemaining -= suppPay;
+		suppExpensesLeft -= suppPay;
 
 		// Use remaining supplemental sources for nontaxable non-qualified expenses
-		suppPay = Math.min(suppRemainder, nqntExpensesLeft, saRemaining, nqExpensesLeft);
-		nqAmountPaid += suppPay;
+		suppPay = Math.min(suppRemaining, nqntExpensesLeft, suppExpensesLeft);
+		nqntAmountPaid += suppPay;
 		nqntExpensesLeft -= suppPay;
-		nqExpensesLeft -= suppPay;
-		saRemaining -= suppPay;
-		suppRemainder -= suppPay; // hopefully will be 0
+		suppExpensesLeft -= suppPay;
+		suppRemaining -= suppPay; // hopefully will be 0
 
 		// Use restricted scholarships for qualified expenses
-		qPay = (Math.min(qExpensesLeft, saRemaining, saRestricted));
+		qPay = (Math.min(qExpensesLeft, saRestricted));
 		qAmountPaid += qPay
 		qExpensesLeft -= qPay
-		saRemaining -= qPay
 		saRestricted -= qPay
 
 		// Use restricted scholarships for any non-taxable nonqualified amount
 		// and remove restricted scholarships from saRestricted
-		saRemaining = Math.max(0, saRemaining - saRestricted);
 		rPay = Math.min(saRestricted, nqntExpensesLeft);
 		nqAmountPaid += rPay;
 		nqntAmountPaid += rPay;
 		saRestricted -= rPay;
 		nqntExpensesLeft -= rPay;
 
-		// Remove restricted scholarships from saRemaining
-
 		if (GapGap.checked) {
-			// gapAmount is the amount left that can be paid to get to the tax limit
-			gapAmount = Math.max(0, qTaxLimit - qAmountPaid);
-			// Is it limited by other factors?
-			gapAmount = Math.min(gapAmount, nqExpensesLeft, saRemaining, qExpensesLeft);
 
-			// Amount to pay to qualified amounts to maximize expenses
-			qPay = Math.max(0, qExpensesLeft - gapAmount);
-			// Is it limited?
-			qPay = Math.min(qPay, saRemaining, qExpensesLeft);
-			qAmountPaid += qPay;
-			qExpensesLeft -= qPay;
-			saRemaining -= qPay;
-			//gapAmount -= qPay;
-
-			// Use as much as possible to pay nonqualified amounts
-			nqPay = Math.min(nqExpensesLeft, saRemaining);
+			// Pay nonqualified amount as if all saRemaining were used for nonq and q
+			nqPay = Math.max(0, saRemaining - qExpensesLeft - nqntExpensesLeft);
+			nqPay = Math.min(nqPay, nqExpensesLeft);
 			nqAmountPaid += nqPay;
 			nqExpensesLeft -= nqPay;
 			saRemaining -= nqPay;
@@ -1653,13 +1662,35 @@
 			nqAmountPaid += nqntPay;
 			nqntExpensesLeft -= nqntPay;
 			saRemaining -= nqntPay;
+
+			// gapAmount is the amount left that can be paid to get to the tax limit
+			//	but limited by the amount that can be moved
+			TPedExpense = Math.max(0, qTaxLimit - qExpensesLeft + saRemaining);
+			gapAmount = Math.min(saRemaining, qExpensesLeft, nqExpensesLeft, TPedExpense, qTaxLimit);
+			nqAmountPaid += gapAmount;
+			saRemaining -= gapAmount;
+			incomeAmount += gapAmount;
+
+			// Pay what's left to the qualified expenses
+			qPay = Math.min(saRemaining, qExpensesLeft);
+			qAmountPaid += qPay;
+			qExpensesLeft -= qPay;
+			saRemaining -= qPay;
 		}
 
-		else { 
+		else { // "Use all funds" or during optimizing
+
+			// Pay specified nonqualified first
+			nqPay = Math.min(ScholarTaxable.value, nqExpensesLeft, saRemaining);
+			nqAmountPaid += nqPay;
+			nqExpensesLeft -= nqPay;
+			saRemaining -= nqPay;
+			incomeAmount += nqPay;
+
 			// Pay qualified next
-			//var qePayLimit = Math.max(0, QualExpenses[type] - qAmountPaid);
-			//var qPay = Math.min(saRemaining, qePayLimit);
-			var qPay = Math.min(saRemaining, qExpensesLeft);
+			//var qePayLimit = Math.max(0, qExpensesLeft - nqePayLimit);
+			//var qPay = Math.min(saRemaining, qePayLimit, qExpensesLeft);
+			qPay = Math.min(saRemaining, qExpensesLeft);
 			qAmountPaid += qPay;
 			qExpensesLeft -= qPay;
 			saRemaining -= qPay;
@@ -1670,6 +1701,13 @@
 			nqAmountPaid += nqntPay;
 			nqntExpensesLeft -= nqntPay;
 			saRemaining -= nqntPay;
+
+			// Use as much as possible to pay nonqualified amounts
+			nqPay = Math.min(nqExpensesLeft, saRemaining);
+			nqAmountPaid += nqPay;
+			nqExpensesLeft -= nqPay;
+			saRemaining -= nqPay;
+			incomeAmount += nqPay;
 		}
 
 		// remainder may be taxable, show nonrestricted scholarships
@@ -1688,24 +1726,22 @@
 		// adjust for kiddie tax avoidance
 		if (KiddieTaxApplies) {
 			var studUnearnedTax = +StudAGITax.value - +StudSalaryTax.value - +StudBusinessTax.value - +StudSEHITax.value;
-			var studUnearnedAOC = studUnearnedTax + incomeAmount;
 			var studIncome = +StudAGITax.value + incomeAmount;
 
 			// Make adjustment if possible
-			if (DependentYes.checked && (studIncome > StudentFileMargin) && (studUnearnedAOC > KiddieFileMargin)) {
-				var kiddieAdjust = Math.min(studUnearnedAOC - KiddieFileMargin, studIncome - StudentFileMargin);
+			if (DependentYes.checked && (studIncome > StudentFileMargin) && (studUnearnedTax > KiddieFileMargin)) {
+				var kiddieAdjust = Math.min(studUnearnedTax - KiddieFileMargin, studIncome - StudentFileMargin);
 				var nqKiddieLimit = NQExpenses[type] - nqAmountPaid;
 				var qKiddieLimit = QualExpenses[type] - qAmountPaid;
 				kiddieAdjust = Math.min(incomeAmount, kiddieAdjust, nqKiddieLimit, qKiddieLimit);
 				nqAmountPaid -= kiddieAdjust;
 				qAmountPaid += kiddieAdjust;
 				incomeAmount -= kiddieAdjust;
-				studUnearnedAOC -= kiddieAdjust;
 				studIncome -= kiddieAdjust;
 			}
 
 			// Did an adjustment fix the problem?
-			if ((studIncome > StudentFileMargin) && (studUnearnedAOC > KiddieFileMargin)) {
+			if ((studIncome > StudentFileMargin) && (studUnearnedTax > KiddieFileMargin)) {
 				if ((TaxFormResultsText.innerHTML == "") && (NRCreditTax.value !== "")) {
 					alert ("The student is subject to kiddie tax, which is out of scope");
 					TaxFormResultsText.innerHTML = "Student is subject to Kiddie Tax (OOS)";
@@ -1802,7 +1838,7 @@
 		// Add a check mark if funds are available for the category
 		ExpenseAmount = 0;
 		if (qualifiedScholarshipExpense) { // show fixed checkmark
-			ExpenseAllowedColumn.innerHTML = "&#x2714;";
+			ExpenseAllowedColumn.innerHTML = Checkmark;
 			ExpenseAmount = Math.round(Math.max(0,+(ExpenseCategoryAmount.value)));
 		}
 		else { // show optional checkbox on non-qualified funds
@@ -1810,7 +1846,7 @@
 			AllowedElement = document.getElementById(category + "Allowed");
 			if (AllowedElement != undefined) {
 				if (+limit > 0) {
-					AllowedElement.innerHTML = "&#x2714;";
+					AllowedElement.innerHTML = Checkmark;
 					ExpenseOption.style.display = "none";
 					//ExpenseAmount = Math.round(Math.min(+ExpenseCategoryAmount.value, +limit)); // v 3.37
 					ExpenseAmount = Math.round(+ExpenseCategoryAmount.value); // v 3.37
@@ -1861,7 +1897,7 @@
 			if (ExpenseAllowedColumn.innerHTML === "") return;
 		}
 		else {
-			if ((! ExpenseOption.checked) && (LivingAllowed.innerHTML === "")) return;
+			if ((! ExpenseOption.checked) && (RandBAllowed.innerHTML === "")) return;
 		}
 
 		for (var eni=0; eni < 2; eni++) {
@@ -2806,7 +2842,7 @@
 		<li>Without optimizing, the entire grant is used to pay for the tuition, they owe no tax
 		and they will receive a refundable $200 for AOC, $1500 for ACTC and $3,733 earned income credit.
 		Sounds pretty good, right?</li>
-		<li>But if you optimize, using $4,000 as living expenses,
+		<li>But if you optimize, using $4,000 as room and board expenses,
 		you will find that they will now have to pay a little tax by declaring $1,794 taxable, 
 		but will gain an additional $828 by receiving $830 in AOC and $39 education credit, which offsets
 		the resulting tax and the decrease (-$2) in the earned income credit.
@@ -3025,10 +3061,9 @@
 		<li>Hover over each starred source to view what expenses that each source can be spent on tax-free.</li>
 		<li>Early distribution of IRA funds is considered as personal funds and not included in the calculations.
 		However, a warning message is displayed if all the funds cannot be used.</li>
-		<li>Savings bond amounts are not included in the calculations because they do not affect the outcome.
-		However, a warning message is displayed if the bond amount exeeds the education expenses (for tuition and fees) after other sources have been used.</li>
 		<li>CARES act emergency financial aid grants (which may be reported on form 1098-T) are non-taxable and may be used for nonqualified expenses like living expenses. Do not include this amount when using this calculator. Do not reduce expenses paid by these grants.</li>
-		<li id="KiddieWarn">IMPORTANT: Go to the Optimizer tab and enter income information, if any, on the Student&apos;s tax return.</li>
+		<li id="KiddieWarn">IMPORTANT: Go to the Optimizer tab and enter income information, if any, on the Student&apos;s tax return
+		to make sure they are not subject to the kiddie tax.</li>
 	</ul>
 
 	<hr />
@@ -3037,7 +3072,7 @@
 		<tr>
 			<td colspan="4" class="tblHeader">Scholarships:</td></tr>
 			<tr title="Unrestricted grants can be used for tuition, fees, books, supplies and equipment, and if at least half-time, living expenses regardless of the qualification for any other particular tax credit.">
-			<td colspan="2" >&#x2605; Unrestricted grants and scholarships that can be used for living expenses:</td>
+			<td colspan="2" >&#x2605; Unrestricted grants and scholarships that can be used for other expenses:</td>
 			<td><input id="Nonrestricted" type="number" onkeyup="BudgetChange(this.id)" /></td>
 			<td></td> </tr>
 		<tr title="Scholarships can be used for tuition, fees, books, supplies and equipment regardless of the qualification for any other particular tax credit. Some part of the scholarship may include taxable teaching or research funds or some part may be specified for other non-taxable uses than those listed.">
@@ -3088,15 +3123,14 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 				<input id="ScholarTaxableLimit" type="number" /></td></tr>
 		<tr title="Amount available for qualified education expenses.">
 			<td colspan="2">Amount available tax-free for education expenses:</td>
-			<td><span class="CalculatedEntry" id="ScholarTaxFree"></span></td></tr>
-		<tr><td colspan="3" class="tblHeader"><br />Supplemental Funding:</td></tr>
+			<td class="right" id="ScholarTaxFree"></td></tr>
+		<tr><td colspan="3"><hr /></td></tr>
+		<tr><td colspan="3" class="tblHeader">Supplemental Funding:</td></tr>
 		<tr title="Distribution from Coverdell ESA's can be used for tuition, fees, books, supplies and equipment, special needs services, room & board if at least a half-time student, but investment interest on unused funds is taxable. It can also be used for K-12 expenses, but not considered in this tool.">
 			<td>&#x2605; Distributions from Coverdell Education Savings Accounts (ESA):</td>
-			<td></td>
 			<td><input id="ScholarESA" type="number" /></td></tr>
 		<tr title="Distribution from Qualified Tuition Programs (QTP/529 plans) can be used for tuition, fees, books, supplies and equipment, special needs services, room & board if at least a half-time student, but investment interest on unused funds is taxable.">
 			<td>&#x2605; Distributions from Qualified Tuition Plans (529 plans):</td>
-			<td></td>
 			<td><input id="ScholarQTP" type="number" /></td></tr>
 		<tr title="Early distribution from IRAs can be used for tuition, fees, books, supplies and equipment, special needs services, room & board if at least a half-time student, but an early distribution penalty is applied to unused funds.">
 			<td>&#x2605; Early distributions from IRAs (for education, with no early distribution penalty):</td>
@@ -3107,11 +3141,13 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td><input id="ScholarSAV" type="number" /></td>
 			<td></td>
 			<td></td></tr>
+		<tr>
+			<td colspan="2">Total supplemental funding</td><td id="suppTotal" class="right"></td></tr>
 		<tr><td colspan="3"><hr /></td></tr>
 		<tr>
-			<td class="bold">Amount of non-personal funds to be allocated to education expenses:</td>
+			<td class="bold">Amount of funds to be allocated to education expenses:</td>
 			<td></td>
-			<td id="ScholarAvailableTotal" class="CalculatedEntry"></td> </tr>
+			<td id="ScholarAvailableTotal" class="right"></td> </tr>
 	</table>
 	<br />
 	<span id="ScholarshipTaxableMsg" class="warning">The entire scholarship is taxable because the student is not a degree/certification candidate.</span>
@@ -3127,12 +3163,15 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 	<ul>
 		<li>Enter expenses as you wish to claim them below, regardless of how the institution granting a scholarship
 	  actually used the funds.</li>
-		<li>Do not include the part of the scholarship that was required to be used for non-qualifed education expenses nor the expenses covered by those funds.</li>
+		<li>Do not include the part of the scholarship that was <u>required</u> to be used for non-qualifed education expenses nor the expenses covered by those funds.</li>
 		<li>Tax credits are based on qualified education expenses payed for the taxpayer, spouse, or a dependent who is claimed as an exemption on the tax return.</li>
 		<li>The credit is allowed for qualified education expenses paid in the current tax year for an academic period beginning in that year or in the first 3 months of the following year.</li>
-		<li>Include any required computer and internet expenses in the required supplies and equipment fees category. If not required, include it in living expenses.</li>
+		<li>Include any required computer and internet expenses in the required supplies and equipment fees category. If not required, include it in other living expenses.</li>
 		<li>Funding amounts in excess of allowed expenses for that type of funding (check marks below) is taxable income to the student.</li>
-		<li>If the funds available exceed the limit for the tax credit, it may be advantageous to only use the amount of funds to "cover the difference" and allow the rest to be taxable and thus qualify for the tax credit.</li>
+		<li>If the funds available exceed the limit for the tax credit, it may be advantageous to only use the amount of funds to "maximize expenses" and allow the rest to be taxable and thus qualify for the tax credit.</li>
+		<li>If range figures in the i<i>ll other expenditures</i> line are shown,
+			the first figure is the amount of scholarship that has not been allocated.
+			The second figure is the maximum amount that could still be diverted to that line for advantage (not necessarily optimal).</li>
 	</ul>
 
 	<hr />
@@ -3183,67 +3222,77 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="LLCClass" id="SuppliesLLC"></td>
 			<td class="SCHClass" id="SuppliesSCH"></td></tr>
 		<tr>
-			<td><span id="OtherStuffAllowed"></span></td>
+			<td><span id="SuppliesNotAllowed"></span></td>
 			<td>Required supplies and equipment fees NOT paid to the institution:</td>
-			<td><input id="OtherStuff" type="number" /></td>
-			<td class="AOCClass" id="OtherStuffAOC"></td>
-			<td class="LLCClass" id="OtherStuffLLC"></td>
-			<td class="SCHClass" id="OtherStuffSCH"></td></tr>
+			<td><input id="SuppliesNot" type="number" /></td>
+			<td class="AOCClass" id="SuppliesNotAOC"></td>
+			<td class="LLCClass" id="SuppliesNotLLC"></td>
+			<td class="SCHClass" id="SuppliesNotSCH"></td></tr>
 		<tr>
-			<td><input id="LivingOption" type="checkbox" /><span id="LivingAllowed"></span></td>
-			<td>Living expenses (may be limited by school or scholarship terms):</td>
-			<td><input id="Living" type="number" /></td>
-			<td class="AOCClass" id="LivingAOC"></td>
-			<td class="LLCClass" id="LivingLLC"></td>
-			<td class="SCHClass" id="LivingSCH"></td></tr>
+			<td><input id="RandBOption" type="checkbox" />
+				<span id="RandBAllowed"></span></td>
+			<td>Room and board (may be limited by school or scholarship terms):</td>
+			<td><input id="RandB" type="number" /></td>
+			<td class="AOCClass" id="RandBAOC"></td>
+			<td class="LLCClass" id="RandBLLC"></td>
+			<td class="SCHClass" id="RandBSCH"></td></tr>
 		<tr>
-			<td><input id="InsuranceOption" type="checkbox" /><span id="InsuranceAllowed"></span></td>
+			<td><input id="InsuranceOption" type="checkbox" />
+				<span id="InsuranceAllowed"></span></td>
 			<td>Insurance or student health fees:</td>
 			<td><input id="Insurance" type="number" /></td>
 			<td class="AOCClass" id="InsuranceAOC"></td>
 			<td class="LLCClass" id="InsuranceLLC"></td>
 			<td class="SCHClass" id="InsuranceSCH"></td></tr>
 		<tr>
-			<td><input id="ServicesOption" type="checkbox" /><span id="ServicesAllowed"></span></td>
+			<td><input id="ServicesOption" type="checkbox" />
+				<span id="ServicesAllowed"></span></td>
 			<td>Expenses for special needs services:</td>
 			<td><input id="Services" type="number" /></td>
 			<td class="AOCClass" id="ServicesAOC"></td>
 			<td class="LLCClass" id="ServicesLLC"></td>
 			<td class="SCHClass" id="ServicesSCH"></td></tr>
+		<!--
 		<tr>
-			<td><input id="TransportOption" type="checkbox" /><span id="TransportAllowed"></span></td>
+			<td><input id="TransportOption" type="checkbox" />
+				<span id="TransportAllowed"></span></td>
 			<td>Transportation or parking fees:</td>
 			<td><input id="Transport" type="number" /></td>
 			<td class="AOCClass" id="TransportAOC"></td>
 			<td class="LLCClass" id="TransportLLC"></td>
 			<td class="SCHClass" id="TransportSCH"></td></tr>
 		<tr>
-			<td><input id="SportsOption" type="checkbox" /><span id="SportsAllowed"></span></td>
-			<td>Sports:</td>
-			<td><input id="Sports" type="number" /></td>
-			<td class="AOCClass" id="SportsAOC"></td>
-			<td class="LLCClass" id="SportsLLC"></td>
-			<td class="SCHClass" id="SportsSCH"></td></tr>
-		<tr>
-			<td><input id="NonCreditOption" type="checkbox" /><span id="NonCreditAllowed"></span></td>
+			<td><input id="NonCreditOption" type="checkbox" />
+				<span id="NonCreditAllowed"></span></td>
 			<td>Games, hobbies, non-credit courses:</td>
 			<td><input id="NonCredit" type="number" /></td>
 			<td class="AOCClass" id="NonCreditAOC"></td>
 			<td class="LLCClass" id="NonCreditLLC"></td>
 			<td class="SCHClass" id="NonCreditSCH"></td></tr>
 		<tr>
-			<td><input id="ClericalOption" type="checkbox" /><span id="ClericalAllowed"></span></td>
+			<td><input id="ClericalOption" type="checkbox" />
+				<span id="ClericalAllowed"></span></td>
 			<td>Clerical or research fees or expenses:</td>
 			<td><input id="Clerical" type="number" /></td>
 			<td class="AOCClass" id="ClericalAOC"></td>
 			<td class="LLCClass" id="ClericalLLC"></td>
 			<td class="SCHClass" id="ClericalSCH"></td></tr>
+		-->
+		<tr>
+			<td>&#x2714;<input id="AllOtherOption" type="checkbox"
+				checked="checked" style="visibility:hidden;"/>
+				<span id="AllOtherAllowed"></span></td>
+			<td>All other expenditures (travel, entertainment, support for others, etc)<span id="AllOtherNote"></span>:</td>
+			<td><input id="AllOther" type="number" onchange="BudgetChange(this.id);" /></td>
+			<td class="AOCClass" id="AllOtherAOC"></td>
+			<td class="LLCClass" id="AllOtherLLC"></td>
+			<td class="SCHClass" id="AllOtherSCH"></td></tr>
 
 		<tr><td colspan="7"><hr /></td></tr>
 
 		<tr>
 			<td></td>
-			<td>Total education expenses not allowed for the credit:</td>
+			<td>Total expenses not allowed for the credit:</td>
 			<td id="NQTotal"></td>
 			<td class="AOCClass nqexpense" id="NQTotalAOC"></td>
 			<td class="LLCClass nqexpense" id="NQTotalLLC"></td></tr>
@@ -3333,7 +3382,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="LLCClass" id="QualExpensesLLC"></td></tr>
 		<tr>
 			<td></td>
-			<td class="bold">Additional taxable income for the student:</td>
+			<td class="bold">Additional taxable scholarship income for the student:</td>
 			<td></td>
 			<td class="AOCClass" id="IncomeAOC"></td>
 			<td class="LLCClass" id="IncomeLLC"></td></tr>
@@ -3948,13 +3997,11 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		<tr><td colspan="6"><hr /></td></tr>
 
 		<tr>
-			<td class="bold" colspan="2">Additional taxable income for the student:</td>
-			<td></td>
+			<td class="bold" colspan="3">Additional taxable income for the student:</td>
 			<td class="AOCClass" id="IncomeAOC2"></td>
 			<td class="LLCClass" id="IncomeLLC2"></td></tr>
 		<tr>
-			<td class="bold" colspan="2">Qualified education expenses for TP's tax return:</td>
-			<td></td>
+			<td class="bold" colspan="3">Qualified education expenses for TP's tax return:</td>
 			<td class="AOCClass" id="QualExpensesAOC2"></td>
 			<td class="LLCClass" id="QualExpensesLLC2"></td></tr>
 
