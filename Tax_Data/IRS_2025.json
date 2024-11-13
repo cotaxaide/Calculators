@@ -90,13 +90,13 @@
                 "TRUST":	{"value":[ 3250,  15900], "verified":true}
 	},
 	"SETaxRates": {
-		"SSRate":	{"value": 0.124, "verified":false},
+		"SSRate":	{"value": 0.124, "verified":true},
 		"MCRate":	{"value": 0.029, "verified":false},
-		"SSWageCap":	{"value":168600, "verified":false},
-		"AMCRate":	{"value": 0.009, "verified":false},
+		"SSWageCap":	{"value":168600, "verified":true},
+		"AMCRate":	{"value": 0.009, "verified":true},
 		"AMCStart":	{"value":200000, "verified":false}
 	},
-	"MedBMFSPremium":	{"value":91000, "verified":false},
+	"MedBMFSPremium":	{"value":106000, "verified":true},
 	"NIIT":	{
 		"Rate":		{"value": 0.038, "verified":false},
 		"SNG":		{"value":200000, "verified":false},
