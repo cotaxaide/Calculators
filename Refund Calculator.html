@@ -227,7 +227,9 @@
 	// To Do:
 	//	Provide for use of Schedule D?
 	// CHANGE HISTORY:
-	VERSION = "(Version 2.26, 5/16/2024)";
+	VERSION = "(Version 2.26a, 8/30/2024)";
+	//	Minor comment changes
+	//VERSION = "(Version 2.26, 5/16/2024)";
 	//	Changed to JSON data files
 	//VERSION = "(Version 2.25a, 11/15/2023)";
 	//	Changed "This Tax Year" to "Refund Tax Year"
@@ -333,6 +335,7 @@
 	//	Paul Peyser		Maria Maggio		Frank Krider
 	//	Vern Chartrand		Brad Kirby		Alvin Young
 	//	Eric Mueller		Lynn Kinch		Barbara Smith-Thomas
+	//	Joanne Allen
 
 	//----------------------------------------------------------------------------------------
 	//	GLOBAL VARIABLES
@@ -353,7 +356,7 @@
 	var ComputationCompleteAlert = false;
 	var MyinputList = [];
 	var NeedData = 0;
-	var TY = 0; // tax year
+	var TY = 0; // tax year in which refund was received and return year being prepared
 	var CY = 0; // tax year of data being entered
 	var PY = 0; // prior year to the data being entered
 
