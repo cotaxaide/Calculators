@@ -170,16 +170,20 @@
 		#TSform table, #TSform tr, #TSform td {
 			border: 0;
 		}
+		#PSONote,
 		#TSNote {
 			width: 50em;
 			font-style: italic;
 			text-align: left;
 		}
-		#NTIncomeTable table,
-		#NTIncomeTable tr,
-		#NTIncomeTable td {
-			border: 0;
+		#PSONote {
+			font-weight: bold;
 		}
+		//#NTIncomeTable table,
+		//#NTIncomeTable tr,
+		//#NTIncomeTable td {
+		//	border: 0;
+		//}
 		#MedTable table,
 		#MedTable tr,
 		#MedTable td {
@@ -276,7 +280,7 @@
 		}
 		#DeathTable .entrytable,
 		#TSform .entrytable,
-		#NTIncomeTable .entrytable,
+		//#NTIncomeTable .entrytable,
 		#MedTable .entrytable {
 			border: 5px solid black;
 			background-color: #cccccc;
@@ -295,7 +299,7 @@
 			text-align:
 			left; margin: auto;
 		}
-		#NTIncomeTable,
+		//#NTIncomeTable,
 		#MedTable,
 		#DeathTable,
 		#exclusionTable {
@@ -370,11 +374,17 @@
 	//	Herb Klug		John Glasserman		Bruce McCommons
 	//	Paul Hirth		Douglas Feuerhelm	Deb Fisher
 	//	Frank Krider		Paul Renard		John Arenberg
-	//	Lois Andersen		Jay Wiedwald		
+	//	Lois Andersen		Jay Wiedwald		Jim Spredermann
+	//	Bob Goings
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 10.30, 5/12/2024)";
+		var VERSION = "(version 12.31a, 12/15/2024)";
+		//	Changed PSO entry that showed a "+" to a "-"
+		//var VERSION = "(version 12.31, 12/6/2024)";
+		//	Removed SEHI from message due to death of taxpayer
+		//	Clarified direct entry of 1099-R taxable amount with PSO
+		//var VERSION = "(version 10.30, 5/12/2024)";
 		//	Changed to JSON tax data sources
 		//var VERSION = "(version 10.29, 6/18/2023)";
 		//	Added comment about TaxSlayer not carrying forward
@@ -532,6 +542,7 @@
 		var OVERAGE = 0;
 		var GROSS_TOTAL = 0;
 		var MINRETDATE = 0;
+		var dagger = "<sup>&dagger;</sup>"
 		var PSOtitle = "Public safety officers are:";
 			PSOtitle += "<ul><li>Federal and local law enforcement officer</li>";
 			PSOtitle += "<li>Members of the United States Capitol Police</li>";
@@ -633,7 +644,9 @@
 			SGRW_PSO_line.style.display =
 			MEDICRow.style.display = (PSO.checked) ? "table-row" : "none"; 
 			disability_PSO.style.display = (PSO.checked) ? "inline" : "none";
+			PSONote.style.display = 
 			CSRSPSO.style.display = (PSO.checked) ? "block" : "none"; 
+			//TSNote.style.display = (PSO.checked) ? "none" : "block" ;
 	
 			if (PSO.checked) {
 				CANNOT_CALC |= MEDICAL_ERROR;
@@ -1464,7 +1477,7 @@
 				medicalMessage.innerHTML = message;
 			}
 	
-			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (OVERAGE > 0)) ? "inline" : "none";
+			//NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (OVERAGE > 0)) ? "inline" : "none";
 			MedTable.style.display = ((PSO.checked && TS_VISIBLE && OVERAGE) || (FULLMEDEX > +MEDIC.value)) ? "inline" : "none";
 			SGRW_PSO.innerHTML = +MEDIC.value - +SALMEDIC.value;
 			DPSO_amount.innerHTML = SALMEDIC.value;
@@ -1506,7 +1519,7 @@
 				if (CANNOT_CALC & SPAGE_ERROR) MESSAGE += " - The Spouse's birthdate\n";
 				if (CANNOT_CALC & GROSS_ERROR) MESSAGE += " - The gross amount paid from the annuity\n";
 				if (CANNOT_CALC & CONTRIB_ERROR) MESSAGE += " - The after-tax contribution made to the annuity\n";
-				if (CANNOT_CALC & MEDICAL_ERROR) MESSAGE += " - The amount of insurance to exclude\n";
+				if (CANNOT_CALC & MEDICAL_ERROR) MESSAGE += " - The amount of PSO medical insurance to exclude\n";
 				if (CANNOT_CALC & DEATH_ERROR) MESSAGE += " - The number of distributions received in " + EXCL_TY.value + "\n";
 				alert(MESSAGE);
 				return;
@@ -1597,7 +1610,15 @@
 				// Do we need to limit medical exclusion?
 				Check_medical(EXAMT);
 	
-				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - EXAMT - +MEDIC.value);
+				t1 = Math.max(0,+SGRW_GROSS.innerHTML - EXAMT);
+				t2 = MEDIC.value;
+				t3 = Math.max(0, t1 - t2);
+				NOTE_TAXABLE.innerHTML = t1;
+				NOTE_PSO.innerHTML = t2;
+				NOTE_TOTAL.innerHTML = t3;
+				RRB1099R_TAXABLE.innerHTML =
+				F1099R_TAXABLE.innerHTML = t1 + (PSO.checked ? (" - " + t2 + " = " + t3 + dagger) : "" );
+
 				TSbutton.style.display = "inline";
 				Printbutton.style.display = "inline";
 				tableBelow.innerHTML = "Use the above for all years";
@@ -1707,7 +1728,15 @@
 
 			RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = 0;
 			if (TARR[0].year > TAX_YR) {
-				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - +MEDIC.value);
+	
+				t1 = +SGRW_GROSS.innerHTML;
+				t2 = MEDIC.value;
+				t3 = Math.max(0, t1 - t2);
+				NOTE_TAXABLE.innerHTML = t1;
+				NOTE_PSO.innerHTML = t2;
+				NOTE_TOTAL.innerHTML = t3;
+				RRB1099R_TAXABLE.innerHTML =
+				F1099R_TAXABLE.innerHTML = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
 				}
 			else {	
 				for (i=0; i<TROW; i++) {
@@ -1739,12 +1768,26 @@
 						// Do we need to limit medical exclusion?
 						if (TPdied.checked) {
 							Check_medical(TPEXCL);
-							TPtaxable = Math.round(Math.max(0, +TPshowgross - TPEXCL - +MEDIC.value));
+	
+							t1 = Math.max(0,+TPshowgross - TPEXCL);
+							t2 = MEDIC.value;
+							t3 = Math.max(0, t1 - t2);
+							NOTE_TAXABLE.innerHTML = t1;
+							NOTE_PSO.innerHTML = t2;
+							NOTE_TOTAL.innerHTML = t3;
+							TPtaxable = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
 							SPtaxable = Math.round(Math.max(0, +SPshowgross - SPEXCL));
 						}
 						else {
 							Check_medical(TARR[i].exclusion);
-							TPtaxable = Math.round(Math.max(0, +TPshowgross - +TARR[i].exclusion - +MEDIC.value));
+	
+							t1 = Math.max(0,+TPshowgross - TARR[i].exclusion);
+							t2 = MEDIC.value;
+							t3 = Math.max(0, t1 - t2);
+							NOTE_TAXABLE.innerHTML = t1;
+							NOTE_PSO.innerHTML = t2;
+							NOTE_TOTAL.innerHTML = t3;
+							TPtaxable = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
 							SPtaxable = Math.round(Math.max(0, +SPshowgross - +TARR[i].exclusion));
 						}
 		
@@ -1764,7 +1807,15 @@
 				// Do we need to limit medical exclusion?
 				Check_medical(-1);
 	
-				RRB1099R_TAXABLE.innerHTML = F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - +MEDIC.value);
+				t1 = +SGRW_GROSS.innerHTML;
+				t2 = MEDIC.value;
+				t3 = Math.max(0, t1 - t2);
+				NOTE_TAXABLE.innerHTML = t1;
+				NOTE_PSO.innerHTML = t2;
+				NOTE_TOTAL.innerHTML = t3;
+				RRB1099R_TAXABLE.innerHTML =
+				F1099R_TAXABLE.innerHTML = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
+				F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - +MEDIC.value);
 	
 				if (TPDiedMo.value === "") { // Exclusion all used up but not due to death
 					LYR_MSG.innerHTML = "NONE REMAINING";
@@ -1779,7 +1830,7 @@
 	
 			// Anything remaining?
 			if (TARR[TROW-1].remaining > 0) {
-				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as an \"Other\" Deduction on Schedule A or as SEHI.");
+				alert ("The remaining unrecovered annuity cost of " + TARR[TROW-1].remaining + " can be deducted as an \"Other\" Deduction on Schedule A.");
 				deathMessage.innerHTML = TARR[TROW-1].remaining;
 				DeathTable.style.display = "inline";
 			}
@@ -2111,7 +2162,7 @@
 			TSForm2.style.display = (true) ? noshowifzero : "none";
 			TSform.style.display = (TS_VISIBLE) ? "inline" : "none";
 			TSbutton.innerHTML = (TS_VISIBLE) ? "Hide TS input" : "Show TS input";
-			NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0)) ? "inline" : "none";
+			//NTIncomeTable.style.display = (PSO.checked && TS_VISIBLE && (MEDIC.value > 0)) ? "inline" : "none";
 			MedTable.style.display = ((PSO.checked && TS_VISIBLE && OVERAGE) || (FULLMEDEX > +MEDIC.value)) ? "inline" : "none";
 			RRB1099R_TXCOLOR.style.backgroundColor =
 				F1099R_TXCOLOR.style.backgroundColor = (PSO.checked && TS_VISIBLE) ? "white" : "";
@@ -2524,18 +2575,26 @@
 						</table>
 					</div></td></tr>
 			</table>
+			<div id="PSONote">
+				<sup>&dagger;</sup>PSO NOTE: To obtain the PSO indication on the printed 1040 tax form, TaxSlayer<sup>&reg;</sup> requires an
+					entry in the 1099-R form. If you are entering the taxable amount directly, you must
+					enter the annuity part first (<span id="NOTE_TAXABLE"></span>) and then enter the PSO insurance
+					insurance amount (<span id="NOTE_PSO"></span>) where required. The resulting taxable amount should
+					then be <span id="NOTE_TOTAL"></span>.
+			</div>
 			<div id="TSNote">
 				NOTE: TaxSlayer<sup>&reg;</sup> does not calculate the final tax year nor its partial exclusion
 					which can result in errors if the amount previously recovered is not known. 
-					Thus, no point in entering that information in the Worksheet.
-					<br /><u>We do recommend </u>adding a note to the tax return and the taxpayer envelope
+					<br /><u>We recommend </u>adding a note to the tax return and the taxpayer envelope
 					for next year&apos;s tax preparer that shows the date of retirement,
 					the annual exclusion amount, the final year, and partial exclusion for that year.
 					Also, print and include this table in the taxpayer envelope.
 			</div>
 		</div> <!-- FORM1099DIV -->
 		
-		<div id="NTIncomeTable" class="hidden">
+
+
+<!--		<div id="NTIncomeTable" class="hidden">
 			<br />
 			<b>Federal Section > Income > IRA/Pension Distributions > Nontaxable Distributions:</b>
 			<table class="NTIncomeTable2 entrytable">
@@ -2551,7 +2610,7 @@
 						<td><input type="checkbox" checked disabled /></td><td> Check here if you are an eligible retired public safety officer, and part of your distribution was<br />used to pay the premiums for accident or health insurance, or to pay long-term care</td></tr>
 					</table>
 				</table>
-		</div>
+-->		</div>
 	
 		<div id="MedTable" class="hidden">
 			<br />
