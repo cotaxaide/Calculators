@@ -214,7 +214,7 @@
 		"Age0":		   0,
 		"Age6":		1000,
 		"FTC":		 500,
-		"ACTC":		1700,
+		"ACTC":		1600,
 		"ACTCThreshold":2500,
                 "AGICap": {
                 	"SNG":	200000,
