@@ -23,7 +23,6 @@
 	.header {
 		text-align: center;
 		margin: auto;
-		font-size:200%;
 	}
 
 	.disclaimer {
@@ -94,9 +93,9 @@
 <!-- =============================================================================================== -->
 
 <body>
-<div id="main" style="font-family:sans-serif">
+<div id="main" style="font-family: sans-serif position: fixed;">
 
-	<div class="header"
+	<div class="header">
 		<h1>Welcome to the Colorado Resource Toolbox</h1>
 	</div> <!-- end of header -->
 
@@ -107,7 +106,7 @@
 		so that it can be corrected.
 		<br />
 		<br />
-		Most of the calculators have a year option that allows the selection of the current and three years prior. They will default to the new tax year on December first. Version changes can be seen by viewing the web page source if desired.
+		Most of the tools have a year option that allows the selection of the current and three years prior. They will default to the new tax year on December first. Version changes can be seen by viewing the web page source if desired.
 		<br />
 		<br />
 		<a href="mailto:tools@cotaxaide.org">Colorado tools support team</a>
@@ -122,7 +121,7 @@
 		There have been a few rare cases where too many accesses to the tools from the same IP address
 		has caused that IP to be locked out as a way to detect and prevent possible hacking on the server.
 		This has only been an issue in January when we&apos;re all in the training mode.
-		Because we&apos;re on a shared managed server, I have no control over this.
+		Because we&apos;re on a shared managed server, We have no control over this.
 		<br />
 		<br />
 		If you have a large class (more than about 40 people) or
@@ -397,6 +396,13 @@
 		</div> <!-- Downloadable -->
 
 	</div> <!-- end of ToolList -->
+
+	<div style="position: fixed, top: 1rem, left: 1rem; z-index: 2">
+		<a href="https://cotaxaide.org/ta/home">
+			<img src="https://cotaxaide.org/images/CORE.png"
+			     title="Click to go to the Colorado Resource website (CORE)">
+		</a>
+	</div>
 
 </div> <!-- end of main -->
 
