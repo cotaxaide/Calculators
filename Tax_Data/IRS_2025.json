@@ -54,7 +54,7 @@
 	"DepAsRel":		{"value":5050, "verified":false},
 	"DependMin":		{"value":1350, "verified":true},
 	"DependInc":		{"value":450, "verified":true},
-	"Kiddie":		{"value":2500, "verified":false},
+	"Kiddie":		{"value":2600, "verified":false},
 	"Standard": {
 		"SNG":	{"Rate":{"value":15000, "verified":true},
 			"Inc":	{"value":2000, "verified":true}},
