@@ -171,10 +171,17 @@
 </style>
 
 <script src="Common_Routines.js"></script>
-<script type="text/javascript">
+<script>
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.52a, 11/13/2024";
+	var VERSION = "Version 3.53, 1/12/2025";
+	//	Refined comment re multiple students on optimizer tab
+	//	Changed suggested Other expense line suggestion calculation
+	//	Garbage characters in Optimize function cause it not to continue
+	//var VERSION = "Version 3.52b, 11/16/2024";
+	//	Change link to video noting changes
+	//	Modified warning message for supplimentary not spent
+	//var VERSION = "Version 3.52a, 11/13/2024";
 	//	Added explanation for All other expenditures line on expenses tab
 	//var VERSION = "Version 3.52, 11/6/2024";
 	//	More corrections, minor wording and display changes, 
@@ -352,12 +359,12 @@
 	// Contributors:
 	//	Sue Alza		Dana Bell		Bob Brooks		
 	//	Steve Conary		Deb Fisher		Kenny Hayes
-	//	Gina Kritchevsky	Hans Jahns		Betsy Robertson
+	//	Betsy Robertson		Hans Jahns		Gina Kritchevsky
 	//	Dick Sramek		Bob Wells		Jay Wiedwald
-	//	Edie Loughmiller	Harold Rowe		Brad Kirby
+	//	Brad Kirby		Harold Rowe		Edie Loughmiller
 	//	Stephen Enk		Roger Metzler		Arlene Green
 	//	Joanne Hill		Fred Lamberth		Rob Schussman
-	//	Bud Ward
+	//	Bud Ward		Jeffrey Komarow
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -376,7 +383,6 @@
 	var NonqualExpenses = []; // not qualified for the program
 	var NonqualColor = "red";
 	var Checkmark = "&#x2714;";
-	var AllowedExpenses = []; // allowed by the funding source
 	var NQExpenses = []; // allowed by the funding source but not qualified for credit
 	var Exemptions = 0;
 	var CTCTotal = 0;
@@ -1094,7 +1100,6 @@
 		// Calculate qualified expenses for each category and set tax-free amount flags
 		QualExpenses["AOC"] = QualExpenses["LLC"] = 0;
 		NonqualExpenses["AOC"] = NonqualExpenses["LLC"] = 0;
-		AllowedExpenses["AOC"] = AllowedExpenses["LLC"] = 0;
 
 		// Must be at least half time to apply funds to RandB expenses
 		var RandBAvailable = (! TimePart.checked) ? +ScholarNQMax : 0;
@@ -1115,30 +1120,35 @@
 
 		// Make AllOther at least what is covered by scholarships and amount moveable
 		if (StudentAOC.innerHTML == "Yes") {
-			unallocated = Math.max(0, +ScholarAvailable - QualExpenses["AOC"] - NonqualExpenses["AOC"]);
-			unspent = Math.max(0, +ScholarAvailable - QualExpenses["AOC"]);
-			expensesAvailable = Math.max(0, QualExpenses["AOC"] - +Restricted.value);
-			nonqualAvailable = Math.max(0, +MaxAOC.innerHTML - NonqualExpenses["AOC"] + unspent);
+			AllOtherMax = Math.max(0, +Nonrestricted.value - NonqualExpenses["AOC"]);
+			AllExpenses = QualExpenses["AOC"] + NonqualExpenses["AOC"];
 		}
 		else {
-			unallocated = Math.max(0, +ScholarAvailable - QualExpenses["LLC"] - NonqualExpenses["LLC"]);
-			unspent = Math.max(0, +ScholarAvailable - QualExpenses["LLC"]);
-			expensesAvailable = Math.max(0, QualExpenses["LLC"] - +Restricted.value);
-			nonqualAvailable = Math.max(0, +MaxLLC.innerHTML - NonqualExpenses["LLC"] + unspent);
+			AllOtherMax = Math.max(0, +Nonrestricted.value - NonqualExpenses["LLC"]);
+			AllExpenses = QualExpenses["LLC"] + NonqualExpenses["LLC"];
 		}
-		otherCap = unallocated + Math.min(ScholarAvailable, expensesAvailable, nonqualAvailable);
-		if (AllOtherChangeFlag) {
-			AllOther.style.backgroundColor = (AllOther.value < unallocated) ? "hotpink" : "" ;
+		AllOtherMin = Math.max(0, +Restricted.value + +Nonrestricted.value + ScholarSupplemental - AllExpenses);
+
+		if (AllOtherMin <= AllOtherMax) { // expense range is OK
+			if (AllOtherChangeFlag) {
+				AllOther.value = Math.max(AllOther.value, AllOtherMin);
+			}
+			else {
+				AllOther.value = AllOtherMax;
+				if (AllOtherMax > 0) {
+					AllOtherNote.innerHTML = ", (" + AllOtherMin + " to " + AllOtherMax + " suggested)";
+				}
+				else {
+					AllOtherNote.innerHTML = "";
+				}
+			}
+			NoOptimize5.style.display = "none";
 		}
-		else {
-			AllOther.value = otherCap;
-		}
-		if (otherCap > 0) {
-			AllOtherNote.innerHTML = "(" + unallocated + " to " + otherCap + " suggested)";
-		}
-		else {
+		else { // Need more expenses to cover Restricted income
 			AllOtherNote.innerHTML = "";
+			NoOptimize5.style.display = "block";
 		}
+
 		VerifyExpense("AllOther",    false, false, 0);
 
 		// show the expense totals
@@ -1182,11 +1192,7 @@
 			WarningMessage += "<br />The combined amount used from your supplemental funding";
 			WarningMessage += " exceeds your allowed expenses for those sources by ";
 			WarningMessage += Comma(+ScholarSupplemental - expensesSupplemental);
-			WarningMessage += ". You will have to return funds to one of the accounts ";
-			WarningMessage += " or figure the tax implications for the unused";
-			WarningMessage += " funds on your tax return.";
-			WarningMessage += "<br /><br />Please resolve the overage claimed to continue";
-			WarningMessage += " since it may affect AGI and possible tax penalties.<br />";
+			WarningMessage += ". Cannot continue since it may affect AGI and include possible tax penalties.<br />";
 		}
 
 		// Show optimization situation messages
@@ -1204,7 +1210,12 @@
 		NoOptimize4.style.display = "none";
 		OptimizeButtons.style.display = "block";
 		optDiv.style.display = "block";
-		if (+ScholarTaxableMax.innerHTML > 0) {
+		if (WarningMessage) {
+			optDiv.style.display = 
+			OptimizeButtons.style.display = "none";
+			showPerhaps = false;
+		}
+		else if (+ScholarTaxableMax.innerHTML > 0) {
 			messageNoScholar.style.display = "none";
 			OptimizeButtons.style.display = "block";
 			if (+NQExpenses["AOC"] + +NQExpenses["LLC"] == 0) {
@@ -1236,6 +1247,12 @@
 			NoOptimize2.style.display = "block";
 			showPerhaps = false;
 		}
+		else if (NoOptimize5.style.display == "block") {
+			// No message displayed on expenses tab for this one. Maybe add later.
+			optDiv.style.display = 
+			OptimizeButtons.style.display = "none";
+		}
+
 
 		// Age 65 messages
 		if (TP65.checked || SP65.checked) {
@@ -1878,7 +1895,6 @@
 				// This is a non-qualified deduction expense
 				NonqualExpenses[Program[eni-1]] += ExpenseAmount;
 				AllowedAmount.value = ExpenseAmount;
-				AllowedExpenses[Program[eni-1]] += AllowedAmount.value;
 				ProgramElement.style.color = NonqualColor;
 			}
 			ProgramElement.innerHTML = ExpenseAmount;
@@ -2283,6 +2299,7 @@
 		if (DataviewDebug) {
 			var Dataview = window.open("","","menubar=1, scrollbars=1, resizable=1");
 			Dataview.document.writeln("<!DOCTYPE html>");
+			Dataview.document.writeln("<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>");
 			Dataview.document.writeln("<html>");
 			Dataview.document.writeln("<body>");
 		}
@@ -2292,7 +2309,7 @@
 		var optimizedRefund = -100000;
 		var optimizedTaxable = 0;
 		var steps = 30;
-		var stepsize = Math.min(100,Math.round((high - low) / steps));
+		var stepsize = Math.min(100, Math.round((high - low) / steps));
 		if (DataviewDebug) {
 			Dataview.document.writeln("<table><tr><th>low</th><th>high</th><th>stepsize</th><th>refund</th><th>opt refund</th></tr>");
 		}
@@ -2306,7 +2323,7 @@
 				ScholarTaxable.value = Testval; 
 				BudgetChange();
 
-				if ((stepsize == 1) && DataviewDebug) {
+				if (DataviewDebug) {
 					Dataview.document.writeln("<tr><td>" + Testval + "</td><td></td><td></td><td>" + MaxRefund + "</td><td>" + optimizedRefund + "</td></tr>");
 				}
 
@@ -2746,7 +2763,7 @@
 </div>
 
 <div id="VideoBox" class="NoPrint">
-	<a href="https://youtu.be/9gQJIPBQCPc" target="_blank">
+	<a href="https://drive.google.com/file/d/1QCuIsgIGtOrZ2zIph1A-mnUjxf3XEte3/view?usp=drive_link" target="_blank">
 		<button class="noPrint">Click for video tour (22 min)</button></a>
 </div>
 
@@ -2887,7 +2904,7 @@
 				<option value="MFJ" selected>MFJ</option>
 				<option value="MFS">MFS</option>
 				<option value="HOH">HOH</option>
-				<option value="WID"><span id="TPWIDQSS">Widow(er)</span></option>
+				<option id="TPWDIQSS" value="WID">Widow(er)</option>
 				</select>
 				<br />
 				<span id="MFJRefundShow"
@@ -2955,7 +2972,7 @@
 					<option value="SNG">Single</option>
 					<option value="MFJ">MFJ</option>
 					<option value="MFS">MFS</option>
-					<option value="WID"><span id="STWIDQSS">Widow(er)</span></option>
+					<option id="STWIDQSS" value="WID">Widow(er)</option>
 					</select>
 					<span id="StudentMFJRefundShow"
 						title="FIling MFJ only for return of withholding or estimated tax payments.">
@@ -3169,7 +3186,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		<li>Include any required computer and internet expenses in the required supplies and equipment fees category. If not required, include it in other living expenses.</li>
 		<li>Funding amounts in excess of allowed expenses for that type of funding (check marks below) is taxable income to the student.</li>
 		<li>If the funds available exceed the limit for the tax credit, it may be advantageous to only use the amount of funds to "maximize expenses" and allow the rest to be taxable and thus qualify for the tax credit.</li>
-		<li>If range figures in the i<i>ll other expenditures</i> line are shown,
+		<li>If range figures in the <i>All other expenditures</i> line are shown,
 			the first figure is the amount of scholarship that has not been allocated.
 			The second figure is the maximum amount that could still be diverted to that line for advantage (not necessarily optimal).</li>
 	</ul>
@@ -3602,7 +3619,8 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		<li>Finally, click the optimize button at the bottom to see if taxing part of the scholarship gives better results.</li>
 		<li>Add the scholarship information into the tax returns.</li>
 		<li>For additional students, change all taxpayer entries to reflect inclusion of previous students&apos; education choice(s)
-			and repeat the above process.</li>
+			and repeat the above process. If one of the students is the taxpayer (or spouse), do that one first
+			because it affects their tax return more than dependents do.</li>
 	</ul>
 	</div>
 
@@ -4035,6 +4053,10 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 		Cannot optimize. The student&apos;s unearned income is too high and the kiddie tax applies.
 		<br />
 	</div>
+	<div id="NoOptimize5">
+		Cannot optimize. Scholarship funds are greater than expenses.
+		<br />
+	</div>
 
 	<div id="optDiv" class="center">
 
@@ -4079,6 +4101,6 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 
 </body>
 
-<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
+<script> _GetIRSData(_StartYear, _StopYear); </script>
 
 </html>
