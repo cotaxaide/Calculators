@@ -1,5 +1,5 @@
 {	"TaxYear": 2024,
-	"state":		{"rate": 2.9, "income_rate": 4.4},
+	"state":		{"rate": 2.9, "income_rate": 4.25},
 	"county": {		
 		"Adams":	{"rate": 0.75, "RTD": 1, "CD": 0.1},
 		"Alamosa":	{"rate": 3},
