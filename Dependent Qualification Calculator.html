@@ -58,13 +58,15 @@
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
 //	Mary Jennings		Debbie Geldis		Ed Hondl		Lance Lauerhass
-//	Susan Smaus		Alan Zhao
+//	Susan Smaus		Alan Zhao		Herb Klug
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "8.1a 9/28/2024";
+var VERSION = "8.2 1/14/2025";
+//	Changed wording on Divorced/Seperated question and minor code change for functionality
+//var VERSION = "8.1a 9/28/2024";
 //	Corrected definition of US National
 //var VERSION = "8.1 9/27/2024";
 //	Corrected an error that allowed unrleated TP to claim dependent when other TP was a filing parent
@@ -568,8 +570,8 @@ function CalcStatus(from_age_calc) {
 	TP_Filing = "Single";
 	if (TPisMarried.checked) TP_Filing = "MFS";
 	if (TPfilingMFJ.checked) TP_Filing = "MFJ";
-	//TPfilingHOH.disabled = (! HHCost.checked);
 	if (TPfilingHOH.checked) TP_Filing = "HOH";
+	DSLabel.innerHTML = (! TPisMarried.checked) ? "Divorced" : "Separated or lived apart the<br />last 6 months of the year" ;
 
 	// Taxpayer divorce and Form 8322 waivers
 	TP_IsParent = (BENE_Relation.indexOf("|PAR|") == NOT_A_BENEFIT)? false:true;
@@ -1021,7 +1023,7 @@ function CheckMultiUseBoxes() {
 	else {
 		TPrefund.checked = false;
 		TPrefund.disabled = true;
-		if ( (TPDivorced.checked) && (HHCost.checked) ) {
+		if ( TPisMarried.checked && TPDivorced.checked && HHCost.checked ) {
 			TPfilingHOH.disabled = false;
 		}
 		else {
@@ -1899,7 +1901,7 @@ function TestResults() {
 				<tr class="TPOptions">
 					<td><input id="TPDivorced" name="TPDivorced" type="checkbox" onclick="CalcStatus()"
 			title="The taxpayer is divorced, legally separated, or has lived apart from their spouse for the last 6 months" /></td>
-					<td colspan="2"><span class="Label">Divorced/separated or<br />lived apart last 6 months</span></td></tr>
+					<td colspan="2"><span id="DSLabel" class="Label">Divorced/separated or<br />lived apart last 6 months</span></td></tr>
 	<tr class="TPOptions"><td></td>
 					<td><input id="LivedWith" name="LivedWith" type="checkbox" onclick="CalcStatus()"
 						title="If the dependent child lived with both parents for more than 6 mo, use percentages in the residency column for this TP" /></td>
