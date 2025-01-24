@@ -174,7 +174,9 @@
 <script>
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.53, 1/12/2025";
+	var VERSION = "Version 3.54, 1/24/2025";
+	//	Corrected for subtractions from restricted scholarships
+	//var VERSION = "Version 3.53, 1/12/2025";
 	//	Refined comment re multiple students on optimizer tab
 	//	Changed suggested Other expense line suggestion calculation
 	//	Garbage characters in Optimize function cause it not to continue
@@ -364,7 +366,7 @@
 	//	Brad Kirby		Harold Rowe		Edie Loughmiller
 	//	Stephen Enk		Roger Metzler		Arlene Green
 	//	Joanne Hill		Fred Lamberth		Rob Schussman
-	//	Bud Ward		Jeffrey Komarow
+	//	Bud Ward		Jeffrey Komarow		Robert Mitchell
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -427,6 +429,7 @@
 	var ResultingProgram = "";
 	var ResultingIncome = 0;
 	var ResultingExpense = 0;
+	var RestrictedAdjusted = 0;
 	var UnusedCTC = 0;
 	var WarningMessage = "";
 	var BusinessSETax = 0;
@@ -928,10 +931,12 @@
 		// Determine how much of the scholarship is available for expenses
 		if (whatChanged == "Nonrestricted") ScholarTaxable.value = "";
 		if (+ScholarTaxable.value) GapAll.checked = false;
-		var ScholarIncome = +ScholarTeaching.value;
+		ScholarIncome = +ScholarTeaching.value + +ScholarRestricted.value;;
+		IncomeAOC.innerHTML = IncomeLLC.innerHTML = ScholarIncome;
 		var allScholarships = +Nonrestricted.value + +Restricted.value;
+		RestrictedAdjusted = +Restricted.value - ScholarIncome;
 
-		ScholarAvailable = allScholarships - ScholarIncome - +ScholarRestricted.value;
+		ScholarAvailable = RestrictedAdjusted + +Nonrestricted.value;
 		if (ScholarAvailable < 0) { // Data consistency check
 			if (! Optimizing) {
 				alert("Designated use of scholarship amounts cannot be greater than the scholarship itself.");
@@ -954,15 +959,15 @@
 			if (StudSalaryTax.value == "") { // If there was a W-2, probably would be entered
 				if (DependentYes.checked) {
 					StudSalaryTax.value = ScholarIncome;
-					StudAGITax.value = +StudAGITax.value + +ScholarIncome; // don't use +=
+					StudAGITax.value = +StudAGITax.value + ScholarIncome; // don't use +=
 				}
 				else {
 					SalaryTax.value = ScholarIncome;
-					AGITax.value = +AGITax.value + +ScholarIncome; // don't use +=
+					AGITax.value = +AGITax.value + ScholarIncome; // don't use +=
 				}
 			}
 			else {
-				ScholarIncome = 0; // A W-2 already accounts for teaching salary part of scholarship
+				ScholarIncome = ScholarRestricted; // A W-2 already accounts for teaching salary part of scholarship
 			}
 		}
 
@@ -1127,7 +1132,7 @@
 			AllOtherMax = Math.max(0, +Nonrestricted.value - NonqualExpenses["LLC"]);
 			AllExpenses = QualExpenses["LLC"] + NonqualExpenses["LLC"];
 		}
-		AllOtherMin = Math.max(0, +Restricted.value + +Nonrestricted.value + ScholarSupplemental - AllExpenses);
+		AllOtherMin = Math.max(0, +RestrictedAdjusted + +Nonrestricted.value + ScholarSupplemental - AllExpenses);
 
 		if (AllOtherMin <= AllOtherMax) { // expense range is OK
 			if (AllOtherChangeFlag) {
@@ -1591,7 +1596,7 @@
 	//----------------------------------------------------------------------------------------
 		// saRemaining is the amount of ScholarAvailable that remains to be distributed
 		// Does not include restricted scholarships
-		var saRestricted = +Restricted.value;
+		var saRestricted = +RestrictedAdjusted;
 		var saRemaining = +Nonrestricted.value;
 
 		// qTaxLimit is the tax law limit for the type of credit
@@ -1614,6 +1619,7 @@
 		var nqntAmountPaid = 0 // nonqualified, non-taxable
 
 		// Income amount was taken from the funds if there was no W-2
+		// or some was designated
 		var incomeAmount = ScholarIncome;
 
 		// Supplemental resources are not considered for taxing due to penalties
