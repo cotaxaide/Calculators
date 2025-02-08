@@ -58,13 +58,15 @@
 //	Gordon Henderson	Joe Ohrazda		Gordon Henderson	Sam Kaplan
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
 //	Mary Jennings		Debbie Geldis		Ed Hondl		Lance Lauerhass
-//	Susan Smaus		Alan Zhao		Herb Klug
+//	Susan Smaus		Alan Zhao		Herb Klug		Larry Metz
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "8.2 1/14/2025";
+var VERSION = "8.3 2/7/2025";
+//	Allow full birthdate to be entered in DOB box
+//var VERSION = "8.2 1/14/2025";
 //	Changed wording on Divorced/Seperated question and minor code change for functionality
 //var VERSION = "8.1a 9/28/2024";
 //	Corrected definition of US National
@@ -361,21 +363,24 @@ function Resize() {
 }
 
 //***************************************************************************************************
-function Calculate_Age () {
+function Calculate_Age (OK) {
+//	OK is false if the "X" is clicked
 //***************************************************************************************************
+	if (! OK) BirthYear.value = "";
 	if (BirthYear.value === "") {
 		AgeBox.style.display = "none";
 		return;
 	}
+	BirthDate = BirthYear.value.split("/");
+	BirthYear.value = BirthDate[BirthDate.length - 1];
 
 	if (BirthYear.value.length != 4) {
-		alert("Please enter a 4-digit year.");
+		alert("Please enter just a 4-digit year.");
 		return;
 	}
 	var age = +TY - +BirthYear.value;
 	if (age < 0 ) {
 		alert("Birth year cannot be later than the tax year.");
-		BirthYear.value = "";
 		return;
 	}
 
@@ -2243,7 +2248,7 @@ function TestResults() {
 	<tr class="center"><td  colspan="2" style="font-size:80%"><hr />
 		<table style="margin:0; padding:0; width:100%;"><tr>
 		<td style="width:100%;">Please send suggestions/corrections to:
-			<A href="mailto:jeff@bogarthome.net">Jeff Bogart</A>
+			<A href="mailto:core.webmaster0@gmail.com">tools@cotaxaide.org</A>
 			CO1D18 (Longmont, CO) TC/ERO
 			</td>
 			<td style="font-size:80%; color:red; padding:0; margin:0; cursor:default;" onclick="TestOptions()">&hearts;</td>
@@ -2343,13 +2348,13 @@ function TestResults() {
 	<table style="border:5px solid; width:100%">
 		<tr class="centerbold">
 			<td class="RESHeader" style="width:100%">Age calculator</td>
-			<td class="RESHeader" style="cursor:default;" onclick="Calculate_Age();">&nbsp;X&nbsp;</td></tr>
+			<td class="RESHeader" style="cursor:default;" onclick="Calculate_Age(false);">&nbsp;X&nbsp;</td></tr>
 		<tr><td class="RESOptions" colspan="2">
 			<center><span class="Label">Enter year of birth:</span>
 			<br /><input id="BirthYear" />
-			<br /><input id="FTStudent" type="checkbox" />
+			<br /><input id="FTStudent" type="checkbox" onchange="Calculate_Age(true);" />
 			<span class="Label">Full-time student for at least 5 mo</span>
-			<br /><br /><button onclick="Calculate_Age();">OK</button>
+			<br /><br /><button onclick="Calculate_Age(true);">OK</button>
 			</center></td></tr>
 	</table>
   </div> <!-- end of AgeBox -->
