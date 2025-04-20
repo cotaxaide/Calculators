@@ -130,7 +130,7 @@
 	#messageNoUnqualified,
 	#NoOptimize1,
 	#NoOptimize2,
-	#NoOptimize3,
+	#NoOptimize3,3,000.00
 	#NoOptimize4 { font-style: italic; font-size: 150%; color: red; text-align: center;}
 	#resultsBox { border: solid black; font-size: 36pt; z-index: 1;
 		position:absolute; left:45%; top: 45%; width: 25%;
@@ -174,7 +174,11 @@
 <script>
 	//----------------------------------------------------------------------------------------
 	// CHANGE HISTORY:
-	var VERSION = "Version 3.54, 1/24/2025";
+	var VERSION = "Version 3.56, 3/9/2025";
+	//	Corrected PTC calculations for MFJ (reading DB wrong)
+	//var VERSION = "Version 3.55, 3/8/2025";
+	//	Corrected PTC calculations
+	//var VERSION = "Version 3.54, 1/24/2025";
 	//	Corrected for subtractions from restricted scholarships
 	//var VERSION = "Version 3.53, 1/12/2025";
 	//	Refined comment re multiple students on optimizer tab
@@ -367,6 +371,7 @@
 	//	Stephen Enk		Roger Metzler		Arlene Green
 	//	Joanne Hill		Fred Lamberth		Rob Schussman
 	//	Bud Ward		Jeffrey Komarow		Robert Mitchell
+	//	Frances Keiper		Dick Richards
 	//----------------------------------------------------------------------------------------
 
 	//----------------------------------------------------------------------------------------
@@ -658,8 +663,9 @@
 			if (RegionList[i].checked) ThisRegion = RegionList[i].value;
 		}
 		_Write_Cookie("Region", ThisRegion);
-		FedPovertyLine = +_IRSValue("ACA.PYFPL.Rate") + (+Dependents.value * +_IRSValue("ACA.FPL.Inc"));
-		if (FS == "MFJ") FedPovertyLine += (+_IRSValue("ACA.FPL.Inc"));
+		ACADep = +Dependents.value + ((FS=="MFJ") ? 1 : 0 ) ;
+		FedPovertyLine = +_IRSValue("ACA.PYFPL." + ThisRegion + ".Rate") +
+			(ACADep * (+_IRSValue("ACA.PYFPL." + ThisRegion + ".Inc")));
 
 		// Check dependent entries
 		if (Dependents.value < 0) Dependents.value = 0;
@@ -2101,7 +2107,7 @@
 	//----------------------------------------------------------------------------------------
 	// This function calculates the Premium Tax Credits
 	function CalculateAPTC(
-		testAGI,	// AGI
+		testAGI,	// AGI for entire family
 		PTCPremium,	// F8962ATax.value
 		PTC_SLCSP,	// F8962BTax.value
 		PTCAdvance,	// F8962FTax.value
@@ -2113,12 +2119,6 @@
 	//----------------------------------------------------------------------------------------
 		var result = []; result.APTC = result.PTCNet = 0;
 
-		// Adjust entered values for less than a full year
-		if (PTCMonths != 12) {
-			PTCPremium = 12 * PTCPremium / PTCMonths;
-			PTC_SLCSP = 12 * PTC_SLCSP / PTCMonths;
-		}
-
 		// Calculate the Federal Poverty Line percentage
 		var FPLPercent = 100 * testAGI/FedPovertyLine;
 
@@ -2129,36 +2129,46 @@
 		if (FPLPercent > 999) FPLPercent = 999;
 		FPLPercent = Math.floor(FPLPercent); // truncate rather than round since 2015
 
-		if (FPLPercent < 133) { result.APTC = +PTCAdvance; return (result) } // not eligible for PTC
-		if (FPLPercent > 400) { result.APTC = +PTCAdvance; return (result) } // must pay it all back
+		if (FPLPercent < 133) { result.APTC = 0; return (result) }
+		//if (FPLPercent > 400) { result.APTC = +PTCAdvance; return (result) }
 
+		// Determine the PTC factor ("applicable figure")
 		var PTCFactor = 0;
 		var PTCRange = 0;
 		var PTCData = [];
+		PTCData = _IRSValue("ACA.PTC" + PTCRange);
 		while (PTCRange < 400) {
-			PTCData = _IRSValue("ACA.PTC" + PTCRange);
 			if (PTCData[0] > FPLPercent) { // found it
-				PTCFactor = +PTCData[1];
 				break;
 			}
-			else PTCRange = +PTCData[0]; // keep looking
+			else {
+				PTCData1 = +PTCData[1];
+				PTCData2 = +PTCData[2];
+				PTCData3 = +PTCData[3];
+				PTCRange = +PTCData[0]; // keep looking
+				PTCData = _IRSValue("ACA.PTC" + PTCRange);
+			}
 		}
 		if (PTCRange == 400) {
-			PTCFactor = +PTCData[2];
+			PTCFactor = +PTCData2 / 100;
 		}
 		else {
-			PTCFactor = (+PTCData[1] + ((FPLPercent - PTCRange) *
-				(+PTCData[2] - +PTCData[1]) / (+PTCData[0] - PTCRange)))/100;
+			PTCFactor = (+PTCData1 + ((FPLPercent - PTCRange) *
+				(+PTCData2 - +PTCData1) / (+PTCData[0] - PTCRange)))/100;
 		}
 		PTCFactor = Math.round(10000 * PTCFactor) / 10000; // round to 4 decimal places
 
-		var PTCContribution = testAGI * PTCFactor;
-		var PTCMaximum = Math.round(Math.min(+PTCPremium, Math.max(0, (+PTC_SLCSP - PTCContribution))));
-		if (PTCMonths != 12) {
-			PTCMaximum = PTCMonths * Math.round(PTCMaximum / 12);
-		}
+		var PTCAnnualContribution = Math.round(testAGI * PTCFactor); // Line 8a
+		var PTCMonthlyContribution = Math.round(PTCAnnualContribution / 12); // Line 8b
+		var PTCContribution = PTCMonthlyContribution * PTCMonths; // Line 11c
+
+		var PTCMaximum = Math.max(0, (+PTC_SLCSP - PTCContribution)); // Line 11d
+
+		var PTCMaximum = Math.round(Math.min(+PTCPremium, PTCMaximum)); // Line 11e
+
 		result.PTCNet = Math.max(0,(PTCMaximum - PTCAdvance));
-		var PTCExcessMax = PTCData[3] * ((FS == "MFS") ? 1 : 2);
+
+		var PTCExcessMax = PTCData3 * ((FS == "MFS") ? 1 : 2);
 		result.APTC = Math.round(Math.min(PTCExcessMax, Math.max(0, (PTCAdvance - PTCMaximum))));
 
 		return (result);
@@ -2884,7 +2894,7 @@
 	If you print the form, use the same care as you would if you were printing the taxpayer&apos;s return.
 	<br />
 	<span class="noPrint">
-		<hr />Please send email to <a href="mailto:tools@cotaxaide.org">tools@cotaxaide.org</a> with suggestions/corrections
+		<hr />Please send email to <a href="mailto:core.webmaster0@gmail.com">tools@cotaxaide.org</a> with suggestions/corrections
 		</span>
 	<p style="page-break-before: always;"> </p> </div> 
 <!-- ****************************************** FILING INFORMATION TABLE ****************************************** -->
@@ -3832,7 +3842,7 @@ The optimizer adjusts this field also if it is run." /></td> </tr>
 			<td class="AOCClass"></td>
 			<td class="LLCClass"></td></tr>
 		<tr>
-			<td>Earned income credit (check "No" if not qualfied
+			<td>Earned income credit (check "No" if not qualified
 				<span id="EICInfo" class="help"
 					onmouseover="EICInfoText.style.display='block';"
 					onmouseout="EICInfoText.style.display='none';">&nbsp;?&nbsp;
