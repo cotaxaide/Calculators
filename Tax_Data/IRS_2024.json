@@ -31,7 +31,7 @@
 		"IRADed":	{"value":"S1-20", "verified":true},
 		"StudLoan":	{"value":"S1-21", "verified":true},
 		"Adjustments":	{"value":"S1-24", "verified":true},
-		"ExcessAPTC":	{"value":"S2-2", "verified":true},
+		"ExcessAPTC":	{"value":"S2-1a", "verified":true},
 		"Foreign":	{"value":"S3-1", "verified":true},
 		"Care":		{"value":"S3-2", "verified":true},
 		"LLC":		{"value":"S3-3", "verified":true},

@@ -96,8 +96,10 @@
 		"AMCRate":	{"value": 0.009, "verified":true},
 		"AMCStart":	{"value":200000, "verified":false}
 	},
-	"MedBMFSPremium":	{"value":106000, "verified":true},
-	"NIIT":	{
+	"MedBMFSPremium":	{"comment":"From CMS website",
+				"value":106000, "verified":true
+	},
+	"NIIT":			{"comment":"From Form 8960 instructions",
 		"Rate":		{"value": 0.038, "verified":false},
 		"SNG":		{"value":200000, "verified":false},
 		"MFS":		{"value":125000, "verified":false},
@@ -113,8 +115,8 @@
 	},
 	"IRA": {
 		"Age":		{"value":    50, "verified":false},
-		"Maximum":	{"value":  6500, "verified":false},
-		"SrMaximum":	{"value":  7500, "verified":false},
+		"Maximum":	{"value":  7000, "verified":false},
+		"SrMaximum":	{"value":  8000, "verified":false},
 		"SNG":		{"value": 78000, "verified":false},
 		"MFS":		{"value": 78000, "verified":false},
 		"MFJRetPlan":	{"value":129000, "verified":false},
@@ -192,23 +194,23 @@
                 	"MFJ2":	{"value":180000, "verified":false}
 		},
 		"LLC": {
-                	"MAX0":	{"value":10000, "verified":false},
-                	"SNG1":	{"value":59000, "verified":false},
-                	"SNG2":	{"value":69000, "verified":false},
-                	"MFJ1":	{"value":118000, "verified":false},
-                	"MFJ2":	{"value":138000, "verified":false}
+                	"MAX0":	{"value": 10000, "verified":false},
+                	"SNG1":	{"value": 80000, "verified":false},
+                	"SNG2":	{"value": 90000, "verified":false},
+                	"MFJ1":	{"value":160000, "verified":false},
+                	"MFJ2":	{"value":180000, "verified":false}
 		},
 		"Savings": {
-			"SNG0":	{"value": 82350, "verified":false},
-			"SNG1":	{"value": 96100, "verified":false},
-			"MFJ0":	{"value":123550, "verified":false},
-			"MFJ1":	{"value":151600, "verified":false},
-			"WID0":	{"value":123550, "verified":false},
-			"WID1":	{"value":151600, "verified":false},
-			"QSS0":	{"value":123550, "verified":false},
-			"QSS1":	{"value":151600, "verified":false},
-			"HOH0":	{"value": 82350, "verified":false},
-			"HOH1":	{"value": 96100, "verified":false}
+			"SNG0":	{"value": 96800, "verified":false},
+			"SNG1":	{"value":111800, "verified":false},
+			"MFJ0":	{"value":145200, "verified":false},
+			"MFJ1":	{"value":175200, "verified":false},
+			"WID0":	{"value":145200, "verified":false},
+			"WID1":	{"value":175200, "verified":false},
+			"QSS0":	{"value":145200, "verified":false},
+			"QSS1":	{"value":175200, "verified":false},
+			"HOH0":	{"value": 96800, "verified":false},
+			"HOH1":	{"value":111800, "verified":false}
 		}
 	},
 	"StudLoanInterest": {
@@ -243,6 +245,7 @@
                 	"HOH":	{"value":200000, "verified":false}
 		},
                 "AGI0Cap": {
+                	"comment": "For 2021 child under 6 only",
                 	"SNG":	{"value": 75000, "verified":false},
                 	"MFS":	{"value": 75000, "verified":false},
                 	"MFJ":	{"value":150000, "verified":false},
@@ -253,12 +256,12 @@
 	},
 	"ACA": {
 		"PYFPL": {
-			"US": {	"Rate":	{"value": 13590, "verified":false},
-				"Inc":	{"value": 4720}, "verified":false},
-			"AK": {	"Rate": {"value": 16990, "verified":false},
-				"Inc":	{"value": 5900}, "verified":false},
-			"HI": {	"Rate": {"value": 15630, "verified":false},
-				"Inc":	{"value": 5430}, "verified":false}
+			"US": {	"Rate":	{"value":14580, "verified":false},
+				"Inc":	{"value": 5140}, "verified":false},
+			"AK": {	"Rate": {"value":18210, "verified":false},
+				"Inc":	{"value": 6430}, "verified":false},
+			"HI": {	"Rate": {"value":16770, "verified":false},
+				"Inc":	{"value": 5910}, "verified":false}
 		},
 		"comment":	"column 4 is limitation for SNG&MFS, col 5 is for MFJ,HOH,QSS",
 		"PTC0": 	{"value":[133, 0.00, 0.00,  375,  750], "verified":true},
