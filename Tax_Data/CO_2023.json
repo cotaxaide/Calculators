@@ -1,4 +1,5 @@
 {	"TaxYear": 2023,
+	"updated": "2023-07-01",
 	"state":		{"rate": 2.9, "income_rate": 4.4},
 	"county": {		
 		"Adams":	{"rate": 0.75, "RTD": 1, "CD": 0.1},
