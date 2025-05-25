@@ -59,12 +59,19 @@
 //	Bruce Dumas		Mary Emerson		Kenny Hayes		Harry Gong
 //	Mary Jennings		Debbie Geldis		Ed Hondl		Lance Lauerhass
 //	Susan Smaus		Alan Zhao		Herb Klug		Larry Metz
+//	Paul Peyser
 //***************************************************************************************************
 
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "8.3 2/7/2025";
+var VERSION = "8.7 5/25/2025";
+//	Fixed HOH filing for NRA spouse with dependent cousin, to  make not eligible
+//var VERSION = "8.6 5/24/2025";
+//	Fixed HOH filing status for blood relatives if spouse is nonresident alien
+//var VERSION = "8.4 5/23/2025";
+//	Fixed HoH box not clickable if spouse is nonresident alien
+//var VERSION = "8.3 2/7/2025";
 //	Allow full birthdate to be entered in DOB box
 //var VERSION = "8.2 1/14/2025";
 //	Changed wording on Divorced/Seperated question and minor code change for functionality
@@ -824,16 +831,21 @@ function CalcStatus(from_age_calc) {
 		if (QualChildOfAnother.checked && (QCAtest == "OTHER_NO_HOH")) SetMessage(HOH,"- TP is not claiming child as a dependent");
 		if (TP_Filing == "MFJ") SetMessage(HOH,"- TP filing as married");
 		if ((TP_Filing == "MFS") || (TP_Filing == "HOH")) { // TP may be able to file HOH
-			if (TPDivorced.checked && (! TP_DivorceApplies)) { // still married but living apart - dependent restrictions apply
-				if (! ((DEP_Relation == "CHILD") || (DEP_Relation == "FOSTER")) || ((QualChild.value == NO) && (QualRelative.value == NO))) {
-					SetMessage(HOH,"- In this TP's case, dependent must be a child, step-child or foster child");
-					HOH.value = NO;
+			if ( TPisMarried.checked && (TP_Citizenship == "USA") && (SP_Citizenship == "NONRES_ALIEN") && (DEP_Relation != "UNRELATED") ) HOH.value = "NRA_SPOUSE"; // May file HOH if SP is NRA
+			else {
+				if (TPDivorced.checked && (! TP_DivorceApplies)) { // still married but living apart - dependent restrictions apply
+					if (! ((DEP_Relation == "CHILD") || (DEP_Relation == "FOSTER")) || ((QualChild.value == NO) && (QualRelative.value == NO))) {
+						SetMessage(HOH,"- In this TP's case, dependent must be a child, step-child or foster child");
+						HOH.value = NO;
+					}
 				}
-			}
-			if (HOH.value != NO) {
-				if ((TP_Citizenship != "NONRES_ALIEN") && (SP_Citizenship == "NONRES_ALIEN")) HOH.value = "NRA_SPOUSE"; // May file HOH if SP is NRA
-				if (TPDivorced.checked) {HOH.value = "REMARRIED"; TP_Filing = "HOH";} // May or may not be remarried
-				if ((HOH.value != "NRA_SPOUSE") && (HOH.value != "REMARRIED")) SetMessage(HOH,"- TP filing as married"); // no special exceptions
+				if (HOH.value != NO) { // May or may not be remarried
+					if (TPDivorced.checked) {
+						HOH.value = "REMARRIED";
+						TP_Filing = "HOH";
+					}
+					if ((HOH.value != "NRA_SPOUSE") && (HOH.value != "REMARRIED")) SetMessage(HOH,"- TP filing as married"); // no special exceptions
+				}
 			}
 		}
 
@@ -1011,7 +1023,7 @@ function CheckMultiUseBoxes() {
 	if (DepRefund.disabled = ! DepFilingMFJ.checked) DepRefund.checked = false; // Remove previous mark if any
 	if (TPfilingMFJ.disabled) {
 		TPfilingMFJ.checked = false; // Clear any previous mark, if disabled
-		TPfilingHOH.checked = false; // Clear any previous mark, if disabled
+		//TPfilingHOH.checked = false; // Clear any previous mark, if disabled // DEBUG
 		TPrefund.checked = false; // Clear any previous mark, if disabled
 	}
 
@@ -1028,13 +1040,19 @@ function CheckMultiUseBoxes() {
 	else {
 		TPrefund.checked = false;
 		TPrefund.disabled = true;
-		if ( TPisMarried.checked && TPDivorced.checked && HHCost.checked ) {
-			TPfilingHOH.disabled = false;
+		if (HHCost.checked) {
+			if (TPisMarried) {
+				if (TPDivorced.checked
+				|| ((TPCitizenship.value == "USA") && (SPCitizenship.value == "NONRES_ALIEN")) ) {
+					TPfilingHOH.disabled = false;
+				}
+			}
 		}
 		else {
-			TPfilingHOH.checked = false;
+			TPfilingHOH.disabled = true;;
 		}
 	}
+	if (TPfilingHOH.disabled) TPfilingHOH.checked = false;
 
 	if (TPfilingMFJ.checked && (! TPrefund.checked)) {
 		TPisQC.checked = false;
@@ -1431,10 +1449,12 @@ function ColorCells() {
 	BenefitColor.QualChild = (QualChild.value == NO)? ColorNo:ColorYes;
 	if (QualChild.value != "NO") ShowCaution = true;
 	if (QualChild.value == "SPOUSE_MAY_USE") {
-		BenefitColor.QualChild = ColorWarn;
 		QualChild.innerHTML = "YES";
-		QualChild.title += "- Only if the spouse does not claim the child as an exemption.\n";
-		if (SPAGI.checked) QualChild.title += "- The other parent has a higher AGI so is more qualified.\n";
+		if (HOH.value != "NRA_SPOUSE") {
+			BenefitColor.QualChild = ColorWarn;
+			QualChild.title += "- Only if the spouse does not claim the child as an exemption.\n";
+			if (SPAGI.checked) QualChild.title += "- The other parent has a higher AGI so is more qualified.\n";
+		}
 	}
 	QualChild.style.backgroundColor = BenefitColor.QualChild;
 	
