@@ -65,7 +65,10 @@
 //***************************************************************************************************
 //	Revision history
 //
-var VERSION = "8.7 5/25/2025";
+var VERSION = "8.8 5/26/2025";
+//	Fixed HOH filing for NRA spouse with dependent not eligible for EITC
+//	Removed CAN_MEX option for taxpayer and spouse - not relevant in decisions
+//var VERSION = "8.7 5/25/2025";
 //	Fixed HOH filing for NRA spouse with dependent cousin, to  make not eligible
 //var VERSION = "8.6 5/24/2025";
 //	Fixed HOH filing status for blood relatives if spouse is nonresident alien
@@ -142,7 +145,7 @@ var SP_Citizenship;
 var TP_Citizenship;
 var TP_Custodial;
 var TP_DivorceApplies;
-var EITC_DivorceApplies;
+var EITC_LivingApart;
 var TP_QCA_Applies;
 var TP_Filing;
 var TP_IsUnrelated;
@@ -591,7 +594,7 @@ function CalcStatus(from_age_calc) {
 		LivedWith.checked = JointSupport.checked = false;
 	}
 	TP_DivorceApplies = (TPDivorced.checked && LivedWith.checked && JointSupport.checked && (DEP_Age < 24) && TP_IsParent && (! Emancipated.checked));
-	EITC_DivorceApplies = (TPDivorced.checked && LivedWith.checked && (DEP_Age < 24) && TP_IsParent && (! Emancipated.checked));
+	EITC_LivingApart = (TPDivorced.checked && (DEP_Age < 24) && (! Emancipated.checked));
 	WaiverToTP.disabled = WaiverToSP.disabled = WaiverToNone.disabled = ! TP_DivorceApplies;
 	TP_Custodial = YES; // Assume yes for now
 	if (TP_DivorceApplies) {
@@ -932,8 +935,8 @@ function CalcStatus(from_age_calc) {
 		if (BENE_Relation.indexOf("|EITC|") == NOT_A_BENEFIT) SetMessage(EITC,"- Failed relationship test");
 		if ((DepFilingMFJ.checked) && (! DepRefund.checked)) SetMessage(EITC,"- Dependent failed joint return test");
 		if (DEP_Residency < 7) SetMessage(EITC,"- Failed residency test");
-		if ((TP_Citizenship == "NONRES_ALIEN") || (TP_Citizenship == "CAN_MEX")) SetMessage(EITC,"- TP failed citizenship test");
-		if ((SP_Citizenship == "NONRES_ALIEN") || (SP_Citizenship == "CAN_MEX")) SetMessage(EITC,"- SP failed citizenship test");
+		if (TP_Citizenship == "NONRES_ALIEN") SetMessage(EITC,"- TP failed citizenship test");
+		if (SP_Citizenship == "NONRES_ALIEN") EITC.value = "EITC_NRASP";
 		if (TPSPITIN.checked) {
 			if (TPisMarried.checked) SetMessage(EITC,"- Both TP and SP must have an SSN"); // add V6.12
 		 	else SetMessage(EITC,"- TP must have an SSN"); // add V6.12
@@ -941,10 +944,16 @@ function CalcStatus(from_age_calc) {
 		if ((! CitizenUSA.checked) && (DependentITIN.checked)) {
 			SetMessage(EITC,"- The dependent must have a valid SSN"); // add V6.12
 		}
-		if (TP_Filing == "MFS") {
-			if (EITC_DivorceApplies) EITC.value = "EITC_DIV";
-			else if (! DEP_ChildQualForEITC) SetMessage(EITC,"- TP is filing MFS");
+		if (TP_Filing == "HOH") {
+			if (EITC_LivingApart) EITC.value = "EITC_DIV";
+			}
+		else if (TP_Filing == "MFS") {
+			if (EITC_LivingApart) EITC.value = "EITC_DIV";
+			else SetMessage(EITC,"- TP is filing MFS and not living apart");
 		}
+		else if (TP_Filing == "MFJ") {
+			if (EITC.value == "EITC_NRASP") SetMessage(EITC,"- SP failed citizenship test");
+			}
 		if (TPisQC.checked) SetMessage(EITC,"- TP or SP cannot be a qualified child (even if not claimed)");
 		// if (TPisQR.checked) SetMessage(EITC,"- TP or SP cannot be a qualified relative of another taxpayer"); // rm V6.04
 		if (QualChildOfAnother.checked && QCAtest != "TP") SetMessage(EITC, QCAreason);
@@ -1585,6 +1594,11 @@ function ColorCells() {
 		BenefitColor.EITC = ColorWarn;
 		EITC.title += "- If the taxpayer did not live in the same household as the spouse at the end of the year\n";
 	}
+	if (EITC.value == "EITC_NRASP") {
+		EITC.innerHTML = "NO"
+		BenefitColor.EITC = ColorNo;
+		EITC.title += "- Taxpayers must live apart for at least 6 months including at the end of the year\n";
+		}
 	if (EITC.value == "QC_OF_ANOTHER") {
 		EITC.innerHTML = YES;
 		BenefitColor.EITC = ColorWarn;
@@ -1604,9 +1618,10 @@ function ColorCells() {
 			}
 		}
 	}
-	if ( (EITC.value == "NO") && (TP_Filing != "MFS") && (! TPSPITIN.checked) ) {
-		EITC.title += "- Although dependent doesn't qualify, TP may still be qualifed for EITC\n";
-	}
+	//ITIN_Flag = TPSPITIN.checked || (EITC.value == "EITC_NRASP");
+	//if ( (EITC.value == "NO") && (TP_Filing != "MFS") && (! ITIN_Flag) ) {
+	//	EITC.title += "- Although dependent doesn't qualify, TP may still be qualifed for EITC\n";
+	//}
 	EITC.style.backgroundColor = BenefitColor.EITC;
 
 	// Qualified dependent for Tuition & Fees income adjustment ----------------------------------
@@ -1877,7 +1892,6 @@ function TestResults() {
 					title="Select the taxpayer citizenship status">
 					<option value="USA">US Cit/US Nat'l</option>
 					<option value="RES_ALIEN">Resident Alien</option>
-					<option value="CAN_MEX">Canada/Mexico</option>
 					<option value="NONRES_ALIEN">Non-Res Alien</option>
 					</select>
 				<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="SPCitizenshipLabel">SP citizen:</span><select id="SPCitizenship" name="SPCitizenship" onclick="PreCalc(1)"
@@ -1885,7 +1899,6 @@ function TestResults() {
 					title="Select the spouse citizenship status. If TP is a US Cit or Res Alien, a non-resident alien spouse can be treated as a resident alien.">
 					<option value="USA">US Cit/US Nat'l</option>
 					<option value="RES_ALIEN">Resident Alien</option>
-					<option value="CAN_MEX">Canada/Mexico</option>
 					<option value="NONRES_ALIEN">Non-Res Alien</option>
 					<option value="N/A">N/A</option>
 					</select>
