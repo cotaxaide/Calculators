@@ -16,6 +16,7 @@
 		width: 5em;
 		height: 5em;
 		border: 1px solid black;
+		border-radius: 1em;
 		margin: 0.5em 0.5em 0 0;
 		float: left;
 	}
@@ -81,6 +82,14 @@
 		padding: 3px;
 	}
 
+	.core-link {
+		width: 100%;
+		text-align: center;
+	}
+	.core-link img {
+		float: unset;
+	}
+
 </style>
 		 
 <script type="text/javascript">
@@ -109,7 +118,7 @@
 		Most of the tools have a year option that allows the selection of the current and three years prior. They will default to the new tax year on December first. Version changes can be seen by viewing the web page source if desired.
 		<br />
 		<br />
-		<a href="mailto:tools@cotaxaide.org">Colorado tools support team</a>
+		<a href="mailto:core.webmaster0@gmail.com">Colorado tools support team</a>
 	</div> <!-- end of disclaimer -->
 
 	<div class="trainers">
@@ -139,56 +148,91 @@
 
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/annuity.png">
-				<a href="Annuity Calculator.html">Annuity/Pension Exclusion Calculator</a></div>
+				<a href="Annuity Calculator.html">Annuity/Pension Exclusion Calculator</a>
+			</div>
 			<div class="tool-description">
 				(AKA <a href="Annuity Calculator.html">Pension Exclusion Calculator</a>)
 				<br />Given the taxpayer&apos;s retirement date (first retirement paycheck) and taxpayer
 				and spouse birthdates, calculates an exclusion table by year and a sample form for
 				TaxSlayer<sup>&reg;</sup> input. 
-				Also handles the Public Safety Officer insurance exclusion.</div>
+				Also handles the Public Safety Officer insurance exclusion.
+			</div>
 		</div>
 
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/business.png">
-				<a href="Business Activity Codes.html">Business Activity Codes</a></div>
+				<a href="Business Activity Codes.html">Business Activity Codes</a>
+			</div>
 			<div class="tool-description">
 				Rather than search through the entire list of business codes,
-				click on headers to expand that portion of the list until a suitable code is found.</div>
+				click on headers to expand that portion of the list until a suitable code is found.
+			</div>
+		</div>
+		
+		<div class="tool-item">
+			<div class="tool-title"><img src="Images/cgloss.png">
+				<a href="Capital Loss Carryover.html">Capital Loss Carryover Worksheet</a>
+			</div>
+			<div class="tool-description">
+				If a taxpayer&apos;s prior year tax return has a negative amount in the capital
+				gains entry, there may be a carryover loss that can be used in the current year.
+				If the carryover worksheet is not a part of the printed return from the prior
+				year, this worksheet can help create it.
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/colorado-county-map.gif">
-				<a href="Sales Tax Tables.html">CO Sales Tax Tables</a></div>
+				<a href="Sales Tax Tables.html">CO Sales Tax Tables</a>
+			</div>
 			<div class="tool-description">
 				A Colorado-specific table that lists the city and county local sales tax
-				rates for use in Schedule A for those counties you select.</div>
+				rates for use in Schedule A for those counties you select.
+			</div>
 		</div>
 		
 <!--		<div class="tool-item">
 			<div class="tool-title"><img src="Images/coronavirus.png">
-				<a href="Coronavirus Tax Worksheet.html">Coronavirus Tax Worksheet</a></div>
+				<a href="Coronavirus Tax Worksheet.html">Coronavirus Tax Worksheet</a>
+			</div>
 			<div class="tool-description">
 				Up to $100,000 can be taken in 2020 from retirement savings accounts. This worksheet
 				compares the results of paying all the tax in 2020 versus the option of spreading
 				the tax over the three years 2020 - 2022 given expected increase in income in the
-				later 2 years. Also includes the effect of paying it back during the later 2 years.</div>
+				later 2 years. Also includes the effect of paying it back during the later 2 years.
+			</div>
 		</div>
 -->		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/dependent.png">
-				<a href="Dependent Qualification Calculator.html">Dependent Qualification Calculator</a></div>
+				<a href="Dependent Qualification Calculator.html">Dependent Qualification Calculator</a>
+			</div>
 			<div class="tool-description">
 				Is a dependent a child or relative? What benefits might the taxpayer claim as a result?
 				This tool is a combination of all the Pub 4012 charts - without the charts.
 				Choose the various taxpayer and dependent options and see a list of benefits.
-				If they don&apos;t qualify for a benefit, click on it to see why not.</div>
+				If they don&apos;t qualify for a benefit, click on it to see why not.
+			</div>
+		</div>
+		
+		<div class="tool-item">
+			<div class="tool-title"><img src="Images/div-int.png">
+				<a href="State DIV-INT Worksheet.html">Dividend/Interest Exemption Worksheet</a>
+			</div>
+			<div class="tool-description">
+				For state tax returns, calculating and summing all the government and state exclusions
+				for dividends and tax-free interest in broker statements is a bit of a chore.
+				This worksheet assists in that task and provides a clear record of the figures
+				for the quality review and taxpayer.
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/education.png">
-				<a href="Education Calculator.html">Education Benefits Calculator</a></div>
+				<a href="Education Calculator.html">Education Benefits Calculator</a>
+			</div>
 			<div class="tool-description">
-				There are four different ways to claim education credits,
+				There are three different ways to claim education credits,
 				each with their own limits and types of expenses allowed.
 				There are also different funding sources that can be used tax-free for different
 				types of expenses.
@@ -197,12 +241,14 @@
 				and can determine the amount of unrestricted scholarships that can be made taxable
 				to maximize the taxpayer&apos;s refund.
 				Note: 
-				<i>It&apos;s best to do parent and dependent student tax returns at the same time.</i></div>
+				<i>It&apos;s best to do parent and dependent student tax returns at the same time.</i>
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/ein.png">
-				<a href="EIN Search Tool.html">EIN Search Tool</a></div>
+				<a href="EIN Search Tool.html">EIN Search Tool</a>
+			</div>
 			<div class="tool-description">
 				This tool is for the ERO who has experienced an IRS tax return submission reject due to
 				a mismatched EIN and payer name. The entries in this list has been accumulated from
@@ -210,33 +256,39 @@
 				EIN if digits are reversed or entered incorrectly. You can enter either the name or EIN
 				from the incorrect tax return and indicate the number of mismatched digits for which
 				you wish to search. DO NOT USE THIS LIST AS A PRIMARY SOURCE FOR EINS; due to mergers,
-				many companies retain multiple EINs. Links to other suggested sources are also provided.</div>
+				many companies retain multiple EINs. Links to other suggested sources are also provided.
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/estimate.png">
-				<a href="Estimated Tax Worksheet.html">Estimated Tax Worksheet with MFJ/MFS Comparison</a></div>
+				<a href="Estimated Tax Worksheet.html">Estimated Tax Worksheet with MFJ/MFS Comparison</a>
+			</div>
 			<div class="tool-description">
 				This is the Form 1040-ES form with considerable expansion,
 				used to estimate taxes for the next year.
 				<br />This can also be used to do an MFJ/MFS comparison if there are no
-				complications in the taxpayers&apos; situation (such as living apart, etc)</div>
+				complications in the taxpayers&apos; situation (such as living apart, etc)
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/hoh.png">
-				<a href="Home Cost Worksheet.html">Home Cost and Support Worksheet</a></div>
+				<a href="Home Cost Worksheet.html">Home Cost and Support Worksheet</a>
+			</div>
 			<div class="tool-description">
 				This is a combination of the Head of Household Worksheet 2-1
 				(Cost of Keeping Up a Home) and the Pub 17 Worsheet 3-1
 				(Worksheet for Determining Support) &mdash; due to the similarity with
 				household expenses used in both worksheets.
-				Once in the tool, select which you want to use.</div>
+				Once in the tool, select which you want to use.
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/homesale.png">
-				<a href="Home Sale Worksheet.html">Home Sale Worksheet</a></div>
+				<a href="Home Sale Worksheet.html">Home Sale Worksheet</a>
+			</div>
 			<div class="tool-description">
 				An implementation of a home sale worksheet that asks the questions needed to
 				determine if the taxpayer qualifies for an exclusion and assists in
@@ -244,32 +296,37 @@
 				the TaxSlayer<sup>&reg;</sup> home sale worksheet and/or direct entry as a capital gain or loss
 				on Form 8949. Does not support partial exclusions (although indicates if the
 				taxpayer may qualify) and does not support homes that have been used for business
-				or have sustained casualty losses.</div>
+				or have sustained casualty losses.
+			</div>
 		</div>
 
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/f8606.png">
-				<a href="IRA Worksheet.html">IRA Worksheet (Form 8606)</a></div>
+				<a href="IRA Worksheet.html">IRA Worksheet (Form 8606)</a>
+			</div>
 			<div class="tool-description">
 				A worksheet for Form 8606 Parts I and II for Nondeductible IRA contributions.
 				It can handle up to 5 IRAs for each taxpayer and indicates the amount
 				taxable for each IRA if deductions or conversions are taken from more than one
 				IRA. (Form 8606 computes the total for all transactions.)
-				Also provides the totals for input to create the TaxSlayer<sup>&reg;</sup> Form 8606.</div>
+				Also provides the totals for input to create the TaxSlayer<sup>&reg;</sup> Form 8606.
+			</div>
 		</div>
 		
 		<div class="tool-item" style="min-height: 1em">
 			<div class="tool-title">
-				MFJ/MFS Comparison</div>
+				MFJ/MFS Comparison
+			</div>
 			<div class="tool-description">
 				See the
 				<a href="Estimated Tax Worksheet.html">Estimated Tax Worksheet with MFJ/MFS Comparison</a>
-				</div>
+			</div>
 		</div>
 
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/mortgage.png">
-				<a href="Mortgage Interest Worksheet.html">Mortgage Interest Worksheet</a></div>
+				<a href="Mortgage Interest Worksheet.html">Mortgage Interest Worksheet</a>
+			</div>
 			<div class="tool-description">
 				If a home mortgage includes a portion of the funds that were used
 				to pay expenses for other than for the home or improvements to that home,
@@ -280,24 +337,28 @@
 				Such other expenses might be to pay credit card debt, medical expenses,
 				vacation trips or a new car, as examples.
 				This worksheet helps determine how much of the interest paid on the mortgage
-				is deductible.</div>
+				is deductible.
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/ptyr.png">
-				<a href="Part Year Worksheet.html">Part Year Worksheet</a></div>
+				<a href="Part Year Worksheet.html">Part Year Worksheet</a>
+			</div>
 			<div class="tool-description">
 				TaxSlayer<sup>&reg;</sup> provides no assistance in determining the portion of
 				income (other than W-2s), adjustments and deductions available for
 				a part-year resident.
 				This worksheet is tailored to Colorado state tax returns
 				and provides TaxSlayer totals for input to the
-				&quot;Income Subject to Tax&quot; section.</div>
+				&quot;Income Subject to Tax&quot; section.
+			</div>
 		</div>
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/rrretire.png">
-				<a href="RRB Worksheet.html">Railroad Retirement Worksheet</a></div>
+				<a href="RRB Worksheet.html">Railroad Retirement Worksheet</a>
+			</div>
 			<div class="tool-description">
 				Railroad retirement Tier 1 amounts are not handled correctly
 				by TaxSlayer<sup>&reg;</sup> on Colorado state tax returns.
@@ -308,12 +369,14 @@
 				from the pension exclusion and calculates the amount that should be added
 				as the RRB benefits line on the State Return section of TaxSlayer.
 				Although designed specifically for Colorado it may work for other states
-				if the problem is the same.</div>
+				if the problem is the same.
+			</div>
 		</div>
 	
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/salestax.png">
-				<a href="Sales Tax Worksheet.html">Sales Tax Deduction Worksheet</a></div>
+				<a href="Sales Tax Worksheet.html">Sales Tax Deduction Worksheet</a>
+			</div>
 			<div class="tool-description">
 				A worksheet for totalling income items, sales tax on large item purchases,
 				and other nontaxable income to be used with the IRS Sales Tax Calculator.
@@ -325,7 +388,8 @@
 
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/plot.png">
-				<a href="Credit Plotter.html">Tax Credit Plotter</a></div>
+				<a href="Credit Plotter.html">Tax Credit Plotter</a>
+			</div>
 			<div class="tool-description">
 				Can&apos;t find the latest version of the Earned Income Tax Credit plots?
 				This tool presents a graphical presentation of the amount of credit available for various
@@ -340,7 +404,8 @@
 
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/refund.png">
-				<a href="Refund Calculator.html">Taxable Refund and Recovery Calculator</a></div>
+				<a href="Refund Calculator.html">Taxable Refund and Recovery Calculator</a>
+			</div>
 			<div class="tool-description">
 				TaxSlayer<sup>&reg;</sup> determines the taxable amount of the state tax refund based on sales tax and
 				comparison with the standard deduction.
@@ -349,19 +414,22 @@
 				This calculator includes those other comparisons
 				so you don&apos;t have to do the math.
 				Taxability of other refunds, such as medical repayments, are also included
-				and can be quite complex when a state tax refund is also present.</div>
+				and can be quite complex when a state tax refund is also present.
+			</div>
 		</div>
 		
 		</div> <!-- Web based -->
 
 		<hr /><div class="tool-group">
 
-		<div class="tool-group-title">Downloadable Tools for the PC (sorry, not Chromebook)</div>
+		<div class="tool-group-title">Downloadable Tools for the PC (sorry, not Chromebook)
+		</div>
 		
 		<!--
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/TSOicon.png">
-				<a href="TSO_Login_Helper.zip">TSO Login Helper Application</a></div>
+				<a href="TSO_Login_Helper.zip">TSO Login Helper Application</a>
+				</div>
 			<div class="tool-description">
 				If you work at multiple sites, this downloadable executable remembers
 				your login name or multiple names for each site.
@@ -378,7 +446,8 @@
 		
 		<div class="tool-item">
 			<div class="tool-title"><img src="Images/formmaker.png">
-				<a href="FormsGenerator.zip">Forms Generator (v 23.9.4)</a></div>
+				<a href="FormsGenerator.zip">Forms Generator (v 23.9.4)</a>
+			</div>
 			<div class="tool-description">
 				This great tool, contributed by [a tax volunteer in Washington state],
 				creates custom forms for training.
@@ -390,18 +459,20 @@
 				and a desktop icon is (optionally) added.
 				<br /><b>Note:</b> Some users have reported that a virus is detected on download.
 				The author assured me that the app is clean and the virus alert is erroneous.
-				</div>
+			</div>
 		</div>
 
 		</div> <!-- Downloadable -->
 
 	</div> <!-- end of ToolList -->
 
-	<div style="position: fixed, top: 1rem, left: 1rem; z-index: 2">
-		<a href="https://cotaxaide.org/ta/home">
-			<img src="https://cotaxaide.org/images/CORE.png"
-			     title="Click to go to the Colorado Resource website (CORE)">
-		</a>
+	<div class="core-link">
+		<span>
+			<a href="https://cotaxaide.org/resource-home"
+				title="Click to go to the Colorado Resource website (CORE)">
+				<img src="https://cotaxaide.org/images/CORE.png" />
+			</a>
+		</span>
 	</div>
 
 </div> <!-- end of main -->
