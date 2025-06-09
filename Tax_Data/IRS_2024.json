@@ -1,5 +1,5 @@
 {	"TaxYear":		{"value":2024, "verified":true},
-	"Preliminary":		{"value":true, "verified":false},
+	"Preliminary":		{"value":true, "verified":true},
 	"LineNo": {
 		"Wages":	{"value":"1z", "verified":true},
 		"Earned":	{"value":"1z&S1-3", "verified":true},
@@ -100,13 +100,13 @@
 				"value":103000, "verified":true
 	},
 	"NIIT":			{"comment":"From Form 8960 instructions",
-		"Rate":		{"value": 0.038, "verified":false},
-		"SNG":		{"value":200000, "verified":false},
-		"MFS":		{"value":125000, "verified":false},
-		"MFJ":		{"value":250000, "verified":false},
-		"QSS":		{"value":250000, "verified":false},
-		"WID":		{"value":250000, "verified":false},
-		"HOH":		{"value":200000, "verified":false}
+		"Rate":		{"value": 0.038, "verified":true},
+		"SNG":		{"value":200000, "verified":true},
+		"MFS":		{"value":125000, "verified":true},
+		"MFJ":		{"value":250000, "verified":true},
+		"QSS":		{"value":250000, "verified":true},
+		"WID":		{"value":250000, "verified":true},
+		"HOH":		{"value":200000, "verified":true}
 	},
 	"EducatorExpenses":	{"value":300, "verified":true},
 	"HSA": {
@@ -117,13 +117,13 @@
 		"Age":		{"value":    50, "verified":true},
 		"Maximum":	{"value":  7000, "verified":true},
 		"SrMaximum":	{"value":  8000, "verified":true},
-		"SNG":		{"value": 78000, "verified":false},
-		"MFS":		{"value": 78000, "verified":false},
-		"MFJRetPlan":	{"value":129000, "verified":false},
-		"MFJNoRetPlan":	{"value":214000, "verified":false},
-		"HOH":		{"value": 78000, "verified":false},
-		"QSS":		{"value":129000, "verified":false},
-		"WID":		{"value":129000, "verified":false}
+		"SNG":		{"value": 87000, "verified":true},
+		"MFS":		{"value": 87000, "verified":true},
+		"MFJRetPlan":	{"value":143000, "verified":true},
+		"MFJNoRetPlan":	{"value":240000, "verified":true},
+		"HOH":		{"value": 87000, "verified":true},
+		"QSS":		{"value":143000, "verified":true},
+		"WID":		{"value":143000, "verified":true}
 	},
 	"QBI":	{
 		"Rate":		{"value":0.2, "verified":true},
@@ -153,25 +153,21 @@
 		"QSS":		{"value":[ 85700,  609350,  952150], "verified":true},
 		"WID":		{"value":[ 85700,  609350,  952150], "verified":true},
 		"HOH":		{"value":[ 85700,  609350,  952150], "verified":true},
-		"TRUST":	{"value":[ 29900,   99700,  219300], "verified":false},
-		"KIDDIE":	{"value":[ 9250,   510300], "verified":false}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.0765,   0.34,    0.4,   0.45], "verified":true},
 		"RateDown":	{"value":[0.0765, 0.1598, 0.2106, 0.2106], "verified":true},
                 "Maximum":	{"value":[   632,   4213,   6960,   7830], "verified":true},
                 "EarnedIncome": {"value":[ 8260,  12390,  17400,  17400], "verified":true},
-                "AGISNG":	{"value":[10330,  22720,  22720,  22720], "verified":false},
                 "SNG":		{"value":[18591,  49084,  55768,  59899], "verified":true},
-                "AGIMFJ":	{"value":[17250,  29640,  29640,  29640], "verified":false},
                 "MFJ":		{"value":[25511,  56004,  62688,  66819], "verified":true},
                 "InvestMax":	{"value":11600, "verified":true}
 	},
        	"Care": {
-		"RateMax":	{"value":0.35, "verified":false},
-		"RateMin":	{"value":0.20, "verified":false},
-		"AGICap":	{"value":15000, "verified":false},
-		"AGICap2":	{"value":43000, "verified":false},
+		"RateMax":	{"value":0.35, "verified":true},
+		"RateMin":	{"value":0.20, "verified":true},
+		"AGICap":	{"value":15000, "verified":true},
+		"AGICap2":	{"value":43000, "verified":true},
 		"PerChild":	{"value":3000, "verified":true}
 	},
 	"Education": {

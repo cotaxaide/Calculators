@@ -1,7 +1,7 @@
 {	"TaxYear":		{"value":2025, "verified":true},
 	"Preliminary":		{"value":true, "verified":true},
 	"LineNo": {
-		"1040_Comment":	{"value":"Form 1040"},
+		"1040_comment":	{"value":"Form 1040"},
 		"Wages":	{"value":"1z", "verified":true},
 		"Earned":	{"value":"1z&S1-3", "verified":true},
 		"TaxExInc":	{"value":"2a", "verified":true},
@@ -101,13 +101,13 @@
 				"value":106000, "verified":true
 	},
 	"NIIT":			{"comment":"From Form 8960 instructions",
-		"Rate":		{"value": 0.038, "verified":false},
-		"SNG":		{"value":200000, "verified":false},
-		"MFS":		{"value":125000, "verified":false},
-		"MFJ":		{"value":250000, "verified":false},
-		"QSS":		{"value":250000, "verified":false},
-		"WID":		{"value":250000, "verified":false},
-		"HOH":		{"value":200000, "verified":false}
+		"Rate":		{"value": 0.038, "verified":true},
+		"SNG":		{"value":200000, "verified":true},
+		"MFS":		{"value":125000, "verified":true},
+		"MFJ":		{"value":250000, "verified":true},
+		"QSS":		{"value":250000, "verified":true},
+		"WID":		{"value":250000, "verified":true},
+		"HOH":		{"value":200000, "verified":true}
 	},
 	"EducatorExpenses":	{"value":300, "verified":true},
 	"HSA": {
@@ -115,16 +115,17 @@
 		"Family":	{"value":8550, "verified":true}
 	},
 	"IRA": {
-		"Age":		{"value":    50, "verified":false},
-		"Maximum":	{"value":  7000, "verified":false},
-		"SrMaximum":	{"value":  8000, "verified":false},
-		"SNG":		{"value": 78000, "verified":false},
-		"MFS":		{"value": 78000, "verified":false},
-		"MFJRetPlan":	{"value":129000, "verified":false},
-		"MFJNoRetPlan":	{"value":214000, "verified":false},
-		"HOH":		{"value": 78000, "verified":false},
-		"QSS":		{"value":129000, "verified":false},
-		"WID":		{"value":129000, "verified":false}
+		"comment":	{"value":"Pub 590a"},
+		"Age":		{"value":    50, "verified":true},
+		"Maximum":	{"value":  7000, "verified":true},
+		"SrMaximum":	{"value":  8000, "verified":true},
+		"SNG":		{"value": 89000, "verified":true},
+		"MFS":		{"value": 10000, "verified":true},
+		"MFJRetPlan":	{"value":146000, "verified":true},
+		"MFJNoRetPlan":	{"value":246000, "verified":true},
+		"HOH":		{"value": 89000, "verified":true},
+		"QSS":		{"value":146000, "verified":true},
+		"WID":		{"value":146000, "verified":true}
 	},
 	"QBI":	{
 		"Rate":		{"value":0.2, "verified":false},
@@ -149,16 +150,13 @@
                 "HOH":		{"value":10000000, "verified":false}
 	},
 	"AMT": {
-		"comment":	"Col are: exemption, threshold phaseout, complete phaseout",
+		"comment":	"Cols are: exemption, threshold phaseout, complete phaseout",
 		"MFJ":		{"value":[137000, 1252700, 1800700], "verified":true},
 		"QSS":		{"value":[137000, 1252700, 1800700], "verified":true},
 		"WID":		{"value":[137000, 1252700, 1800700], "verified":true},
 		"MFS":		{"value":[ 68500,  626350,  900350], "verified":true},
 		"SNG":		{"value":[ 88100,  626350,  978750], "verified":true},
 		"HOH":		{"value":[ 88100,  626350,  978750], "verified":true},
-		"TRUST":	{"value":[ 30700,  102500,  225300], "verified":true},
-		"comment2":	"Col are: amt over earned income, ?",
-		"KIDDIE":	{"value":[ 9550,   510300], "verified":true}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.0765,   0.34,    0.4,   0.45], "verified":true},
@@ -166,18 +164,17 @@
 		"comment":	"following columns are for 0, 1, 2, 3 children",
                 "EarnedIncome": {"value":[ 8490,  12730,  17880,  17880], "verified":true},
                 "Maximum":	{"value":[  649,   4328,   7152,   8046], "verified":true},
-                "AGIMFJ":	{"value":[17730,  30470,  30470,  30470], "verified":true},
                 "MFJ":		{"value":[26214,  57554,  64430,  68675], "verified":true},
-                "AGISNG":	{"value":[10620,  23350,  23350,  23350], "verified":true},
                 "SNG":		{"value":[19104,  50434,  57310,  61555], "verified":true},
                 "InvestMax":	{"value":11950, "verified":true}
 	},
        	"Care": {
-		"RateMax":	{"value":0.35, "verified":false},
-		"RateMin":	{"value":0.20, "verified":false},
-		"AGICap":	{"value":15000, "verified":false},
-		"AGICap2":	{"value":43000, "verified":false},
-		"PerChild":	{"value":3000, "verified":false}
+		"comment":	"Fixed values, not inflation driven"},
+		"RateMax":	{"value":0.35, "verified":true},
+		"RateMin":	{"value":0.20, "verified":true},
+		"AGICap":	{"value":15000, "verified":true},
+		"AGICap2":	{"value":43000, "verified":true},
+		"PerChild":	{"value":3000, "verified":true}
 	},
 	"Education": {
 		"TNF": {
