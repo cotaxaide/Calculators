@@ -1,0 +1,447 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>Capital loss carryover worksheet</title>
+
+<style>
+	html { background-color: #cccccc; }
+	body { background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%; }
+	button { cursor: pointer; background-color: lightgreen; border-radius: 5px; }
+	table { background-color: #bbeeee; border-collapse: collapse; width: 100%}
+	div { background-color: #bbeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 99%; }
+	h1 { text-align: center; font-size: 110%; text-decoration: underline}
+	tr { vertical-align: top;}
+	th { background-color: #cfc0c0; }
+	input, select { background-color: white; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.bold { font-weight: bold; }
+	.tblHeader { font-size: 110%; font-weight: bold; text-decoration: underline; }
+	.title { font-size: 125%; font-weight: bold; }
+	.instruction { font-style: italic; float: right; }
+	.comment { font-style: italic; }
+	.noteflag { background-color: yellow; }
+	.noPrint { float: left; }
+
+	#TPNameTable { column-count: 4; text-align: left;}
+	#TPNameTable tr td:first-child { min-width: 10em; text-align: right;}
+	#TPNameTable tr td:nth-child(2) { min-width: 15em;}
+	#TPNameTable tr td:nth-child(3) { min-width: 5em; text-align: right; }
+	#ClearAndPrint { text-align: center; float: right; z-level: 2; position:  absolute; top: 1em; right: 1em; }
+	#Name { width: 20em; }
+	#PrintYear { display: none; }
+	#InstructionDetails { display: none; }
+	#TaxYear { width: 5.5em; }
+
+	table input {
+		width: 6em;
+	}
+	#ZeroRow1,
+	#ZeroRow2,
+	#ZeroRow3 {
+		display: none;
+	}
+
+	#CLWorksheet {
+		display: inline-block;
+	}
+
+	#CLSection { width: 80%;
+		margin: auto;
+		font-size: 80%;
+		border: 1px solid blue;
+		background-color: lightblue;
+		table {
+			background-color: lightblue;
+			tr td:first-child {
+				text-align: right;
+			}
+			tr {
+				border-bottom: 1px solid aqua;
+			}
+		}
+		.CLData {
+			min-width: 6em;
+			background-color: white;
+			text-align: right;
+			vertical-align: bottom;
+			border: 1px solid black;
+			cursor: not-allowed;
+		}
+	}
+
+	#TSTable {
+		margin: auto;
+		border: 1px solid green;
+		background-color: lightgreen;
+		width: unset;
+		tr td {
+			padding: .25em 1em .25em 1em;
+		}
+		.TSData {
+			min-width: 6em;
+			text-align: right;
+		}
+	}
+
+	// Alignment overrides
+	.center { text-align: center; !important }
+	.left { text-align: left; !important }
+	.right { text-align: right; !important }
+	
+	@media print { 
+		.doPrint { display: inline; }
+		.noPrint { display: none; }
+		#PrintYear { display: inline; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
+		input, select, option { font-size: 0.8em; }
+		table { width: 100%; background-color: white; }
+	}
+</style>
+
+<script src="Common_Routines.js"></script>
+<script>
+	var VERSION;
+	// --------------------------------------------------------------------------------
+	// Contributors:
+
+	// --------------------------------------------------------------------------------
+
+	VERSION = "(Version 1.00, 6/8/2025)";
+
+	var TY = _DefaultYear;
+	var PY = TY - 1; // Prior year
+	var ErrorColor = "hotpink";
+	var ErrorMessage = "";
+
+	//----------------------------------------------------------------------------------------
+	function Main() {
+	// This function restricts Tax Year to current default plus 3 prior years
+	// 
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+		PrintYear.innerHTML = TaxYear.value = TY = _DefaultYear;
+		GetLineNumbers();
+	}
+
+	//----------------------------------------------------------------------------------------
+	function ShowInstructions(current) { 
+	// This function shows or hides InstructionDetails
+	//----------------------------------------------------------------------------------------
+		InstructionDetails.style.display = (current == "Show") ? "inline-block" : "none" ;
+		InstructionButton.innerHTML = (current == "Show") ? "Hide" : "Show" ;
+	}
+
+	//----------------------------------------------------------------------------------------
+	function DoCalc() { 
+	// This function checks input consistancy and calcs
+	//----------------------------------------------------------------------------------------
+		if (Taxable.value === "") {
+			ZeroRow1.style.display =
+			ZeroRow2.style.display =
+			ZeroRow3.style.display = "none";
+			Gross.style.backgroundColor = 
+			Deduction.style.backgroundColor = 
+			QBI.style.backgroundColor = "white";
+			ClearResults();
+			CL01.innerHTML = "";
+			return;
+		}
+
+		// If zero, figure out what it would have been
+		if (Taxable.value == 0) {
+			ZeroRow1.style.display =
+			ZeroRow2.style.display =
+			ZeroRow3.style.display = "table-row";
+			if (QBI.value === "") QBI.focus();
+			if (Deduction.value === "") Deduction.focus();
+			if (Gross.value === "") Gross.focus();
+			if ((Gross.value === "") || (Deduction.value === "") || (QBI.value === "")) return;
+
+			CL01val = +Gross.value - +Deduction.value - +QBI.value;
+			if (CL01val > 0) {
+				//Gross.style.backgroundColor = ErrorColor;
+				//Deduction.style.backgroundColor = ErrorColor;
+				//QBI.style.backgroundColor = ErrorColor;
+				ErrorMessage = "Taxable Income is zero but the other entries total a positive number. Something might be amiss.";
+				//alert (ErrorMessage);
+			}
+		}
+		else {
+			ZeroRow1.style.display =
+			ZeroRow2.style.display =
+			ZeroRow3.style.display = "none";
+			CL01val = +Taxable.value;
+		}
+
+		// Figure the rest of the lines
+		if ((STGain.value === "") || (LTGain.value === "")) return;
+
+		CL02val = Math.max(-3000, +STGain.value + +LTGain.value);
+		if (CL02val >= 0) {
+			ClearResults();
+			return;
+		}
+
+		CL01.innerHTML = CL01val;
+		CL02.innerHTML = CL02val = - CL02val;
+		CL03.innerHTML = CL03val = Math.max(0, CL01val + CL02val);
+		CL04.innerHTML = CL04val = Math.min(CL02val, CL03val);
+		if ((CL05val = +STGain.value) < 0) {
+			CL05.innerHTML = CL05val = - CL05val;
+			CL06.innerHTML = CL06val = (+LTGain.value > 0) ? +LTGain.value : 0;
+			CL07.innerHTML = CL07val = Math.max(0, CL04val + CL06val);
+		}
+		else {
+			CL05.innerHTML = CL05val = 0;
+			CL06.innerHTML = CL06val = "";
+			CL07.innerHTML = CL07val = "";
+		}
+		CL08.innerHTML = CL08val = Math.max(0, CL05val - CL07val);
+		if ((CL09val = +LTGain.value) < 0) {
+			CL09.innerHTML = CL09val = - CL09val;
+			CL10.innerHTML = CL10val = (+STGain.value > 0) ? +STGain.value : 0;
+			CL11.innerHTML = CL11val = Math.max(0, CL04val - CL05val);
+		}
+		else {
+			CL09.innerHTML = CL09val = 0;
+			CL10.innerHTML = CL10val = "";
+			CL11.innerHTML = CL11val = "";
+		}
+		CL12.innerHTML = CL12val = CL10val + CL11val;
+		CL13.innerHTML = CL13val = Math.max(0, CL09val - CL12val);
+
+		TSShort.innerHTML = CL08val;
+		TSLong.innerHTML = CL13val;
+	}
+
+	//----------------------------------------------------------------------------------------
+	function GetLineNumbers() { 
+	// This function gets the 1040 line numbers for the selected year
+	//	Curently not needed since all line numbers are the same for all years and not in json files.
+	//----------------------------------------------------------------------------------------
+
+		// Get the new tax year
+		TY = +TaxYear.value;
+		PrintYear.innerHTML = TY;
+		PY = TY - 1;
+
+		// Update references to the tax year and prior taxyear
+		pyList = document.getElementsByClassName("pty");
+		for (pyI in pyList) pyList[pyI].innerHTML = PY;
+		cyList = document.getElementsByClassName("cty");
+		for (cyI in cyList) cyList[cyI].innerHTML = TY;
+
+		// Clear inputs
+		Taxable.value =
+		Gross.value =
+		Deduction.value =
+		QBI.value =
+		STGain.value =
+		LTGain.vaule = "";
+
+		// Get the line numbers for 1040 forms
+		// For now, they're all the same
+	}
+
+	//----------------------------------------------------------------------------------------
+	function ClearResults() { 
+	// This function gets the 1040 line numbers for the selected year
+	//	Curently not needed since all line numbers are the same for all years and not in json files.
+	//----------------------------------------------------------------------------------------
+		clList = document.getElementsByClassName("CLData");
+		for (clI in clList) clList[clI].innerHTML = "";
+		CL01.innerHTML = CL01val;
+		CL02.innerHTML = 0;
+		CL03.innerHTML = 0;
+		CL04.innerHTML = 0;
+		CL08.innerHTML = 0;
+		CL13.innerHTML = 0;
+		TSShort.innerHTML = 0;
+		TSLong.innerHTML = 0;
+	}
+
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body>
+
+<center>
+	<span class="title">Capital loss carryover worksheet</span>
+	<br /><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+</center>
+
+<span id="ClearAndPrint" class="noPrint">
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</span>
+	
+	<div id="TPInfo">
+		<span class="tblHeader">Taxpayer Information:</span>
+		<br />
+		<br />
+		<table id="TPNameTable">
+			<tr>
+				<td id="TPNcolumnA">Taxpayer&apos;s Name: </td>
+				<td id="TPNcolumnB"><input id="Name" /></td>
+				<td id="TPNcolumnC">Tax Year: </td>
+				<td id="TPNcolumnD">
+					<select id="TaxYear" class="noPrint" onchange="GetLineNumbers();"></select>
+					<span id="PrintYear"></span></td>
+			</tr>
+		</table>
+	</div>
+
+	<div id="InstructionDiv" class="noPrint">
+		<span class="tblHeader">Instructions:</span>
+		<button id="InstructionButton" onclick="ShowInstructions(this.innerHTML);">Show</button>
+		<section id="InstructionDetails">
+		<ul>
+			<li>Select the tax year with which you are currently working.</li>
+			<li>Enter amounts from the prior tax year and the worksheet that should have been
+				produced with that tax year will be filled in. If a field is zero, enter 0.
+				If a field is negative, enter it as such.</li>
+			<li>If the taxable income is zero, it may actually be negative. Additional entry fields
+				will be displayed to help determine the negative amount which will be
+				added back to the carryover amount because it was not needed to bring the
+				taxable amount to zero.</li>
+			<li>Enter the results into TaxSlayer for the current year.</li>
+		</ul>
+		</section> <!-- InstructionDetails -->
+	</div> <!-- Instructions -->
+
+	<div id="CLWorksheet" onchange="DoCalc();">
+		<br />
+		<span class="tblHeader">Prior year income:</span>
+		<table id="InputTable">
+			<tr>	<td><span class="pty">2024</span>&apos;s Taxable income:</td>
+				<td>Form 1040 line <span id="TaxableLineNo">15</span></td>
+				<td><input id="Taxable" type="number" /></td>
+			<tr id="ZeroRow1">	<td><span class="pty">2024</span>&apos;s Adjusted gross income:</td>
+				<td>Form 1040 line <span id="GrossLineNo">11</span></td>
+				<td><input id="Gross" type="number" /></td>
+			<tr id="ZeroRow2">	<td><span class="pty">2024</span>&apos;s Deduction:</td>
+				<td>Form 1040 line <span id="DeductionLineNo">12</span></td>
+				<td><input id="Deduction" type="number" /></td>
+			<tr id="ZeroRow3">	<td><span class="pty">2024</span>&apos;s QBI deduction:</td>
+				<td>Form 1040 line <span id="QBILineNo">13</span></td>
+				<td><input id="QBI" type="number" /></td>
+			<tr>	<td><span class="pty">2024</span>&apos;s Net short-term gain/loss:</td>
+				<td>Schedule D line <span id="STGainLineNo">7</span></td>
+				<td><input id="STGain" type="number" /></td>
+			<tr>	<td><span class="pty">2024</span>&apos;s Net long-term gain/loss:</td>
+				<td>Schedule D line <span id="LTGainLineNo">15</span></td>
+				<td><input id="LTGain" type="number" /></td>
+		</table>
+		<br />
+		<section id="CLSection">
+		<center><b>IRS Capital Loss Carryover Worksheet</b></center>
+		<br />
+		<table id="CLTable" class="income-table">
+			<tr>	<td>1.</td>
+				<td> Enter the amount from <span class="pty">2024</span> 1040 line 15.
+					If it would have been a loss, enter as a negative number.
+				</td>
+				<td></td><td id="CL01" class="CLData"></td></tr>
+			<tr>	<td>2.</td>
+				<td> Enter the loss from <span class="pty">2024</span> Schedule D, line 21
+					as a positive number.
+				</td>
+				<td></td><td id="CL02" class="CLData"></td></tr>
+			<tr>	<td>3.</td>
+				<td> Combine lines 1 and 2. If zero or less, enter 0. 
+				</td>
+				<td></td><td id="CL03" class="CLData"></td></tr>
+			<tr>	<td>4.</td>
+				<td> Enter the smaller of line 2 or line 3
+				</td>
+				<td id="CL04" class="CLData"></td><td></td></tr>
+			<tr>	<td></td>
+				<td colspan="2"><b>If line 7 of your <span class="pty">2024</span> Schedule D is a loss,
+						go to line 5; otherwise, enter 0 on line 5 and go to line 9.</b></td></tr>
+			<tr>	<td>5.</td>
+				<td> Enter the loss from <span class="pty">2024</span> Schedule D line 7
+					as a positive number
+				</td>
+				<td></td><td id="CL05" class="CLData"></td></tr>
+			<tr>	<td>6.</td>
+				<td> Enter any gain from <span class="pty">2024</span> Schedule D, line 15.
+					If a loss, enter 0.
+				</td>
+				<td id="CL06" class="CLData"></td><td></td></tr>
+			<tr>	<td>7.</td>
+				<td> Add lines 4 and 6.
+				</td>
+				<td></td><td id="CL07" class="CLData"></td></tr>
+			<tr>	<td>8.</td>
+				<td> <b>Short-term capital loss carryover for <span class="cty">2024</span></b>
+					Subtract line 7 from line 5. If zero or less,enter 0.
+				</td>
+				<td></td><td id="CL08" class="CLData"></td></tr>
+			<tr>	<td></td>
+				<td colspan="2"><b>If line 15 of your <span class="pty">2024</span> Schedule D is a loss,
+						go to line 9; otherwise, skip lines 9 through 13.</b></td></tr>
+			<tr>	<td>9.</td>
+				<td> Enter the loss from <span class="pty">2024</span> Schedule D, line 15
+				as a positive number.
+				<td></td></td>
+				<td id="CL09" class="CLData"></td></tr>
+			<tr>	<td>10.</td>
+				<td> Enter any gain from <span class="pty">2024</span> Schedule D, line 7.
+				If a loss, enter as 0.
+				</td>
+				<td id="CL10" class="CLData"></td><td></td></tr>
+			<tr>	<td>11.</td>
+				<td> Subtract line 5 from line 4.
+				If zero or less, enter 0.
+				</td>
+				<td id="CL11" class="CLData"></td><td></td></tr>
+			<tr>	<td>12.</td>
+				<td> Add lines 10 and 11.
+				</td>
+				<td></td><td id="CL12" class="CLData"></td></tr>
+			<tr>	<td>13.</td>
+				<td> <b>Long-term capital loss carryover for <span class="cty">2025</span></b>
+					Subtract line 12 from line 9. If zero or less, enter 0.
+				</td>
+				<td></td><td id="CL13" class="CLData"></td></tr>
+		</table>
+		</section> <!-- CLSection -->
+		<br />
+		<span class="tblHeader"><span class="cty">2025</span> TaxSlayer input:</span>
+		<br />
+		<br />
+		<table id="TSTable">
+			<tr>	<td>Short-term capital loss carryover</td>
+				<td>Schedule D Line 6</td>
+				<td id="TSShort" class="TSData"></td></tr>
+			<tr>	<td>Long-term capital loss carryover</td>
+				<td>Schedule D Line 14</td>
+				<td id="TSLong" class="TSData"></td></tr>
+		</table>
+
+	</div> <!-- CLWorksheet -->
+
+	<div class="noPrint">
+	  Please send corrections and suggestions to	<a href="mailto:core.webmaster0@gmail.com">tools@cotaxaide.org</a>
+	  <span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+</div>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
+
+</body>
+
