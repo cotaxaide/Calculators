@@ -1,0 +1,621 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
+	<title>State INT/DIV exemption worksheet</title>
+
+<style>
+	html { background-color: #cccccc; }
+	body { background-color: #cccccc; font-family: sans-serif; padding: 0 2.5% 0 2.5%; }
+	button { cursor: pointer; background-color: lightgreen; border-radius: 5px; }
+	table { background-color: #eeeeee; border-collapse: collapse; width: 100%}
+	div { background-color: #eeeeee; padding: 1em; border: 1px solid black; margin-top: 10px; width: 99%; }
+	h1 { text-align: center; font-size: 110%; text-decoration: underline}
+	tr { vertical-align: top;}
+	th { background-color: #cfc0c0; }
+	//input { text-align: left; }
+	input, select { background-color: white; }
+	//input[type="number"] { width: 6em; }
+	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
+	.bold { font-weight: bold; }
+	.tblHeader { font-size: 110%; font-weight: bold; text-decoration: underline; }
+	.title { font-size: 125%; font-weight: bold; }
+	.instruction { font-style: italic; float: right; }
+	.comment { font-style: italic; }
+	.noteflag { background-color: yellow; }
+	.noPrint { float: left; }
+
+	#TPNameTable { column-count: 4; text-align: left; width: 0; }
+	#TPNameTable tr td:first-child { min-width: 15em; text-align: right;}
+	#TPNameTable tr td:nth-child(2) { min-width: 25em;}
+	#TPNameTable tr td:nth-child(3) { min-width: 5em; text-align: right; }
+	#ClearAndPrint { text-align: center; float: right; z-level: 2; position:  absolute; top: 1em; right: 1em; }
+	#Name, #Broker {
+		width: 25em;
+	}
+	#PrintYear { display: none; }
+	#InstructionDetails { display: none; }
+	#TaxYear { width: 5.5em; }
+
+	#DIVWorksheet,
+	#INTWorksheet,
+	#OIDWorksheet {
+		display: none;
+	}
+
+	.fed-tax-free {
+		margin-left: 4em;
+		white-space: nowrap;
+	}
+	#DIVFedTaxFree,
+	#INTFedTaxFree,
+	#OIDFedTaxFree,
+	#INTFedBonds,
+	#OIDFedBonds {
+		width: 6em;
+		text-align: center;
+	}
+	#DIVFedBonds {
+		display: none;
+	}
+
+	.income-table {
+		td, tbody td {
+			text-align: center;
+		}
+		.line-index{
+			width: 2em;
+			display: none;
+		}
+		td .fund-name{
+			min-width: 90%;
+			text-align: left;
+			margin: auto;
+		}
+		.tax-free {
+			width: 1em;
+			margin: auto;
+		}
+		.us-obligations,
+		.us-possessions,
+		.state-source,
+		.fund-earnings,
+		.state-exempt,
+		.state-tax-free {
+			min-width: 4em;
+			max-width: 7em;
+			text-align: center;
+			margin: center;
+		}
+		.fund-earnings input:before {
+			content: "$";
+		}
+		.state-exempt,
+		.state-tax-free {
+			font-size: 0.9em;
+		}
+	}
+	.income-table tfoot {
+		border-top: 1px solid black;
+	}
+
+	.final-results {
+		width: 35em;
+		margin: auto;
+		th {
+			border: 2px solid black;
+			background-color: lightgreen;
+		}
+		td {
+			border: 2px solid black;
+			min-width: 8em;
+		}
+	}
+
+	// Alignment overrides
+	.center { text-align: center; !important }
+	.left { text-align: left; !important }
+	.right { text-align: right; !important }
+	
+	@media print { 
+		.doPrint { display: inline; }
+		.noPrint { display: none; }
+		#PrintYear { display: inline; }
+		html { background-color: white; font-size: 0.8em; }
+		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
+		input, select, option { font-size: 0.8em; }
+		table { width: 100%; background-color: white; }
+	}
+</style>
+
+<script src="Common_Routines.js"></script>
+<script>
+	var VERSION;
+	// --------------------------------------------------------------------------------
+	// Contributors:
+
+	// --------------------------------------------------------------------------------
+
+	VERSION = "(Version 1.00, 6/1/2025)";
+
+	var TY = _DefaultYear;
+	var Line_index = 0;
+	var Earnings = 0;
+	var TotalExempt = 0;
+	var TotalStateTaxFree = 0;
+	var FedTaxFree = 0;
+	var ErrorMessage = "";
+
+	//----------------------------------------------------------------------------------------
+	function Main() {
+	// This function restricts Tax Year to current default plus 3 prior years
+	// 
+	//----------------------------------------------------------------------------------------
+		// Add tax year options
+		var tyOptIndex = 0;
+		for (var ty = _StartYear; ty <= _StopYear; ty++) {
+			var tyopti = document.createElement("option");
+			tyopti.text = tyopti.value = ty;
+			TaxYear.add(tyopti,tyOptIndex++);
+		}
+		PrintYear.innerHTML = TaxYear.value = TY = _DefaultYear;
+		GetLineNumbers();
+		AddTableLine("DIVIncomeTable");
+		AddTableLine("INTIncomeTable");
+		AddTableLine("OIDIncomeTable");
+	}
+
+	//----------------------------------------------------------------------------------------
+	function ShowInstructions(current) { 
+	// This function shows or hides InstructionDetails
+	//----------------------------------------------------------------------------------------
+		InstructionDetails.style.display = (current == "Show") ? "inline-block" : "none" ;
+		InstructionButton.innerHTML = (current == "Show") ? "Hide" : "Show" ;
+	}
+
+	//----------------------------------------------------------------------------------------
+	function ExemptCalc(form){ 
+	// This function checks input consistantcy
+	//----------------------------------------------------------------------------------------
+		// Show or hide the selected tables
+		DIVWorksheet.style.display = (ShowDIV.checked) ? "inline-block" : "none" ;
+		INTWorksheet.style.display = (ShowINT.checked) ? "inline-block" : "none" ;
+		OIDWorksheet.style.display = (ShowOID.checked) ? "inline-block" : "none" ;
+
+		if (form === undefined) return;
+		form = form.substring(0,3); // INT, DIV or OID
+
+		ErrorMessage = "";
+		TotalStateTaxFree = 0;
+		TotalExempt = 0;
+
+		// get the Federal tax-free amount and bonds
+		eFed = document.getElementById(form + "FedTaxFree");
+		FedTaxFree = Math.round(eFed.value.replace(/[^0-9\.]/g, ""));
+		eFed.value = "$ " + Commatize(FedTaxFree);
+		eBond = document.getElementById(form + "FedBonds");
+		FedBonds = Math.round(eBond.value.replace(/[^0-9\.]/g, ""));
+		eBond.value = "$ " + Commatize(FedBonds);
+
+		// do we need to add a new blank line? Assume so unless an existing one is blank
+		needNewLine = true;
+
+		// do the calcs for each line
+		elementList = document.getElementsByClassName(form);
+		for (e = 0; e < elementList.length; e++) {
+			eLineNo = elementList[e].innerHTML;
+
+			// if no name, do not process or add a new blank line
+			eName = document.getElementById("fund-name" + eLineNo);
+			if (eName.value == "") {
+				needNewLine = false;
+				continue;
+			}
+
+			// get input elements for calcs for this line of entries
+			eTFF = document.getElementById("tax-free" + eLineNo);
+			eUSob = document.getElementById("us-obligations" + eLineNo);
+			eUSpos = document.getElementById("us-possessions" + eLineNo);
+			eState = document.getElementById("state-source" + eLineNo);
+			eEarn = document.getElementById("fund-earnings" + eLineNo);
+			eStf = document.getElementById("state-tax-free" + eLineNo);
+			eExe = document.getElementById("state-exempt" + eLineNo);
+
+			// initialize line's results
+			eStf.innerHTML = "";
+			eExe.innerHTML = "";
+
+			// get the tax free indicator
+			TaxFreeFlag = eTFF.checked;
+
+			// get the values for the line and do the math
+			// resolve $ vs % entries and commas via GetValue()
+			Earnings = +GetValue(eEarn);
+			exempt = +GetValue(eUSob) + +GetValue(eUSpos) + +GetValue(eState);
+
+			// put the result in the output columns
+			eFed.style.backgroundColor = "white";
+			if (TaxFreeFlag) {
+				if (+FedTaxFree == 0) {
+					eFed.style.backgroundColor = "lightpink";
+					ErrorMessage += "\nPlease enter the federal tax free amount first.";
+					alert (ErrorMessage);
+					return;
+				}
+				if (exempt > +FedTaxFree) {
+					eFed.style.backgroundColor = "lightpink";
+					ErrorMessage += "\nState amount cannot be more than federal tax free amount when the tax free box is checked.";
+					alert (ErrorMessage);
+					return;
+				}
+				if ( (Earnings > 0) && (exempt > Earnings) ) {
+					eEarn.style.backgroundColor = "lightpink";
+					ErrorMessage += "\nThe total amount of exemtions cannot be greater than the Fund earnings.";
+					exempt = "";
+					alert (ErrorMessage);
+				}
+				eStf.innerHTML = Commatize(exempt);
+				TotalStateTaxFree += exempt;
+			}
+			else {
+				if ( (Earnings > 0) && (exempt > Earnings) ) {
+					eEarn.style.backgroundColor = "lightpink";
+					ErrorMessage += "\nThe total amount of exemtions cannot be greater than the Fund earnings.";
+					exempt = "";
+					alert (ErrorMessage);
+			}
+				eExe.innerHTML = Commatize(exempt);
+				TotalExempt += exempt;
+			}
+		}
+
+		// Totals for this worksheet
+		document.getElementById(form + "Exempt").innerHTML = Commatize(+TotalExempt);
+		document.getElementById(form + "StateTaxFree").innerHTML = Commatize(+TotalStateTaxFree);
+		if (+FedTaxFree < +TotalStateTaxFree) {
+			ErrorMessage += "The total amount of state tax free earnings cannot be greater";
+			ErrorMessage +=" than the Federal exempt interest amount.";
+			ErrorMessage +="\n\nPlease check all lines with the Tax free box checked.";
+			alert (ErrorMessage);
+			return;
+		}
+		document.getElementById(form + "TSExempt").innerHTML = "$ " + Commatize(+TotalExempt + +FedBonds);
+		document.getElementById(form + "TSTaxable").innerHTML = "$ " + Commatize(Math.max(0, +FedTaxFree - +TotalStateTaxFree));
+
+		// do we need to add a new blank line
+		if (needNewLine) {
+			AddTableLine(form + "IncomeTable");
+		}
+
+	}
+
+	//----------------------------------------------------------------------------------------
+	function GetValue(cellElement){
+	// This function figures the amount represented by the table cell data
+	//----------------------------------------------------------------------------------------
+		let value = cellElement.value;
+		if (value == "") return 0;
+
+		cellElement.style.backgroundColor = "white"; // reset any prior lightpink
+		eEarn.placeholder = "(not required)"; // reset $ placeholder unless a % is encountered
+		let isEarningsCell = (cellElement.className.indexOf("fund-earnings") != -1);
+		let isDollars = isEarningsCell || (value.indexOf("$") != -1);
+		let isPercent = (value.indexOf("%") != -1);
+		if (isDollars && isPercent) {
+			cellElement.style.backgroundColor = "lightpink";
+			ErrorMessage += "\nYou cannot specify both '$' and '%'.";
+			alert (ErrorMessage);
+			return 0;
+		}
+		value = +value.replace(/[^0-9\.]/g, "");
+		if (isDollars) {
+			value = Math.round(value);
+			if (isEarningsCell) Earnings = 0;
+			if ((Earnings > 0) && (value > Earnings)) {
+				cellElement.style.backgroundColor = "lightpink";
+				ErrorMessage += "\nThe exemption amount cannot be greater than the fund earnings.";
+				alert (ErrorMessage);
+				return 0;
+			}
+			cellElement.value = "$ " + Commatize(value);
+		}
+		else { // is percentage of Earnings
+			if (value > 100) { // Also cannot be < 0 but any minus sign has already been removed
+				cellElement.style.backgroundColor = "lightpink";
+				ErrorMessage += "\nThe percent amount cannot be more that 100 %..";
+				alert (ErrorMessage);
+				return 0;
+			}
+			cellElement.value = value + " %";
+			if (Earnings == 0) eEarn.placeholder = "$    ";
+			value = Math.round(Earnings * value / 100)
+		}
+		return value;
+	}
+
+	//----------------------------------------------------------------------------------------
+	function Commatize(dval) { 
+	// This function gets the 1040 line numbers for the selected year
+	//----------------------------------------------------------------------------------------
+		dval += ""; // convert to string
+		if ((dl = dval.length) > 3) dval = dval.substring(0,dl-3) + "," + dval.substring(dl-3);
+		if ((dl = dval.length) > 7) dval = dval.substring(0,dl-7) + "," + dval.substring(dl-7);
+		if ((dl = dval.length) > 11) dval = dval.substring(0,dl-11) + "," + dval.substring(dl-11);
+		return (dval);
+	}
+
+	//----------------------------------------------------------------------------------------
+	function GetLineNumbers() { 
+	// This function gets the 1040 line numbers for the selected year
+	//	Curently not needed since all line numbers are the same for all years and not in json files.
+	//----------------------------------------------------------------------------------------
+		PrintYear.innerHTML = TaxYear.value;
+		// Get the new tax year
+		// TY = +TaxYear.value;
+
+		// Get the line numbers for 1040 forms
+	}
+
+	//----------------------------------------------------------------------------------------
+	function AddTableLine(table_name) { 
+	//----------------------------------------------------------------------------------------
+		Line_index++;
+		tableClass = table_name.substring(0,3);
+		newrow = document.createElement("tr");
+		cols = ["+fund-name", "+tax-free", "+us-obligations", "+us-possessions", "+state-source", "+fund-earnings", "state-exempt", "state-tax-free", "line-index"];
+		for (col = 0; col < cols.length; col++) {
+			// Add the new col
+			newcol = document.createElement("td");
+			newrow.appendChild(newcol);
+			colType = cols[col].substring(0,1);
+			if (colType == "+") { // Insert the input box for this col
+				colClass = cols[col].substring(1);
+				newinput = document.createElement("input");
+				newinput.id = colClass + Line_index;
+				newinput.className = colClass;
+				if (colClass == "tax-free") newinput.type = "checkbox";
+				//if (colClass == "fund-earnings") newinput.placeholder = "$    ";
+				newcol.appendChild(newinput);
+			}
+			else { // No input box for this col
+				colClass = cols[col];
+				newcol.id = cols[col] + Line_index;
+			}
+			if (colClass == "line-index") {
+				newcol.innerHTML = Line_index;
+				newcol.className = tableClass + " " + colClass;
+			}
+		}
+		table = document.getElementById(table_name);
+		tablebody = table.tbody;
+		table.appendChild(newrow);
+	}
+
+</script>
+
+</head>
+
+<!-- ******************************************************************************************************** -->
+<!-- **************************************** START OF HTML ************************************************* -->
+<!-- ******************************************************************************************************** -->
+
+<body>
+
+<center>
+	<span class="title">State INT/DIV exemption worksheet</span>
+	<br /><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
+</center>
+
+<span id="ClearAndPrint" class="noPrint">
+	<button onclick="window.open(window.location,'_self');">Clear and reset calculator</button>
+	<br /><button onclick="window.print()">Print a taxpayer copy</button>
+</span>
+	
+	<div id="TPInfo">
+		<span class="tblHeader">Taxpayer Information:</span>
+		<br />
+		<br />
+		<table id="TPNameTable">
+			<tr>
+				<td id="TPNcolumnA">Taxpayer&apos;s Name: </td>
+				<td id="TPNcolumnB"><input id="Name" /></td>
+				<td id="TPNcolumnC">Tax Year: </td>
+				<td id="TPNcolumnD">
+					<select id="TaxYear" class="noPrint" onchange="GetLineNumbers();"></select>
+					<span id="PrintYear"></span></td>
+			</tr>
+			<tr>
+				<td>Income source (broker name): </td><td><input id="Broker" /></td>
+			</tr>
+		</table>
+		<br />Indicate which forms are provided by this broker statement that need your attention:
+			<span onchange="ExemptCalc()">
+				<input id="ShowDIV" type="checkbox"> 1099-DIV,
+				<input id="ShowINT" type="checkbox"> 1099-INT, 
+				<input id="ShowOID" type="checkbox"> 1099-OID 
+			</span>
+	</div>
+
+	<div id="Instructions" class="noPrint">
+		<span class="tblHeader">Instructions:</span>
+		<button id="InstructionButton" onclick="ShowInstructions(this.innerHTML);">Show</button>
+		<section id="InstructionDetails">
+		<br />Broker statements often have 1099-DIV, 1099-INT and 1099-OID statements
+		included in a consolodated report, with the detailed source of each respective
+		income.
+		Determing any portion of each source that could be excluded from
+		income and, in the case of tax-free income, that which could be taxable, can be
+		a daunting process. It may also take considerable research for very little gain.
+		Fortunately, it is becoming more common to have a table near the
+		end of the consolodated statement that shows the percentage of each fund that
+		can be attributed to government obligations, government possessions, and
+		individual states. Some are actually doing the math.
+		<br /><br />This tool can help with the process and provide a record to the
+		taxpayer to show how the exclusions or additional taxable income is derived.
+		Create and print a seperate sheet for each broker statement on which entries
+		need to be made.
+		<br /><br />Note that some broker statements will distinguish between direct
+		and indirect go464288588 vernment obligations. Generally, direct obligations are
+		excludable but indirect obligations are dependent on state tax laws. If your
+		state law allows the latter, add the two percentages for the government
+		obligations column. (Colorado does not.)
+		<br /><br />Government possessions often include:
+		Puerto Rico,
+		Guam,
+		and US Virgin Islands,
+		<!--American Samoa,
+		and the Commonwealth of the Northern Mariana Islands.-->
+		<br /><br /><span class="tblHeader">Data entry:</span>
+		<ol>
+			<li>If there are savings bonds or tax-free amounts on the broker form,
+				enter those first in the boxes above the table.</li>
+			<li>Enter the name of each fund or it&apos;s CUSIP number or exchange symbol
+				in a seperate line. The table will expand to always have a blank line.
+			<li>If a fund is part of the Tax exempt interest amount,
+				check the "Tax free" box so that it is associated with that amount.
+				Typically, the fund amount is from bonds and those from your
+				state of residence will be tax free.</li>
+			<li>For the Federal and State data entries, precede the amount by a "$"
+				if using an actual amount or (optionally)
+				follow the amount with a "%" if using percent.
+				Fund earnings will always use dollar amounts
+				but the entry is only needed if using "%" in that line.
+				Only enter state source data for your state of residence.</li>
+			<li>Print a copy for the taxpayer.</li>
+			<li>Enter the results into TaxSlayer<sup>&reg</sup> as indicated.</li>
+		</ol>
+		</section> <!-- InstructionDetails -->
+	</div> <!-- Instructions -->
+
+	<div id="DIVWorksheet" onchange="ExemptCalc('DIV')";>
+		<span class="tblHeader">1099-DIV Income:</span>
+		<span class="fed-tax-free">Exempt interest dividends (box 12):
+			<input id="DIVFedTaxFree" placeholder="$    " /></span>
+			<input id="DIVFedBonds" /> <!-- dummy input, there are no DIV savings bonds -->
+		<table id="DIVIncomeTable" class="income-table">
+			<thead><tr>
+				<th class="fund-name">Fund name and/or symbol</th>
+				<th class="tax-free">Tax free</th>
+				<th class="us-obligations">US obligations</th>
+				<th class="us-possessions">US possesions</th>
+				<th class="state-source">State source</th>
+				<th class="fund-earnings">Fund earnings</th>
+				<th class="state-exempt">State exempt</th>
+				<th class="state-tax-free">State tax free</th>
+				<th class="line-index">Index</th>
+			</tr>
+			</thead>
+			<tfoot>
+			<tr>	<td colspan="6"><br />
+					<table class="final-results">
+						<thead>
+						<tr><th colspan="2">TaxSlayer entries</th></tr>
+						<tr><th>TaxSlayer line</th><th>amount</th></tr>
+						</thead border="1">
+						<tbody>
+							<tr>	<td>Amount of interest on U.S.Savings Bonds and Treasury Obligations that you want subtracted from your state return</td>
+								<td id="DIVTSExempt">0</td></tr>
+							<tr><td>Taxable state dividends</td>
+								<td id="DIVTSTaxable">0</td></tr>
+						</tbody>
+					</table>
+				<td id="DIVExempt" class="right">0</td>
+				<td id="DIVStateTaxFree" class="right">0</td>
+			</tr>
+			</tr>
+			</tfoot>
+		</table>
+	</div> <!-- DIVWorksheet -->
+
+	<div id="INTWorksheet" onchange="ExemptCalc('INT')";>
+		<span class="tblHeader">1099-INT Income:</span>
+		<span class="fed-tax-free">Savings bond interest (box 3):
+			<input id="INTFedBonds" placeholder="$    " /></span>
+		<span class="fed-tax-free">Tax exempt interest (box 8):
+			<input id="INTFedTaxFree" placeholder="$    " /></span>
+		<table id="INTIncomeTable" class="income-table">
+			<thead> <tr>
+				<th class="fund-name">Fund name and/or symbol</th>
+				<th class="tax-free">Tax free</th>
+				<th class="us-obligations">US obligations</th>
+				<th class="us-possessions">US possesions</th>
+				<th class="state-source">State source</th>
+				<th class="fund-earnings">Fund earnings</th>
+				<th class="state-exempt">State exempt</th>
+				<th class="state-tax-free">State tax free</th>
+				<th class="line-index">Index</th>
+			</tr>
+			</thead>
+			<tfoot>
+			<tr>	<td colspan="6"><br />
+					<table class="final-results">
+						<thead>
+						<tr><th colspan="2">TaxSlayer entries</th></tr>
+						<tr><th>TaxSlayer line</th><th>amount</th></tr>
+						</thead border="1">
+						<tbody>
+							<tr>	<td>Amount of interest on U.S.Savings Bonds and Treasury Obligations that you want subtracted from your state return</td>
+								<td id="INTTSExempt">0</td></tr>
+							<tr><td>Taxable state interest</td>
+								<td id="INTTSTaxable">0</td></tr>
+						</tbody>
+					</table>
+				<td id="INTExempt" class="right">0</td>
+				<td id="INTStateTaxFree" class="right">0</td>
+			</tr>
+			</tr>
+			</tfoot>
+		</table>
+	</div> <!-- INTWorksheet -->
+
+	<div id="OIDWorksheet" onchange="ExemptCalc('OID')";>
+		<span class="tblHeader">1099-OID Income:</span>
+		<span class="fed-tax-free">OID on treasury obligations (box 8):
+			<input id="OIDFedBonds" placeholder="$    " /></span>
+		<span class="fed-tax-free">Tax exempt OID (box 11):
+			<input id="OIDFedTaxFree" placeholder="$    " /></span>
+		<table id="OIDIncomeTable" class="income-table">
+			<thead> <tr>
+				<th class="fund-name">Fund name and/or symbol</th>
+				<th class="tax-free">Tax free</th>
+				<th class="us-obligations">US obligations</th>
+				<th class="us-possessions">US possesions</th>
+				<th class="state-source">State source</th>
+				<th class="fund-earnings">Fund earnings</th>
+				<th class="state-exempt">State exempt</th>
+				<th class="state-tax-free">State tax free</th>
+				<th class="line-index">Index</th>
+			</tr>
+			</thead>
+			<tfoot>
+			<tr>	<td colspan="6"><br />
+					<table class="final-results">
+						<thead>
+						<tr><th colspan="2">TaxSlayer entries</th></tr>
+						<tr><th>TaxSlayer line</th><th>amount</th></tr>
+						</thead border="1">
+						<tbody>
+							<tr>	<td>Amount of interest on U.S.Savings Bonds and Treasury Obligations that you want subtracted from your state return</td>
+								<td id="OIDTSExempt">0</td></tr>
+							<tr><td>Taxable state OID</td>
+								<td id="OIDTSTaxable">0</td></tr>
+						</tbody>
+					</table>
+				<td id="OIDExempt" class="right">0</td>
+				<td id="OIDStateTaxFree" class="right">0</td>
+			</tr>
+			</tr>
+			</tfoot>
+		</table>
+	</div> <!-- OIDWorksheet -->
+
+	<div class="noPrint">
+	  Please send corrections and suggestions to	<a href="mailto:core.webmaster0@gmail.org">tools@cotaxaide.org</a>
+	  <span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
+</div>
+
+<script type="text/javascript"> _GetIRSData(_StartYear, _StopYear); </script>
+
+</body>
+
