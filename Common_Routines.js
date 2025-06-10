@@ -19,6 +19,7 @@
 //	_IRADeduction		IRA Deduction as an income adjustment
 //	_StudLoanInt		Student Loan Interest income adjustment
 //----------------------------------------------------------------------------------------
+//Version 2.2 - Removed 2021 tax year changes
 //Version 2.1 - Changed reporting of tax bracket to just non-cap gains
 //Version 2.0 - Added routines to use JSON data files
 
@@ -420,7 +421,6 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	taxYear,	// tax year tables to use
 	filingStatus,	// SNG, MFJ, WID, MFS, HOH
 	childDependents, // total number of children/disabled eligible for CTC
-			// for 2021, the decimal indicates number under 6 (eg 3.01)
 	totalDependents, // number of total dependents (including child/disabled)
 	earnedIncome,	// Wages + SE income
 	AGI,		// AGI
@@ -447,24 +447,9 @@ function _CTCLookup(	// Determines Child and Dependent Tax Credit
 	let cD = Math.floor(+childDependents);
 	let CTCAmount = CTCRate * cD;
 	CTCAmount = Math.max(0, (CTCAmount - CTCReduction));
-	if (taxYear == 2021) { // additional 1000 or 1300 per child
-		let CTC0Rate = +_IRSValue("CTC.Age0", TY);
-		let CTC6Rate = +_IRSValue("CTC.Age6", TY);
-		let CTC0Reduction = Math.max(0, (+AGI - +_IRSValue("CTC.AGI0Cap." + filingStatus, TY)));
-			CTC0Reduction = 50 * (Math.ceil(CTC0Reduction/1000));
-		let cD0 = Math.round((childDependents - cD) * 100);
-			cD0 = Math.min(cD, cD0); // Data error check
-		let cD6 = Math.max(0, (cD - cD0));
-		let CTC0Amount = CTC0Rate * cD0;
-		let CTC6Amount = CTC6Rate * cD6;
-		CTCAmount += (Math.max(0, CTC0Amount + CTC6Amount - CTC0Reduction));
-		ACTCLimit = CTCAmount;
-	}
-	else {
-		ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
-		childDependents = Math.floor(childDependents); // programming error protection
-		ACTCLimit = Math.min(ACTCRate * +childDependents, ACTCLimit);
-	}
+	ACTCLimit = Math.max(0, 0.15 * (earnedIncome - ACTCThresh), SocSecOffset);
+	childDependents = Math.floor(childDependents); // programming error protection
+	ACTCLimit = Math.min(ACTCRate * +childDependents, ACTCLimit);
 	totalDependents = Math.floor(totalDependents); // programming error protection
 	FTCAmount = FTCRate * (Math.max(0, +totalDependents - cD));
 	return ([CTCAmount, FTCAmount, Math.round(ACTCLimit)]);
@@ -611,10 +596,6 @@ function _ChildCare (	// Form 2441
 	
 	rateReduction = Math.ceil(Math.max(0, (AGI - AGICap) / 2000)) / 100;
 	line8 = Math.max(RateMin, RateMax - rateReduction);
-	if (TY == 2021) {
-		rateReduction = Math.min(Math.max(0, (AGI - 400000) / 2000)) / 100;
-		line8 = Math.max(0, line8 - rateReduction);
-	}
 	line9 = line6 * line8;
 
 	Result["percent"] = line8;
