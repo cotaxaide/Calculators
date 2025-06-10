@@ -1,5 +1,4 @@
-{	"TaxYear":		{"value":2021},
-	"Preliminary":		{"value":false},
+{	"TaxYear":		{"value":2021, "verified":true},
 	"LineNo": {
 		"Wages":	{"value":"1"},
 		"Earned":	{"value":"1z&S1-3"},
@@ -151,17 +150,14 @@
 		"QSS":		{"value":[ 73600,   523600,  952150]},
 		"WID":		{"value":[ 73600,   523600,  952150]},
 		"HOH":		{"value":[ 87500,  609350,  952150]},
-		"TRUST":	{"value":[ 25700,    85650,  219300]},
-		"KIDDIE":	{"value":[ 7950,   510300]}
+		"TRUST":	{"value":[ 25700,    85650,  219300]}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.153,   0.34,    0.4,   0.45]},
 		"RateDown":	{"value":[0.153,  0.160, 0.2106, 0.2106]},
                 "Maximum":	{"value":[  1502,   3618,   5980,   6728]},
                 "EarnedIncome": {"value":[ 8260,  12390,  17400,  17400]},
-                "AGISNG":	{"value":[  8880,  19520,  19520,  19520]},
                 "SNG":		{"value":[21430,  42158,  47915,  51464]},
-                "AGIMFJ":	{"value":[ 14820,  25470,  25470,  25470]},
                 "MFJ":		{"value":[ 27380,  48108,  53865,  57414]},
                 "InvestMax":	{"value":10000}
 	},

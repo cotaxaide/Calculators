@@ -1,5 +1,4 @@
 {	"TaxYear":		{"value":2024, "verified":true},
-	"Preliminary":		{"value":true, "verified":true},
 	"LineNo": {
 		"Wages":	{"value":"1z", "verified":true},
 		"Earned":	{"value":"1z&S1-3", "verified":true},
@@ -152,7 +151,7 @@
 		"MFJ":		{"value":[133300, 1218700, 1751900], "verified":true},
 		"QSS":		{"value":[ 85700,  609350,  952150], "verified":true},
 		"WID":		{"value":[ 85700,  609350,  952150], "verified":true},
-		"HOH":		{"value":[ 85700,  609350,  952150], "verified":true},
+		"HOH":		{"value":[ 85700,  609350,  952150], "verified":true}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.0765,   0.34,    0.4,   0.45], "verified":true},

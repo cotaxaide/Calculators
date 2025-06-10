@@ -1,5 +1,4 @@
 {	"TaxYear":		{"value":2025, "verified":true},
-	"Preliminary":		{"value":true, "verified":true},
 	"LineNo": {
 		"1040_comment":	{"value":"Form 1040"},
 		"Wages":	{"value":"1z", "verified":true},
@@ -100,7 +99,8 @@
 	"MedBMFSPremium":	{"comment":"From CMS website",
 				"value":106000, "verified":true
 	},
-	"NIIT":			{"comment":"From Form 8960 instructions",
+	"NIIT":	{	
+		"comment":	"From Form 8960 instructions",
 		"Rate":		{"value": 0.038, "verified":true},
 		"SNG":		{"value":200000, "verified":true},
 		"MFS":		{"value":125000, "verified":true},
@@ -156,7 +156,7 @@
 		"WID":		{"value":[137000, 1252700, 1800700], "verified":true},
 		"MFS":		{"value":[ 68500,  626350,  900350], "verified":true},
 		"SNG":		{"value":[ 88100,  626350,  978750], "verified":true},
-		"HOH":		{"value":[ 88100,  626350,  978750], "verified":true},
+		"HOH":		{"value":[ 88100,  626350,  978750], "verified":true}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.0765,   0.34,    0.4,   0.45], "verified":true},
@@ -169,7 +169,7 @@
                 "InvestMax":	{"value":11950, "verified":true}
 	},
        	"Care": {
-		"comment":	"Fixed values, not inflation driven"},
+		"comment":	"Fixed values, not inflation driven",
 		"RateMax":	{"value":0.35, "verified":true},
 		"RateMin":	{"value":0.20, "verified":true},
 		"AGICap":	{"value":15000, "verified":true},

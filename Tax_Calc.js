@@ -3,7 +3,6 @@ function Tax_Calc(
 	taxYear, 		// tax year
 	CalcType, 		// T (taxpayer), S (spouse), J (joint)
 	CalcIn, 		// Array of input amounts
-	AllowUCE = false	// True/False, 2020 Unemployment compensation exclusion (UCE)
 ) {
 // This function takes the inputs from the CalcIn array and creates the CalcOut array
 // CalcIn array keys:
@@ -70,9 +69,7 @@ function Tax_Calc(
 	var DependentsValue = +Dependents.value;
 	var EICDependentsValue = +EICDependents.value;
 	var CTCDependentsValue = +CTCDependents.value;
-		CTCDependentsValue += 0.01 * Dependents0.value; // UNDER AGE 6, 2021 ONLY
 	var SPCTCDependentsValue = +SPCTCDependents.value;
-	SPCTCDependentsValue += 0.01 * SPDependents0.value; // UNDER AGE 6, 2021 ONLY
 	if (MFJMFS.checked) {
 		switch (CalcType) {
 		case "T":
@@ -185,23 +182,10 @@ function Tax_Calc(
 	var CGLossLimit = (FilingStatusValue == "MFS") ? -1500 : -3000;
 	CalcOut["CapGains"] = Math.round(Math.max( (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]) , CGLossLimit));
 
-	// Unemployment and Other Income adustments for 2020
-	var MFJUCE = 0;
-	if ((taxYear == 2020) && (AllowUCE)) {
-		var UCE_limit = 10200;
-		TPMFS["TPUCE"] = Math.min(+TPMFS["Unemployment"], UCE_limit);
-		SPMFS["SPUCE"] = Math.min(+SPMFS["Unemployment"], UCE_limit);
-		if (CalcType == "T") MFJUCE = +TPMFS["TPUCE"];
-		else if (CalcType == "S") MFJUCE = +SPMFS["SPUCE"];
-		else if (CalcType == "J") MFJUCE = +TPMFS["TPUCE"] + +SPMFS["SPUCE"];
-	}
-	CalcOut["OtherIncome"] = +CalcIn["Royalties"] - MFJUCE;
-	UCEAmount.innerHTML = (MFJUCE) ?  "(UCE = " + MFJUCE + ")" : "" ;
-
 	IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Scholar"] + +CalcIn["Interest"]
 		+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
 		+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["Alimony"]
-		+ +CalcIn["Unemployment"] + +CalcOut["OtherIncome"] + MFJUCE;
+		+ +CalcIn["Unemployment"] + +CalcOut["OtherIncome"];
 	// Get the taxable Social Security amount
 	MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
 	SSresult = _TaxableSS(taxYear, FilingStatusValue, +CalcIn["SS"],
@@ -211,14 +195,6 @@ function Tax_Calc(
 
 	// Get the taxable SS amount difference if charitable contributions are added
 	var charityLimit = 0;
-	if (taxYear == 2020) { // 300 unless MFS, then 150
-		charityLimit = (FilingStatusValue === "MFS") ? 150 : 300 ;
-		charityLimit = Math.min(charityLimit, Math.max(0, (IncomeNoSS + +SSresult[0])));
-		SSAdjustments += Math.min(CalcIn["Charity"], charityLimit);
-	}
-	if (taxYear == 2021) { // 300 unless MFJ, then 600
-		charityLimit = (FilingStatusValue === "MFJ") ? 600 : 300 ;
-	}
 	SSresult = _TaxableSS(taxYear, FilingStatusValue, +CalcIn["SS"],
 		(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
 		MFStogetherRelevant);
@@ -231,14 +207,14 @@ function Tax_Calc(
 //	}
 
 	// Total the income
-	CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"] - MFJUCE);
+	CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"]);
 
 	// Figure the AGI
 	var TrueAGI = Math.round(+CalcOut["Gross"] - +CalcOut["Adjustments"]);
 	CalcOut["AGI"] = Math.max(0, TrueAGI);
 
 	// Add the IRA comment and limit the amount entered
-	var MAGI = +CalcOut["AGI"] + +CalcOut["IRADeductionAvailable"] + +CalcOut["SLInterest"] + MFJUCE;
+	var MAGI = +CalcOut["AGI"] + +CalcOut["IRADeductionAvailable"] + +CalcOut["SLInterest"];
 	var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcOut["SETaxCredit"]);
 	var IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["Alimony"];
 	if (CalcType === "J") {
@@ -280,13 +256,6 @@ function Tax_Calc(
 		TrueAGI = TrueAGI - IRAAdjust; // may go negative
 		CalcOut["AGI"] = Math.max(0, TrueAGI);
 	}
-
-	// Recalculate if UCE can be used
-	UCElimit = (FilingStatusValue === "MFS") ? 75000 : 150000;
-	if ((taxYear == 2020) && (! AllowUCE) && (CalcOut["AGI"] < UCElimit)) {
-		CalcOut["CharityStandard20"] = 0; // prevents doubling
-		Tax_Calc(taxYear, CalcType, CalcIn, true); // taxYear added in v1.1
-		}
 
 	// Limit Student Loan Payment Deduction
 	if (FilingStatusValue !== "MFS") {
@@ -347,29 +316,19 @@ function Tax_Calc(
 	// Two percent limitation
 	CalcOut["TwoPercent"] = Math.round(+CalcOut["AGI"] * 0.02);
 
-	// Charitable limited to 50% AGI 60% in 2018+
+	// Charitable limited to AGI 60%
 	if (CalcOut["CharityStandard20"] === undefined) CalcOut["CharityStandard20"] = 0;
 	if (CalcOut["CharityStandard"] === undefined) CalcOut["CharityStandard"] = 0;
 	CharityAGI = Math.max(0, TrueAGI + +CalcOut["CharityStandard20"]);
-	charlimit = Math.round(CharityAGI * ((taxYear >= 2018) ? 0.6 : 0.5));
-	if (taxYear == 2020) charlimit = CharityAGI; //  CARES ACT removes limit for 2020
-	if (taxYear == 2021) charlimit = CharityAGI; //  CARES ACT removes limit for 2021
+	charlimit = Math.round(CharityAGI * 0.6);
 	CalcOut["CharityTotal"] = Math.min((+CalcIn["Charity"] + +CalcIn["CharityNoncash"]), charlimit);
 
-	// Limit taxes paid if 2018 or later
-	if (taxYear > 2017) {
-		var taxlimit = (FilingStatusValue === "MFS") ? 5000 : 10000;
-		CalcOut["TaxesPaid"] = Math.min(CalcIn["ActualTaxesPaid"], taxlimit);
-	}
-	else {
-		CalcOut["TaxesPaid"] = CalcIn["ActualTaxesPaid"];
-	}
+	var taxlimit = (FilingStatusValue === "MFS") ? 5000 : 10000;
+	CalcOut["TaxesPaid"] = Math.min(CalcIn["ActualTaxesPaid"], taxlimit);
 
 	// Find the itemized deduction total
 	ItemizedValue = +CalcOut["Medical"] + +CalcOut["TaxesPaid"] + +CalcIn["InterestPaid"] +
 		+CalcOut["CharityTotal"] + +CalcIn["OtherItemized"];
-	// don't use += in the following statement
-	//if (taxYear < 2018) ItemizedValue = +ItemizedValue + +CalcIn["Miscellaneous"];
 	CalcOut["Itemized"] = ItemizedValue;
 
 	// Are itemized deductions limited by Pease (high income) deduction limit?
@@ -402,16 +361,6 @@ function Tax_Calc(
 	}
 	
 	CalcOut["Itemizing"] = (Deductions !== CalcOut["Standard"]); // T/F
-
-	if (taxYear == 2021) {
-		// Adjust the charitable standard deduction amount
-		CalcOut["CharityStandard"] = Math.min(CalcIn["Charity"], charityLimit);
-		if (CalcOut["Itemized"] < CalcOut["CharityStandard"] + CalcOut["Standard"]) {
-			CalcOut["Itemizing"] = false;
-		}
-		else CalcOut["CharityStandard"] = 0;
-	}
-
 	CalcOut["Deductions"] = Math.round(Deductions);
 
 	// Calculate exemptions
@@ -495,23 +444,15 @@ function Tax_Calc(
 
 	// Limit Child Care Cost
 	CalcOut["ChildCare"] = CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
-	CalcOut["ACCCredit"] = 0; // 2021 only
 	//if (+CCDependents.value < 0) CCDependents.value = "";
 	if ((FilingStatusValue != "MFS") && (+CCDependents.value > 0)) {
 		var cclimit = (+CCDependents.value  > 1) ? 6000 : 3000;
-		if (taxYear == 2021) cclimit = (+CCDependents.value  > 1) ? 16000 : 8000;
 		cccost = Math.min(+CalcIn["ChildCareCost"], cclimit);
 		CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
 		CC2Earned = 0; // Other partner
 		// If MFSMFJ, make CCEarned the lesser of CCEarned and CC2Earned.
 		CalcOut["ChildCare"] = Math.round(_ChildCare(taxYear, FilingStatusValue, CCEarned, CalcOut["AGI"], CalcIn["CCDependents"], cccost)["deductible"]);
-		if (taxYear == 2021) {
-			CalcOut["ACCCredit"] = CalcOut["ChildCare"];
-			CalcOut["ChildCare"] = 0;
-		}
-		else {
-			CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
-		}
+		CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
 	}
 	WorkingTax -= NRUsedTemp;
 	NRUsed += NRUsedTemp;
@@ -550,7 +491,7 @@ function Tax_Calc(
 	var CTCAmount = +CTCresult[0];
 	var FTCAmount = +CTCresult[1];
 	var ACTCLimit = +CTCresult[2];
-	CalcOut["CTCredit"] = FTCAmount + ( (taxYear == 2021) ? 0 : CTCAmount );
+	CalcOut["CTCredit"] = FTCAmount + CTCAmount;
 
 	// FTC - Current assumption - Use FTC before CTC but use the same line
 	NRUsedTemp = FTCUsed = Math.min(WorkingTax, FTCAmount); 
@@ -558,23 +499,13 @@ function Tax_Calc(
 	NRUsed += NRUsedTemp;
 
 	// CTC
-	if (taxYear != 2021 ) {
-		NRUsedTemp = Math.min(WorkingTax, CTCAmount);
-		WorkingTax -= NRUsedTemp;
-		NRUsed += NRUsedTemp;
-		CalcOut["CTCreditUsed"] = FTCUsed + NRUsedTemp;
-	}
-	else {
-		CalcOut["CTCreditUsed"] = FTCUsed;
-	}
+	NRUsedTemp = Math.min(WorkingTax, CTCAmount);
+	WorkingTax -= NRUsedTemp;
+	NRUsed += NRUsedTemp;
+	CalcOut["CTCreditUsed"] = FTCUsed + NRUsedTemp;
 	
 	// ACTC
-	if (taxYear != 2021) {
-		ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
-	}
-	else {
-		ACTCAmount = CTCAmount;
-	}
+	ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
 	CalcOut["ACTCredit"] = ACTCAmount;
 
 	// Residential and other credits

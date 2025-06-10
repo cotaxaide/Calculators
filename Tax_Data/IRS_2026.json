@@ -1,6 +1,6 @@
 {	"TaxYear":		{"value":2026, "verified":false},
-	"Preliminary":		{"value":true, "verified":false},
 	"LineNo": {
+		"1040_comment":	{"value":"Form 1040"},
 		"Wages":	{"value":"1z", "verified":false},
 		"Earned":	{"value":"1z&S1-3", "verified":false},
 		"TaxExInc":	{"value":"2a", "verified":false},
@@ -99,7 +99,8 @@
 	"MedBMFSPremium":	{"comment":"From CMS website",
 				"value":106000, "verified":false
 	},
-	"NIIT":			{"comment":"From Form 8960 instructions",
+	"NIIT": {
+		"comment":	"From Form 8960 instructions",
 		"Rate":		{"value": 0.038, "verified":false},
 		"SNG":		{"value":200000, "verified":false},
 		"MFS":		{"value":125000, "verified":false},
@@ -110,20 +111,21 @@
 	},
 	"EducatorExpenses":	{"value":300, "verified":false},
 	"HSA": {
-		"Individual":	{"value":4400, "verified":true},
-		"Family":	{"value":8750, "verified":true}
+		"Individual":	{"value":4300, "verified":false},
+		"Family":	{"value":8550, "verified":false}
 	},
 	"IRA": {
+		"comment":	{"value":"Pub 590a"},
 		"Age":		{"value":    50, "verified":false},
 		"Maximum":	{"value":  7000, "verified":false},
 		"SrMaximum":	{"value":  8000, "verified":false},
-		"SNG":		{"value": 78000, "verified":false},
-		"MFS":		{"value": 78000, "verified":false},
-		"MFJRetPlan":	{"value":129000, "verified":false},
-		"MFJNoRetPlan":	{"value":214000, "verified":false},
-		"HOH":		{"value": 78000, "verified":false},
-		"QSS":		{"value":129000, "verified":false},
-		"WID":		{"value":129000, "verified":false}
+		"SNG":		{"value": 89000, "verified":false},
+		"MFS":		{"value": 10000, "verified":false},
+		"MFJRetPlan":	{"value":146000, "verified":false},
+		"MFJNoRetPlan":	{"value":246000, "verified":false},
+		"HOH":		{"value": 89000, "verified":false},
+		"QSS":		{"value":146000, "verified":false},
+		"WID":		{"value":146000, "verified":false}
 	},
 	"QBI":	{
 		"Rate":		{"value":0.2, "verified":false},
@@ -148,16 +150,13 @@
                 "HOH":		{"value":10000000, "verified":false}
 	},
 	"AMT": {
-		"comment":	"Col are: exemption, threshold phaseout, complete phaseout",
+		"comment":	"Cols are: exemption, threshold phaseout, complete phaseout",
 		"MFJ":		{"value":[137000, 1252700, 1800700], "verified":false},
 		"QSS":		{"value":[137000, 1252700, 1800700], "verified":false},
 		"WID":		{"value":[137000, 1252700, 1800700], "verified":false},
 		"MFS":		{"value":[ 68500,  626350,  900350], "verified":false},
 		"SNG":		{"value":[ 88100,  626350,  978750], "verified":false},
-		"HOH":		{"value":[ 88100,  626350,  978750], "verified":false},
-		"TRUST":	{"value":[ 30700,  102500,  225300], "verified":false},
-		"comment2":	"Col are: amt over earned income, ?",
-		"KIDDIE":	{"value":[ 9550,   510300], "verified":false}
+		"HOH":		{"value":[ 88100,  626350,  978750], "verified":false}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.0765,   0.34,    0.4,   0.45], "verified":false},
@@ -165,13 +164,12 @@
 		"comment":	"following columns are for 0, 1, 2, 3 children",
                 "EarnedIncome": {"value":[ 8490,  12730,  17880,  17880], "verified":false},
                 "Maximum":	{"value":[  649,   4328,   7152,   8046], "verified":false},
-                "AGIMFJ":	{"value":[17730,  30470,  30470,  30470], "verified":false},
                 "MFJ":		{"value":[26214,  57554,  64430,  68675], "verified":false},
-                "AGISNG":	{"value":[10620,  23350,  23350,  23350], "verified":false},
                 "SNG":		{"value":[19104,  50434,  57310,  61555], "verified":false},
                 "InvestMax":	{"value":11950, "verified":false}
 	},
        	"Care": {
+		"comment":	"Fixed values, not inflation driven",
 		"RateMax":	{"value":0.35, "verified":false},
 		"RateMin":	{"value":0.20, "verified":false},
 		"AGICap":	{"value":15000, "verified":false},
@@ -234,7 +232,7 @@
 		"Age0":		{"value":   0, "verified":false},
 		"Age6":		{"value":1000, "verified":false},
 		"FTC":		{"value": 500, "verified":false},
-		"ACTC":		{"value":1700, "verified":"estimate"},
+		"ACTC":		{"value":1700, "verified":"false"},
 		"ACTCThreshold":{"value":2500, "verified":false},
                 "AGICap": {
                 	"SNG":	{"value":200000, "verified":false},
