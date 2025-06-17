@@ -183,7 +183,7 @@ function _SETax (	// Self-employment tax
 	SEIncome,	// Self-employment income
 	wages = 0		// Wages with SS/MC withheld (optional)
 		) {
-// returns an array: [self-employment tax amount, deductible amount,
+// returns an object: [self-employment tax amount, deductible amount,
 // 			"SE_tax", "deductible", "medicare", "socialsecurity"]
 //----------------------------------------------------------------------------------------
 	if (wages === undefined) wages = 0;
@@ -322,7 +322,7 @@ function _TaxLookup(	// Tax table lookup
 			// on initial call, always use true for useSchedD
 	L06F8615	// Line 6 Form 8615 (Kiddie tax form)
 	) {
-// returns result array [tax amount, tax bracket]
+// returns an object ["tax", "bracket"]
 // Note: uses the 1040 worksheet, not the Sched D worksheet so may be off for some returns
 //----------------------------------------------------------------------------------------
 	result = [];
@@ -696,7 +696,7 @@ function _IRADeduction (// IRA Deduction worksheet from Form 1040
 	SP_50,		// T/F, SP is 50+
 	MFStogether	// T/F, filing MFS and living together (optional)
 		) {
-// returns array	["TPdeductible", "SPdeductible", "TPcontribMax", "SPcontribMax", "comment"]
+// returns an object	["TPdeductible", "SPdeductible", "TPcontribMax", "SPcontribMax", "comment"]
 //----------------------------------------------------------------------------------------
 	if ((filingStatus !== "MFS") || (MFStogether === undefined)) MFStogether = false;
 	if ((filingStatus == "MFS") && (! MFStogether)) filingStatus = "SNG";
@@ -793,7 +793,7 @@ function _StudLoanInt (	// 1040 Sched 1
 	MAGI,		// AGI without Student Loan Interest deduction
 	IntPaid		// Student Loan Interest Paid
 		) {
-//	Returns an array ["deductible", "percent"]
+//	Returns an object ["deductible", "percent"]
 //----------------------------------------------------------------------------------------
 	Result = [];
 	TY = taxYear;

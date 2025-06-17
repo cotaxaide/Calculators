@@ -1,564 +1,482 @@
 //----------------------------------------------------------------------------------------
-function Tax_Calc(
+function Tax_Calc (
 	taxYear, 		// tax year
 	CalcType, 		// T (taxpayer), S (spouse), J (joint)
-	CalcIn, 		// Array of input amounts
+	CalcInArray 		// Array of input amounts
 ) {
 // This function takes the inputs from the CalcIn array and creates the CalcOut array
+// Hint for ease of use:
+//	Use inputs with ids = CalcIn keys and use a common input class name
+//		watch for checkboxes (test for type) and make true or false
+//	Use table tds or spans with ids = CalcOut keys and use a common output class name
+//----------------------------------------------------------------------------------------
+//Version 2.0, 7/17/2025
+//	Removed style, checked, innerHTML, value, etc to make independent function
+//	Added CalcIn and CalcOut arrays initializations and keys
+//	Removed any special coding for TY2021 and prior
+//Version 1.4
+//	Child care credit changes
+//Version 1.3
+//	Changed to JSON data files
+//Version 1.2
+//	Corrected educator expense amount test
+//Version 1.1
+//	Recursive call omitted taxYear
+//Version 1.0
+//	Split from Estimated Tax Worksheet version 3.46
+//----------------------------------------------------------------------------------------
+// Improvements needed:
+//	Determine age for HSA adjustment - no input for TP55 and SP55
+//----------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------
+
+// Initialize CalcIn so that all keys are defined
+var CalcIn = [];
 // CalcIn array keys:
-//	FilingStatus:	MFS, MFJ, SNG, HOH, OSS (not yet implemented. T or S implies MFS)
-// 	Wages:		Total earned income from employment
-// 	Scholar:	Taxable scholarship income
-// 	Interest:	Taxable interest income
-// 	TaxExempt:	Tax exempt interest and dividend income
-// 	Dividends:	Taxable dividends income
-// 	QualDividends:	Qualified dividends income
-// 	QBIDividends:	Qualified business income dividends
-// 	QCD:		Total of any QCD distributions
-// 	TotalIRAs:	Total of all IRA distributions (including QCDs)
-// 	TotalPensions:	Total of all annuity and pension distributions
-// 	SS:		Total social security income
-// 	SEIncome:	Self-employment net income
-// 	LTCapGains:	Long term capital gains
-// 	STCapGains:	Short term capital gains
-// 	Alimony:	Taxable alimony received
-// 	Unemployment:	Unemployment income received
-// 	Royalties:	Income from royalties
-// 	EdExpenses:	Educator expenses adjustment
-// 	HSADeduction:	HSA adjustment
-// 	SESEP:		Self-employment SEP amount
-// 	SEInsurance:	Self-employment health insurance
-// 	SavingsPenalty:	Penalty for early withdrawal of savings adjustment
-// 	AlimonyPaid:	Alimony paid adjustment
-// 	IRADeduction:	IRA contribution adjustment
-// 	StudentLoan:	Student loan payment adjustment
-// 	OtherCredits:	Other adjustments not listed above
-// 	ActualMedical:	Total of deductible medical expenses
-// 	ActualTaxesPaid:Total of other deductible taxes paid
-// 	InterestPaid:	Total of deductible expenses paid
-// 	Charity:	Charitable cash contributions
-// 	CharityNoncash:	Charitable non-cash contributions
-//	Miscellaneous:	Job expenses and miscellaneous deductions
-//	AdditionalTax:	Additional taxes paid
-//	ForeignCost;	Foreign taxes paid
-//	ChildCareCost:	Cost of child or dependent care
-//	EducationCost:	Cost of education expenses
-//	RetirementCost:	Retirement credit amount
-//	Residential:	Residential energy credit amount
-//	NIITExpenses:	NIIT investment expenses
-// 	OtherItemized:	Other Itemized deductions
-//	OtherTaxes:	Penalties, etc
-//	Refundable:	Other refundable credits
-//----------------------------------------------------------------------------------------
-	//Version 1.4
-	//	Child care credit changes
-	//Version 1.3
-	//	Changed to JSON data files
-	//Version 1.2
-	//	Corrected educator expense amount test
-	//Version 1.1
-	//	Recursive call omitted taxYear
-	//Version 1.0
-	//	Split from Estimated Tax Worksheet version 3.46
-//----------------------------------------------------------------------------------------
-	// Initialize output array
-	var CalcOut = [];
+CalcIn["ActualMedical"] = 0;	// Total of deductible medical expenses
+CalcIn["AdditionalTax"] = 0;	// Additional taxes paid
+CalcIn["AlimonyIncome"] = 0;	// Taxable alimony received
+CalcIn["AlimonyPaid"] = 0;	// Alimony paid adjustment
+CalcIn["AOCCost"] = 0;		// Cost of AOC education expenses
+CalcIn["CCDependents"] = 0;	// Dependents elegible for care
+CalcIn["CharityCash"] = 0;	// Charitable cash contributions
+CalcIn["CharityNoncash"] = 0;	// Charitable non-cash contributions
+CalcIn["ChildCareCost"] = 0;	// Cost of child or dependent care
+CalcIn["Dividends"] = 0;	// Taxable dividends income
+CalcIn["EdExpenses"] = 0;	// Educator expenses adjustment
+CalcIn["FilingStatus"] = 0;	// MFS, MFJ, SNG, HOH, OSS (T or S implies MFS)
+CalcIn["ForeignPaid"] = 0;	// Foreign taxes paid
+CalcIn["GamblingWins"] = "";	// Gambling winnings
+CalcIn["HSADeduction"] = 0;	// HSA adjustment
+CalcIn["InterestIncome"] = 0;	// Taxable interest income
+CalcIn["InterestPaid"] = 0;	// Total of deductible expenses paid
+CalcIn["ItemizedRequired"] = 0;	// Itemizing is required (T/F)
+CalcIn["IRADeduction"] = 0;	// IRA contribution adjustment
+CalcIn["IsDependent"] = 0;	// TP is a dependent (T/F)
+CalcIn["IsYouth"] = 0;		// TP is a youth <18 or student <24 (T/F)
+CalcIn["LLCCost"] = 0;		// Cost of LLC education expenses
+CalcIn["LTCapGains"] = 0;	// Long term capital gains
+CalcIn["MFStogether"] = 0;	// Filing MFS but living together
+CalcIn["Miscellaneous"] = 0;	// Job expenses and miscellaneous deductions
+CalcIn["NIITExpenses"] = 0;	// NIIT investment expenses
+CalcIn["OtherCredits"] = 0;	// Other adjustments not listed above
+CalcIn["OtherItemized"] = 0;	// Other Itemized deductions
+CalcIn["OtherTaxes"] = 0;	// Penalties, etc
+CalcIn["QBIDividends"] = 0;	// Qualified business income dividends
+CalcIn["QCD"] = 0;		// Total of any QCD distributions
+CalcIn["QualDividends"] = 0;	// Qualified dividends income
+CalcIn["Refundable"] = 0;	// Other refundable credits
+CalcIn["ResidenceEnergy"] = 0;	// Residential energy credit amount
+CalcIn["RetirementCost"] = 0;	// Retirement credit amount
+CalcIn["Royalties"] = 0;		// Income from royalties
+CalcIn["SALTTaxesPaid"] = 0;	// Total of other deductible taxes paid
+CalcIn["SavingsPenalty"] = 0;	// Penalty for early withdrawal of savings adjustment
+CalcIn["Scholarships"] = 0;	// Taxable scholarship income
+CalcIn["SEIncome"] = 0;		// TP + SP Self-employment net income
+CalcIn["SEInsurance"] = 0;	// Self-employment health insurance
+CalcIn["SESEP"] = 0;		// Self-employment SEP amount
+CalcIn["SPBirthYear"] = 0;	// SP birth year
+CalcIn["SPSEIncome"] = 0;	// SP Self-employment net income
+CalcIn["SP50"] = 0;		// SP is 50-64 (T/F)
+CalcIn["SP65"] = 0;		// SP is > 65 (T/F)
+CalcIn["SPBlind"] = 0;		// SP is blind (T/F)
+CalcIn["SPPlan"] = 0;		// SP has a retirement plan (T/F)
+CalcIn["SPCTCDependents"] = 0;	// SP Dependents elegible for CTC
+CalcIn["SPDependents"] = 0;	// Total number of dependents for SP
+CalcIn["SPEICDependents"] = 0;	// SP Dependents eligible for EIC
+CalcIn["SPWages"] = 0;		// Total SP earned income from employment
+CalcIn["SS"] = 0;		// Total social security income
+CalcIn["STCapGains"] = 0;	// Short term capital gains
+CalcIn["StudentLoan"] = 0;	// Student loan payment adjustment
+CalcIn["TaxYear"] = 0;		// Tax year to use
+CalcIn["TaxExemptInt"] = 0;	// Tax exempt interest income
+CalcIn["TotalIRAs"] = 0;	// Total of all IRA distributions (including QCDs)
+CalcIn["TPBirthYear"] = 0;	// TP birth year
+CalcIn["TP50"] = 0;		// TP is 50-64 (T/F)
+CalcIn["TP65"] = 0;		// TP is > 65 (T/F)
+CalcIn["TPBlind"] = 0;		// TP is blind (T/F)
+CalcIn["TPSEIncome"] = 0;	// TP Self-employment net income
+CalcIn["TPPlan"] = 0;		// TP has a retirement plan (T/F)
+CalcIn["TotalPensions"] = 0;	// Total of all annuity and pension distributions
+CalcIn["TPCTCDependents"] = 0;	// TP Dependents elegible for CTC
+CalcIn["TPDependents"] = 0;	// Total number of dependents for TP
+CalcIn["TPEICDependents"] = 0;	// TP Dependents eligible for EIC
+CalcIn["TPWages"] = 0;		// Total TP earned income from employment
+CalcIn["Unemployment"] = 0;	// Unemployment income received
+CalcIn["Wages"] = 0;		// Total TP + SP earned income from employment
 
-	// Get filing information
-	var FilingStatusValue = FilingStatus.value;
-	var DependentsValue = +Dependents.value;
-	var EICDependentsValue = +EICDependents.value;
-	var CTCDependentsValue = +CTCDependents.value;
-	var SPCTCDependentsValue = +SPCTCDependents.value;
-	if (MFJMFS.checked) {
-		switch (CalcType) {
-		case "T":
-			FilingStatusValue = "MFS";
-			break;
-		case "J":
-			DependentsValue += +SPDependents.value;
-			EICDependentsValue += +SPEICDependents.value;
-			CTCDependentsValue += +SPCTCDependentsValue;
-			break;
-		case "S":
-			FilingStatusValue = "MFS";
-			DependentsValue = +SPDependents.value;
-			EICDependentsValue = +SPEICDependents.value;
-			CTCDependentsValue = +SPCTCDependentsValue;
-			break;
-		default:
-			break;
-		}
-	}
+// Overwrite initialized zeros with inputted values
+for (j in CalcInArray) { CalcIn[j] = CalcInArray[j]; }
 
-	// Get self-employment tax
-	SEresult = _SETax(taxYear, +CalcIn["SEIncome"], CalcIn["Wages"]);
-	CalcOut["SETax"] = +SEresult["SE_tax"];
-	CalcOut["SETaxCredit"] = +SEresult["deductible"];
-//	excessSStotal = 0;
-//	SSexcess.innerHTML = "";
-//	if (+SEresult["excessSS"]) {
-//		if (MFJMFS.checked) {
-//			if (CalcType === "T") TPRefundable.innerHTML = TPMFS["Refundable"] = TPMFS["SSRefundable"] = SEresult["excessSS"];
-//			if (CalcType === "S") SPRefundable.innerHTML = SPMFS["Refundable"] = SPMFS["SSRefundable"] = SEresult["excessSS"];
-//			if (CalcType === "J") Refundable.value = TPMFJ["SSRefundable"] = +SPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
-//		}
-//		else { // not MFJMFS
-//			if (FilingStatusValue !== "MFJ") { // create the info message
-//				SSexcess.innerHTML = "(include excess SS WH of " + SEresult["excessSS"] + ")";
-//				Refundable.style.backgroundColor = (Refundable.value < +SEresult["excessSS"]) ? "hotpink" : "white" ;
-//			}
-//			else {
-//				SSexcess.innerHTML = "(possible excess SS withholding, try MFJ/MFS option)";
-//			}
-//		}
-//	}
-//	else { // no excessSS
-//			if (CalcType === "T") TPMFS["SSRefundable"] = 0;
-//			if (CalcType === "S") SPMFS["SSRefundable"] = 0;
-//		if (MFJMFS.checked) {
-//			if (CalcType === "J") TPMFJ["SSRefundable"] = +TPMFS["SSRefundable"] + +SPMFS["SSRefundable"];
-//		}
-//		else { // not MFJMFS
-//			if (CalcType === "J") TPMFJ["SSRefundable"] = 0;
-//		}
-//	}
-//	if (MFJMFS.checked && (+TPMFS["SSRefundable"] || +SPMFS["SSRefundable"])) {
-//		if (FilingStatusValue === "MFJ") { // create the info message
-//			SSmessage = "(include excess SS WH of ";
-//			if (TPMFS["SSRefundable"]) SSmessage += (TPMFS["SSRefundable"] + " (TP)");
-//			if (SPMFS["SSRefundable"] && TPMFS["Refundable"]) SSmessage += " and ";
-//			if (SPMFS["SSRefundable"]) SSmessage += (SPMFS["SSRefundable"] + " (SP)");
-//			SSexcess.innerHTML = SSmessage + ")";
-//			Refundable.click();
-//			SAVEButton.click();
-//			Refundable.style.backgroundColor = (Refundable.value < +TPMFJ["SSRefundable"]) ? "hotpink" : "none" ;
-//		}
-//	}
+// Initialize output array keys
+var CalcOut = [];
+CalcOut["Adjustments"] = "";	// Total of adjustments
+CalcOut["AGI"] = "";		// Adjusted Gross Income
+CalcOut["ItemizedLimit"] = "";	// Pease limit on itemized deductions
+CalcOut["AOCCredit"] = "";	// Amer Opportunity Credit amount
+CalcOut["Bracket"] = "";	// Resulting marginal tax bracket
+CalcOut["CapGains"] = "";	// Capital gains total
+CalcOut["CharityTotal"] = "";	// Total of cash + noncash contributions
+CalcOut["ChildCare"] = "";	// Care Credit available
+CalcOut["ChildCareUsed"] = "";	// Care Credit used
+CalcOut["CTCredit"] = "";	// CTC available
+CalcOut["CTCreditUsed"] = "";	// CTC used
+CalcOut["Deductions"] = "";	// Total deductions
+CalcOut["Education"] = "";	// Education credit available
+CalcOut["EducationUsed"] = "";	// Education credit used
+CalcOut["EICCredit"] = "";	// Earned Income Credit
+CalcOut["ExemptAmount"] = "";	// Exemption deduction (obsolete)
+CalcOut["ForeignTax"] = "";	// Foreign tax cred avalable
+CalcOut["ForeignUsed"] = "";	// Foreign tax cred used
+CalcOut["Gross"] = "";		// Gross income
+CalcOut["IRADedAvailable"] = "";// Amount of IRA deduction available
+CalcOut["IRAs"] = "";		// IRA total less any QCDs
+CalcOut["Itemized"] = "";	// Itemized deduction total
+CalcOut["Itemizing"] = "";	// T/F if itemizing
+CalcOut["Medical"] = "";	// Medical deduction allowwed
+CalcOut["NIITTax"] = "";	// NIIT tax
+CalcOut["Nonrefundable"] = "";	// Total nonrefundable credits
+CalcOut["OtherIncome"] = "";	// Royalties + Gambling
+CalcOut["Pensions"] = "";	// IRAs - QCDs
+CalcOut["PreNRTax"] = "";	// Tax before NR credits
+CalcOut["QBIAmount"] = "";	// QBI deduction (-1 if OOS)
+CalcOut["ResidentialUsed"] = "";// ResEnergy credit used
+CalcOut["Retirement"] = "";	// Retirement credits available
+CalcOut["RetirementUsed"] = "";	// Retirement credits used
+CalcOut["SEHI"] = "";		// Self-employed health ins adjustment
+CalcOut["SEHIExcess"] = "";	// Self-employed excess amount to Sched A
+CalcOut["SETax"] = "";		// Self-employment tax
+CalcOut["SETaxCredit"] = "";	// Self-employment tax adjustment
+CalcOut["SLInterest"] = "";	// Student Loan interst used
+CalcOut["Standard"] = "";	// Standard deduction
+CalcOut["StudentEarned"] = "";	// Student earned income
+CalcOut["Tax"] = "";		// Tax on taxable income
+CalcOut["TaxTable"] = "";	// "Tax table" or "CG worksheet"
+CalcOut["TaxableAmount"] = "";	// Taxable income
+CalcOut["TaxableSS"] = "";	// Taxable social security
+CalcOut["TaxDue"] = "";		// Tax owed
+CalcOut["TaxesPaid"] = "";	// Tax paid
+CalcOut["TaxPostCredits"] = "";	// Tax owed after credits
+CalcOut["TotalDeductions"] = "";// Total itemized deductions
+CalcOut["TotalTax"] = "";	// Tax + SETax + NIITTax + OtherTaxes
 
-	// Total the adjustments
-	CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
-	var SEHIRemainder = Math.max(0, +CalcIn["SEInsurance"] - +CalcOut["SEHI"]);
-	if (CalcType === "J") {
-		if (SEHIRemainder) {
-			SEHIExcess.innerHTML = "<br />&nbsp;&nbsp;&nbsp;<i>Excess " 
-			       	+ +SEHIRemainder + " will carry to Schedule A medical expenses</i>";
-			MFJMFSSEHIRow.style.height = SEHIRow.style.height = "2.7em";
-		}
-		else {
-			SEHIExcess.innerHTML = "";
-			MFJMFSSEHIRow.style.height = SEHIRow.style.height = "";
-		}
-	}
+// Filing information --------------------------------------------------------
+let FS = CalcIn["FilingStatus"];
+if ((CalcType == "T") || (CalcType == "S")) FS = "MFS"; // Overrides filing status
+let TY = CalcIn["TaxYear"];
+let Dependents = +CalcIn["TPDependents"] + +CalcIn["SPDependents"];
+let EICDependents = +CalcIn["TPEICDependents"] + +CalcIn["SPEICDependents"];
+let CTCDependents = +CalcIn["TPCTCDependents"];+CalcIn["SPCTCDependents"];
 
-	// Pension with QCD
-	CalcOut["IRAs"] = +CalcIn["TotalIRAs"] - +CalcIn["QCD"];
-	CalcOut["Pensions"] = +CalcIn["TotalPensions"];
+// Income -------------------------------------------------------------------
 
-	// Limit educator expenses
-	var edlimit = (+taxYear >= 2023) ? 300 : 250 ;
-	if (FilingStatusValue === "MFJ") edlimit *= 2;
-	CalcIn["EdExpenses"] = Math.min(+CalcIn["EdExpenses"], edlimit);
+// Pension with QCD
+CalcOut["IRAs"] = +CalcIn["TotalIRAs"] - +CalcIn["QCD"];
+CalcOut["Pensions"] = +CalcIn["TotalPensions"];
 
-	// Limit HSA Deduction = can't test for age 55
-	var hsalimit = +_IRSValue("HSA.Family") + 2000;
-	CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], hsalimit);
-	
-	// Limit IRA Contribution Deduction will be done later after AGI is known
-	CalcOut["IRADeductionAvailable"] = CalcIn["IRADeduction"];
+// Capital gains
+var CGLossLimit = (FS == "MFS") ? -1500 : -3000;
+CalcOut["CapGains"] = Math.round(Math.max( (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]) , CGLossLimit));
 
-	// Add Student Loan Payment Deduction without limit - limit will be done later
-	if (FilingStatusValue !== "MFS") CalcOut["SLInterest"] = CalcIn["StudentLoan"];
-	else CalcOut["SLInterest"] = (CalcIn["StudentLoan"]) ? 0 : "" ;
+// Unemployment and Other Income adustments for 2020
+CalcOut["OtherIncome"] = +CalcIn["Royalties"];
 
-	// Total the adjustments, not including charitable contribution
-	var SSAdjustments = +CalcIn["EdExpenses"] + +CalcIn["HSADeduction"]
-		+ +CalcOut["SETaxCredit"] + +CalcIn["SESEP"] + +CalcOut["SEHI"]
-		+ +CalcIn["AlimonyPaid"] + +CalcOut["IRADeductionAvailable"]
-		+ +CalcIn["SavingsPenalty"] + +CalcIn["OtherCredits"];
-	CalcOut["Adjustments"] = SSAdjustments + +CalcOut["SLInterest"];
+// Income adjustments -------------------------------------------------------
 
-	// Capital gains
-	var CGLossLimit = (FilingStatusValue == "MFS") ? -1500 : -3000;
-	CalcOut["CapGains"] = Math.round(Math.max( (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]) , CGLossLimit));
+// Limit educator expenses
+var edlimit = _IRSValue("EducatorExpenses");
+if (FS === "MFJ") edlimit *= 2;
+CalcIn["EdExpenses"] = Math.min(+CalcIn["EdExpenses"], edlimit);
 
-	IncomeNoSS = +CalcIn["Wages"] + +CalcIn["Scholar"] + +CalcIn["Interest"]
-		+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
-		+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["Alimony"]
-		+ +CalcIn["Unemployment"] + +CalcOut["OtherIncome"];
-	// Get the taxable Social Security amount
-	MFStogetherRelevant = (FilingStatusValue == "MFS") && MFStogether.checked;
-	SSresult = _TaxableSS(taxYear, FilingStatusValue, +CalcIn["SS"],
-		(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
-		MFStogetherRelevant);
-	CalcOut["TaxableSS"] = +SSresult[0];
+// Limit HSA Deduction = can't test for age 55
+var hsalimit = +_IRSValue("HSA.Family") + 2000;
+CalcIn["HSADeduction"] = Math.min(+CalcIn["HSADeduction"], hsalimit);
 
-	// Get the taxable SS amount difference if charitable contributions are added
-	var charityLimit = 0;
-	SSresult = _TaxableSS(taxYear, FilingStatusValue, +CalcIn["SS"],
-		(IncomeNoSS + +CalcIn["TaxExempt"]), SSAdjustments,
-		MFStogetherRelevant);
-	taxableSS_charitydiff = 0; // +SSresult[0] - CalcOut["TaxableSS"];
+// Determine self-employment tax
+let result = _SETax(taxYear, +CalcIn["SEIncome"], CalcIn["Wages"]);
+CalcOut["SETax"] = +result["SE_tax"];
+CalcOut["SETaxCredit"] = +result["deductible"];
 
-//	if (CalcType === "J") {
-//		TPMFJ["IRAgap00"] = +SSresult[1];
-//		TPMFJ["IRAgap50"] = +SSresult[2];
-//		TPMFJ["IRAgap85"] = +SSresult[3];
-//	}
+// Determine self-employed health insurance
+CalcOut["SEHI"] = Math.max(0,Math.min((+CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"]), +CalcIn["SEInsurance"]));
+let SEHIExcess = Math.max(0, +CalcIn["SEInsurance"] - +CalcOut["SEHI"]);
+if (FS === "MFJ") {
+	CalcOut["SEHIExcess"] = (SEHIExcess) ? SEHIExcess : "" ;
+}
 
-	// Total the income
-	CalcOut["Gross"] = Math.round(IncomeNoSS + +CalcOut["TaxableSS"]);
+// Limit IRA Contribution Deduction will be adjusted later after AGI is known
+CalcOut["IRADedAvailable"] = CalcIn["IRADeduction"];
 
-	// Figure the AGI
-	var TrueAGI = Math.round(+CalcOut["Gross"] - +CalcOut["Adjustments"]);
-	CalcOut["AGI"] = Math.max(0, TrueAGI);
+// Add Student Loan Payment Deduction without limit - limit will be done later
+CalcOut["SLInterest"] = (FS !== "MFS") ?  CalcIn["StudentLoan"] : 0 ;
 
-	// Add the IRA comment and limit the amount entered
-	var MAGI = +CalcOut["AGI"] + +CalcOut["IRADeductionAvailable"] + +CalcOut["SLInterest"];
-	var SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcOut["SETaxCredit"]);
-	var IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["Alimony"];
-	if (CalcType === "J") {
-		IRAResults = _IRADeduction(taxYear, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, (SP50.checked || SP65.checked), MFStogetherRelevant);
-		IRAActualMax = Math.min(+IRAResults["TPcontribMax"] + ((FilingStatusValue == "MFJ") ? +IRAResults["SPcontribMax"] : 0 ), IRAEarned);
-		IRADeduction.style.backgroundColor = (CalcIn["IRADeduction"] > IRAActualMax) ? "hotpink" : "white" ;
-		IRAActual = Math.min(+IRAResults["TPdeductible"] + ((FilingStatusValue == "MFJ") ? +IRAResults["SPdeductible"] : 0 ), IRAEarned);
-		IRAActual = Math.min(+TPMFJ["IRADeduction"], IRAActual, IRAEarned);
-	}
+// Total the adjustments
+let SSAdjustments = +CalcIn["EdExpenses"] + +CalcIn["HSADeduction"]
+	+ +CalcOut["SETaxCredit"] + +CalcIn["SESEP"] + +CalcOut["SEHI"]
+	+ +CalcIn["AlimonyPaid"] + +CalcOut["IRADedAvailable"]
+	+ +CalcIn["SavingsPenalty"] + +CalcIn["OtherCredits"];
+CalcOut["Adjustments"] = SSAdjustments + +CalcOut["SLInterest"];
+
+let SSIncome = +CalcIn["Wages"] + +CalcIn["Scholarships"] + +CalcIn["InterestIncome"]
+	+ +CalcIn["Dividends"] + +CalcIn["SEIncome"] + +CalcOut["CapGains"]
+	+ +CalcOut["IRAs"] + +CalcOut["Pensions"] + +CalcIn["AlimonyIncome"]
+	+ +CalcIn["Unemployment"] + +CalcOut["OtherIncome"];
+
+// Get the taxable Social Security amount
+MFStogetherRelevant = (FS === "MFS") && CalcIn["MFStogether"];
+result = _TaxableSS(TY, FS, +CalcIn["SS"],
+	(SSIncome + +CalcIn["TaxExemptInt"]),
+	SSAdjustments, MFStogetherRelevant);
+CalcOut["TaxableSS"] = +result[0];
+
+// Total the income
+CalcOut["Gross"] = Math.round(SSIncome + +CalcOut["TaxableSS"]);
+
+// Figure the AGI
+let TrueAGI = Math.round(+CalcOut["Gross"] - +CalcOut["Adjustments"]);
+CalcOut["AGI"] = Math.max(0, TrueAGI);
+
+// Make adjustments to entries already made (IRA contributions & Student loan interest)
+
+// Limit the IRA amount entered due to IRA MAGI
+let IRA_MAGI = +CalcOut["AGI"] + +CalcOut["IRADedAvailable"] + +CalcOut["SLInterest"];
+let SENet = Math.max(0, +CalcIn["SEIncome"] - +CalcIn["SESEP"] - +CalcOut["SETaxCredit"]);
+let IRAEarned = +CalcIn["Wages"] + SENet + +CalcIn["AlimonyIncome"];
+let IRAActual = 0;
+if (FS !== "MFS") {
+	let IRAResults = _IRADeduction(TY, FS, IRA_MAGI, IRAEarned, CalcIn["TPPlan"], (CalcIn["TP50"] || CalcIn["TP65"]), CalcIn["SPPlan"], (CalcIn["SP50"] || CalcIn["SP65"]), MFStogetherRelevant);
+	let IRAActualMax = Math.min(+IRAResults["TPcontribMax"] + ((FS == "MFJ") ? +IRAResults["SPcontribMax"] : 0 ), IRAEarned);
+	IRAActual = Math.min(+IRAResults["TPdeductible"] + ((FS == "MFJ") ? +IRAResults["SPdeductible"] : 0 ), IRAEarned);
+	IRAActual = Math.min(+TPMFJ["IRADeduction"], IRAActual, IRAEarned);
+}
+else { // FS = MFS
 	if (CalcType === "T") {
-		IRAResults = _IRADeduction(taxYear, FilingStatusValue, MAGI, IRAEarned, TPPlan.checked, (TP50.checked || TP65.checked), SPPlan.checked, false, MFStogetherRelevant);
+		IRAResults = _IRADeduction(taxYear, FS, IRA_MAGI, IRAEarned, CalcIn["TPPlan"], (CalcIn["TP50"] || CalcIn["TP65"]), CalcIn["SPPlan"], false, MFStogetherRelevant);
 		IRAActual = Math.min(+TPMFS["IRADeduction"], +IRAResults["TPdeductible"]);
-		//CalcOut["IRADeductionAvailable"] = IRAActual;
 		IRAContribMax = Math.min(IRAResults["TPcontribMax"], IRAEarned);
-		TPIRADeductionAvailable.title = "Contribution can be no more than " + IRAContribMax + " if filing MFS";
-		TPIRADeductionAvailable.style.backgroundColor = (CalcIn["IRADeduction"] > IRAEarned) ? "hotpink" : "" ;
 	}
 	if (CalcType === "S") { // Spouse is now the taxpayer for IRADeduction function
-		IRAResults = _IRADeduction(taxYear, FilingStatusValue, MAGI, IRAEarned, SPPlan.checked, (SP50.checked || SP65.checked), TPPlan.checked, false, MFStogetherRelevant);
+		IRAResults = _IRADeduction(taxYear, FS, IRA_MAGI, IRAEarned, CalcIn["SPPlan"], (CalcIn["SP50"] || CalcIn["SP65"]), CalcIn["TPPlan"], false, MFStogetherRelevant);
 		IRAActual = Math.min(+SPMFS["IRADeduction"], +IRAResults["TPdeductible"], IRAEarned); // TP here is not an error
-		//CalcOut["IRADeductionAvailable"] = IRAActual;
 		IRAContribMax = Math.min(IRAResults["TPcontribMax"], IRAEarned); // TP here is not an error
-		SPIRADeductionAvailable.title = "Contribution can be no more than " + IRAContribMax + " if filing MFS";
-		SPIRADeductionAvailable.style.backgroundColor = (CalcIn["IRADeduction"] > IRAEarned) ? "hotpink" : "" ;
 	}
+}
+// Adjust AGI due to any limit on IRA contribution
+let IRAAdjust = +CalcOut["IRADedAvailable"] - IRAActual;
+if (IRAAdjust > 0) { // Deduction limited
+	CalcOut["IRADedAvailable"] -= IRAAdjust;
+	CalcOut["Adjustments"] -= IRAAdjust;
+	TrueAGI += IRAAdjust; // may still be negative
+	CalcOut["AGI"] = Math.max(0, TrueAGI);
+}
+//else { // Adjust due to a change in AGI // don't think this is needed any more, was for old contribution deductions
+//	IRAAdjust = IRAActual - +CalcOut["IRADedAvailable"];
+//	CalcOut["IRADedAvailable"] = +CalcOut["IRADedAvailable"] + IRAAdjust;
+//	CalcOut["Adjustments"] += IRAAdjust;
+//	TrueAGI = TrueAGI - IRAAdjust; // may go negative
+//	CalcOut["AGI"] = Math.max(0, TrueAGI);
+//}
 
-	// Make adjustments to calculations already made
-	IRAAdjust = +CalcOut["IRADeductionAvailable"] - IRAActual;
-	if (IRAAdjust) { // Deduction limited
-		CalcOut["IRADeductionAvailable"] -= IRAAdjust;
-		CalcOut["Adjustments"] -= IRAAdjust;
-		TrueAGI = TrueAGI + IRAAdjust; // may still be negative
-		CalcOut["AGI"] = Math.max(0, TrueAGI);
-	}
-	else { // Adjust due to a change in AGI
-		IRAAdjust = IRAActual - +CalcOut["IRADeductionAvailable"];
-		CalcOut["IRADeductionAvailable"] = +CalcOut["IRADeductionAvailable"] + IRAAdjust;
-		CalcOut["Adjustments"] += IRAAdjust;
-		TrueAGI = TrueAGI - IRAAdjust; // may go negative
-		CalcOut["AGI"] = Math.max(0, TrueAGI);
-	}
+// Limit Student Loan Payment adjustment
+if (FS !== "MFS") {
+	let SL_MAGI = +CalcOut["AGI"] + +CalcOut["SLInterest"];
+	CalcOut["SLInterest"] = _StudLoanInt(taxYear, FS, SL_MAGI, +CalcIn["StudentLoan"])["deductible"];
+	SLAdjust = Math.max(0, (CalcIn["StudentLoan"] - CalcOut["SLInterest"]));
+	CalcOut["Adjustments"] -= SLAdjust;
+	CalcOut["AGI"] += SLAdjust;
+}
 
-	// Limit Student Loan Payment Deduction
-	if (FilingStatusValue !== "MFS") {
-		var SLMAGI = +CalcOut["AGI"] + +CalcOut["SLInterest"];
-		CalcOut["SLInterest"] = _StudLoanInt(taxYear, FilingStatusValue, SLMAGI, +CalcIn["StudentLoan"])["deductible"];
-		SLAdjust = Math.max(0, (CalcIn["StudentLoan"] - CalcOut["SLInterest"]));
-		CalcOut["Adjustments"] -= SLAdjust;
-		CalcOut["AGI"] += SLAdjust;
-	}
+// Determine standard/itemized deduction ------------------------------------------------------------------
 
-	// Calculate standard deduction
-	var StdEarned = +CalcIn["Wages"] + +CalcIn["Scholar"]
-		+ +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
+// Calculate standard deduction
+CalcOut["StudentEarned"] = +CalcIn["Wages"] + +CalcIn["Scholarships"]
+	+ +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
 
-	// Check for dependent limits
-	var DependentError = "";
-	var TaxableError = "";
-	if (IsDependent.checked) {
-		if (IsYouth.checked) { // Dependent as child
-			var KiddieUnearned = +CalcOut["Gross"] - StdEarned + +CalcIn["Scholar"];
-			var KiddieLimit = +_IRSValue("Kiddie");
-			if (KiddieUnearned > KiddieLimit) {
-				DependentError = "Unearned income exceeds kiddie tax limit. Additional taxes (Form 8615) may apply.";
-			}
-		}
-		else { // Dependent as relative
-			//DepIncome = (MFStogetherRelevant) ?  +CalcOut["Gross"] : IncomeNoSS;
-			var grossLimit = +_IRSValue("DepAsRel");
-			if ((+CalcOut["Gross"] > grossLimit) || (+CalcOut["TaxableSS"] > 0)) {
-				TaxableError = "WARNING: your income is too high to be a dependent.";
-			}
-		}
-	}
-	TaxableWarning.innerHTML = TaxableError;
-	DependentWarning.innerHTML = DependentError;
-
-	if (CalcType === "J") {
-		CalcOut["Standard"] = _StandardDeduction(taxYear, FilingStatusValue,
-			TP65.checked, TPBlind.checked, SP65.checked, SPBlind.checked, IsDependent.checked, StdEarned);
-	}
+if (FS !== "MFS") {
+	CalcOut["Standard"] = _StandardDeduction(taxYear, FS,
+		CalcIn["TP65"], CalcIn["TPBlind"], CalcIn["SP65"], CalcIn["SPBlind"], CalcIn["IsDependent"], CalcOut["StudentEarned"]);
+}
+else {
 	if (CalcType === "T") {
-		CalcOut["Standard"] = _StandardDeduction(taxYear, FilingStatusValue,
-			TP65.checked, TPBlind.checked, false, false, false, 0);
+		CalcOut["Standard"] = _StandardDeduction(taxYear, FS,
+			CalcIn["TP65"], CalcIn["TPBlind"], false, false, false, 0);
 	}
 	if (CalcType === "S") {
-		CalcOut["Standard"] = _StandardDeduction(taxYear, FilingStatusValue,
-			false, false, SP65.checked, SPBlind.checked, false, 0);
+		CalcOut["Standard"] = _StandardDeduction(taxYear, FS,
+			false, false, CalcIn["SP65"], CalcIn["SPBlind"], false, 0);
 	}
+}
 
-	// Medical limitation
-	var medexclusionindex = 0
-	if (((CalcType === "J") && (TP65.checked || SP65.checked)) ||
-		((CalcType === "T") && TP65.checked) ||
-		((CalcType === "S") && SP65.checked)) medexclusionindex = 1;
-	var medexclusion = Math.round(+CalcOut["AGI"] * +_IRSValue("MedExclusion"));
-	CalcOut["Medical"] = Math.max(0, +CalcIn["ActualMedical"] + SEHIRemainder - medexclusion);
+// Itemized deductions...
 
-	// Two percent limitation
-	CalcOut["TwoPercent"] = Math.round(+CalcOut["AGI"] * 0.02);
+// Medical limitation
+let medExclusion = Math.round(+CalcOut["AGI"] * +_IRSValue("MedExclusion"));
+CalcOut["Medical"] = Math.max(0, +CalcIn["ActualMedical"] + +CalcOut["SEHIExcess"] - medExclusion);
 
-	// Charitable limited to AGI 60%
-	if (CalcOut["CharityStandard20"] === undefined) CalcOut["CharityStandard20"] = 0;
-	if (CalcOut["CharityStandard"] === undefined) CalcOut["CharityStandard"] = 0;
-	CharityAGI = Math.max(0, TrueAGI + +CalcOut["CharityStandard20"]);
-	charlimit = Math.round(CharityAGI * 0.6);
-	CalcOut["CharityTotal"] = Math.min((+CalcIn["Charity"] + +CalcIn["CharityNoncash"]), charlimit);
+// Charitable limitation
+let charlimit = Math.round(+CalcOut["AGI"] * 0.6);
+CalcOut["CharityTotal"] = Math.min((+CalcIn["CharityCash"] + +CalcIn["CharityNoncash"]), charlimit);
 
-	var taxlimit = (FilingStatusValue === "MFS") ? 5000 : 10000;
-	CalcOut["TaxesPaid"] = Math.min(CalcIn["ActualTaxesPaid"], taxlimit);
+// Limit taxes paid
+let taxlimit = _IRSValue("SALT") / ((FS === "MFS") ?  2 : 1 );
+CalcOut["TaxesPaid"] = Math.min(CalcIn["SALTTaxesPaid"], taxlimit);
 
-	// Find the itemized deduction total
-	ItemizedValue = +CalcOut["Medical"] + +CalcOut["TaxesPaid"] + +CalcIn["InterestPaid"] +
-		+CalcOut["CharityTotal"] + +CalcIn["OtherItemized"];
-	CalcOut["Itemized"] = ItemizedValue;
+// Find the itemized deduction total
+CalcOut["Itemized"] = +CalcOut["Medical"] + +CalcOut["TaxesPaid"] + +CalcIn["InterestPaid"] +
+	+CalcOut["CharityTotal"] + +CalcIn["OtherItemized"];
 
-	// Are itemized deductions limited by Pease (high income) deduction limit?
-	//var itemval = (+CalcOut["Itemized"] == undefined) ? 0 : +CalcOut["Itemized"];
-	var itemval = ItemizedValue;
-	CalcOut["AGILimit"] = itemvallimit = +_IRSValue("ItemLimit." + FilingStatusValue);
+// Select the appropriate deduction
+if (FS === "MFS") {
+	CalcOut["Deductions"] = (CalcIn["ItemizedRequired"]) ? CalcOut["Itemized"] : CalcOut["Standard"] ;
+}
+else {
+	CalcOut["Deductions"] = Math.max(+CalcOut["Standard"], CalcOut["Itemized"]);
+}
+CalcOut["Itemizing"] = (CalcOut["Deductions"] == CalcOut["Itemized"]); // T/F
 
-	//if ( ((taxYear < 2018) || (taxYear > 2025))
-	//&& (itemval > 0)
-	//&& (+CalcOut["AGI"] > itemvallimit)) {
-	//	Misc.disabled = false;
-	//	// reduce itemized deductions by lesser of 3% of AGI or 80% non Misc
-	//	// does not apply to medical, invest exp, gambling loss, casualty losses
-	//	itemvalnonMisc = itemval - +CalcIn["Miscellaneous"];
-	//	itemlimit80pct = itemvalnonMisc * .8;
-	//	itemlimit3pct = +CalcOut["AGI"] * .03;
-	//	itemval -= Math.min(itemlimit3pct, itemlimit80pct);
-	//}
-	//else {
-		Misc.disabled = true;
-		Misc.value = "";
-	//}
+// QBI Calc
+let QBIDeduction = 0;
+let SENetIncome = +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"] - +CalcOut["SEHI"];
+QBIDeduction = _QBICalc(taxYear, FS, SENetIncome,
+	(+CalcIn["QualDividends"] + +CalcOut["CapGains"]),
+	CalcIn["QBIDividends"], CalcOut["AGI"]);
+CalcOut["QBIAmount"] = QBIDeduction;
 
-	// Select the appropriate deduction
-	if (FilingStatusValue == "MFS") {
-		Deductions = (ItemizeRequired.checked) ? itemval : CalcOut["Standard"];
-		}
-	else {
-		Deductions = Math.max(+CalcOut["Standard"], itemval);
+// Determine total deductions
+CalcOut["TotalDeductions"] = CalcOut["Deductions"] + Math.max(0, QBIDeduction);
+
+// Determine tax ----------------------------------------------------------------------------
+
+// Determine taxable amount
+CalcOut["TrueTaxableAmount"] = +CalcOut["AGI"] - +CalcOut["TotalDeductions"];
+CalcOut["TaxableAmount"] = Math.max(0, CalcOut["TrueTaxableAmount"]);
+
+// Determine Tax
+let CGtoUse = Math.min( +CalcIn["LTCapGains"], (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]));
+let CGAmount = +CalcIn["QualDividends"] + Math.max(0, CGtoUse);
+TaxResult = _TaxLookup(taxYear, FS, +CalcOut["TaxableAmount"], CGAmount, true);
+CalcOut["Tax"] = TaxResult["tax"];
+
+// Show the tax bracket
+CalcOut["Bracket"] = "(" + TaxResult["bracket"] + " marginal bracket)";
+
+CalcOut["TaxTable"] = (CGAmount) ? "Tax from Capital Gains Worksheet" : "Tax from tax tables" ;
+
+// Nonrefundable credits  ----------------------------------------------------------------------------
+
+// WorkingTax is a variable to use to see how much is left to deduct from
+let WorkingTax = Math.round(+CalcOut["Tax"] + +CalcIn["AdditionalTax"]);
+CalcOut["PreNRTax"] = WorkingTax;
+
+// Limit Foreign Tax deduction
+foreignLimit = (FS != "MFS") ? 600 : 300 ;
+CalcOut["ForeignTax"] = Math.min(foreignLimit, CalcIn["ForeignPaid"]);
+let NRUsed = Math.min(WorkingTax, +CalcOut["ForeignTax"]);
+CalcOut["ForeignUsed"] = NRUsed
+WorkingTax -= NRUsed;
+
+// Limit Child Care Cost
+CalcOut["ChildCare"] = CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
+if ((FS != "MFS") && (+CalcIn["CCDependents"] > 0)) {
+	let cclimit = _IRSValue("Care.PerChild") * (+CalcIn["CCDependents"]  > 1) ? 2 : 1 ;
+	let CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
+	// CC limited by lower income of TP or SP
+	if (FS === "MFJ") {
+		let TPCCEarned = +CalcIn["TPWages"] + +CalcIn["TPSEIncome"] - +CalcOut["TPSETaxCredit"];
+		let SPCCEarned = +CalcIn["SPWages"] + +CalcIn["SPSEIncome"] - +CalcOut["SPSETaxCredit"];
+		if (TPCCEarned || SPCCEarned) CCEarned = Math.min(TPCCEarned, SPCCEarned);
 	}
-	
-	CalcOut["Itemizing"] = (Deductions !== CalcOut["Standard"]); // T/F
-	CalcOut["Deductions"] = Math.round(Deductions);
+	CalcOut["ChildCare"] = Math.round(_ChildCare(TY, FS, CCEarned, CalcOut["AGI"],
+		CalcIn["CCDependents"], CalcIn["ChildCareCost"])["deductible"]);
+	CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
+}
+WorkingTax -= NRUsedTemp;
+NRUsed += NRUsedTemp;
 
-	// Calculate exemptions
-	CalcOut["PreExemptAmount"] = Math.round(Math.max(0, +CalcOut["AGI"] - Deductions));
-	var exemptRate = +_IRSValue("Exemption");
-	var exemptCount = (((FilingStatusValue == "MFJ") ? 2 : 1) + +DependentsValue);
-	var exemptAmt = exemptRate * exemptCount;
-	CalcOut["ExemptAmount"] = exemptAmt;
-	document.getElementById("ExemptCount").innerHTML =
-		exemptCount + " exemption" + ((exemptCount == 1) ? "" : "s") + " times " + exemptRate;
-	//document.getElementById("ExemptAmount").innerHTML = exemptAmt;
-	var elist = document.getElementsByClassName("exemptions");
-	if (CalcType === "J") for (elistno = 0; elistno < elist.length; elistno++) {
-		elist[elistno].style.display = (exemptAmt) ? "table-row" : "none";
-	}
-	var PostExemptAmount = Math.round(Math.max(0, +CalcOut["PreExemptAmount"] - exemptAmt));
+// Determine education expenses and credits
+CalcOut["Education"] = CalcOut["AOCCredit"] = "";
+if (FS !== "MFS") {
+	result = _EdCredit(TY, FS, CalcOut["AGI"], "AOC", CalcIn["AOCCost"]);
+	CalcOut["AOCCredit"] = +CalcOut["AOCCredit"] + +result[1];
+	CalcOut["Education"] = +CalcOut["Education"] + +result[0];
+	result = _EdCredit(TY, FS, CalcOut["AGI"], "LLC", CalcIn["LLCCost"]);
+	CalcOut["Education"] = +CalcOut["Education"] + +result[0];
+}
+CalcOut["EducationUsed"] = NRUsedTemp = Math.min(WorkingTax, CalcOut["Education"]);
+WorkingTax -= NRUsedTemp;
+NRUsed += NRUsedTemp;
 
-	// QBI Calc
-	var QBIDeduction = 0;
-	QBILine.style.display = MFJMFSQBILine.style.display = "none";
-	if (_IRSValue("LineNo.QBI")) {
-		QBILine.style.display = MFJMFSQBILine.style.display = "table-row";
-		var SENetIncome = +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] - +CalcIn["SESEP"] - +CalcOut["SEHI"];
-		var QBIDeduction = _QBICalc(taxYear, FilingStatusValue, SENetIncome,
-			(+CalcIn["QualDividends"] + +CalcOut["CapGains"]),
-			CalcIn["QBIDividends"], PostExemptAmount);
-		if (CalcType === "J") QBIOOS.style.display = (QBIDeduction == -1) ? "inline" : "none";
-		CalcOut["QBIAmount"] = QBIDeduction = Math.max(0, +QBIDeduction);
-	}
-	else {
-		if (CalcType === "J") {
-			QBILine.style.display = "none";
-			MFJMFSQBILine.style.display = "none";
-		}
-	}
+// Determine retirement savings contribution redit
+if ((FS === "MFJ")  // preferred solution
+	&& ((CalcIn["TPRetirementCost"] || CalcIn["SPRetirementCost"]))) {
+	CalcOut["Retirement"] = _Retirement(taxYear, FS, CalcOut["AGI"],
+		CalcIn["TPRetirementCost"], CalcIn["SPRetirementCost"]);
+}
+else { // suboptimal solution but OK if only TP has it
+	CalcOut["Retirement"] = _Retirement(taxYear, FS, CalcOut["AGI"],
+		CalcIn["RetirementCost"], 0);
+}
+CalcOut["RetirementUsed"] = NRUsedTemp = Math.round(Math.min(WorkingTax, +CalcOut["Retirement"]));
+WorkingTax -= NRUsedTemp;
+NRUsed += NRUsedTemp;
 
-	// Determine total deductions
-	if (CalcOut["CharityStandard"]) {
-		CalcOut["TotalDeductions"] = CalcOut["Standard"] + CalcOut["CharityStandard"] + QBIDeduction;
-	}
-	else {
-		CalcOut["TotalDeductions"] = CalcOut["Deductions"] + QBIDeduction;
-	}
+// Get the FTC, CTC and ACTC amounts
+CTCresult = _CTCLookup(taxYear, FS, CTCDependents, Dependents,
+		(+CalcIn["Wages"] + +CalcIn["SEIncome"]), +CalcOut["AGI"]);
+let CTCAmount = +CTCresult[0];
+let FTCAmount = +CTCresult[1];
+let ACTCLimit = +CTCresult[2];
+CalcOut["CTCredit"] = FTCAmount + CTCAmount;
 
-	// Determine taxable amount
-	//CalcOut["TaxableAmount"] = Math.max(0, PostExemptAmount - QBIDeduction);
-	CalcOut["TaxableAmount"] = Math.max(0, +CalcOut["AGI"] - +CalcOut["TotalDeductions"]);
+// FTC - Current assumption - Use FTC before CTC but use the same line
+// 	Saves more for ACTC
+let FTCUsed = Math.min(WorkingTax, FTCAmount); 
+WorkingTax -= FTCUsed;
+NRUsed += FTCUsed;
 
-	// Determine Tax
-	var CGtoUse = Math.min( +CalcIn["LTCapGains"], (+CalcIn["LTCapGains"] + +CalcIn["STCapGains"]));
-	CG = +CalcIn["QualDividends"] + Math.max(0, CGtoUse);
-	TaxResult = _TaxLookup(taxYear, FilingStatusValue, +CalcOut["TaxableAmount"], CG, true);
-	CalcOut["Tax"] = TaxResult["tax"];
+// CTC
+let CTCUsed = Math.min(WorkingTax, CTCAmount);
+WorkingTax -= CTCUsed;
+NRUsed += CTCUsed;
+CalcOut["CTCreditUsed"] = FTCUsed + CTCUsed;
 
-	// Show the tax bracket
-	if (CalcType === "J") {
-		if (TaxResult["bracket"]) {
-			Bracket.innerHTML = "(" + TaxResult["bracket"] + " marginal bracket)";
-		}
-		else {
-			Bracket.innerHTML = "";
-		}
-	}
-	
-	TaxTable.innerHTML = (CG) ? "Tax from Capital Gains Worksheet" : "Tax from tax tables" ;
-	CalcOut["PreWorkingTax"] = WorkingTax = Math.round(+CalcOut["Tax"] + +CalcIn["AdditionalTax"]);
+// ACTC
+let ACTCAmount = Math.min(Math.max(0, CTCAmount - CTCUsed), ACTCLimit);
+CalcOut["ACTCredit"] = ACTCAmount;
 
-	// Limit Foreign Tax deduction
-	forlimit = (FilingStatusValue == "MFJ") ? 600 : 300;
-	CalcOut["Foreign"] = +CalcIn["ForeignCost"];
-	if (+CalcIn["ForeignCost"] > forlimit) {
-		Warn1116.style.display = "inline";
-		if (! Allow1116.checked) CalcOut["Foreign"] = forlimit;
-	}
-	else if (CalcType === "J") {
-		Warn1116.style.display = "none";
-		Allow1116.checked = false;
-	}
-	CalcOut["ForeignUsed"] = NRUsed = Math.min(WorkingTax, +CalcOut["Foreign"]);
-	WorkingTax -= NRUsed;
+// Residential and other credits
+NRUsedTemp = Math.min(WorkingTax, +CalcIn["ResidenceEnergy"]);
+WorkingTax -= NRUsedTemp;
+NRUsed += NRUsedTemp;
+CalcOut["ResidentialUsed"] = NRUsedTemp;
 
-	// Limit Child Care Cost
-	CalcOut["ChildCare"] = CalcOut["ChildCareUsed"] = NRUsedTemp = 0;
-	//if (+CCDependents.value < 0) CCDependents.value = "";
-	if ((FilingStatusValue != "MFS") && (+CCDependents.value > 0)) {
-		var cclimit = (+CCDependents.value  > 1) ? 6000 : 3000;
-		cccost = Math.min(+CalcIn["ChildCareCost"], cclimit);
-		CCEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
-		CC2Earned = 0; // Other partner
-		// If MFSMFJ, make CCEarned the lesser of CCEarned and CC2Earned.
-		CalcOut["ChildCare"] = Math.round(_ChildCare(taxYear, FilingStatusValue, CCEarned, CalcOut["AGI"], CalcIn["CCDependents"], cccost)["deductible"]);
-		CalcOut["ChildCareUsed"] = NRUsedTemp = Math.min(WorkingTax, +CalcOut["ChildCare"]);
-	}
-	WorkingTax -= NRUsedTemp;
-	NRUsed += NRUsedTemp;
+// Totals
+CalcOut["Nonrefundable"] = NRUsed;
+CalcOut["TaxPostCredits"] = Math.round(Math.max(0, CalcOut["PreNRTax"] - NRUsed));
 
-	// Determine education expenses and credits
-	CalcIn["EducationCost"] = CalcOut["Education"] = CalcOut["AOCCredit"] = "";
-	if ((FilingStatusValue !== "MFS") && (EdiList.length)) {
-		for (j = 1; j <= 3; j++) {
-			if (EdiList[j].value) {
-				etype = (EdtList[j].checked) ? "AOC" : "LLC";
-				result = _EdCredit(taxYear, FilingStatusValue, AGI.innerHTML,
-					etype, EdiList[j].value);
-				// Don't use += below...
-				CalcIn["EducationCost"] = +CalcIn["EducationCost"] + +EdiList[j].value;
-				CalcOut["Education"] = +CalcOut["Education"] + +result[0];
-				CalcOut["AOCCredit"] = +CalcOut["AOCCredit"] + +result[1];
-			}
-		}
-	}
-	CalcOut["EducationUsed"] = NRUsedTemp = Math.min(WorkingTax, CalcOut["Education"]);
-	WorkingTax -= NRUsedTemp;
-	NRUsed += NRUsedTemp;
+// Refundable credits  ----------------------------------------------------------------------------
 
-	// Determine retirement expenses
-	retlimit = (FilingStatusValue === "MFS") ? 2000 : 4000;
-	CalcOut["Retirement"] = _Retirement(taxYear, FilingStatusValue, CalcOut["AGI"],
-			Math.min(CalcIn["RetirementCost"], retlimit), 0);
-	CalcOut["RetirementUsed"] = NRUsedTemp = Math.round(Math.min(WorkingTax, +CalcOut["Retirement"]));
-	WorkingTax -= NRUsedTemp;
-	NRUsed += NRUsedTemp;
+// Get the EIC amount
+var EICAmount = 0;
+var EICInvest = +CalcOut["CapGains"] + +CalcIn["InterestIncome"] + +CalcIn["TaxExemptInt"] + +CalcIn["Dividends"];
+var EICEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
+CalcOut["EICCredit"] = EICAmount = +_EICLookup(taxYear, FS,
+	EICDependents, EICEarned, EICInvest, CalcOut["AGI"],
+	CalcIn["TP65"], CalcIn["SP65"]);
 
-	// Get the CTC and ACTC amounts
-	var CTCresult = [];
-	CTCresult = _CTCLookup(taxYear, FilingStatusValue, CTCDependentsValue, DependentsValue,
-			(+CalcIn["Wages"] + +CalcIn["SEIncome"]), +CalcOut["AGI"]);
-	var CTCAmount = +CTCresult[0];
-	var FTCAmount = +CTCresult[1];
-	var ACTCLimit = +CTCresult[2];
-	CalcOut["CTCredit"] = FTCAmount + CTCAmount;
+// Does NIIT apply?
+var NIITAmount = _NIITCalc(taxYear, FS, +CalcOut["AGI"], +CalcIn["InterestIncome"],
+	CalcIn["Dividends"], +CalcOut["CapGains"], +CalcIn["NIITExpenses"]);
+CalcOut["NIITTax"] = NIITAmount;
 
-	// FTC - Current assumption - Use FTC before CTC but use the same line
-	NRUsedTemp = FTCUsed = Math.min(WorkingTax, FTCAmount); 
-	WorkingTax -= NRUsedTemp;
-	NRUsed += NRUsedTemp;
+// Total the tax amounts
+CalcOut["TotalTax"] = Math.round(+CalcOut["TaxPostCredits"] + +CalcOut["SETax"] + +CalcOut["NIITTax"] + +CalcIn["OtherTaxes"]);
 
-	// CTC
-	NRUsedTemp = Math.min(WorkingTax, CTCAmount);
-	WorkingTax -= NRUsedTemp;
-	NRUsed += NRUsedTemp;
-	CalcOut["CTCreditUsed"] = FTCUsed + NRUsedTemp;
-	
-	// ACTC
-	ACTCAmount = Math.min(Math.max(0, CTCAmount - NRUsedTemp), ACTCLimit);
-	CalcOut["ACTCredit"] = ACTCAmount;
+// Determine tax due
+CalcOut["TaxDue"] = Math.round(+CalcOut["TotalTax"] - +CalcOut["ACTCredit"]
+	- +CalcOut["EICCredit"] - +CalcOut["AOCCredit"] - +CalcIn["Refundable"]);
 
-	// Residential and other credits
-	NRUsedTemp = Math.min(WorkingTax, +CalcIn["Residential"]);
-	WorkingTax -= NRUsedTemp;
-	NRUsed += NRUsedTemp;
-	CalcOut["ResidentialUsed"] = NRUsedTemp;
-
-	// Totals
-	CalcOut["Nonrefundable"] = NRUsed;
-	CalcOut["TaxPostCredits"] = Math.round(Math.max(0, CalcOut["PreWorkingTax"] - NRUsed));
-
-	// Get the EIC amount
-	var EICAmount = 0;
-	var EICInvest = +CalcOut["CapGains"] + +CalcIn["Interest"] + +CalcIn["TaxExempt"] + +CalcIn["Dividends"];
-	var EICEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
-	CalcOut["EICCredit"] = EICAmount = +_EICLookup(taxYear, FilingStatusValue, EICDependentsValue,
-		EICEarned, EICInvest, CalcOut["AGI"], TP65.checked, SP65.checked);
-
-	// Does NIIT apply?
-	var NIITAmount = _NIITCalc(taxYear, FilingStatusValue, +CalcOut["AGI"], +CalcIn["Interest"],
-			CalcIn["Dividends"], +CalcOut["CapGains"], +CalcIn["NIITExpenses"]);
-	CalcOut["NIITTax"] = NIITAmount;
-	if (CalcType === "J") {
-		if ((NIITAmount > 0) || (CalcIn["NIITExpenses"] != "")) {
-			NIITRow.style.display = "table-row";
-			MFJMFSNIITRow.style.display = "table-row";
-		}
-		else {
-			NIITRow.style.display = "none";
-			MFJMFSNIITRow.style.display = "none";
-		}
-	}
-
-	// Total the tax amounts
-	CalcOut["TotalTax"] = Math.round(+CalcOut["TaxPostCredits"] + +CalcOut["SETax"] + +CalcOut["NIITTax"] + +CalcIn["OtherTaxes"]);
-
-	// Determine tax due
-	CalcOut["TaxDue"] = 
-	taxdue = Math.round(+CalcOut["TotalTax"]
-		- +CalcOut["ACTCredit"]
-		- +CalcOut["ACCCredit"]
-		- +CalcOut["EICCredit"]
-		- +CalcOut["AOCCredit"]
-		- +CalcIn["RecoveryCredit"]
-		- +CalcIn["Refundable"]);
-	mustFile = (Math.round(+CalcOut["Tax"] + +CalcOut["SETax"] + +CalcIn["OtherTaxes"]) > 0);
-	if ((FilingStatusValue == "MFJ") && IsDependent.checked && mustFile) {
-		DependentWarning.innerHTML = "WARNING: You cannot file as MFJ and still be a dependent if filing for other than a refund of withholding.";
-	}
-
-	RefundComment.style.display = (taxdue < 0) ? "inline" : "none" ;
-
-	return (CalcOut);
+return (CalcOut);
 
 } // end Tax_Calc()

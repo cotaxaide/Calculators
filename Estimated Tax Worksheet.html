@@ -58,7 +58,6 @@
 	#TPName { width:20em; text-align:left; }
 	#CGOption { display: none; }
 	#QBIOOS { display: none; font-weight: bold; color: red; float: right; }
-	//#CTCredit, #ACTCredit, #EICCredit, #Medical { cursor: not-allowed; }
 	#ClearAndPrint { width: 16em; 
 		text-align:center; 
 		border:0;
@@ -69,7 +68,6 @@
 	#FilingStatus { width: 8em; }
 	#FilingInfoTbl { width: 100%; }
 	#FilingInfoTbl tr td { vertical-align: top; }
-	//#FilingInfoTbl tr td { border: 1px solid blue; }
 	#FilingInfoTbl tr td:nth-child(1) { width: 9em; width: 9em; }
 	#FilingInfoTbl tr:first-child { height: 0 }
 	#FilingInfoTbl tr td:nth-child(2) { width: 8em; width: 8em; }
@@ -114,7 +112,7 @@
 	}
 	#EdInputBox { width: 18em; }
 	#EdInputTitle,
-	#MFSInputTitle { font-weight: bold; text-decoration: underline; }https://www.irs.gov/individuals/site-coordinator-corner
+	#MFSInputTitle { font-weight: bold; text-decoration: underline; }
 	#MFJMFSResults { border: 2px solid green; margin: 5px; font-size: 110%; }
 	#MFJMFSResultsTable { width: auto; margin: auto; }
 	#MFJMFSResultsTable tr:last-child { border-top: 1px solid black; }
@@ -194,169 +192,23 @@
 
 	// --------------------------------------------------------------------------------
 	// CHANGE HISTORY	
-	var VERSION = "(Version 4.03, 7/17/2024)";
+	var VERSION = "(Version 4.04, 7/17/2025)";
+	//	Removed 2020 Unemployment UCE feature
+	//	Removed 2020 and 2021 non-itemizing charity deduction
+	//	Removed pre 2018 exemptions and misc deduction lines
+	//	Removed Widow(er) option as alias for QSS
+	//var VERSION = "(Version 4.03, 7/17/2024)";
 	//	Corrected inability to change Child Care numbers in MFS/MFJ mode
 	//var VERSION = "(Version 4.02, 5/24/2024)";
 	//	Correction to Child Care handling
 	//var VERSION = "(Version 4.01, 5/23/2024)";
 	//	Changed to JSON tax data files
-	//var VERSION = "(Version 3.48b, 4/13/2024)";
-	//	Corrected link to AARP RMD calculator
-	//var VERSION = "(Version 3.48a, 3/15/2024)";
-	//	Minor text correction
-	//var VERSION = "(Version 3.48, 3/8/2024)";
-	//	Corrected educator expense amount, raised to 300 in 2023
-	//var VERSION = "(Version 3.47, 3/6/2024)";
-	//	Corrected educator expense amount, raised to 300 in 2024
-	//var VERSION = "(Version 3.46, 11/27/2023)";
-	//	Moved tax form calculations to a seperate module so it could be used by others
-	//var VERSION = "(Version 3.45, 11/7/2023)";
-	//	Corrected CTC amount calc for TY > 2021
-	//var VERSION = "(Version 3.44, 6/15/2023)";
-	//	Removed red from QBIDividends since it could be more than Dividends due to K-1s
-	//	Hid code for SS overpayment due to multiple employers - not enough info
-	//var VERSION = "(Version 3.43a, 4/15/2023)";
-	//	Added source of tax calculation
-	//var VERSION = "(Version 3.43, 4/12/2023)";
-	//	Fixed ACTC error
-	//var VERSION = "(Version 3.42, 12/10/2022)";
-	//	2021 above line charitable contributions not subtracting
-	//var VERSION = "(Version 3.41b, 11/19/2022)";
-	//	Scrolling in MFJMFS mode caused numbers in box to be deleted
-	//var VERSION = "(Version 3.41a, 10/4/2022)";
-	//	Limited to only last 4 years + next year
-	//	Changed Widow(er) filing option to QSS
-	//var VERSION = "(Version 3.41, 9/11/2022)";
-	//	Correction to maximize 2021 with cash gift to charity
-	//var VERSION = "(Version 3.40c, 9/1/2022)";
-	//	Changed page restart to support OH state link
-	//var VERSION = "(Version 3.40b, 8/2/2022)";
-	//	Added state link for OH to capture calc data in Show_Results()
-	//var VERSION = "(Version 3.40a, 4/25/2022)";
-	//	Minor change to IRA and HSA limits with footnotes added
-	//	Removed IRA withdrawal calc shown in footnotes block
-	//	Removed 2021 CARES act modifications for 2022
-	//var VERSION = "(Version 3.40, 3/19/2022)";
-	//	Added 100% charitable contribution allowed for 2021
-	//var VERSION = "(Version 3.39, 2/21/2022)";
-	//	Added a warning if MFS comparison is best but above Med B threshhold
-	//var VERSION = "(Version 3.38, 1/8/2022)";
-	//	Corrected EIC not calculating correctly
-	//var VERSION = "(Version 3.37, 1/7/2022)";
-	//	Modified to include 2021 Refundable Child Tax Credit changes
-	//var VERSION = "(Version 3.36, 1/4/2022)";
-	//	Added line-through on TP and SP columns if not itemizing
-	//	Moved non-itemized charitable deduction line after AGI for 2021 and later
-	//	Added a total deductions line
-	//var VERSION = "(Version 3.35, 12/29/2021)";
-	//	2021 Refundable Child Care credit not subtracting from tax due
-	//var VERSION = "(Version 3.34, 11/23/2021)";
-	//	Modified Child Care result based on 2021 documentation
-	//var VERSION = "(Version 3.33, 11/13/2021)";
-	//	Fixed problem where unemployment amount gets deleted
-	//var VERSION = "(Version 3.32, 11/12/2021)";
-	//	Removed non-itemizing charitable deduction from SS taxable calc
-	//var VERSION = "(Version 3.31, 11/6/2021)";
-	//	Corrected for change in non-itemizing charitable contribution
-	//var VERSION = "(Version 3.30, 10/26/2021)";
-	//	Student loan interest not calculating for non-MFJ
-	//var VERSION = "(Version 3.29, 10/24/2021)";
-	//	Added excess Social Security withholding
-	//	Revised calculation of IRA contribution deductibility
-	//	Prevent bad input from calculating (produces NaNs)
-	//var VERSION = "(Version 3.28c, 10/15/2021)";
-	//	Added CTC age change to input title
-	//	Prevented CC dependents from being negative
-	//var VERSION = "(Version 3.28b, 10/7/2021)";
-	//	Moved scenario notes to info section and adjusted editing and resizing
-	//var VERSION = "(Version 3.28a, 9/21/2021)";
-	//	Limited scenario notes to 1em height due to MFS/MFS spacing
-	//var VERSION = "(Version 3.28, 9/13/2021)";
-	//	Added a place for scenario notes
-	//	Replaced "last year" text with actual year
-	//	Dependents under 6 row was not hidden when TP is a dependent
-	//var VERSION = "(Version 3.27, 9/10/2021)";
-	//	Increased nonitemizing charity to 300/600
-	//var VERSION = "(Version 3.26, 9/4/2021)";
-	//	Added link to 2022 data
-	//	Added phaseout of Student Loan Interest adjustment
-	//var VERSION = "(Version 3.25, 5/15/2021)";
-	//	Minor HTML corrections
-	//	Exemption rate not printing for returns prior to 2018
-	//	Added number of exemptions to exemption rate line
-	//	Added data files back to 2015
-	//var VERSION = "(Version 3.24, 4/14/2021)";
-	//	Corrected MFJ/MFS spouse standard deduction
-	//var VERSION = "(Version 3.23, 4/4/2021)";
-	//	Added CTC changes for 2021 as best we know it now
-	//var VERSION = "(Version 3.22, 3/26/2021)";
-	//	Corrected 2020 UCE Gross and AGI calculations
-	//	Corrected non-itemized charitable contributions not limited by AGI
-	//var VERSION = "(Version 3.21, 3/24/2021)";
-	//	Corrected 2020 UCE SS and IRA deduction calculations per IRS
-	//var VERSION = "(Version 3.20, 3/20/2021)";
-	//	Corrected doubling of non-itemized charitable amount
-	//var VERSION = "(Version 3.19, 3/15/2021)";
-	//	Added 2020 Unemployment compensation exclusion (UCE)
-	//	Added a line for prior year estimated payment from refund
-	//var VERSION = "(Version 3.18, 3/6/2021)";
-	//	Corrected NaN when not using MFJMFS
-	//	Corrected some printing and display formatting issues
-	//	Added comment re negative MFJMFS results
-	//var VERSION = "(Version 3.17, 2/10/2021)";
-	//	Corrected taxes paid limitation for MFJMFS comparison, allowed 10K to TP/SP
-	//var VERSION = "(Version 3.16, 2/2/2021)";
-	//	Taxable Social Security needed adjustment due to charity adjustment
-	//var VERSION = "(Version 3.15a, 1/24/2021)";
-	//	Not calculating unless MFJMFS toggled
-	//var VERSION = "(Version 3.15, 1/23/2021)";
-	//	Printing problem: SP column prints beyond page edge, not visible
-	//var VERSION = "(Version 3.14, 12/30/2020)";
-	//	Fixed problem where AGI not calculating
-	//var VERSION = "(Version 3.13, 12/29/2020)";
-	//	Re-corrected above-line charity to 150 for filing MFS
-	//	Fixed a problem with MFJ/MFS comparison option remaining checked
-	//	Added limit to IRA contribution deduction in adjustment to income
-	//var VERSION = "(Version 3.12, 12/11/2020)";
-	//	Removed dependency count checks
-	//	Separated cash and non-cash charitable contributions
-	//	Show best option for MFJMFS comparison for itemized or standard deduction
-	//var VERSION = "(Version 3.11, 11/4/2020)";
-	//	Separated IRA and Pension/Annuity lines
-	//	Lived with spouse for MFS not displaying as a table row
-	//	Toggled default for lived with spouse option when MFJMFS changes
-	//	Limited display of recovery rebate credit to TY2020
-	//var VERSION = "(Version 3.10, 10/20/2020)";
-	//	Corrected above-line charity to 300 per return vs per TP/SP
-	//var VERSION = "(Version 3.09, 10/13/2020)";
-	//	Added CARES act above-line charitable and recovery rebate credit lines
-	//	Bolded which of standard/itemized total was used in calcs
-	//	Added estimated payment buttons for MFJMFS comparison
-	//var VERSION = "(Version 3.08, 7/20/2020)";
-	//	Added options for dependent
-	//	Changed inputs from number type to text to better handle negative entries
-	//var VERSION = "(Version 3.07, 6/30/2020)";
-	//	Fixed problem where could not enter negative capital gains
-	//var VERSION = "(Version 3.06, 5/19/2020)";
-	//	Fixed problem where living with spouse used with MFJ calc
-	//	Fixed problem where SE tax adjustment was using MFJ value in FMS columns
-	//var VERSION = "(Version 3.05, 3/26/2020)";
-	//	Estimated payments not responsive to changes in options
-	//var VERSION = "(Version 3.04, 2/22/2020)";
-	//	Corrected IRA adjustment limit test
-	//var VERSION = "(Version 3.03, 2/12/2020)";
-	//	Corrected IRA adjustment comment
-	//	Added TY variable
-	//var VERSION = "(Version 3.02, 1/16/2020)";
-	//	Corrected calculation of SEHI
-	//var VERSION = "(Version 3.01, 11/9/2019)";
-	//	Corrected overly limiting HSA contribution
-	//var VERSION = "(Version 3.00, 10/29/2019)";
 	// --------------------------------------------------------------------------------
 
 	var IncomeExpanded = false;
 	var IncomeWasExpanded = false;
 	var TY = 0;
+	var FS = "MFJ"; // default
 	var IncomeNoSS = 0;
 	var Deductions = 0;
 	var IRAActualMax = 0;
@@ -364,68 +216,67 @@
 	var TPMFS = []; // saves taxpayer input data for MFJ/MFS comparison
 	var SPMFS = []; // saves spouse input data for MFJ/MFS comparison
 	var CalcOut = [];
+	var TPCalcOut = [];
+	var SPCalcOut = [];
 	var MFJMFSError = false;
 	var MFJMFSLastId = "";
-	var MFJMFSItemized = [];
+	var MFJMFSTaxDue = [];
+	var TPMFJhList = []; // array of header elements
 	var TPMFJiList = []; // array of input elements
 	var TPMFJcList = []; // array of calculated elements
+	var TYList = []; // array of tax year elements within text
+	var PTYList = []; // array of prior tax year elements
 	var EdtList = [];
 	var EdiList = [];
+	var ItemizedIsBest = "";
 	var payOption = "J";
 	var InTitle = []; // Titles for the MFJ/MFS comparison input box
-		InTitle["Wages"] = "Wages, salaries, tips, etc from W-2s";
-		InTitle["Scholar"] = "Taxable scholarships";
-		InTitle["Interest"] = "Taxable interest";
-		InTitle["TaxExempt"] = "Tax-exempt interest expected";
+		InTitle["ActualMedical"] = "Total unreimbursed medical expenses";
+		InTitle["AdditionalTax"] = "Enter any additional taxes (Forms 4972, 6251, 8814 or 8889)";
+		InTitle["AlimonyIncome"] = "Alimony received";
+		InTitle["AlimonyPaid"] = "Alimony paid";
+		InTitle["CCDependents"] = "Number of dependents with care";
+		InTitle["CharityCash"] = "Cash gifts to charity";
+		InTitle["CharityNoncash"] = "Non-cash gifts to charity";
+		InTitle["ChildCareCost"] = "Child and dependent care expenses";
+		InTitle["Dependent"] = "Deductions: If a dependent of another, enter earned income";
 		InTitle["Dividends"] = "Ordinary dividends";
+		InTitle["EdExpenses"] = "Educator expenses";
+		InTitle["EducationCost"] = "Qualified education expenses paid";
+		InTitle["ForeignPaid"] = "Foreign tax amount paid";
+		InTitle["HSADeduction"] = "Health savings account deduction";
+		InTitle["InterestIncome"] = "Taxable interest";
+		InTitle["InterestPaid"] = "Interest paid";
+		InTitle["IRADeduction"] = "IRA deduction";
+		InTitle["IRADeductionJoint"] = "IRA deduction for MFJMFS calculations";
+		InTitle["LTCapGains"] = "Net long term capital gains (or loss)";
+		InTitle["NIITExpenses"] = "Net Investment Income Tax investment expenses";
+		InTitle["OtherCredits"] = "Other adjustments expected (Forms 2106 &amp; 3903)";
+		InTitle["OtherItemized"] = "Other miscellaneous deductions (gambling losses)";
+		InTitle["OtherTaxes"] = "Other taxes";
 		InTitle["QualDividends"] = "Qualified dividends";
 		InTitle["QBIDividends"] = "Section 199A dividends";
 		InTitle["QCD"] = "Amount of non-taxable QCD included in the IRA distribution";
+		InTitle["RecoveryCredit"] = "Recovery rebate credit";
+		InTitle["Refundable"] = "Other refundable credits";
+		InTitle["ResidenceEnergy"] = "Residential energy and other credits";
+		InTitle["RetirementCost"] = "Retirement savings contributions";
+		InTitle["Royalties"] = "Other income (alimony, royalties, gambling, etc)";
+		InTitle["SALTTaxesPaid"] = "State income tax or sales tax, and property taxes";
+		InTitle["SavingsPenalty"] = "Penalty on early withdawal of savings";
+		InTitle["Scholarships"] = "Taxable scholarships";
+		InTitle["SEIncome"] = "Business income";
+		InTitle["SEInsurance"] = "Health insurance cost";
+		InTitle["SESEP"] = "Self-employment SEP, SIMPLE and qualified plans";
+		InTitle["SS"] = "Social Security expected";
+		InTitle["STCapGains"] = "Net short term capital gains (or loss)";
+		InTitle["StudentLoan"] = "Student loan interest";
+		InTitle["TaxExemptInt"] = "Tax-exempt interest expected";
 		InTitle["TotalIRAs"] = "IRA distributions";
 		InTitle["TotalPensions"] = "Pensions and annuities";
 		InTitle["TotalDeductions"] = "Total deductions";
-		InTitle["SS"] = "Social Security expected";
-		InTitle["SEIncome"] = "Business income";
-		InTitle["LTCapGains"] = "Net long term capital gains (or loss)";
-		InTitle["STCapGains"] = "Net short term capital gains (or loss)";
-		InTitle["Alimony"] = "Alimony received";
 		InTitle["Unemployment"] = "Unemployment income";
-		InTitle["Royalties"] = "Other income (alimony, royalties, etc)";
-		InTitle["EdExpenses"] = "Educator expenses";
-		InTitle["HSADeduction"] = "Health savings account deduction";
-		InTitle["SESEP"] = "Self-employment SEP, SIMPLE and qualified plans";
-		InTitle["SEInsurance"] = "Health insurance cost";
-		InTitle["SavingsPenalty"] = "Penalty on early withdawal of savings";
-		InTitle["AlimonyPaid"] = "Alimony paid";
-		InTitle["CharityStandard20"] = "Charitable contributions";
-		InTitle["CharityStandard"] = "Charitable contributions";
-		InTitle["IRADeduction"] = "IRA deduction";
-		InTitle["IRADeductionJoint"] = "IRA deduction for MFJMFS calculations";
-		InTitle["StudentLoan"] = "Student loan interest";
-		InTitle["OtherCredits"] = "Other adjustments expected (Forms 2106 &amp; 3903)";
-		InTitle["Dependent"] = "Deductions: If a dependent of another, enter earned income";
-		InTitle["ActualMedical"] = "Total unreimbursed medical expenses";
-		InTitle["ActualTaxesPaid"] = "State income tax or sales tax, and property taxes";
-		InTitle["InterestPaid"] = "Interest paid";
-		InTitle["Charity"] = "Cash gifts to charity";
-		InTitle["CharityNoncash"] = "Non-cash gifts to charity";
-		InTitle["Miscellaneous"] = "Job expenses and miscellaneous deductions";
-		InTitle["OtherItemized"] = "Other miscellaneous deductions (gambling losses)";
-		InTitle["Misc"] = "Medical expenses, investment interest expenses,";
-		InTitle["Misc"] += " casualty losses and gambling losses included in the";
-		InTitle["Misc"] += " total itemized deductions entered in lines above";
-		InTitle["AdditionalTax"] = "Enter any additional taxes (Forms 4972, 6251, 8814 or 8889)";
-		InTitle["ForeignCost"] = "Foreign tax amount";
-		InTitle["ChildCareCost"] = "Child and dependent care expenses";
-		InTitle["EducationCost"] = "Qualified education expenses";
-		InTitle["RetirementCost"] = "Retirement savings contributions";
-		InTitle["Residential"] = "Residential energy and other credits";
-		InTitle["NIITExpenses"] = "Net Investment Income tax investment expenses";
-		InTitle["OtherTaxes"] = "Other taxes";
-		InTitle["RecoveryCredit"] = "Recovery rebate credit";
-		InTitle["Refundable"] = "Other refundable credits";
-		InTitle["CCDependents"] = "Number of dependents with care";
-	
+		InTitle["Wages"] = "Wages, salaries, tips, etc from W-2s";
 
 	//----------------------------------------------------------------------------------------
 	function Main() {
@@ -440,11 +291,14 @@
 			TaxYear.add(tyopti,tyOptIndex++);
 		}
 
-		TaxYear.value = TY = _DefaultYear + 1;
+		TY = TaxYear.value = _DefaultYear + 1;
 
 		// Create the data arrays and initialize inputs
+		TPMFJhList = document.getElementsByClassName("wkth"); // header inputs
 		TPMFJiList = document.getElementsByClassName("wkti"); // inputs
 		TPMFJcList = document.getElementsByClassName("wktc"); // outputs (spans)
+		TYList = document.getElementsByClassName("TY");
+		PTYList = document.getElementsByClassName("PTY");
 		for (j = 1; j <= 3; j++) {
 			EdtList[j] = document.getElementById("Ed" + j + "AOC");
 			EdiList[j] = document.getElementById("Ed" + j + "Cost");
@@ -513,11 +367,9 @@
 			FilingStatus.disabled = true;
 			MFStogether.checked = true;
 			PayChoice.style.display =
-			Dependents0MFS1.style.display =
 			DependentsMFS1.style.display =
 			CTCDependentsMFS1.style.display =
 			EICDependentsMFS1.style.display = 
-			Dependents0MFS2.style.display =
 			DependentsMFS2.style.display =
 			CTCDependentsMFS2.style.display =
 			EICDependentsMFS2.style.display = "inline";
@@ -529,11 +381,9 @@
 			MFSInfo.style.display = "none";
 			IncomeInfo.style.gridColumn = "1 / 3";
 			PayChoice.style.display =
-			Dependents0MFS1.style.display =
 			DependentsMFS1.style.display =
 			CTCDependentsMFS1.style.display =
 			EICDependentsMFS1.style.display =
-			Dependents0MFS2.style.display =
 			DependentsMFS2.style.display =
 			CTCDependentsMFS2.style.display =
 			EICDependentsMFS2.style.display = "none";
@@ -544,47 +394,48 @@
 	function File_Change() {
 	// Calculates the values for filing threshold
 	//----------------------------------------------------------------------------------------
+		// Set FilingStatus ans TaxYear variables
+		FS = FilingStatus.value;
+		TY = +TaxYear.value;
 
 		// Change tax year?
-		optionLabel = (+TaxYear.value < 2022) ? "Widow(er)" : "QSS" ;
-		FilingStatus.lastElementChild.innerHTML = optionLabel;
-
-		TaxYear3.innerHTML = TaxYear2.innerHTML = TY = +TaxYear.value;
-		LY1.innerHTML = LY2.innerHTML = LY3.innerHTML = LY4.innerHTML = (TY - 1);
+		for (j in TYList) TYList[j].innerHTML = TY;
+		for (j in PTYList) PTYList[j].innerHTML = TY - 1;
 		Preliminary.style.display = (_IRSValue("Preliminary")) ? "inline" : "none";
 		MFSoptionText.innerHTML = (TY >= _StopYear) ? "will be living" : "lived" ;
 
 		// Check dependent consistency
 		if (IsDependent.checked) {
-			Dependents.value = 0;
-			EICDependents.value = 0;
-			CTCDependents.value = 0;
+			TPDependents.value = 0;
+			SPDependents.value = 0;
+			TPEICDependents.value = 0;
+			SPEICDependents.value = 0;
+			TPCTCDependents.value = 0;
+			SPCTCDependents.value = 0;
 		}
-		
+
 		// Deactivate unneeded entries
-		SP65.disabled = ! (FilingStatus.value === "MFJ");
+		SP65.disabled = ! (FS === "MFJ");
 		if (SP65.disabled) SP65.checked = false;
-		SPBlind.disabled = ! (FilingStatus.value === "MFJ");
+		SPBlind.disabled = ! (FS === "MFJ");
 		if (SPBlind.disabled) SPBlind.checked = false;
-		MFJMFS.disabled = (IsDependent.checked || (FilingStatus.value !== "MFJ"));
+		MFJMFS.disabled = (IsDependent.checked || (FS !== "MFJ"));
 		if (MFJMFS.disabled) MFJMFS.checked = false;
-		ChildCareCost.disabled = (FilingStatus.value === "MFS");
+		ChildCareCost.disabled = (FS === "MFS");
 		if (ChildCareCost.disabled) ChildCareCost.value = "";
-		EducationCost.disabled = (FilingStatus.value === "MFS");
-		LYAGI.innerHTML = (FilingStatus.value === "MFS") ? 75:150;
-		ItemizeRequiredOption.style.display = (FilingStatus.value === "MFS") ? "inline" : "none";
-		MFSoption.style.display = (FilingStatus.value === "MFS" || MFJMFS.checked) ? "table-row" : "none";
-		IsDependentRow.style.display = ((FilingStatus.value !== "HOH") && (FilingStatus.value !== "WID")) ? "table-row" : "none";
+		EducationCost.disabled = (FS === "MFS");
+		LYAGI.innerHTML = (FS === "MFS") ? 75:150;
+		ItemizedRequiredOption.style.display = (FS === "MFS") ? "inline" : "none";
+		MFSoption.style.display = (FS === "MFS" || MFJMFS.checked) ? "table-row" : "none";
+		IsDependentRow.style.display = ((FS !== "HOH") && (FS !== "QSS")) ? "table-row" : "none";
 		if (IsDependent.checked) {
 			DependentsRow.style.display = "none";
-			Dependents0Row.style.display = "none";
 			EICRow.style.display = "none";
 			CTCRow.style.display = "none";
 			if ( (! TP65.checked) && (! SP65.checked)) DependentAgeRow.style.display = "table-row";
 		}
 		else {
 			DependentsRow.style.display = "table-row";
-			Dependents0Row.style.display = (TY == 2021) ?  "table-row" : "none";
 			EICRow.style.display = "table-row";
 			CTCRow.style.display = "table-row";
 			CTCage = (TY >= 2021) ? 18 : 17;
@@ -593,17 +444,27 @@
 		}
 		if (! MFJMFS.checked) MFSInputBox.style.display = "none";
 		if (MFSoption.style.display == "none") MFStogether.checked = false;
-		if ((FilingStatus.value != "MFS") && (! MFJMFS.checked)) ItemizeRequired.checked = false;
-		var NeedSPRow = ((FilingStatus.value === "MFJ") || ((FilingStatus.value === "MFS") && MFStogether.checked));
+		if ((FS != "MFS") && (! MFJMFS.checked)) ItemizedRequired.checked = false;
+		var NeedSPRow = ((FS === "MFJ") || ((FS === "MFS") && MFStogether.checked));
 		SP65Option.style.display = (NeedSPRow) ? "inline" : "none";
 		if (! NeedSPRow) SPPlan.checked = false;
 		HSAText.innerHTML = "(" + _IRSValue("HSA.Individual") + " personal, "
 			+ _IRSValue("HSA.Family") + " family)&sup1;";
 		EdExpensesText.innerHTML = "(" + ((TY >= 2023) ? 300 : 250 ) + " maximum per TP/SP)";
 
+		// Copy entries into arrays
+		for (j in TPMFJhList) {
+			j_id = TPMFJhList[j].id;
+			j_type = TPMFJhList[j].type;
+			j_value = TPMFJhList[j].value;
+			j_checked = TPMFJhList[j].checked;
+			TPMFJ[j_id] = 
+			TPMFS[j_id] = 
+			SPMFS[j_id] = (j_type == "checkbox") ? j_checked : j_value ;
+		}
 		
 		// Expand the income section
-		IncomeExpanded = IncomeExpand.checked || (EICDependents.value > 0);
+		IncomeExpanded = IncomeExpand.checked || (TPEICDependents.value > 0);
 		if (IncomeExpanded) IncomeWasExpanded = true;
 		incomelist = document.getElementsByClassName("income");
 		for (ilno = 0; ilno < incomelist.length; ilno++) {
@@ -619,27 +480,12 @@
 		}
 
 		// Itemized deduction row display or not
-		if (ItemizeRequired.checked) ItemizeExpand.checked = "checked";
+		if (ItemizedRequired.checked) ItemizeExpand.checked = "checked";
 		IExp = ItemizeExpand.checked;
 		itemlist = document.getElementsByClassName("deductions");
 		for (itno = 0; itno < itemlist.length; itno++) {
 			itemlist[itno].style.display = (IExp) ? "table-row" : "none";
 		}
-
-		// 2018 tax form changes (this may come back in 2025)
-		AGILimitRow.style.display =
-		MFJMFSAGILimitRow.style.display =
-		MiscellaneousRow.style.display =
-		MFJMFSMiscellaneousRow.style.display = (IExp && (TY < 2018)) ? "table-row" : "none";
-
-		// 2020 tax form changes
-		MFJMFSCS20Row.style.display = CharityStandard20Row.style.display = (TY == 2020) ? "table-row" : "none";
-		MFJMFSRecoveryCreditRow.style.display = RecoveryCreditRow.style.display = (TY == 2020) ? "table-row" : "none";
-
-		// 2021 tax form changes
-		MFJMFSACCCreditRow.style.display = ACCCreditRow.style.display = (TY == 2021) ? "table-row" : "none";
-		ACTCreditRowTitle.innerHTML = (TY == 2021) ? "Refundable Child Tax Credit" : "Additional Child Tax Credit";
-		MFJMFSCSRow.style.display = CharityStandardRow.style.display = (TY == 2021) ? "table-row" : "none";
 
 		if (MFJMFS.checked) {
 			TPInput.value = TPMFS["IRADeductionJoint"];
@@ -683,7 +529,7 @@
 			EdInputBox.style.left = pos.x + "px";
 			EdInputBox.style.top = pos.y + "px";
 		}
-		else if (MFJMFS.checked || ((thisId == "Unemployment") && (TY == 2020))) {
+		else if (MFJMFS.checked) {
 			MFSInputBox.style.display = "block";
 			EdInputBox.style.display = "none";
 			TPInput.focus();
@@ -773,6 +619,12 @@
 			break;
 		case "Education":
 			EdInputBox.style.display = "none";
+			TPMFJ["AOCCost"] = TPMFJ["LLCCost"] = 0;
+			for (j = 1; j < EdtList.length; j++) {
+				if (EdtList[j].checked) TPMFJ["AOCCost"] += +EdiList[j].value;
+				else TPMFJ["LLCCost"] += +EdiList[j].value;
+			}
+			EducationCost.value = TPMFJ["AOCCost"] + TPMFJ["LLCCost"];
 			Input_Change("EducationCost");
 			break;
 		default:
@@ -791,63 +643,89 @@
 
 		// Check input validity
 		thisElement = TPMFJiList[thisId];
-		var tev = thisElement.value;
+		var thisVal = thisElement.value;
 		if (thisId == "IRADeduction") {
-			TPMFJ["IRADeductionJoint"] = tev;
+			TPMFJ["IRADeductionJoint"] = thisVal;
 		}
+
 		if (thisId == "Notes") {
 			notesCRLF = Notes.value.indexOf("\n");
 			if (notesCRLF >= 0) Notes.value = Notes.value.substr(0,notesCRLF);
 			return;
 		}
 		thisElement.style.backgroundColor = "white";
-		if (allowNegative && (tev === "-")) return;
-		if ((! allowNegative) && ((tev < 0) || tev === "-")) { thisElement.style.backgroundColor = "hotpink"; return; }
-		if (isNaN(tev)) { thisElement.style.backgroundColor = "hotpink"; return; }
-
-		// Check inconsistencies
-		QualDividends.style.backgroundColor = (+QualDividends.value > +Dividends.value) ? "hotpink" : "white" ;
-		//QBIDividends.style.backgroundColor = (+QBIDividends.value > +Dividends.value) ? "hotpink" : "white" ;
-		SEInsurance.disabled = SESEP.disabled = (+SEIncome.value == 0);
-		if (SEInsurance.disabled) SEInsurance.value = "";
-		NoInsurance.style.display = (+SEInsurance.value) ? "inline" : "none";
+		if (allowNegative && (thisVal === "-")) return;
+		if ((! allowNegative) && ((thisVal < 0) || thisVal === "-")) { thisElement.style.backgroundColor = "hotpink"; return; }
+		if (isNaN(thisVal)) { thisElement.style.backgroundColor = "hotpink"; return; }
 
 		// Ignore if called from init
 		if (thisId === "Init") return;
 
-		// Load input arrays for calculations
+		// Check inconsistencies
+		QualDividends.style.backgroundColor = (+QualDividends.value > +Dividends.value) ? "hotpink" : "white" ;
+		//QBIDividends may be from K-1 forms, so don't validate
+		SEInsurance.disabled = SESEP.disabled = (+SEIncome.value == 0);
+		if (SEInsurance.disabled) SEInsurance.value = "";
+		SansInsurance.style.display = (+SEInsurance.value) ? "inline" : "none";
+
+		if (thisId == "ForeignPaid") {
+			foreignLimit = (FS != "MFS") ? 600 : 300 ;
+			if (+ForeignPaid.value > foreignLimit) {
+				Warn1116.style.display = "inline";
+				TPMFS[thisId] = TPMFJ[thisId] = Math.min(thisVal, 600);
+				if (MFJMFS.checked) {
+					TPMFS[thisId] = Math.min(thisVal, 300);
+					SPMFS[thisId] = Math.min(thisVal, 300);
+				}
+			}
+			else {
+				Warn1116.style.display = "none";
+				Allow1116.checked = false;
+			}
+		}
+
+		// Load result arrays for calculations
 		if (MFJMFS.checked) { // Do all 3 returns
 			// Do_Inputs has set the input values
 			// For MFS, see if both itemizing is better than standard
-			ItemizeRequired.checked = ! ItemizeRequired.checked;
+			ItemizedRequired.checked = ! ItemizedRequired.checked;
+			WhichOption = (ItemizedRequired.checked) ? "Itemized" : "Standard" ;
+
 			TPMFS["IRADeduction"] = +TPMFS["IRADeductionJoint"];
-			CalcOut = Tax_Calc(TY, "T", TPMFS);
-			Show_Results("T");
+			TPMFS["ItemizedRequired"] = ItemizedRequired.checked;
+			TPCalcOut[WhichOption] = Tax_Calc(TY, "T", TPMFS);
+
 			SPMFS["IRADeduction"] = +SPMFS["IRADeductionJoint"];
-			CalcOut = Tax_Calc(TY, "S", SPMFS);
-			Show_Results("S");
-			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
-			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
+			SPMFS["ItemizedRequired"] = ItemizedRequired.checked;
+			SPCalcOut[WhichOption] = Tax_Calc(TY, "S", SPMFS);
+
+
 			// Recalc to get opposite results for itemizing vs standard
-			ItemizeRequired.checked = ! ItemizeRequired.checked;
+			ItemizedRequired.checked = ! ItemizedRequired.checked;
+			WhichOption = (ItemizedRequired.checked) ? "Itemized" : "Standard" ;
+
 			TPMFS["IRADeduction"] = +TPMFS["IRADeductionJoint"];
-			CalcOut = Tax_Calc(TY, "T", TPMFS);
-			Show_Results("T");
+			TPMFS["ItemizedRequired"] = ItemizedRequired.checked;
+			TPCalcOut[WhichOption] = Tax_Calc(TY, "T", TPMFS);
+
 			SPMFS["IRADeduction"] = +SPMFS["IRADeductionJoint"];
-			CalcOut = Tax_Calc(TY, "S", SPMFS);
+			SPMFS["ItemizedRequired"] = ItemizedRequired.checked;
+			SPCalcOut[WhichOption] = Tax_Calc(TY, "S", SPMFS);
+
+			// Choose which is better
+			MFJMFSTaxDue["Itemized"] = +TPCalcOut["Itemized"]["TaxDue"] + +SPCalcOut["Itemized"]["TaxDue"];
+			MFJMFSTaxDue["Standard"] = +TPCalcOut["Standard"]["TaxDue"] + +SPCalcOut["Standard"]["TaxDue"];
+			ItemizedIsBest = (MFJMFSTaxDue["Standard"] > MFJMFSTaxDue["Itemized"]);
+			WhichOption = (ItemizedIsBest) ? "Itemized" : "Standard" ;
+			CalcOut = TPCalcOut[WhichOption];
+			Show_Results("T");
+			CalcOut = SPCalcOut[WhichOption];
 			Show_Results("S");
-			WhichOption = (ItemizeRequired.checked) ? "Itemize" : "Standard" ;
-			MFJMFSItemized[WhichOption] = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
 
-			// Choose which is better and change the option if not the latter
-			ItemizedIsBest = (MFJMFSItemized["Standard"] > MFJMFSItemized["Itemize"]);
-			if (ItemizeRequired.checked === (! ItemizedIsBest)) {
-				ItemizeRequired.checked = ItemizedIsBest;
-				File_Change();
-			}
-
+			// Now do MFJ
 			TPMFJ["IRADeduction"] = +TPMFJ["IRADeductionJoint"];
 			CalcOut = Tax_Calc(TY, "J", TPMFJ);
+			ItemizedIsBest = CalcOut["Itemizing"];
 			Show_Results("J");
 		}
 		else {
@@ -855,6 +733,7 @@
 			TPMFJ["IRADeduction"] = +TPMFJ["IRADeductionJoint"];
 			TPMFS[thisId] = TPMFJ[thisId] = thisElement.value;
 			CalcOut = Tax_Calc(TY, "J", TPMFJ);
+			ItemizedIsBest = CalcOut["Itemizing"];
 			Show_Results("J");
 		}
 
@@ -867,6 +746,7 @@
 	function Show_Results(resultType) {
 	// This function shows results from the CalcOut arrays
 	//----------------------------------------------------------------------------------------
+		// Change input data if need be
 		for (j = 0; j < TPMFJiList.length; j++) {
 			TagId = TPMFJiList[j].id;
 			switch (resultType) {
@@ -874,31 +754,49 @@
 				TPMFJiList[j].value = (TPMFJ[TagId]) ? TPMFJ[TagId] : "";
 				break;
 			case "T":
-				document.getElementById("TP" + TagId).innerHTML = (TPMFJ[TagId]) ? TPMFS[TagId] : "";
+				element = document.getElementById("TP" + TagId);
+				if (element == null) continue;
+				element.innerHTML = (TPMFJ[TagId]) ? TPMFS[TagId] : "";
 				break;
 			case "S":
-				document.getElementById("SP" + TagId).innerHTML = (TPMFJ[TagId]) ? SPMFS[TagId] : "";
+				element = document.getElementById("SP" + TagId);
+				if (element == null) continue;
+				element.innerHTML = (TPMFJ[TagId]) ? SPMFS[TagId] : "";
 				break;
 			default:
 				break;
 			}
 		}
 
+		// Enter calculated data
+		QBIOOS.style.display = "none";
 		for (j = 0; j < TPMFJcList.length; j++) {
 			TagId = TPMFJcList[j].id;
 			TagVal = CalcOut[TagId];
+
+			// Round results
 			if (! isNaN(TagVal)) TagVal = Math.round(TagVal);
+
+			// Handle special cases
+			if ((TagId == "QBIAmount") && (TagVal == -1)) {
+				QBIOOS.style.display = "inline";
+				TagVal = 0;
+			}
+
+			// Set the new result values
 			switch (resultType) {
 			case "J":
 				TPMFJcList[j].innerHTML = TPMFJ[TagId] = TagVal;
 				break;
 			case "T":
-				document.getElementById("TP" + TagId).innerHTML =
-					TPMFS[TagId] = TagVal;
+				element = document.getElementById("TP" + TagId);
+				if (element === null) continue;
+				element.innerHTML = TPMFS[TagId] = TagVal;
 				break;
 			case "S":
-				document.getElementById("SP" + TagId).innerHTML =
-					SPMFS[TagId] = TagVal;
+				element = document.getElementById("SP" + TagId);
+				if (element === null) continue;
+				element.innerHTML = SPMFS[TagId] = TagVal;
 				break;
 			default:
 				break;
@@ -907,32 +805,30 @@
 
 		switch (resultType) {
 		case "J":
-			Standard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
-			Itemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
-			Standard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
-			Itemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			Standard.style.fontWeight =		(ItemizedIsBest) ? "normal" : "bold";
+			Itemized.style.fontWeight =		(ItemizedIsBest) ? "bold" : "normal";
+			Standard.style.textDecoration =		(ItemizedIsBest) ? "line-through" : "none";
+			Itemized.style.textDecoration =		(ItemizedIsBest) ? "none" : "line-through";
 			break;
 		case "T":
-			TPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
-			TPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
-			TPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
-			TPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			TPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			TPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			TPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			TPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			TPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			TPStandard.style.fontWeight =		(ItemizedIsBest) ? "normal" : "bold";
+			TPItemized.style.fontWeight =		(ItemizedIsBest) ? "bold" : "normal";
+			TPStandard.style.textDecoration =	(ItemizedIsBest) ? "line-through" : "none";
+			TPMedical.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			TPTaxesPaid.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			TPInterestPaid.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			TPCharityTotal.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			TPItemized.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
 			break;
 		case "S":
-			SPStandard.style.fontWeight = (CalcOut["Itemizing"]) ? "normal" : "bold";
-			SPItemized.style.fontWeight = (CalcOut["Itemizing"]) ? "bold" : "normal";
-			SPStandard.style.textDecoration = (CalcOut["Itemizing"]) ? "line-through" : "none";
-			SPMedical.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			SPTaxesPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			SPInterestPaid.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			SPCharityTotal.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			SPMiscellaneous.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
-			SPItemized.style.textDecoration = (CalcOut["Itemizing"]) ? "none" : "line-through";
+			SPStandard.style.fontWeight =		(ItemizedIsBest) ? "normal" : "bold";
+			SPItemized.style.fontWeight =		(ItemizedIsBest) ? "bold" : "normal";
+			SPStandard.style.textDecoration =	(ItemizedIsBest) ? "line-through" : "none";
+			SPMedical.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			SPTaxesPaid.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			SPInterestPaid.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			SPCharityTotal.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
+			SPItemized.style.textDecoration =	(ItemizedIsBest) ? "none" : "line-through";
 			break;
 		default:
 			break;
@@ -943,14 +839,14 @@
 		MFSResult.innerHTML = R2 = +TPTaxDue.innerHTML + +SPTaxDue.innerHTML;
 		DiffResult.innerHTML = +MFJResult.innerHTML - +MFSResult.innerHTML;
 		BestResultIsMFS = (+MFJResult.innerHTML > +MFSResult.innerHTML);
-		ItemizedIsBest = (MFJMFSItemized["Standard"] > MFJMFSItemized["Itemize"]);
+		ItemizedIsBest = (MFJMFSTaxDue["Standard"] > MFJMFSTaxDue["Itemize"]);
 		ResultMessage = "Best result is " + ( (BestResultIsMFS) ? "MFS" : "MFJ" );
 		if (BestResultIsMFS) {
 			ResultMessage += "<br />and " + ( (ItemizedIsBest) ? "" : "not" ) + " itemizing.";
 		}
 		if (MFStogether.checked) {
-			TPMFSMAGI = (TP65.checked) ? (+TPAGI.innerHTML + +TPTaxExempt.innerHTML) : 0 ;
-			SPMFSMAGI = (SP65.checked) ? (+SPAGI.innerHTML + +SPTaxExempt.innerHTML) : 0 ;
+			TPMFSMAGI = (TP65.checked) ? (+TPAGI.innerHTML + +TPTaxExemptInt.innerHTML) : 0 ;
+			SPMFSMAGI = (SP65.checked) ? (+SPAGI.innerHTML + +SPTaxExemptInt.innerHTML) : 0 ;
 			if ((TPMFSMAGI > _IRSValue("MedBMFSPremium")) || (SPMFSMAGI > _IRSValue("MedBMFSPremium"))) {
 				ResultMessage += "<br /><br />CAUTION:<br />Filing MFS may significantly increase Medicare Part B premiums in later years.";
 			}
@@ -960,6 +856,33 @@
 		}
 
 		TextResult.innerHTML = ResultMessage;
+		SEHIExcessMessage.style.display = (SEHIExcess.innerHTML > 0) ? "inline" : "none" ;
+
+		// Display warning messages
+		// Check for dependent limits
+		DependentWarning.innerHTML = "";
+		TaxableWarning.innerHTML = "";
+		if (IsDependent.checked) {
+			if (IsYouth.checked) { // Dependent as child
+				var KiddieUnearned = +CalcOut["Gross"] - CalcOut["StudentEarned"] + +Scholarships.value;
+				var KiddieLimit = +_IRSValue("Kiddie");
+				if (KiddieUnearned > KiddieLimit) {
+					DependentWarning.innerHTML = "Unearned income exceeds kiddie tax limit. Additional taxes (Form 8615) may apply.";
+				}
+			}
+			else { // Dependent as relative
+				var grossLimit = +_IRSValue("DepAsRel");
+				if ((+CalcOut["Gross"] > grossLimit) || (+CalcOut["TaxableSS"] > 0)) {
+					TaxableWarning.innerHTML = "WARNING: your income is too high to be a dependent.";
+				}
+			}
+		}
+
+		mustFile = (Math.round(+CalcOut["Tax"] + +CalcOut["SETax"] + +OtherTaxes.innerHTML) > 0);
+		if ((FS == "MFJ") && IsDependent.checked && mustFile) {
+			DependentWarning.innerHTML = "WARNING: You cannot file as MFJ and still be a dependent if filing for other than a refund of withholding.";
+		}
+		RefundComment.style.display = (CalcOut["TaxDue"] < 0) ? "inline" : "none" ;
 
 		// Added for OH to allow access to results of this function's calculations
 		try {
@@ -1089,7 +1012,7 @@
 <body id="theBody" onresize="Get_Inputs('listener')" onscroll="Get_Inputs('listener')">
 
 <center>
-	<span class="title"><span id="TaxYear2"></span> Estimated Tax Worksheet</span>
+	<span class="title"><span class="TY"></span> Estimated Tax Worksheet</span>
 	<br><span id="Version"></span><script>Version.innerHTML = VERSION;</script>
 </center>
 
@@ -1102,7 +1025,7 @@
 <div class="grid-container">
 
 <div id="FilingInfo" class="grid-item" >
-	<h1>Basic Filing Information for tax year <select id="TaxYear" onchange="File_Change();"></select>
+	<h1>Basic Filing Information for tax year <select id="TaxYear" class="wkth" onchange="File_Change();"></select>
 		<span id="Preliminary">(Some tax rate data is preliminary or estimated)</span></h1>
 	<table id="FilingInfoTbl" onkeyup="File_Change();" onclick="File_Change();">
 		<tr><td></td><td></td><td></td><td></td></tr>
@@ -1115,70 +1038,63 @@
 		<tr>
 			<td>Filing Status:</td>
 			<td>
-				<select id="FilingStatus" title="Select the taxpayer's filing status.">
+				<select id="FilingStatus" class="wkth" title="Select the taxpayer's filing status.">
 					<option value="SNG">Single</option>
 					<option value="MFJ" selected>MFJ</option>
 					<option value="MFS">MFS</option>
 					<option value="HOH">HOH</option>
-					<option value="WID">Widow(er)</option></select>
+					<option value="QSS">QSS</option></select>
 			</td>
 			<td colspan="2">
 				TP is
-				<input id="TP50" type="checkbox" title="Taxpayer is age 50 - 64" onclick="if (TP50.checked) TP65.checked = false;" /> 50 - 64
-				<input id="TP65" type="checkbox" title="Taxpayer is age 65 or older" onclick="if (TP65.checked) TP50.checked = false;" /> 65 or older
-				<input id="TPBlind" type="checkbox" title="Taxpayer is blind" /> blind
-				<input id="TPPlan" type="checkbox" title="Taxpayer has a retirement plan" /> has retirement plan
+				<input id="TP50" type="checkbox" class="wkth" title="Taxpayer is age 50 - 64" onclick="if (TP50.checked) TP65.checked = false;" /> 50 - 64
+				<input id="TP65" type="checkbox" class="wkth" title="Taxpayer is age 65 or older" onclick="if (TP65.checked) TP50.checked = false;" /> 65 or older
+				<input id="TPBlind" type="checkbox" class="wkth" title="Taxpayer is blind" /> blind
+				<input id="TPPlan" type="checkbox" class="wkth" title="Taxpayer has a retirement plan" /> has retirement plan
 				<span id="SP65Option">
 					<br />SP is
-					<input id="SP50" type="checkbox" title="Spouse is age 50 - 64" onclick="if (SP50.checked) SP65.checked = false;" /> 50 - 64
-					<input id="SP65" type="checkbox" title="Spouse is age 65 or older" onclick="if (SP65.checked) SP50.checked = false;" /> 65 or older
-					<input id="SPBlind" type="checkbox" title="Spouse is blind" /> blind
-					<input id="SPPlan" type="checkbox" title="Spouse has a retirement plan" /> has retirement plan
+					<input id="SP50" type="checkbox" class="wkth" title="Spouse is age 50 - 64" onclick="if (SP50.checked) SP65.checked = false;" /> 50 - 64
+					<input id="SP65" type="checkbox" class="wkth" title="Spouse is age 65 or older" onclick="if (SP65.checked) SP50.checked = false;" /> 65 or older
+					<input id="SPBlind" type="checkbox" class="wkth" title="Spouse is blind" /> blind
+					<input id="SPPlan" type="checkbox" class="wkth" title="Spouse has a retirement plan" /> has retirement plan
 				</span></td></tr>
 		<tr id="MFSoption">
 			<td colspan="2"></td>
 			<td colspan="2">
-				<input id="MFStogether" type="checkbox" />
+				<input id="MFStogether" class="wkth" type="checkbox" />
 				Check if you <span id="MFSoptionText">will be living</span> with your spouse.</td></tr>
 		<tr id="IsDependentRow" title="Check if either taxpayer (or spouse) can be a dependent on anyone else's return - even if not claimed!">
 			<td colspan="2"></td>
 			<td colspan="2">
-				<input id="IsDependent" type="checkbox" />
+				<input id="IsDependent" class="wkth" type="checkbox" />
 				TP (or SP) is or can be a dependent on someone else's return.</td></tr>
 		<tr id="DependentAgeRow">
 			<td colspan="2"></td>
 			<td colspan="2">
-				<input id="IsYouth" type="checkbox" />
+				<input id="IsYouth" "wkth" type="checkbox" />
 				Dependent is 16 or younger, or a full time student and 23 or younger.</td></tr>
 		<tr id="DependentsRow" title="Total number of dependents in the tax family claimed.">
 			<td colspan="2">Total Dependents claimed:
 			<td><span id="DependentsMFS1">TP: </span>
-				<input id="Dependents" type="number" class="small" value="0" />
-				<span id="DependentsMFS2">, SP: <input id="SPDependents" type="number" class="small" value="0" /></span>
+				<input id="TPDependents" type="number" class="small wkth" value="0" />
+				<span id="DependentsMFS2">, SP: <input id="SPDependents" type="number" class="small wkth" value="0" /></span>
 				</td>
 			<td></td></tr>
 		<tr id="EICRow" title="Number of dependents in the tax family age under age 18 (or 24 if a full time student or any age if disabled).">
 			<td colspan="2">Dependents qualified for EIC:</td>
 			<td><span id="EICDependentsMFS1">TP: </span>
-			<input id="EICDependents" type="number" class="small" value="0" />
-				<span id="EICDependentsMFS2">, SP: <input id="SPEICDependents" type="number" class="small" value="0" /></span>
+			<input id="TPEICDependents" type="number" class="small wkth" value="0" />
+				<span id="EICDependentsMFS2">, SP: <input id="SPEICDependents" type="number" class="small wkth" value="0" /></span>
 				</td>
 			<td></td></tr>
 		<tr id="CTCRow" title="Total number of dependents in the tax family under age 17.">
 			<td colspan="2">Dependents qualified for CTC:</td>
 			<td><span id="CTCDependentsMFS1">TP: </span>
-				<input id="CTCDependents" type="number" class="small" value="0" />
-				<span id="CTCDependentsMFS2">, SP: <input id="SPCTCDependents" type="number" class="small" value="0" /></span></td>
+				<input id="TPCTCDependents" type="number" class="small wkth" value="0" />
+				<span id="CTCDependentsMFS2">, SP: <input id="SPCTCDependents" type="number" class="small wkth" value="0" /></span></td>
 			<td title="Check to show MFS columns" style="text-align: right;" >
 				<input id="MFJMFS" type="checkbox" onchange="MFJMFS_Change();" />
 				Check box for MFJ/MFS comparison
-				</td></tr>
-		<tr id="Dependents0Row" title="Number of dependents under age 6.">
-			<td colspan="2">&nbsp;&nbsp;&nbsp;Dependents under age 6:</td>
-			<td colspan="2"><span id="Dependents0MFS1">TP: </span>
-				<input id="Dependents0" type="number" class="small" value="0" />
-				<span id="Dependents0MFS2">, SP: <input id="SPDependents0" type="number" class="small" value="0" /></span>
-				(who qualify for CTC)
 				</td></tr>
 		<tr>	<td colspan="4">
 				<textarea id="Notes" placeholder="(add scenario notes here)" onkeyup="Input_Change(this.id)"></textarea>
@@ -1206,17 +1122,17 @@
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
 			<td colspan="2"> Taxable scholarships</td>
-			<td><input id="Scholar" type="text" class="wkti"
+			<td><input id="Scholarships" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
 			<td>Taxable interest</td><td></td>
-			<td><input id="Interest" type="text" class="wkti"
+			<td><input id="InterestIncome" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
 			<td class="indent">Tax-exempt interest expected</td>
-			<td><input id="TaxExempt" type="text" class="wkti"
+			<td><input id="TaxExemptInt" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
@@ -1231,7 +1147,7 @@
 				onkeyup="Input_Change(this.id);" /></td>
 			</tr>
 		<tr class="income"><td></td>
-			<td class="indent">Section 199A dividends</td>
+			<td class="indent">Section 199A dividends (include any from K-1 forms)</td>
 			<td><input id="QBIDividends" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
@@ -1265,7 +1181,7 @@
 				onkeyup="Input_Change(this.id, true);" /></td></tr>
 		<tr class="income"><td></td>
 			<td style="height: 3.2em;">Capital gains/loss
-				<span style="text-align: right; display: inline-block; float: right; right: 3px;">
+				<span style="text-align: right; float: right; right: 3px;">
 					Short term gain/loss:<br />Long term gain/loss:</span></td>
 			<!-- Get_Inputs true parameter allows negative input -->
 			<td><input id="STCapGains" type="text" class="wkti"
@@ -1277,7 +1193,7 @@
 			<td id="CapGains" class="calculated wktc"></td></tr>
 		<tr class="income"><td></td>
 			<td>Alimony (if taxable)</td><td></td>
-			<td><input id="Alimony" type="text" class="wkti"
+			<td><input id="AlimonyIncome" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
@@ -1286,7 +1202,7 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="income"><td></td>
-			<td>Other income (rentals, royalties, etc) <span id="UCEAmount"></span></td>
+			<td>Other income (rentals, royalties, etc)</td>
 			<!-- Get_Inputs true parameter allows negative input -->
 			<td><input id="Royalties" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id, true);"
@@ -1325,7 +1241,10 @@
 			(Total health insurance: <input id="SEInsurance" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)
-			<span id="SEHIExcess"><br /></span>
+				<span id="SEHIExcessMessage">Excess of
+					<span id="SEHIExcess" class="wktc"></span>
+					will carry to Schedule A medical expenses.
+				</span>
 			<td id="SEHI" class="calculated wktc">0</td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Penalty on early withdawal of savings</td>
@@ -1345,7 +1264,7 @@
 			<td><input id="IRADeduction" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
-			<td id="IRADeductionAvailable" type="text" class="calculated wktc" /></td></tr>
+			<td id="IRADedAvailable" type="text" class="calculated wktc" /></td></tr>
 		<tr class="adjustment"><td></td>
 			<td>Student loan interest</td>
 			<td><input id="StudentLoan" type="text" class="wkti"
@@ -1358,10 +1277,6 @@
 			<td><input id="OtherCredits" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
-
-		<tr id="CharityStandard20Row"><td></td>
-			<td colspan="2">Charitable contributions if using standard deduction <i>(enter under Deductions below)</i></td>
-			<td id="CharityStandard20" type="text" class="calculated wktc"></td></tr>
 
 		<tr><td></td>
 			<td>Total adjustments
@@ -1388,14 +1303,14 @@
 		<tr class="deductions"><td></td>
 			<td>Medical expenses
 				(Total expenses
-				<span id="NoInsurance"><i>without insurance</i></span>
+				<span id="SansInsurance"><i>without insurance</i></span>
 				= <input id="ActualMedical" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)</td>
 			<td id="Medical" class="calculated wktc"></td></tr>
 		<tr class="deductions"><td></td>
 			<td>State income tax or sales tax, and property taxes:
-			(Total paid = <input id="ActualTaxesPaid" type="text" class="wkti"
+			(Total paid = <input id="SALTTaxesPaid" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)</td>
 			<td id="TaxesPaid" class="calculated wktc"></td></tr>
@@ -1406,7 +1321,7 @@
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Gifts to charity  - cash:
-			<input id="Charity" type="text" class="wkti"
+			<input id="CharityCash" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />
 			, non-cash:
@@ -1414,46 +1329,23 @@
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
 			<td id="CharityTotal" class="calculated wktc"></td></tr>
-		<tr class="deductions" id="MiscellaneousRow"><td></td>
-			<!-- not available after 2017 -->
-			<td>Job expenses and miscellaneous deductions
-				(2% AGI = <span id="TwoPercent"></span>)</td>
-			<td><input id="Miscellaneous" type="text" class="wkti"
-				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr class="deductions"><td></td>
 			<td>Other miscellaneous deductions (including gambling losses)</td>
 			<td><input id="OtherItemized" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td></tr>
-		<tr class="deductions" id="AGILimitRow" style="height: 2.5em;"><td>  </td>
-			<td>Medical expenses, investment interest expenses, casualty losses and gambling losses included in the total itemized deductions entered in line above (for AGI > <span id="AGILimit"></span>)</td>
-			<td><input id="Misc" type="text" class="wkti"
-				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
 			<td colspan="2">Total itemized deductions
-			<span id="ItemizeRequiredOption">
-				(<input type="checkbox" id="ItemizeRequired"
+			<span id="ItemizedRequiredOption">
+				(<input type="checkbox" id="ItemizedRequired" class="wkti"
 				onchange="File_Change();" />
 				Check if required to itemize)</span>
 			</td>
 			<td style="vertical-align: top;" id="Itemized"
 				class="calculated wktc"></td></tr>
-		<tr class="exemptions"><td></td>
-			<td colspan="2">Amount after deductions</td><td></td>
-			<td id="PreExemptAmount" class="calculated wktc">0</td></tr>
-		<tr class="exemptions"><td colspan="5">Exemptions:</td>
-		<tr class="exemptions"><td></td>
-			<td colspan="2">
-				<span id="ExemptCount">0</span></td>
-			<td id="ExemptAmount" class="calculated wktc">0</td></tr>
-		<tr id="CharityStandardRow"><td></td>
-			<td colspan="2">Charitable contributions if using standard deduction <i>(enter under Deductions above)</i></td>
-			<td id="CharityStandard" type="text" class="calculated wktc"></td></tr>
 		<tr id="QBILine"><td></td>
 			<td colspan="2">Qualified Business Income deduction
-				<span id="QBIOOS"> OUT OF SCOPE </span>
+				<span id="QBIOOS"> CANNOT DETERMINE QBI DEDUCTION </span>
 				</td><td></td>
 			<td id="QBIAmount" class="calculated wktc">0</td></tr>
 		<tr><td></td>
@@ -1467,8 +1359,8 @@
 			<td id="TaxableWarning" colspan="5" class="blinking"></td></tr>
 		<tr><td colspan="5">Tax:</td>
 		<tr><td></td>
-			<td id="TaxTable">Tax from tax tables</td>
-			<td colspan="2"id="Bracket" class="calculated"></td>
+			<td id="TaxTable" class="wktc">Tax from tax tables</td>
+			<td colspan="2"id="Bracket" class="calculated wktc"></td>
 			<td id="Tax" class="calculated wktc">0</td></tr>
 		<tr><td></td>
 			<td colspan="2">Enter any additional taxes (Forms 4972, 6251, 8814 or 8889)</td>
@@ -1477,7 +1369,7 @@
 				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
 			<td colspan="3">Total tax amounts</td>
-			<td id="PreWorkingTax" class="calculated wktc">0</td></tr>
+			<td id="PreNRTax" class="calculated wktc">0</td></tr>
 		<tr><td colspan="2">Nonrefundable Credits:
 				<span class="floatright" style="padding-right: 1em;"><i>actual amount:</i></span></td>
 			<td style="text-align: right;"><i>max available:</i></td>
@@ -1485,14 +1377,14 @@
 		<tr><td></td>
 			<td>Foreign tax credit
 				<span id="Warn1116"> Form 1116 is required
-					(<input id="Allow1116" type="checkbox"
-					onchange="Input_Change('Foreign');" />
-					Check to allow)</span>
+					<!-- (<input id="Allow1116" type="checkbox"
+					onchange="Input_Change('Allow1116');" />
+					Check to allow) --></span>
 				<span class="floatright">
-					<input id="ForeignCost" type="text" class="wkti"
+					<input id="ForeignPaid" type="text" class="wkti"
 					onfocus="Get_Inputs(this.id);"
 					onkeyup="Input_Change(this.id);" /></span></td>
-			<td id="Foreign" class="calculated wktc"></td>
+			<td id="ForeignTax" class="calculated wktc"></td>
 			<td id="ForeignUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>Child and dependent care expenses for
@@ -1537,7 +1429,7 @@
 			<td id="CTCreditUsed" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>Residential energy and other credits</td>
-			<td><input id="Residential" type="text" class="wkti"
+			<td><input id="ResidenceEnergy" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" /></td>
 			<td id="ResidentialUsed" class="calculated wktc"></td></tr>
@@ -1553,7 +1445,8 @@
 			<td id="SETax" class="calculated wktc">0</td></tr>
 		<tr id="NIITRow"><td>  </td>
 			<td colspan="2">Net Investment Income tax
-			(Enter investment expenses: <input id="NIITExpenses" type="text" class="wkti"
+			(Enter investment expenses:
+			<input id="NIITExpenses" type="text" class="wkti"
 				onfocus="Get_Inputs(this.id);"
 				onkeyup="Input_Change(this.id);" />)</td>
 			<td id="NIITTax" class="calculated wktc">0</td></tr>
@@ -1572,17 +1465,9 @@
 		<tr><td>  </td>
 			<td id="ACTCreditRowTitle">Additional Child Tax Credit</td>
 			<td id="ACTCredit" class="calculated wktc"></td></tr>
-		<tr id="ACCCreditRow"><td>  </td>
-			<td>Refundable Child Care Credit (enter cost in Nonrefundable credits line)</td>
-			<td id="ACCCredit" class="calculated wktc"></td></tr>
 		<tr><td>  </td>
 			<td>American Opportunity Credit (enter cost in Nonrefundable Ed credits line)</td>
 			<td id="AOCCredit" class="calculated wktc"></td></tr>
-		<tr id="RecoveryCreditRow"><td>  </td>
-			<td>Recovery Rebate Credit</td>
-			<td><input id="RecoveryCredit" type="text" class="wkti"
-				onfocus="Get_Inputs(this.id);"
-				onkeyup="Input_Change(this.id);" /></td></tr>
 		<tr><td></td>
 			<td>Other refundable credits <span id="SSexcess"></span></td>
 			<td><input id="Refundable" type="text" class="wkti"
@@ -1608,9 +1493,9 @@
 			<td id="Tax90" class="calculated">0</td></tr>
 		<tr><td>  </td>
 			<td colspan = "2">
-				Enter 100% of <span id="LY1"></span>&apos;s income tax
+				Enter 100% of <span class="PTY"></span>&apos;s income tax
 				(<input id="HighAGI" type="checkbox" onchange="Do_Estimates();" />
-				Check if <span id="LY2"></span>&apos;s AGI was > $<span id="LYAGI"></span>K)</td>
+				Check if <span class="PTY"></span>&apos;s AGI was > $<span id="LYAGI"></span>K)</td>
 			<td><input id="TaxLastYear" type="text"
 				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
@@ -1619,15 +1504,15 @@
 			<td colspan="2" class="indent" onchange="Do_Estimates();">
 				<input id="UseSmall" type="radio" name="UseTax" checked="checked"
 				 /> Smaller of above or ...
-				 <br /><input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% of <span id="LY3"></span>&apos;s amount from the line above.
-				<br /><input id="UseTYTax" type="radio" name="UseTax" /> Use 100% of the <span id="TaxYear3"></span> estimated total tax.</td>
+				 <br /><input id="UseLYTax" type="radio" name="UseTax" /> Use <span id="LYINC"></span>% of <span class="PTY"></span>&apos;s amount from the line above.
+				<br /><input id="UseTYTax" type="radio" name="UseTax" /> Use 100% of the <span class="TY"></span> estimated total tax.</td>
 			<td class="calculated" style="vertical-align: bottom;"><span id="EstAmount">0</span></td></tr>
 		<tr><td></td>
-			<td colspan="2">Refund from <span id="LY4"></span> designated as an estimated payment</td>
+			<td colspan="2">Refund from <span class="PTY"></span> designated as an estimated payment</td>
 			<td><input id="PYAmount" type="text"
 				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
-			<td colspan="2">Income tax withheld and estimated to be withheld</td>
+			<td colspan="2">Income tax withheld and/or estimated to be withheld</td>
 			<td><input id="WHAmount" type="text"
 				onkeyup="Do_Estimates();" /></td></tr>
 		<tr><td></td>
@@ -1649,9 +1534,9 @@
 		<tr><th>Taxpayer</th><th>Spouse</th><th></th></tr>
 		<tr><th colspan="2">Income:</th></tr>
 		<tr class="income"><td id="TPWages"></td><td id="SPWages"></td></tr>
-		<tr class="income"><td id="TPScholar"></td><td id="SPScholar"></td></tr>
-		<tr class="income"><td id="TPInterest"></td><td id="SPInterest"></td></tr>
-		<tr class="income"><td id="TPTaxExempt"></td><td id="SPTaxExempt"></td></tr>
+		<tr class="income"><td id="TPScholarships"></td><td id="SPScholarships"></td></tr>
+		<tr class="income"><td id="TPInterestIncome"></td><td id="SPInterestIncome"></td></tr>
+		<tr class="income"><td id="TPTaxExemptInt"></td><td id="SPTaxExemptInt"></td></tr>
 		<tr class="income"><td id="TPDividends"></td><td id="SPDividends"></td></tr>
 		<tr class="income"><td id="TPQualDividends"></td><td id="SPQualDividends"></td></tr>
 		<tr class="income"><td id="TPQBIDividends"></td><td id="SPQBIDividends"></td></tr>
@@ -1672,10 +1557,8 @@
 				<span id="SPSTCapGains" class="hidden"></span>
 				<span id="TPLTCapGains" class="hidden"></span>
 				<span id="SPLTCapGains" class="hidden"></span></td></tr>
-		<tr class="income"><td id="TPAlimony"></td><td id="SPAlimony"></td></tr>
-		<tr class="income"><td id="TPUnemployment"></td><td id="SPUnemployment"></td>
-			<td>	<span id="TPUCE" class="hidden"></span>
-				<span id="SPUCE" class="hidden"></span></td></tr>
+		<tr class="income"><td id="TPAlimonyIncome"></td><td id="SPAlimonyIncome"></td></tr>
+		<tr class="income"><td id="TPUnemployment"></td><td id="SPUnemployment"></td></tr>
 		<tr class="income"><td id="TPOtherIncome"></td><td id="SPOtherIncome"></td>
 			<td>	<span id="TPRoyalties" class="hidden"></span>
 				<span id="SPRoyalties" class="hidden"></span></td></tr>
@@ -1690,7 +1573,7 @@
 				<span id="SPSEInsurance" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPSavingsPenalty"></td><td id="SPSavingsPenalty"></td></tr>
 		<tr class="adjustment"><td id="TPAlimonyPaid"></td><td id="SPAlimonyPaid"></td></tr>
-		<tr class="adjustment"><td id="TPIRADeductionAvailable"></td><td id="SPIRADeductionAvailable"></td>
+		<tr class="adjustment"><td id="TPIRADedAvailable"></td><td id="SPIRADedAvailable"></td>
 			<td>	<span id="TPIRADeductionJoint" class="hidden"></span>
 				<span id="SPIRADeductionJoint" class="hidden"></span>
 				<span id="TPIRADeduction" class="hidden"></span>
@@ -1699,7 +1582,6 @@
 			<td>	<span id="TPStudentLoan" class="hidden"></span>
 				<span id="SPStudentLoan" class="hidden"></span></td></tr>
 		<tr class="adjustment"><td id="TPOtherCredits"></td><td id="SPOtherCredits"></td></tr>
-		<tr id="MFJMFSCS20Row"><td id="TPCharityStandard20"></td><td id="SPCharityStandard20"></td></tr>
 		<tr><td id="TPAdjustments"></td><td id="SPAdjustments"></td></tr>
 		<tr><td id="TPAGI"></td><td id="SPAGI"></td></tr>
 		<tr style="page-break-before: always;"><th colspan="2">Deductions:</th></tr>
@@ -1708,27 +1590,16 @@
 			<td>	<span id="TPActualMedical" class="hidden"></span>
 				<span id="SPActualMedical" class="hidden"></span></td></tr>
 		<tr class="deductions"><td id="TPTaxesPaid"></td><td id="SPTaxesPaid"></td>
-			<td>	<span id="TPActualTaxesPaid" class="hidden"></span>
-				<span id="SPActualTaxesPaid" class="hidden"></span></td></tr>
+			<td>	<span id="TPSALTTaxesPaid" class="hidden"></span>
+				<span id="SPSALTTaxesPaid" class="hidden"></span></td></tr>
 		<tr class="deductions"><td id="TPInterestPaid"></td><td id="SPInterestPaid"></td></tr>
 		<tr class="deductions"><td id="TPCharityTotal"></td><td id="SPCharityTotal"></td>
-			<td>	<span id="TPCharity" class="hidden"></span>
-				<span id="SPCharity" class="hidden"></span>
+			<td>	<span id="TPCharityCash" class="hidden"></span>
+				<span id="SPCharityCash" class="hidden"></span>
 				<span id="TPCharityNoncash" class="hidden"></span>
 				<span id="SPCharityNoncash" class="hidden"></span></td></tr>
-		<tr class="deductions" id="MFJMFSMiscellaneousRow">
-			<td id="TPMiscellaneous"></td><td id="SPMiscellaneous"></td>
-			<td>	<span id="TPTwoPercent" class="hidden"></span>
-				<span id="SPTwoPercent" class="hidden"></span></td></tr>
 		<tr class="deductions"><td id="TPOtherItemized"></td><td id="SPOtherItemized"></td></tr>
-		<tr class="deductions" id="MFJMFSAGILimitRow" style="height:2.5em"><td id="TPMisc"></td><td id="SPMisc"></td>
-			<td>	<span id="TPAGILimit" class="hidden"></span>
-				<span id="SPAGILimit" class="hidden"></span></td></tr>
 		<tr><td id="TPItemized"></td><td id="SPItemized"></td></tr>
-		<tr class="exemptions"><td id="TPPreExemptAmount"></td><td id="SPPreExemptAmount"></td></tr>
-		<tr class="exemptions"><td colspan="2">Exemptions:</td></tr>
-		<tr class="exemptions"><td id="TPExemptAmount"></td><td id="SPExemptAmount"></td></tr>
-		<tr id="MFJMFSCSRow"><td id="TPCharityStandard"></td><td id="SPCharityStandard"></td></tr>
 		<tr id="MFJMFSQBILine"><td id="TPQBIAmount"></td><td id="SPQBIAmount"></td></tr>
 		<tr><td id="TPTotalDeductions"></td><td id="SPTotalDeductions"></td></tr>
 		<tr><th colspan="2">Taxable income:</th></tr>
@@ -1737,13 +1608,13 @@
 		<tr><th colspan="2">Tax:</th></tr>
 		<tr><td id="TPTax"></td><td id="SPTax"></td></tr>
 		<tr><td id="TPAdditionalTax"></td><td id="SPAdditionalTax"></td></tr>
-		<tr><td id="TPPreWorkingTax"></td><td id="SPPreWorkingTax"></td></tr>
+		<tr><td id="TPPreNRTax"></td><td id="SPPreNRTax"></td></tr>
 		<tr><th colspan="2">Nonrefundable Credits:</th></tr>
 		<tr><td id="TPForeignUsed"></td><td id="SPForeignUsed"></td>
-			<td>	<span id="TPForeign" class="hidden"></span>
-				<span id="SPForeign" class="hidden"></span>
-				<span id="TPForeignCost" class="hidden"></span>
-				<span id="SPForeignCost" class="hidden"></span></td></tr>
+			<td>	<span id="TPForeignTax" class="hidden"></span>
+				<span id="SPForeignTax" class="hidden"></span>
+				<span id="TPForeignPaid" class="hidden"></span>
+				<span id="SPForeignPaid" class="hidden"></span></td></tr>
 		<tr><td id="TPChildCareUsed"></td><td id="SPChildCareUsed"></td>
 			<td>	<span id="TPChildCare" class="hidden"></span>
 				<span id="SPChildCare" class="hidden"></span>
@@ -1772,13 +1643,13 @@
 			<td>	<span id="TPCTCredit" class="hidden"></span>
 				<span id="SPCTCredit" class="hidden"></span></td></tr>
 		<tr><td id="TPResidentialUsed"></td><td id="SPResidentialUsed"></td>
-			<td>	<span id="TPResidential" class="hidden"></span>
-				<span id="SPResidential" class="hidden"></span></td></tr>
+			<td>	<span id="TPResidenceEnergy" class="hidden"></span>
+				<span id="SPResidenceEnergy" class="hidden"></span></td></tr>
 		<tr><td id="TPNonrefundable"></td><td id="SPNonrefundable"></td></tr>
 		<tr><td id="TPTaxPostCredits"></td><td id="SPTaxPostCredits"></td></tr>
 		<tr><th colspan="2">Other Taxes:</th></tr>
 		<tr><td id="TPSETax"></td><td id="SPSETax"></td></tr>
-		<tr id="MFJMFSNIITRow"><td id="TPNIITTax"></td><td id="SPNIITTax"></td>
+		<tr id="MFJMFSNIITRow"><td id="NIITTax class="wktc"></td><td id="SPNIITTax"></td>
 			<td>	<span id="TPNIITExpenses" class="hidden"></span>
 				<span id="SPNIITExpenses" class="hidden"></span></td></tr>
 		<tr><td id="TPOtherTaxes"></td><td id="SPOtherTaxes"></td></tr>
@@ -1786,9 +1657,7 @@
 		<tr><th colspan="2">Refundable Credits:</th></tr>
 		<tr><td id="TPEICCredit"></td><td id="SPEICCredit"></td></tr>
 		<tr><td id="TPACTCredit"></td><td id="SPACTCredit"></td></tr>
-		<tr id="MFJMFSACCCreditRow"><td id="TPACCCredit">0</td><td id="SPACCCredit">0</td></tr>
 		<tr><td id="TPAOCCredit"></td><td id="SPAOCCredit"></td></tr>
-		<tr id="MFJMFSRecoveryCreditRow"><td id="TPRecoveryCredit"></td><td id="SPRecoveryCredit"></td></tr>
 		<tr><td id="TPRefundable"></td><td id="SPRefundable"></td></tr>
 		<tr><td id="TPTaxDue"></td><td id="SPTaxDue"></td></tr>
 		<tr class="tablebreak" style="background-color: black;"><td colspan="2"></td></tr>
@@ -1820,7 +1689,7 @@
 
 <div id="About" class="noPrint grid-item">
 	Please send corrections and suggestions to
-	<a href="mailto:tools@cotaxaide.org">tools@cotaxaide.org</a>
+	<a href="mailto:core.webmaster0@gmail.com">tools@cotaxaide.org</a>
 	<span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
 </div>
 </div> <!-- gridContainer> -->
