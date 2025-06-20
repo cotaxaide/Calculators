@@ -18,7 +18,11 @@
 //	_EdCredit		AOC or LLC Credit
 //	_IRADeduction		IRA Deduction as an income adjustment
 //	_StudLoanInt		Student Loan Interest income adjustment
+//	_CapitalLossCarryover	Capital Loss Carryover worksheet
+//	_Commatize		Adds commas appropriately to number strings
 //----------------------------------------------------------------------------------------
+//Version 2.4 - Added commatize function
+//Version 2.3 = Added capital gains carryover worksheet
 //Version 2.2 - Removed 2021 tax year changes
 //Version 2.1 - Changed reporting of tax bracket to just non-cap gains
 //Version 2.0 - Added routines to use JSON data files
@@ -815,4 +819,60 @@ function _StudLoanInt (	// 1040 Sched 1
 	IntPaid = Math.min(SLIMax, +IntPaid);
 	Result["deductible"] = Math.round(+IntPaid - (IntPaid * Result["percent"]));
 	return (Result);
+}
+
+//----------------------------------------------------------------------------------------
+function _CapitalLossCarryover (	// 1040 worksheet
+	taxYear,		// tax year tables to use (optional)
+	filingStatus,		// SNG, MFJ, WID, MFS, HOH
+	AGI = 0,		// AGI if TaxableIncome <= 0
+	Deductions = 0,		// Standard or Itemized deductions if TaxableIncome <= 0
+	QBI = 0,		// QBI amount if TaxableIncome <= 0
+	TaxableIncome = 0,	// Taxable income if > 0
+	STGain = 0,		// Short term gain or loss
+	LTGain = 0		// Long term gain or loss
+
+		) {
+//	Returns an object ["STCarryover", "LTCarryover"]
+//----------------------------------------------------------------------------------------
+	Result = [
+		STCarryover = 0,
+		LTCarryover = 0
+		];
+	let TY = taxYear;
+	let FS = filingStatus;
+
+	let L1 = +TaxableIncome;
+		L1 = (L1 == 0) ? (+AGI - +Deductions - +QBI) : L1 ;
+	let L2 = +LTGain + +STGain;
+		L2 = (L2 > 0) ? 0 : -L2 ;
+		L2 = Math.min(L2, ((FS == "MFS") ? 1500 : 3000 ));
+	let L3 = Math.max(0, L1 + L2);
+	let L4 = Math.min(L2, L3);
+	let L5 = (+STGain < 0) ? (- +STGain) : 0 ;
+	let L6 = (+LTGain > 0) ? +LTGain : 0 ;
+	let L7 = L4 + L6;
+	let L8 = Result["STCarryover"] = Math.max(0, L5 - L7);
+	let L9 = (+LTGain < 0) ? (- +LTGain) : 0 ;
+	let L10 = (+STGain > 0) ? +STGain : 0 ;
+	let L11 = Math.max(0, L4 - L5);
+	let L12 = L10 + L11;
+	let L13 = Result["LTCarryover"] = Math.max(0, L9 - L12);
+	return (Result);
+}
+
+//----------------------------------------------------------------------------------------
+function _Commatize(
+	dstring,
+	prefix = "")
+	{ 
+// This function adds commas to digit strings with an optional prefix ("$ ") if specified
+//----------------------------------------------------------------------------------------
+	dpart = (dstring + "").split("."); // convert to string and split fractional part off
+
+	if ((dl = dpart[0].length) > 3) dpart[0] = dpart[0].substring(0,dl-3) + "," + dpart[0].substring(dl-3);
+	if ((dl = dpart[0].length) > 7) dpart[0] = dpart[0].substring(0,dl-7) + "," + dpart[0].substring(dl-7);
+	if ((dl = dpart[0].length) > 11) dpart[0] = dpart[0].substring(0,dl-11) + "," + dpart[0].substring(dl-11);
+	dstring = dpart[0] = prefix + dpart[0] +  ((dpart[1] ?? "") ? ("." + dpart[1]) : "" );
+	return (dstring);
 }

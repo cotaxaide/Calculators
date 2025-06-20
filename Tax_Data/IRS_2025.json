@@ -220,12 +220,12 @@
 	},
 	"Retire": {
 		"Rate":		{"value":[  0.5,   0.2,	  0.1,	0], "verified":true},
-		"SNG":		{"value":[23000, 25000,	38250], "verified":true},
-		"MFS":		{"value":[23000, 25000,	38250], "verified":true},
-		"MFJ":		{"value":[46000, 50000,	76500], "verified":true},
-		"QSS":		{"value":[23000, 25000,	38250], "verified":true},
-		"WID":		{"value":[23000, 25000,	38250], "verified":true},
-		"HOH":		{"value":[34500, 37500,	57375], "verified":true}
+		"SNG":		{"value":[23000, 25000,	39500], "verified":true},
+		"MFS":		{"value":[23000, 25000,	39500], "verified":true},
+		"MFJ":		{"value":[46000, 50000,	79000], "verified":true},
+		"QSS":		{"value":[23000, 25000,	39500], "verified":true},
+		"WID":		{"value":[23000, 25000,	39500], "verified":true},
+		"HOH":		{"value":[34500, 37500,	59250], "verified":true}
 	},
 	"CTC": {
 		"Rate":		{"value":2000, "verified":true},

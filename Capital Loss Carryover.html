@@ -43,6 +43,13 @@
 		display: none;
 	}
 
+	#InputTable th {
+		font: italic;
+		font-size: 60%;
+		background-color: unset;
+		text-align: left;
+	}
+
 	#CLWorksheet {
 		display: inline-block;
 	}
@@ -63,7 +70,7 @@
 		}
 		.CLData {
 			min-width: 6em;
-			background-color: white;
+			background-color: ghostwhite;
 			text-align: right;
 			vertical-align: bottom;
 			border: 1px solid black;
@@ -106,10 +113,16 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// Contributors:
+	//	Kenny Hayes		Matt Meyerson
 
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.00, 6/8/2025)";
+	VERSION = "(Version 1.02, 6/20/2025)";
+	//	Minor text changes for clarification
+	//	Commented out a test field (2nd column of results)
+	//VERSION = "(Version 1.01, 6/17/2025)";
+	//	Added filing status
+	//VERSION = "(Version 1.00, 6/8/2025)";
 
 	var TY = _DefaultYear;
 	var PY = TY - 1; // Prior year
@@ -156,6 +169,8 @@
 			return;
 		}
 
+		FS = FilingStatus.value;
+
 		// If zero, figure out what it would have been
 		if (Taxable.value == 0) {
 			ZeroRow1.style.display =
@@ -185,7 +200,7 @@
 		// Figure the rest of the lines
 		if ((STGain.value === "") || (LTGain.value === "")) return;
 
-		CL02val = Math.max(-3000, +STGain.value + +LTGain.value);
+		CL02val = Math.max(((FS == "MFS") ? -1500 : -3000 ), +STGain.value + +LTGain.value);
 		if (CL02val >= 0) {
 			ClearResults();
 			return;
@@ -221,6 +236,13 @@
 
 		TSShort.innerHTML = CL08val;
 		TSLong.innerHTML = CL13val;
+
+		// Test of common routine with the same function
+		//result = _CapitalLossCarryover(TY, FS, Gross.value, Deduction.value, QBI.value, Taxable.value,
+		//	STGain.value, LTGain.value);
+
+		//TSShortx.innerHTML = result["STCarryover"];
+		//TSLongx.innerHTML =  result["LTCarryover"];
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -290,7 +312,7 @@
 	<br /><button onclick="window.print()">Print a taxpayer copy</button>
 </span>
 	
-	<div id="TPInfo">
+	<div id="TPInfo" onchange="DoCalc();">
 		<span class="tblHeader">Taxpayer Information:</span>
 		<br />
 		<br />
@@ -301,8 +323,15 @@
 				<td id="TPNcolumnC">Tax Year: </td>
 				<td id="TPNcolumnD">
 					<select id="TaxYear" class="noPrint" onchange="GetLineNumbers();"></select>
-					<span id="PrintYear"></span></td>
-			</tr>
+					<span id="PrintYear"></span></td></tr>
+			<tr>	<td>Filing Status:</td>
+				<td><select id="FilingStatus">
+						<option>Single</option>
+						<option selected>MFJ</option>
+						<option>MFS</option>
+						<option>HOH</option>
+						<option>QSS</option>
+					</select></tr>
 		</table>
 	</div>
 
@@ -326,24 +355,25 @@
 
 	<div id="CLWorksheet" onchange="DoCalc();">
 		<br />
-		<span class="tblHeader">Prior year income:</span>
+		<span class="tblHeader">From the prior year (<span class="pty"></span>) tax return:</span>
 		<table id="InputTable">
-			<tr>	<td><span class="pty">2024</span>&apos;s Taxable income:</td>
+			<tr>	<th></th><th></th><th>enter all fields even if 0</th></tr>
+			<tr>	<td><span class="pty"></span>&apos;s Taxable income:</td>
 				<td>Form 1040 line <span id="TaxableLineNo">15</span></td>
 				<td><input id="Taxable" type="number" /></td>
-			<tr id="ZeroRow1">	<td><span class="pty">2024</span>&apos;s Adjusted gross income:</td>
+			<tr id="ZeroRow1">	<td><span class="pty"></span>&apos;s Adjusted gross income:</td>
 				<td>Form 1040 line <span id="GrossLineNo">11</span></td>
 				<td><input id="Gross" type="number" /></td>
-			<tr id="ZeroRow2">	<td><span class="pty">2024</span>&apos;s Deduction:</td>
+			<tr id="ZeroRow2">	<td><span class="pty"></span>&apos;s Deduction:</td>
 				<td>Form 1040 line <span id="DeductionLineNo">12</span></td>
 				<td><input id="Deduction" type="number" /></td>
-			<tr id="ZeroRow3">	<td><span class="pty">2024</span>&apos;s QBI deduction:</td>
+			<tr id="ZeroRow3">	<td><span class="pty"></span>&apos;s QBI deduction:</td>
 				<td>Form 1040 line <span id="QBILineNo">13</span></td>
 				<td><input id="QBI" type="number" /></td>
-			<tr>	<td><span class="pty">2024</span>&apos;s Net short-term gain/loss:</td>
+			<tr>	<td><span class="pty"></span>&apos;s Net short-term gain/loss (prefix loss with -):</td>
 				<td>Schedule D line <span id="STGainLineNo">7</span></td>
 				<td><input id="STGain" type="number" /></td>
-			<tr>	<td><span class="pty">2024</span>&apos;s Net long-term gain/loss:</td>
+			<tr>	<td><span class="pty"></span>&apos;s Net long-term gain/loss (prefix loss with -):</td>
 				<td>Schedule D line <span id="LTGainLineNo">15</span></td>
 				<td><input id="LTGain" type="number" /></td>
 		</table>
@@ -353,12 +383,12 @@
 		<br />
 		<table id="CLTable" class="income-table">
 			<tr>	<td>1.</td>
-				<td> Enter the amount from <span class="pty">2024</span> 1040 line 15.
+				<td> Enter the amount from <span class="pty"></span> 1040 line 15.
 					If it would have been a loss, enter as a negative number.
 				</td>
 				<td></td><td id="CL01" class="CLData"></td></tr>
 			<tr>	<td>2.</td>
-				<td> Enter the loss from <span class="pty">2024</span> Schedule D, line 21
+				<td> Enter the loss from <span class="pty"></span> Schedule D, line 21
 					as a positive number.
 				</td>
 				<td></td><td id="CL02" class="CLData"></td></tr>
@@ -371,15 +401,15 @@
 				</td>
 				<td id="CL04" class="CLData"></td><td></td></tr>
 			<tr>	<td></td>
-				<td colspan="2"><b>If line 7 of your <span class="pty">2024</span> Schedule D is a loss,
+				<td colspan="2"><b>If line 7 of your <span class="pty"></span> Schedule D is a loss,
 						go to line 5; otherwise, enter 0 on line 5 and go to line 9.</b></td></tr>
 			<tr>	<td>5.</td>
-				<td> Enter the loss from <span class="pty">2024</span> Schedule D line 7
+				<td> Enter the loss from <span class="pty"></span> Schedule D line 7
 					as a positive number
 				</td>
 				<td></td><td id="CL05" class="CLData"></td></tr>
 			<tr>	<td>6.</td>
-				<td> Enter any gain from <span class="pty">2024</span> Schedule D, line 15.
+				<td> Enter any gain from <span class="pty"></span> Schedule D, line 15.
 					If a loss, enter 0.
 				</td>
 				<td id="CL06" class="CLData"></td><td></td></tr>
@@ -388,20 +418,20 @@
 				</td>
 				<td></td><td id="CL07" class="CLData"></td></tr>
 			<tr>	<td>8.</td>
-				<td> <b>Short-term capital loss carryover for <span class="cty">2024</span></b>
+				<td> <b>Short-term capital loss carryover for <span class="cty"></span></b>
 					Subtract line 7 from line 5. If zero or less,enter 0.
 				</td>
 				<td></td><td id="CL08" class="CLData"></td></tr>
 			<tr>	<td></td>
-				<td colspan="2"><b>If line 15 of your <span class="pty">2024</span> Schedule D is a loss,
+				<td colspan="2"><b>If line 15 of your <span class="pty"></span> Schedule D is a loss,
 						go to line 9; otherwise, skip lines 9 through 13.</b></td></tr>
 			<tr>	<td>9.</td>
-				<td> Enter the loss from <span class="pty">2024</span> Schedule D, line 15
+				<td> Enter the loss from <span class="pty"></span> Schedule D, line 15
 				as a positive number.
 				<td></td></td>
 				<td id="CL09" class="CLData"></td></tr>
 			<tr>	<td>10.</td>
-				<td> Enter any gain from <span class="pty">2024</span> Schedule D, line 7.
+				<td> Enter any gain from <span class="pty"></span> Schedule D, line 7.
 				If a loss, enter as 0.
 				</td>
 				<td id="CL10" class="CLData"></td><td></td></tr>
@@ -422,16 +452,21 @@
 		</table>
 		</section> <!-- CLSection -->
 		<br />
-		<span class="tblHeader"><span class="cty">2025</span> TaxSlayer input:</span>
+		<span class="tblHeader"><span class="cty"></span> TaxSlayer input</span>
+		(Schedule D Capital Gains > Capital Loss Carryover):
 		<br />
 		<br />
 		<table id="TSTable">
-			<tr>	<td>Short-term capital loss carryover</td>
+			<tr>	<td>Short-term capital loss carryover from <span class="pty"></span> to <span class="cty"></span></td>
 				<td>Schedule D Line 6</td>
-				<td id="TSShort" class="TSData"></td></tr>
-			<tr>	<td>Long-term capital loss carryover</td>
+				<td id="TSShort" class="TSData"></td>
+				<!--td id="TSShortx" class="TSData"></td-->
+			</tr>
+			<tr>	<td>Long-term capital loss carryover from <span class="pty"></span> to <span class="cty"></span></td>
 				<td>Schedule D Line 14</td>
-				<td id="TSLong" class="TSData"></td></tr>
+				<td id="TSLong" class="TSData"></td>
+				<!--td id="TSLongx" class="TSData"></td-->
+			</tr>
 		</table>
 
 	</div> <!-- CLWorksheet -->
