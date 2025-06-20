@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
 	<meta name="author" content="Jeff Bogart, CO1/D18 Longmont TC">
 	<title>Capital loss carryover worksheet</title>
 
@@ -14,7 +14,7 @@
 	h1 { text-align: center; font-size: 110%; text-decoration: underline}
 	tr { vertical-align: top;}
 	th { background-color: #cfc0c0; }
-	input, select { background-color: white; }
+	input, select { background-color: white; width: 6.5em; }
 	input:disabled, select:disabled { background-color: lightgrey; font-weight: bold; }
 	.bold { font-weight: bold; }
 	.tblHeader { font-size: 110%; font-weight: bold; text-decoration: underline; }
@@ -29,8 +29,8 @@
 	#TPNameTable tr td:nth-child(2) { min-width: 15em;}
 	#TPNameTable tr td:nth-child(3) { min-width: 5em; text-align: right; }
 	#ClearAndPrint { text-align: center; float: right; z-level: 2; position:  absolute; top: 1em; right: 1em; }
+	#printbutton2 { float: right; }
 	#Name { width: 20em; }
-	#PrintYear { display: none; }
 	#InstructionDetails { display: none; }
 	#TaxYear { width: 5.5em; }
 
@@ -100,11 +100,15 @@
 	@media print { 
 		.doPrint { display: inline; }
 		.noPrint { display: none; }
-		#PrintYear { display: inline; }
 		html { background-color: white; font-size: 0.8em; }
 		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
-		input, select, option { font-size: 0.8em; }
+		input, select, option { font-size: 0.8em;
+			appearance: none;
+			-webkit-appearance: none;
+			-moz-appearance: none;
+		}
 		table { width: 100%; background-color: white; }
+
 	}
 </style>
 
@@ -120,6 +124,8 @@
 	VERSION = "(Version 1.02, 6/20/2025)";
 	//	Minor text changes for clarification
 	//	Commented out a test field (2nd column of results)
+	//	Clear worksheet form before any change is processed
+	//	Moved filing status to prior year section
 	//VERSION = "(Version 1.01, 6/17/2025)";
 	//	Added filing status
 	//VERSION = "(Version 1.00, 6/8/2025)";
@@ -141,7 +147,7 @@
 			tyopti.text = tyopti.value = ty;
 			TaxYear.add(tyopti,tyOptIndex++);
 		}
-		PrintYear.innerHTML = TaxYear.value = TY = _DefaultYear;
+		TaxYear.value = TY = _DefaultYear;
 		GetLineNumbers();
 	}
 
@@ -157,6 +163,8 @@
 	function DoCalc() { 
 	// This function checks input consistancy and calcs
 	//----------------------------------------------------------------------------------------
+		CL01val = "";
+		ClearResults();
 		if (Taxable.value === "") {
 			ZeroRow1.style.display =
 			ZeroRow2.style.display =
@@ -164,8 +172,6 @@
 			Gross.style.backgroundColor = 
 			Deduction.style.backgroundColor = 
 			QBI.style.backgroundColor = "white";
-			ClearResults();
-			CL01.innerHTML = "";
 			return;
 		}
 
@@ -253,7 +259,6 @@
 
 		// Get the new tax year
 		TY = +TaxYear.value;
-		PrintYear.innerHTML = TY;
 		PY = TY - 1;
 
 		// Update references to the tax year and prior taxyear
@@ -276,8 +281,7 @@
 
 	//----------------------------------------------------------------------------------------
 	function ClearResults() { 
-	// This function gets the 1040 line numbers for the selected year
-	//	Curently not needed since all line numbers are the same for all years and not in json files.
+	// This function clears the results of calculations
 	//----------------------------------------------------------------------------------------
 		clList = document.getElementsByClassName("CLData");
 		for (clI in clList) clList[clI].innerHTML = "";
@@ -320,18 +324,9 @@
 			<tr>
 				<td id="TPNcolumnA">Taxpayer&apos;s Name: </td>
 				<td id="TPNcolumnB"><input id="Name" /></td>
-				<td id="TPNcolumnC">Tax Year: </td>
+				<td id="TPNcolumnC">This Tax Year: </td>
 				<td id="TPNcolumnD">
-					<select id="TaxYear" class="noPrint" onchange="GetLineNumbers();"></select>
-					<span id="PrintYear"></span></td></tr>
-			<tr>	<td>Filing Status:</td>
-				<td><select id="FilingStatus">
-						<option>Single</option>
-						<option selected>MFJ</option>
-						<option>MFS</option>
-						<option>HOH</option>
-						<option>QSS</option>
-					</select></tr>
+					<select id="TaxYear" onchange="GetLineNumbers();"></select></td></tr>
 		</table>
 	</div>
 
@@ -358,6 +353,15 @@
 		<span class="tblHeader">From the prior year (<span class="pty"></span>) tax return:</span>
 		<table id="InputTable">
 			<tr>	<th></th><th></th><th>enter all fields even if 0</th></tr>
+			<tr>	<td><span class="pty"></span>&apos;s Filing Status:</td>
+				<td></td></span>
+				<td><select id="FilingStatus">
+					<option value="SNG">Single</option>
+					<option value="MFJ" selected>MFJ</option>
+					<option value="MFS">MFS</option>
+					<option value="HOH">HOH</option>
+					<option value="QSS">QSS</option>
+					</select></td></tr>
 			<tr>	<td><span class="pty"></span>&apos;s Taxable income:</td>
 				<td>Form 1040 line <span id="TaxableLineNo">15</span></td>
 				<td><input id="Taxable" type="number" /></td>
@@ -370,10 +374,10 @@
 			<tr id="ZeroRow3">	<td><span class="pty"></span>&apos;s QBI deduction:</td>
 				<td>Form 1040 line <span id="QBILineNo">13</span></td>
 				<td><input id="QBI" type="number" /></td>
-			<tr>	<td><span class="pty"></span>&apos;s Net short-term gain/loss (prefix loss with -):</td>
+				<tr>	<td><span class="pty"></span>&apos;s Net short-term gain/loss (<i>prefix loss with - </i>):</td>
 				<td>Schedule D line <span id="STGainLineNo">7</span></td>
 				<td><input id="STGain" type="number" /></td>
-			<tr>	<td><span class="pty"></span>&apos;s Net long-term gain/loss (prefix loss with -):</td>
+				<tr>	<td><span class="pty"></span>&apos;s Net long-term gain/loss (<i>prefix loss with - </i>):</td>
 				<td>Schedule D line <span id="LTGainLineNo">15</span></td>
 				<td><input id="LTGain" type="number" /></td>
 		</table>
