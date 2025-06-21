@@ -34,7 +34,6 @@
 	#Name, #Broker {
 		width: 25em;
 	}
-	#PrintYear { display: none; }
 	#InstructionDetails { display: none; }
 	#TaxYear { width: 5.5em; }
 
@@ -121,10 +120,14 @@
 	@media print { 
 		.doPrint { display: inline; }
 		.noPrint { display: none; }
-		#PrintYear { display: inline; }
 		html { background-color: white; font-size: 0.8em; }
 		body { font-size: 0.8em; background-color: white; padding: 0; margin: 0; }
-		input, select, option { font-size: 0.8em; }
+		input, select, option {
+			font-size: 0.8em;
+			appearance: none;
+			webkit-appearance: none;
+			moz-appearance: none;
+		}
 		table { width: 100%; background-color: white; }
 	}
 </style>
@@ -134,10 +137,16 @@
 	var VERSION;
 	// --------------------------------------------------------------------------------
 	// Contributors:
-
+	//	Tom Kohler		Kenny Hayes
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.00, 6/1/2025)";
+	VERSION = "(Version 1.02, 6/20/2025)";
+	//	Added total tax free fund check
+	//	Minor text correction
+	//VERSION = "(Version 1.01, 6/18/2025)";
+	//	Text correction in instructions
+	//	Moved Commatize to common routines so could be used elsewhere
+	//VERSION = "(Version 1.00, 6/1/2025)";
 
 	var TY = _DefaultYear;
 	var Line_index = 0;
@@ -159,7 +168,7 @@
 			tyopti.text = tyopti.value = ty;
 			TaxYear.add(tyopti,tyOptIndex++);
 		}
-		PrintYear.innerHTML = TaxYear.value = TY = _DefaultYear;
+		TaxYear.value = TY = _DefaultYear;
 		GetLineNumbers();
 		AddTableLine("DIVIncomeTable");
 		AddTableLine("INTIncomeTable");
@@ -176,7 +185,7 @@
 
 	//----------------------------------------------------------------------------------------
 	function ExemptCalc(form){ 
-	// This function checks input consistantcy
+	// This function checks input consistancy
 	//----------------------------------------------------------------------------------------
 		// Show or hide the selected tables
 		DIVWorksheet.style.display = (ShowDIV.checked) ? "inline-block" : "none" ;
@@ -188,15 +197,16 @@
 
 		ErrorMessage = "";
 		TotalStateTaxFree = 0;
+		TotalEarnedTaxFree = 0;
 		TotalExempt = 0;
 
 		// get the Federal tax-free amount and bonds
 		eFed = document.getElementById(form + "FedTaxFree");
 		FedTaxFree = Math.round(eFed.value.replace(/[^0-9\.]/g, ""));
-		eFed.value = "$ " + Commatize(FedTaxFree);
+		eFed.value = "$ " + _Commatize(FedTaxFree);
 		eBond = document.getElementById(form + "FedBonds");
 		FedBonds = Math.round(eBond.value.replace(/[^0-9\.]/g, ""));
-		eBond.value = "$ " + Commatize(FedBonds);
+		eBond.value = "$ " + _Commatize(FedBonds);
 
 		// do we need to add a new blank line? Assume so unless an existing one is blank
 		needNewLine = true;
@@ -251,12 +261,13 @@
 				}
 				if ( (Earnings > 0) && (exempt > Earnings) ) {
 					eEarn.style.backgroundColor = "lightpink";
-					ErrorMessage += "\nThe total amount of exemtions cannot be greater than the Fund earnings.";
+					ErrorMessage += "\nThe total amount of exemptions cannot be greater than the Fund earnings.";
 					exempt = "";
 					alert (ErrorMessage);
 				}
-				eStf.innerHTML = Commatize(exempt);
+				eStf.innerHTML = _Commatize(exempt);
 				TotalStateTaxFree += exempt;
+				TotalEarnedTaxFree += Earnings;
 			}
 			else {
 				if ( (Earnings > 0) && (exempt > Earnings) ) {
@@ -265,14 +276,14 @@
 					exempt = "";
 					alert (ErrorMessage);
 			}
-				eExe.innerHTML = Commatize(exempt);
+				eExe.innerHTML = _Commatize(exempt);
 				TotalExempt += exempt;
 			}
 		}
 
 		// Totals for this worksheet
-		document.getElementById(form + "Exempt").innerHTML = Commatize(+TotalExempt);
-		document.getElementById(form + "StateTaxFree").innerHTML = Commatize(+TotalStateTaxFree);
+		document.getElementById(form + "Exempt").innerHTML = _Commatize(+TotalExempt);
+		document.getElementById(form + "StateTaxFree").innerHTML = _Commatize(+TotalStateTaxFree);
 		if (+FedTaxFree < +TotalStateTaxFree) {
 			ErrorMessage += "The total amount of state tax free earnings cannot be greater";
 			ErrorMessage +=" than the Federal exempt interest amount.";
@@ -280,8 +291,15 @@
 			alert (ErrorMessage);
 			return;
 		}
-		document.getElementById(form + "TSExempt").innerHTML = "$ " + Commatize(+TotalExempt + +FedBonds);
-		document.getElementById(form + "TSTaxable").innerHTML = "$ " + Commatize(Math.max(0, +FedTaxFree - +TotalStateTaxFree));
+		if (+FedTaxFree < +TotalEarnedTaxFree) {
+			ErrorMessage += "The total amount of tax free earnings cannot be greater";
+			ErrorMessage +=" than the Federal exempt interest amount.";
+			ErrorMessage +="\n\nPlease check all lines with the Tax free box checked.";
+			alert (ErrorMessage);
+			return;
+		}
+		document.getElementById(form + "TSExempt").innerHTML = "$ " + _Commatize(+TotalExempt + +FedBonds);
+		document.getElementById(form + "TSTaxable").innerHTML = "$ " + _Commatize(Math.max(0, +FedTaxFree - +TotalStateTaxFree));
 
 		// do we need to add a new blank line
 		if (needNewLine) {
@@ -318,7 +336,7 @@
 				alert (ErrorMessage);
 				return 0;
 			}
-			cellElement.value = "$ " + Commatize(value);
+			cellElement.value = "$ " + _Commatize(value);
 		}
 		else { // is percentage of Earnings
 			if (value > 100) { // Also cannot be < 0 but any minus sign has already been removed
@@ -335,22 +353,10 @@
 	}
 
 	//----------------------------------------------------------------------------------------
-	function Commatize(dval) { 
-	// This function gets the 1040 line numbers for the selected year
-	//----------------------------------------------------------------------------------------
-		dval += ""; // convert to string
-		if ((dl = dval.length) > 3) dval = dval.substring(0,dl-3) + "," + dval.substring(dl-3);
-		if ((dl = dval.length) > 7) dval = dval.substring(0,dl-7) + "," + dval.substring(dl-7);
-		if ((dl = dval.length) > 11) dval = dval.substring(0,dl-11) + "," + dval.substring(dl-11);
-		return (dval);
-	}
-
-	//----------------------------------------------------------------------------------------
 	function GetLineNumbers() { 
 	// This function gets the 1040 line numbers for the selected year
 	//	Curently not needed since all line numbers are the same for all years and not in json files.
 	//----------------------------------------------------------------------------------------
-		PrintYear.innerHTML = TaxYear.value;
 		// Get the new tax year
 		// TY = +TaxYear.value;
 
@@ -422,8 +428,7 @@
 				<td id="TPNcolumnB"><input id="Name" /></td>
 				<td id="TPNcolumnC">Tax Year: </td>
 				<td id="TPNcolumnD">
-					<select id="TaxYear" class="noPrint" onchange="GetLineNumbers();"></select>
-					<span id="PrintYear"></span></td>
+					<select id="TaxYear" onchange="GetLineNumbers();"></select></td>
 			</tr>
 			<tr>
 				<td>Income source (broker name): </td><td><input id="Broker" /></td>
@@ -456,7 +461,7 @@
 		Create and print a seperate sheet for each broker statement on which entries
 		need to be made.
 		<br /><br />Note that some broker statements will distinguish between direct
-		and indirect go464288588 vernment obligations. Generally, direct obligations are
+		and indirect government obligations. Generally, direct obligations are
 		excludable but indirect obligations are dependent on state tax laws. If your
 		state law allows the latter, add the two percentages for the government
 		obligations column. (Colorado does not.)
@@ -474,7 +479,7 @@
 				in a seperate line. The table will expand to always have a blank line.
 			<li>If a fund is part of the Tax exempt interest amount,
 				check the "Tax free" box so that it is associated with that amount.
-				Typically, the fund amount is from bonds and those from your
+				Typically, the fund amount is from bonds, and those from your
 				state of residence will be tax free.</li>
 			<li>For the Federal and State data entries, precede the amount by a "$"
 				if using an actual amount or (optionally)
