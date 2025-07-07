@@ -470,6 +470,7 @@ function _EICLookup(	// Earned Income Credit table lookup
 	TP65,		// true/false
 	SP65		// true/false
 	) {
+// Eligibility tests must be made first
 // Returns the Earned Income Credit
 //----------------------------------------------------------------------------------------
 
