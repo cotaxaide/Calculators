@@ -379,7 +379,11 @@
 	// --------------------------------------------------------------------
 	// Version history:
 	// --------------------------------------------------------------------
-		var VERSION = "(version 12.31a, 12/15/2024)";
+		var VERSION = "(version 12.31c, 1/30/2025)";
+		//	Change PSO designations to QPSE
+		//var VERSION = "(version 12.31b, 1/5/2025)";
+		//	Minor text changes in results to match TaxSlayer
+		//var VERSION = "(version 12.31a, 12/15/2024)";
 		//	Changed PSO entry that showed a "+" to a "-"
 		//var VERSION = "(version 12.31, 12/6/2024)";
 		//	Removed SEHI from message due to death of taxpayer
@@ -476,7 +480,7 @@
 		//var VERSION = "(version 9, 1/27/2017)";
 		//	Corrected case where distribution less exclusion was less than 3000
 		//var VERSION = "(version 8a, 1/14/2017)";
-		//	Corrected list of public safety officers in tooltip
+		//	Corrected list of public safety employees in tooltip
 		//var VERSION = "(version 8, 12/18/2016)";
 		//	Restored dates on printed output for QR purposes
 		//var VERSION = "(version 7h, 11/10/2016)";
@@ -543,7 +547,7 @@
 		var GROSS_TOTAL = 0;
 		var MINRETDATE = 0;
 		var dagger = "<sup>&dagger;</sup>"
-		var PSOtitle = "Public safety officers are:";
+		var PSOtitle = "Qualified public safety employees are:";
 			PSOtitle += "<ul><li>Federal and local law enforcement officer</li>";
 			PSOtitle += "<li>Members of the United States Capitol Police</li>";
 			PSOtitle += "<li>Members of the Supreme Court Police</li>";
@@ -561,7 +565,7 @@
 			PSOtitle += "<b>Note:</b> a surviving spouse does not receive the exclusion.";
 		var Distitle = "For disability pensions, the contributions are not recovered until";
 			Distitle += " the minimum retirement age has been reached however,";
-			Distitle += " public safety officer exclusions still apply if qualified."
+			Distitle += " public safety employee exclusions still apply if qualified."
 			Distitle += " The annuity recovery will start with the first payment after reaching minimum retirement age.";
 			Distitle += " <br /><br />If that happened this year, you may have to split the 1099-R";
 			Distitle += " into two entries:";
@@ -1170,7 +1174,7 @@
 						if (+PSOMEDIC.value > MedTaxLimit) { // More than the limit entered
 							Pension_part += "\n\n   The taxable amount of the annuity is $";
 							Pension_part += (+TPGROSS.value - MedTaxLimit);
-							Pension_part += "\n   The public safety officer insurance exclusion is (reduced to the tax law limit) $" + MedTaxLimit + ".";
+							Pension_part += "\n   The public safety employee insurance exclusion is (reduced to the tax law limit) $" + MedTaxLimit + ".";
 							Pension_part += "\n\nBe sure to include the additional $";
 							Pension_part += (+PSOMEDIC.value - MedTaxLimit);
 							Pension_part += " as a SEHI adjustment or";
@@ -1182,7 +1186,7 @@
 						else { // Less than the limit entered
 							Pension_part += "\n\n   The taxable amount of the annuity is $";
 							Pension_part += (+TPGROSS.value - +PSOMEDIC.value);
-							Pension_part += "\n   The public safety officer insurance exclusion is $";
+							Pension_part += "\n   The public safety employee insurance exclusion is $";
 							Pension_part += +PSOMEDIC.value;
 						}
 					}
@@ -1371,7 +1375,7 @@
 			MEDIC.value = Math.round(PSOMEDIC.value); // do not use "+PSOMEDIC.value"
 
 			if (TPdec.checked && (! TPdied.checked) && (! SPdied.checked)) {
-				alert("The spouse of a public safety officer cannot exclude medical expenses.");
+				alert("The spouse of a public safety employee cannot exclude medical expenses.");
 				PSO.checked = false;
 				CANNOT_CALC |= MEDICAL_ERROR;
 				return; 
@@ -1427,7 +1431,7 @@
 			switch (OVERAGE) {
 				case overage_gross:
 					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
-					message += "The public safety officer insurance exclusion has been limited to the gross distribution of $";
+					message += "The public safety employee insurance exclusion has been limited to the gross distribution of $";
 					message += Math.round(+TPGROSS.value);
 					message += ". \n\nBe sure to include the additional $";
 					message += OVERAGE;
@@ -1439,7 +1443,7 @@
 					break;
 				case overage_limit:
 					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
-					message += "The public safety officer insurance exclusion has been reduced to the tax law limit of $";
+					message += "The public safety employee insurance exclusion has been reduced to the tax law limit of $";
 					message += MedTaxLimit;
 					message += ". \n\nBe sure to include the additional $";
 					message += OVERAGE;
@@ -1453,7 +1457,7 @@
 					MEDIC.value = Math.round(+TPGROSS.value - tax_exclusion);
 					PSOMEDIC.value = +MEDIC.value + +SALMEDIC.value;
 					message = "You entered $" + FULLMEDEX +  " as an insurance exclusion.\n\n";
-					message += "The public safety officer insurance exclusion has been limited to $";
+					message += "The public safety employee insurance exclusion has been limited to $";
 					message += PSOMEDIC.value;
 					message += " to allow the full exclusion to be taken. \n\nBe sure to include the additional $";
 					message += OVERAGE;
@@ -1736,7 +1740,7 @@
 				NOTE_PSO.innerHTML = t2;
 				NOTE_TOTAL.innerHTML = t3;
 				RRB1099R_TAXABLE.innerHTML =
-				F1099R_TAXABLE.innerHTML = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
+				F1099R_TAXABLE.innerHTML = t1 + (PSO.checked ? (" - " + t2 + " = " + t3 + dagger) : "" );
 				}
 			else {	
 				for (i=0; i<TROW; i++) {
@@ -1775,7 +1779,7 @@
 							NOTE_TAXABLE.innerHTML = t1;
 							NOTE_PSO.innerHTML = t2;
 							NOTE_TOTAL.innerHTML = t3;
-							TPtaxable = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
+							TPtaxable = t1 + (PSO.checked ? (" - " + t2 + " = " + t3 + dagger) : "" );
 							SPtaxable = Math.round(Math.max(0, +SPshowgross - SPEXCL));
 						}
 						else {
@@ -1787,7 +1791,7 @@
 							NOTE_TAXABLE.innerHTML = t1;
 							NOTE_PSO.innerHTML = t2;
 							NOTE_TOTAL.innerHTML = t3;
-							TPtaxable = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
+							TPtaxable = t1 + (PSO.checked ? (" - " + t2 + " = " + t3 + dagger) : "" );
 							SPtaxable = Math.round(Math.max(0, +SPshowgross - +TARR[i].exclusion));
 						}
 		
@@ -1814,7 +1818,7 @@
 				NOTE_PSO.innerHTML = t2;
 				NOTE_TOTAL.innerHTML = t3;
 				RRB1099R_TAXABLE.innerHTML =
-				F1099R_TAXABLE.innerHTML = t1 + (PSO.checked ? (" + " + t2 + " = " + t3 + dagger) : "" );
+				F1099R_TAXABLE.innerHTML = t1 + (PSO.checked ? (" - " + t2 + " = " + t3 + dagger) : "" );
 				F1099R_TAXABLE.innerHTML = Math.max(0,+SGRW_GROSS.innerHTML - +MEDIC.value);
 	
 				if (TPDiedMo.value === "") { // Exclusion all used up but not due to death
@@ -2282,7 +2286,7 @@
 							<input id="PSO" tabindex="2"
 								type="checkbox"
 								onchange="PSO_Change()" />
-								Check if a public safety officer pension
+								Check if a public safety employee pension
 								<span id="PSOQ"
 									onmouseover="PSOtitleBox.style.display='inline-block';"
 									onmouseout="PSOtitleBox.style.display='none';"
@@ -2483,7 +2487,7 @@
 			<div id="disability_note_box">
 				<span id="disability_note">NOTE: </span>The annuitant&apos;s disability pension amount should be entered as two 1099-Rs:
 				<br />&nbsp;&nbsp;&nbsp;#1: <span id="disability_part1"></span> as earned income (<input type="checkbox" checked="checked" disabled="disabled"> Form 1040 line <span id="WagesLineNo"></span>) - no pension exclusion
-				<br /><span id="disability_PSO">but, exclude <span id="DPSO_amount">0</span> Public Safety Officer insurance</span>
+				<br /><span id="disability_PSO">but, exclude <span id="DPSO_amount">0</span> Public Safety Employee insurance</span>
 				<br />&nbsp;&nbsp;&nbsp;#2: <span id="disability_part2_line"><span id="disability_part2"></span> as pension income (Form 1040 line <span id="PensionLineNo"></span>) - see below</span>
 			</div>
 			<br />
@@ -2552,16 +2556,19 @@
 									<tr>
 										<td>Starting date of annuity</td>
 										<td id="SGRW_START" class="white">0</td></tr>
-									<tr>
-										<td><span id="SGRW_JOINT"></span>
-											Check here if this is a Joint or Survivor Annuity</td>
-										<td></td></tr>
 									<tr>	
 										<td>Death benefit exclusion</td>
 										<td id="SGRW_DEATH" class="white">0</td></tr>
 									<tr>
-										<td>Age of recipient at start date</td>
+										<td><span id="SGRW_JOINT"></span>
+											Check here if the annuity benefits are based on...</td>
+										<td></td></tr>
+									<tr>
+										<td>Combined calculated age of annuitants at start date</td>
 										<td id="SGRW_AGE" class="white">0</td></tr>
+									<tr>
+										<td>Add or subtract from the calcualted age, if necessary</td>
+										<td id="SGRW_ADJ" class="white"> </td></tr>
 									<tr>
 										<td>Number of months paid in <span id="SGRW_YEAR">20XX</span></td>
 										<td><span id="SGRW_MONTHS" class="white">0</span></td></tr>
@@ -2569,7 +2576,7 @@
 										<td>Amounts previously recovered</td>
 										<td><span id="SGRW_PRIOR" class="white">0</span></td></tr>
 									<tr id="SGRW_PSO_line">
-										<td>Public Safety Officer Exclusion</td>
+										<td>Public Safety Employee Exclusion for Health Ins Prem</td>
 										<td><span id="SGRW_PSO" class="white"></span></td></tr>
 									</table></td></tr>
 						</table>
@@ -2587,8 +2594,8 @@
 					which can result in errors if the amount previously recovered is not known. 
 					<br /><u>We recommend </u>adding a note to the tax return and the taxpayer envelope
 					for next year&apos;s tax preparer that shows the date of retirement,
-					the annual exclusion amount, the final year, and partial exclusion for that year.
-					Also, print and include this table in the taxpayer envelope.
+					the annual exclusion amount, the final year, and partial exclusion for that final year.
+					Also, print and include this table in the taxpayer envelope and request they bring it next year.
 			</div>
 		</div> <!-- FORM1099DIV -->
 		
@@ -2607,7 +2614,7 @@
 						<td><input type="checkbox" disabled /></td><td> Check here to mark this as a Qualified Charitable distribution (QCD) on your return.</td></tr>
 					<tr>	<td><input type="checkbox" disabled /></td><td> Check here to mark this as a qualified health savings account (HSA) funding distribution<br />(HFD) on your return.</td></tr>
 					<tr>
-						<td><input type="checkbox" checked disabled /></td><td> Check here if you are an eligible retired public safety officer, and part of your distribution was<br />used to pay the premiums for accident or health insurance, or to pay long-term care</td></tr>
+						<td><input type="checkbox" checked disabled /></td><td> Check here if you are an eligible retired public safety employee, and part of your distribution was<br />used to pay the premiums for accident or health insurance, or to pay long-term care</td></tr>
 					</table>
 				</table>
 -->		</div>
