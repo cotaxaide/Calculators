@@ -121,7 +121,9 @@
 
 	// --------------------------------------------------------------------------------
 
-	VERSION = "(Version 1.02, 6/20/2025)";
+	VERSION = "(Version 1.03, 6/21/2025)";
+	//	Added blank filing status
+	//VERSION = "(Version 1.02, 6/20/2025)";
 	//	Minor text changes for clarification
 	//	Commented out a test field (2nd column of results)
 	//	Clear worksheet form before any change is processed
@@ -165,6 +167,10 @@
 	//----------------------------------------------------------------------------------------
 		CL01val = "";
 		ClearResults();
+
+		FS = FilingStatus.value;
+		if (FS == "") return;
+
 		if (Taxable.value === "") {
 			ZeroRow1.style.display =
 			ZeroRow2.style.display =
@@ -174,8 +180,6 @@
 			QBI.style.backgroundColor = "white";
 			return;
 		}
-
-		FS = FilingStatus.value;
 
 		// If zero, figure out what it would have been
 		if (Taxable.value == 0) {
@@ -339,6 +343,7 @@
 			<li>Enter amounts from the prior tax year and the worksheet that should have been
 				produced with that tax year will be filled in. If a field is zero, enter 0.
 				If a field is negative, enter it as such.</li>
+			<li>Be sure to select the correct filing status - it makes a difference!</li>
 			<li>If the taxable income is zero, it may actually be negative. Additional entry fields
 				will be displayed to help determine the negative amount which will be
 				added back to the carryover amount because it was not needed to bring the
@@ -356,8 +361,9 @@
 			<tr>	<td><span class="pty"></span>&apos;s Filing Status:</td>
 				<td></td></span>
 				<td><select id="FilingStatus">
+					<option value="" selected></option>
 					<option value="SNG">Single</option>
-					<option value="MFJ" selected>MFJ</option>
+					<option value="MFJ">MFJ</option>
 					<option value="MFS">MFS</option>
 					<option value="HOH">HOH</option>
 					<option value="QSS">QSS</option>
