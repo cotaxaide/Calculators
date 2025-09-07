@@ -10,6 +10,8 @@ function Tax_Calc (
 //		watch for checkboxes (test for type) and make true or false
 //	Use table tds or spans with ids = CalcOut keys and use a common output class name
 //----------------------------------------------------------------------------------------
+//Version 2.1, 8/2/2025
+//	Corrected scholarship income needed to be added to earned income for EIC
 //Version 2.0, 7/17/2025
 //	Removed style, checked, innerHTML, value, etc to make independent function
 //	Added CalcIn and CalcOut arrays initializations and keys
@@ -460,7 +462,7 @@ CalcOut["TaxPostCredits"] = Math.round(Math.max(0, CalcOut["PreNRTax"] - NRUsed)
 // Get the EIC amount
 var EICAmount = 0;
 var EICInvest = +CalcOut["CapGains"] + +CalcIn["InterestIncome"] + +CalcIn["TaxExemptInt"] + +CalcIn["Dividends"];
-var EICEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"];
+var EICEarned = +CalcIn["Wages"] + +CalcIn["SEIncome"] - +CalcOut["SETaxCredit"] + +CalcIn["Scholarships"];
 CalcOut["EICCredit"] = EICAmount = +_EICLookup(taxYear, FS,
 	EICDependents, EICEarned, EICInvest, CalcOut["AGI"],
 	CalcIn["TP65"], CalcIn["SP65"]);
