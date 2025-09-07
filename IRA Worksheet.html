@@ -260,7 +260,9 @@
 	// --------------------------------------------------------------------------------
 
 	// CHANGE HISTORY:
-	var VERSION = "(Version 2.03, 5/17/2024)";
+	var VERSION = "(Version 2.03a, 3/1/2025)";
+	//	Minor working changes in instructions
+	//var VERSION = "(Version 2.03, 5/17/2024)";
 	//	Changed to JSON IRS data files
 	//var VERSION = "(Version 2.02a, 12/15/2022)";
 	//	Added starting tax year comment for QCD reduced exclusion
@@ -816,8 +818,10 @@
 	<table id="IRATable0" class="datatable" onchange="FileChange();">
 		<tr><td colspan="4" >
 			<ul>
-				<li>Do not include inherited IRAs; they require their own 8606 if they have a basis.</li>
-				<li>The year-end value of all IRAs must be entered.</li>
+				<li>Do not include inherited IRAs; they have their own distribution rules
+					and require their own 8606 if they have a basis
+					<br />(unless inherited from your spouse and is now your own).</li>
+				<li>The year-end value of all other IRAs must be entered.</li>
 				<li>Uncheck the TRADITIONAL box if the IRA is a SEP or SIMPLE IRA</li>
 				<li>List IRAs from which QCDs have been taken first followed by traditional IRAs.</li>
 				<li>To simplify TaxSlayer entries, nontaxable amounts are taken from IRAs in the order listed.</li>
@@ -1109,7 +1113,7 @@
 
 <div class="noPrint">
 	Please send corrections and suggestions to
-	<a href="mailto:tools@cotaxaide.org">tools@cotaxaide.org</a>
+	<a href="mailto:core.webmaster0@gmail.com">tools@cotaxaide.org</a>
 	<span id="printbutton2" style="float: right;"><button onclick="window.print()">Print a taxpayer copy</button></span>
 </div>
 
