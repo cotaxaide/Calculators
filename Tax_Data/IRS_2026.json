@@ -1,6 +1,6 @@
 {	"TaxYear":		{"value":2026, "verified":false},
 	"LineNo": {
-		"1040_comment":	{"value":"Form 1040"},
+		"1040_comment":	"Form 1040",
 		"Wages":	{"value":"1z", "verified":false},
 		"Earned":	{"value":"1z&S1-3", "verified":false},
 		"TaxExInc":	{"value":"2a", "verified":false},
@@ -51,23 +51,29 @@
 		"F8962F":	{"value":"11f", "verified":false}
 	},
 	"Exemption":		{"value":0, "verified":false},
-	"DepAsRel":		{"value":5050, "verified":false},
+	"DepAsRel":		{"value":5200, "verified":false},
 	"DependMin":		{"value":1350, "verified":false},
 	"DependInc":		{"value":450, "verified":false},
-	"Kiddie":		{"value":2600, "verified":false},
+	"Kiddie":		{"value":2700, "verified":false},
 	"Standard": {
-		"SNG":	{"Rate":{"value":15000, "verified":false},
+		"SNG":	{"Rate":{"value":15750, "verified":false},
 			"Inc":	{"value":2000, "verified":false}},
-		"MFS":	{"Rate":{"value":15000, "verified":false},
+		"MFS":	{"Rate":{"value":15750, "verified":false},
 			"Inc":	{"value":1600, "verified":false}},
-		"MFJ":	{"Rate":{"value":30000, "verified":false},
+		"MFJ":	{"Rate":{"value":31500, "verified":false},
 			"Inc":	{"value":1600, "verified":false}},
-		"QSS":	{"Rate":{"value":30000, "verified":false},
+		"QSS":	{"Rate":{"value":31500, "verified":false},
 			"Inc":	{"value":1600, "verified":false}},
-		"WID":	{"Rate":{"value":30000, "verified":false},
+		"WID":	{"Rate":{"value":31500, "verified":false},
 			"Inc":	{"value":1600, "verified":false}},
-		"HOH":	{"Rate":{"value":22500, "verified":false},
+		"HOH":	{"Rate":{"value":23625, "verified":false},
 			"Inc":	{"value":2000, "verified":false}}
+	},
+	"Senior": {
+		"Comment":	"Double for MFJ, 0 for MFS",
+		"Maximum":	{"value": 6000, "verified":false},
+		"AGI0":		{"value": 75000, "verified":false},
+		"AGI1":		{"value": 17500, "verified":false}
 	},
         "TaxRates": {
 		"Rate":		{"value":[ 0.10,  0.12,   0.22,   0.24,   0.32,   0.35,   0.37], "verified":false},
@@ -99,7 +105,7 @@
 	"MedBMFSPremium":	{"comment":"From CMS website",
 				"value":106000, "verified":false
 	},
-	"NIIT": {
+	"NIIT":	{	
 		"comment":	"From Form 8960 instructions",
 		"Rate":		{"value": 0.038, "verified":false},
 		"SNG":		{"value":200000, "verified":false},
@@ -140,7 +146,8 @@
 		}
 	},
 	"MedExclusion": 	{"value":0.075, "verified":false},
-	"SALT":			{"value":10000, "verified":false},
+	"SALT":			{"value":40000, "verified":false},
+	"CharityExclusion":	{"value":0.0,	"verified":false},
 	"ItemLimit": {
                 "SNG":		{"value":10000000, "verified":false},
                 "MFS":		{"value":10000000, "verified":false},
@@ -151,12 +158,12 @@
 	},
 	"AMT": {
 		"comment":	"Cols are: exemption, threshold phaseout, complete phaseout",
-		"MFJ":		{"value":[137000, 1252700, 1800700], "verified":false},
-		"QSS":		{"value":[137000, 1252700, 1800700], "verified":false},
-		"WID":		{"value":[137000, 1252700, 1800700], "verified":false},
-		"MFS":		{"value":[ 68500,  626350,  900350], "verified":false},
-		"SNG":		{"value":[ 88100,  626350,  978750], "verified":false},
-		"HOH":		{"value":[ 88100,  626350,  978750], "verified":false}
+		"MFJ":		{"value":[137000, 1000000, 1800700], "verified":false},
+		"QSS":		{"value":[137000, 1000000, 1800700], "verified":false},
+		"WID":		{"value":[137000, 1000000, 1800700], "verified":false},
+		"MFS":		{"value":[ 68500,  500000,  900350], "verified":false},
+		"SNG":		{"value":[ 88100,  500000,  978750], "verified":false},
+		"HOH":		{"value":[ 88100,  500000,  978750], "verified":false}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.0765,   0.34,    0.4,   0.45], "verified":false},
@@ -177,13 +184,6 @@
 		"PerChild":	{"value":3000, "verified":false}
 	},
 	"Education": {
-		"TNF": {
-                	"MAX0":	{"value":0, "verified":false},
-                	"AGI1":	{"value":0, "verified":false},
-                	"MAX1":	{"value":0, "verified":false},
-                	"AGI2":	{"value":0, "verified":false},
-                	"MAX2":	{"value":0, "verified":false}
-		},
 		"AOC": {
                 	"MAX0":	{"value":4000, "verified":false},
                 	"SNG1":	{"value":80000, "verified":false},
@@ -220,15 +220,15 @@
 	},
 	"Retire": {
 		"Rate":		{"value":[  0.5,   0.2,	  0.1,	0], "verified":false},
-		"SNG":		{"value":[23000, 25000,	38250], "verified":false},
-		"MFS":		{"value":[23000, 25000,	38250], "verified":false},
-		"MFJ":		{"value":[46000, 50000,	76500], "verified":false},
-		"QSS":		{"value":[23000, 25000,	38250], "verified":false},
-		"WID":		{"value":[23000, 25000,	38250], "verified":false},
-		"HOH":		{"value":[34500, 37500,	57375], "verified":false}
+		"SNG":		{"value":[23000, 25000,	39500], "verified":false},
+		"MFS":		{"value":[23000, 25000,	39500], "verified":false},
+		"MFJ":		{"value":[46000, 50000,	79000], "verified":false},
+		"QSS":		{"value":[23000, 25000,	39500], "verified":false},
+		"WID":		{"value":[23000, 25000,	39500], "verified":false},
+		"HOH":		{"value":[34500, 37500,	59250], "verified":false}
 	},
 	"CTC": {
-		"Rate":		{"value":2000, "verified":false},
+		"Rate":		{"value":2200, "verified":false},
 		"Age0":		{"value":   0, "verified":false},
 		"Age6":		{"value":1000, "verified":false},
 		"FTC":		{"value": 500, "verified":false},

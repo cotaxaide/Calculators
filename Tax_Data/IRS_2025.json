@@ -1,6 +1,6 @@
 {	"TaxYear":		{"value":2025, "verified":true},
 	"LineNo": {
-		"1040_comment":	{"value":"Form 1040"},
+		"1040_comment":	"Form 1040",
 		"Wages":	{"value":"1z", "verified":true},
 		"Earned":	{"value":"1z&S1-3", "verified":true},
 		"TaxExInc":	{"value":"2a", "verified":true},
@@ -51,23 +51,29 @@
 		"F8962F":	{"value":"11f", "verified":true}
 	},
 	"Exemption":		{"value":0, "verified":true},
-	"DepAsRel":		{"value":5050, "verified":false},
+	"DepAsRel":		{"value":5200, "verified":true},
 	"DependMin":		{"value":1350, "verified":true},
 	"DependInc":		{"value":450, "verified":true},
-	"Kiddie":		{"value":2600, "verified":false},
+	"Kiddie":		{"value":2700, "verified":true},
 	"Standard": {
-		"SNG":	{"Rate":{"value":15000, "verified":true},
+		"SNG":	{"Rate":{"value":15750, "verified":true},
 			"Inc":	{"value":2000, "verified":true}},
-		"MFS":	{"Rate":{"value":15000, "verified":true},
+		"MFS":	{"Rate":{"value":15750, "verified":true},
 			"Inc":	{"value":1600, "verified":true}},
-		"MFJ":	{"Rate":{"value":30000, "verified":true},
+		"MFJ":	{"Rate":{"value":31500, "verified":true},
 			"Inc":	{"value":1600, "verified":true}},
-		"QSS":	{"Rate":{"value":30000, "verified":true},
+		"QSS":	{"Rate":{"value":31500, "verified":true},
 			"Inc":	{"value":1600, "verified":true}},
-		"WID":	{"Rate":{"value":30000, "verified":true},
+		"WID":	{"Rate":{"value":31500, "verified":true},
 			"Inc":	{"value":1600, "verified":true}},
-		"HOH":	{"Rate":{"value":22500, "verified":true},
+		"HOH":	{"Rate":{"value":23625, "verified":true},
 			"Inc":	{"value":2000, "verified":true}}
+	},
+	"Senior": {
+		"Comment":	"Double for MFJ, 0 for MFS",
+		"Maximum":	{"value": 6000, "verified":true},
+		"AGI0":		{"value": 75000, "verified":true},
+		"AGI1":		{"value": 17500, "verified":true}
 	},
         "TaxRates": {
 		"Rate":		{"value":[ 0.10,  0.12,   0.22,   0.24,   0.32,   0.35,   0.37], "verified":true},
@@ -140,7 +146,8 @@
 		}
 	},
 	"MedExclusion": 	{"value":0.075, "verified":false},
-	"SALT":			{"value":10000, "verified":false},
+	"SALT":			{"value":40000, "verified":true},
+	"CharityExclusion":	{"value":0.0,	"verified":false},
 	"ItemLimit": {
                 "SNG":		{"value":10000000, "verified":false},
                 "MFS":		{"value":10000000, "verified":false},
@@ -151,12 +158,12 @@
 	},
 	"AMT": {
 		"comment":	"Cols are: exemption, threshold phaseout, complete phaseout",
-		"MFJ":		{"value":[137000, 1252700, 1800700], "verified":true},
-		"QSS":		{"value":[137000, 1252700, 1800700], "verified":true},
-		"WID":		{"value":[137000, 1252700, 1800700], "verified":true},
-		"MFS":		{"value":[ 68500,  626350,  900350], "verified":true},
-		"SNG":		{"value":[ 88100,  626350,  978750], "verified":true},
-		"HOH":		{"value":[ 88100,  626350,  978750], "verified":true}
+		"MFJ":		{"value":[137000, 1000000, 1800700], "verified":false},
+		"QSS":		{"value":[137000, 1000000, 1800700], "verified":false},
+		"WID":		{"value":[137000, 1000000, 1800700], "verified":false},
+		"MFS":		{"value":[ 68500,  500000,  900350], "verified":false},
+		"SNG":		{"value":[ 88100,  500000,  978750], "verified":false},
+		"HOH":		{"value":[ 88100,  500000,  978750], "verified":false}
 	},
         "EIC": {
 		"RateUp":	{"value":[0.0765,   0.34,    0.4,   0.45], "verified":true},
@@ -177,13 +184,6 @@
 		"PerChild":	{"value":3000, "verified":true}
 	},
 	"Education": {
-		"TNF": {
-                	"MAX0":	{"value":0, "verified":false},
-                	"AGI1":	{"value":0, "verified":false},
-                	"MAX1":	{"value":0, "verified":false},
-                	"AGI2":	{"value":0, "verified":false},
-                	"MAX2":	{"value":0, "verified":false}
-		},
 		"AOC": {
                 	"MAX0":	{"value":4000, "verified":false},
                 	"SNG1":	{"value":80000, "verified":false},
@@ -228,7 +228,7 @@
 		"HOH":		{"value":[34500, 37500,	59250], "verified":true}
 	},
 	"CTC": {
-		"Rate":		{"value":2000, "verified":true},
+		"Rate":		{"value":2200, "verified":true},
 		"Age0":		{"value":   0, "verified":false},
 		"Age6":		{"value":1000, "verified":false},
 		"FTC":		{"value": 500, "verified":false},
