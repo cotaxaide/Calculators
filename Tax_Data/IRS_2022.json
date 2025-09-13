@@ -136,6 +136,7 @@
 	},
 	"MedExclusion": 	{"value":0.075},
 	"SALT":			{"value":10000},
+	"CharityLimit":		{"value":0.6,	"verified":true},
 	"ItemLimit": {
                 "SNG":		{"value":10000000},
                 "MFS":		{"value":10000000},

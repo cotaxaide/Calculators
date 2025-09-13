@@ -145,9 +145,9 @@
 			"HOH":	{"value":197300, "verified":true}
 		}
 	},
-	"MedExclusion": 	{"value":0.075, "verified":false},
+	"MedExclusion": 	{"value":0.075, "verified":true},
 	"SALT":			{"value":40000, "verified":true},
-	"CharityExclusion":	{"value":0.0,	"verified":false},
+	"CharityLimit":		{"value":0.6,	"verified":true},
 	"ItemLimit": {
                 "SNG":		{"value":10000000, "verified":false},
                 "MFS":		{"value":10000000, "verified":false},
