@@ -125,7 +125,7 @@ function _IRSValue(
 //----------------------------------------------------------------------------------------
 	let parms = IRSParameter.split(".");
 	let TYi = "TY" + TaxYear;
-	parmval = "??";
+	parmval = "";
 	switch (parms.length) {
 	case 1:	try { if ((parmval = IRSData[TYi][parms[0]].value) !== undefined) return parmval;} catch {}
 		try { if ((parmval = IRSData[TYi][parms[0]]) !== undefined) return parmval;} catch {}
@@ -142,10 +142,10 @@ function _IRSValue(
 	case 5:	try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]].value) !== undefined) return parmval;} catch {}
 		try { if ((parmval = IRSData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]]) !== undefined) return parmval;} catch {}
 		break;
-	default: return "???";
+	default: return "";
 	}
 	
-	return "??";
+	return "";
 }
 
 //----------------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ function _COValue(
 //----------------------------------------------------------------------------------------
 	let parms = IRSParameter.split(".");
 	let TYi = TaxYear; // Already has "TY" prepended to the year
-	parmval = "??";
+	parmval = "";
 	switch (parms.length) {
 	case 1:	try { if ((parmval = COData[TYi][parms[0]].value) !== undefined) return parmval;} catch {}
 		try { if ((parmval = COData[TYi][parms[0]]) !== undefined) return parmval;} catch {}
@@ -175,7 +175,7 @@ function _COValue(
 	case 5:	try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]].value) !== undefined) return parmval;} catch {}
 		try { if ((parmval = COData[TYi][parms[0]][parms[1]][parms[2]][parms[3]][parms[4]]) !== undefined) return parmval;} catch {}
 		break;
-	default: return "???";
+	default: return "";
 	}
 	
 	return "";
